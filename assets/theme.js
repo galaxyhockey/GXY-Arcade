@@ -176,3 +176,17 @@
      Account Settings (2000s / Modern / Frutiger Aero). The theming engine
      (gxySetTheme / gxyToggleTheme) remains available for that page to call. */
 })();
+
+/* Arcade mobile pass: bigger tap targets on touch screens, no double-tap zoom delay,
+   no accidental text selection while playing. Applies to every game that loads theme.js. */
+(function(){
+  if(document.getElementById('gxy-mobile-css')) return;
+  var st = document.createElement('style'); st.id = 'gxy-mobile-css';
+  st.textContent =
+    'html{-webkit-text-size-adjust:100%}body{touch-action:manipulation;-webkit-tap-highlight-color:transparent}' +
+    'canvas{touch-action:none;-webkit-user-select:none;user-select:none}' +
+    '@media (pointer:coarse){button,.btn,[role=button],nav a,header a,.topbar a,.hud a,[class*=gamebar] a,[class*=topnav] a{min-height:40px;min-width:40px}' +
+    'nav a,header a,.topbar a,[class*=gamebar] a,[class*=topnav] a{display:inline-flex;align-items:center}' +
+    'input,select,textarea{font-size:16px}}';   /* 16px stops iOS zooming into form fields */
+  (document.head || document.documentElement).appendChild(st);
+})();

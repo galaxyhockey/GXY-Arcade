@@ -90,9 +90,9 @@ function render(){
   const s=$('q').value.toLowerCase(),seen=store.get();
   [...$('cats').children].forEach(b=>b.setAttribute('aria-pressed',b.textContent===cat));
   $('grid').innerHTML=GAMES.filter(g=>(cat==='All'||g.c===cat)&&(g.t+g.d+g.c).toLowerCase().includes(s))
-    .map(g=>`<div><button class="case" data-id="${g.id}" aria-label="${g.t}"><img src="covers/${g.id}.svg" alt="">${seen.includes(g.id)?'':'<span class="new">NEW</span>'}</button><div class="label">${g.t}</div></div>`).join('')||'<p>No games match.</p>';
+    .map(g=>`<div><button class="case" data-id="${g.id}" aria-label="${g.t}"><img src="covers/${g.id}.svg" alt="" loading="lazy" decoding="async">${seen.includes(g.id)?'':'<span class="new">NEW</span>'}</button><div class="label">${g.t}</div></div>`).join('')||'<p>No games match.</p>';
   $('recent').innerHTML=seen.map(id=>GAMES.find(g=>g.id===id)).filter(Boolean)
-    .map(g=>`<a href="games/${g.id}.html" data-play="${g.id}"><img src="covers/${g.id}.svg" alt="">${g.t}</a>`).join('');
+    .map(g=>`<a href="games/${g.id}.html" data-play="${g.id}"><img src="covers/${g.id}.svg" alt="" loading="lazy">${g.t}</a>`).join('');
 }
 function open(id){
   const g=GAMES.find(x=>x.id===id);
