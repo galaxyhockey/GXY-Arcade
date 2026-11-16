@@ -213,16 +213,21 @@ function showSummary(first, results){
   const el = document.getElementById('sumNum'), t0 = performance.now();
   (function tick(t){ const p = Math.min(1,(t-t0)/700); if(el) el.textContent = (delta>=0?'+':'') + money(delta*p); if(p<1) requestAnimationFrame(tick); })(t0);
 }
+// hooks for the empire pack (long sims resolve decisions without a modal)
+window.smwRunWeek = runWeek;
+window.smwResolve = (i,j) => { const m = EVENTS[i].o[j][1](); F().pending = null; return EVENTS[i].t+': '+m; };
+window.smwSafeChoice = i => [1,0,1,0,1,0,1,0][i];
+window.smwSafeName = i => EVENTS[i].o[[1,0,1,0,1,0,1,0][i]][0];
 window.smwAfterSummary = function(){ const p = F().pending; if(p != null) showEvent(p); else closeModal('modal'); };
 window.advanceWeek = function(){
   if(!G) return; if(modalOpen() && !auto) return;
-  const r = runWeek(); if(!r) return;
+  const r = window.smwRunWeek(); if(!r) return;
   if(auto){ const l = [...r.res.notes, ...(r.res.goal?[r.res.goal]:[]), ...r.res.ach]; if(l.length) toast(l[0]); if(F().pending!=null){ stopAuto(); showEvent(F().pending); } return; }
   showSummary(r, [r]);
 };
 window.skipWeeks = function(n){
   if(!G || modalOpen()) return;
-  const rs = []; for(let i=0;i<n;i++){ const r = runWeek(); if(!r) break; rs.push(r); if(F().pending!=null || G._failed) break; }
+  const rs = []; for(let i=0;i<n;i++){ const r = window.smwRunWeek(); if(!r) break; rs.push(r); if(F().pending!=null || G._failed) break; }
   if(rs.length) showSummary(rs[0], rs);
 };
 function stopAuto(){ clearInterval(auto); auto = null; const b=document.getElementById('btnAuto'); if(b){ b.textContent='▶▶'; b.style.background=''; } }
