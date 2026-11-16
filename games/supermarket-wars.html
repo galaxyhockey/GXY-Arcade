@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supermarket Wars: Empire · Dave n' Busters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0d1117; --panel:#161b26; --panel2:#1c2333; --line:#2a3346; --line2:#3a4560;
+  --ink:#eaf0fb; --dim:#94a3bd; --muted:#6b7891;
+  --brand:#3b6fe0; --brand2:#C33764; --good:#2ecc71; --warn:#f5a623; --bad:#e5342a;
+  --gradBrand:linear-gradient(120deg,#1D2671,#C33764);
+  --gradMoney:linear-gradient(120deg,#0f9d58,#2ecc71);
+  --gradCity:linear-gradient(120deg,#0ED2F7,#3b6fe0);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;}
+a{color:inherit;text-decoration:none;}
+.mono{font-family:'Space Mono',monospace;}
+.cond{font-family:'Barlow Condensed',sans-serif;}
+
+/* game bar */
+.gxy-gamebar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:.7rem 1.1rem;background:var(--gradBrand);color:#fff;}
+.gxy-gamebar a{color:#fff;font-weight:700;font-size:.85rem;opacity:.95;}
+.gxy-gamebar a:hover{opacity:1;text-decoration:underline;}
+.gxy-gamebar .gt{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1.15rem;letter-spacing:.5px;}
+
+/* screens */
+.screen{display:none;}
+.screen.active{display:block;}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 80px;}
+
+/* mode select */
+.hero{text-align:center;padding:3rem 1.5rem 1.5rem;position:relative;overflow:hidden;}
+.hero::before{content:"";position:absolute;inset:-40%;background:radial-gradient(40% 50% at 30% 20%,rgba(195,55,100,.25),transparent 60%),radial-gradient(40% 50% at 75% 25%,rgba(59,111,224,.3),transparent 60%);filter:blur(30px);}
+.hero>*{position:relative;z-index:1;}
+.hero h1{font-family:'Barlow Condensed';font-weight:700;font-size:52px;letter-spacing:.5px;line-height:.95;}
+.hero h1 .g{background:var(--gradCity);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.hero .tag{color:var(--dim);font-size:16px;margin-top:6px;}
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:28px;}
+.mode-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;cursor:pointer;transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;text-align:left;position:relative;overflow:hidden;}
+.mode-card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--gradBrand);opacity:0;transition:opacity .2s;}
+.mode-card:hover{transform:translateY(-5px);border-color:var(--brand2);box-shadow:0 20px 44px rgba(195,55,100,.2);}
+.mode-card:hover::before{opacity:1;}
+.mode-card .mi{font-size:38px;margin-bottom:10px;}
+.mode-card .mn{font-family:'Barlow Condensed';font-weight:700;font-size:26px;}
+.mode-card .md{color:var(--dim);font-size:13.5px;line-height:1.5;margin-top:6px;}
+
+/* buttons */
+.btn{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:11px 20px;font-family:'Barlow Condensed';font-weight:700;font-size:17px;letter-spacing:.4px;cursor:pointer;text-transform:uppercase;transition:filter .15s,transform .15s;}
+.btn:hover{filter:brightness(1.1);}
+.btn:active{transform:scale(.98);}
+.btn.money{background:var(--good);}
+.btn.pink{background:var(--brand2);}
+.btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line2);}
+.btn.ghost:hover{border-color:var(--brand);}
+.btn.sm{padding:7px 13px;font-size:14px;border-radius:8px;}
+
+/* setup */
+.section-title{font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin:0 0 10px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:7px;}
+.field input,.field select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font-family:Inter;font-size:15px;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--brand);}
+.pickrow{display:flex;gap:10px;flex-wrap:wrap;}
+.pillpick{border:2px solid var(--line);border-radius:12px;padding:11px 16px;cursor:pointer;background:var(--panel);transition:.15s;}
+.pillpick.on{border-color:var(--brand);box-shadow:0 0 0 3px rgba(59,111,224,.18);}
+.pillpick .pn{font-family:'Barlow Condensed';font-weight:700;font-size:17px;}
+.pillpick .pd{color:var(--dim);font-size:11.5px;margin-top:2px;}
+
+/* HUD (in-game top stats) */
+.hud{position:sticky;top:52px;z-index:30;background:rgba(13,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px 18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.hud .stat{display:flex;flex-direction:column;}
+.hud .stat .l{font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.hud .stat .v{font-family:'Space Mono';font-weight:700;font-size:17px;}
+.hud .stat .v.money{color:var(--good);}
+.hud .spacer{flex:1;}
+.hud .wk{font-family:'Barlow Condensed';font-weight:700;font-size:15px;color:var(--dim);}
+
+/* tabs */
+.tabs{display:flex;gap:4px;margin:18px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.tab{padding:10px 18px;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);border-bottom:2px solid transparent;transition:.15s;}
+.tab:hover{color:var(--ink);}
+.tab.on{color:var(--ink);border-bottom-color:var(--brand2);}
+.tabpane{display:none;}
+.tabpane.on{display:block;}
+
+/* town/map grid */
+.town-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;}
+.town{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;transition:.15s;position:relative;}
+.town:hover{border-color:var(--brand);transform:translateY(-2px);}
+.town.owned{border-color:var(--good);}
+.town.owned::after{content:"● YOURS";position:absolute;top:10px;right:12px;font-size:9px;font-weight:700;color:var(--good);letter-spacing:.5px;}
+.town .tn{font-family:'Barlow Condensed';font-weight:700;font-size:19px;}
+.town .tmeta{color:var(--dim);font-size:12px;margin-top:3px;}
+.town .tbars{display:flex;gap:8px;margin-top:9px;}
+.town .tb{flex:1;text-align:center;background:var(--panel2);border-radius:7px;padding:5px;}
+.town .tb .bl{font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);}
+.town .tb .bv{font-family:'Space Mono';font-weight:700;font-size:13px;margin-top:1px;}
+.incdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;}
+
+/* store cards */
+.store-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.store{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;}
+.store .sh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.store .snm{font-family:'Barlow Condensed';font-weight:700;font-size:19px;line-height:1.05;}
+.store .sloc{color:var(--dim);font-size:12px;}
+.store .sage{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.age-new{background:rgba(46,204,113,.15);color:var(--good);}
+.age-mid{background:rgba(245,166,35,.15);color:var(--warn);}
+.age-old{background:rgba(229,52,42,.15);color:var(--bad);}
+.store .srow{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);}
+.store .srow:last-of-type{border-bottom:none;}
+.store .srow .k{color:var(--dim);}
+.store .srow .v{font-family:'Space Mono';font-weight:700;}
+.store .sactions{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.net-pos{color:var(--good);} .net-neg{color:var(--bad);}
+
+/* pricing controls in store detail */
+.price-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);}
+.price-row .step{width:30px;height:30px;border:1px solid var(--line2);background:var(--panel2);border-radius:8px;font-family:'Space Mono';font-weight:700;font-size:16px;cursor:pointer;color:var(--ink);}
+.price-row .step:hover{border-color:var(--brand);}
+.price-val{font-family:'Space Mono';font-weight:700;font-size:16px;min-width:64px;text-align:center;}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal.show{display:flex;}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:18px;max-width:560px;width:100%;padding:26px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modal h2{font-family:'Barlow Condensed';font-weight:700;font-size:28px;margin-bottom:4px;}
+
+/* --- mobile: modals slide up from the bottom as a scrollable sheet --- */
+@media (max-width:640px){
+  .modal{align-items:flex-end;padding:0;}
+  .modal .box{
+    max-width:100%;
+    border-radius:20px 20px 0 0;
+    padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));
+    /* cap height using the small-viewport unit so browser chrome/notch is handled */
+    max-height:92vh;
+    max-height:92dvh;
+    animation:sheetUp .28s cubic-bezier(.2,.7,.3,1);
+  }
+  .modal h2{font-size:24px;}
+  /* give tappable targets a bit more room on phones */
+  .modal .btn{padding:12px 16px;}
+  .modal .store{padding:14px;}
+}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+/* report / weekly results */
+.report-line{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.report-line:last-child{border-bottom:none;}
+.report-line .mono{font-weight:700;}
+
+/* toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);color:#fff;padding:12px 22px;border-radius:12px;font-weight:600;font-size:14px;z-index:200;box-shadow:0 12px 30px rgba(0,0,0,.4);animation:tin .3s var(--ease);}
+@keyframes tin{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+
+.empty-hint{color:var(--dim);text-align:center;padding:40px 20px;font-size:14px;line-height:1.6;}
+.kbd{font-family:'Space Mono';background:var(--panel2);border:1px solid var(--line2);border-radius:5px;padding:1px 6px;font-size:12px;}
+.big-cta{position:fixed;bottom:0;left:0;right:0;z-index:35;background:var(--gradBrand);border:none;color:#fff;font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:1px;text-transform:uppercase;padding:16px;cursor:pointer;box-shadow:0 -6px 20px rgba(0,0,0,.3);}
+.big-cta:hover{filter:brightness(1.1);}
+.saveslot{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;}
+.saveslot.empty{border-style:dashed;justify-content:center;color:var(--dim);cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="gxy-gamebar">
+  <span class="gt">🏪 Supermarket Wars: Empire</span>
+  <span style="display:flex;gap:1rem;align-items:center;">
+    <a href="index.html">← Arcade</a>
+    <a href="quickplay.html">Quick Play</a>
+    <a href="#" onclick="gxyOpenLb&&gxyOpenLb();return false;">🏆 Leaderboard</a>
+  </span>
+</div>
+
+<!-- SCREEN: MODE SELECT -->
+<div class="screen active" id="scr-mode">
+  <div class="hero">
+    <h1>SUPERMARKET <span class="g">WARS</span></h1>
+    <div class="tag">Pick your mode: build a nationwide empire, or jump into a quick price war.</div>
+  </div>
+  <div class="wrap" style="padding-top:0;">
+    <div class="mode-grid">
+      <div class="mode-card" onclick="chooseMode('campaign')">
+        <div class="mi">🇺🇸</div><div class="mn">Campaign</div>
+        <div class="md">Full realism. Pick a hometown, dominate your metro, then expand region by region until you're a coast-to-coast chain. Stores age, demand shifts, competition is real.</div>
+      </div>
+      <div class="mode-card" onclick="chooseMode('sandbox')">
+        <div class="mi">🧪</div><div class="mn">Sandbox</div>
+        <div class="md">Build freely. Choose your realism depth — Light, Moderate, or Full — start with extra capital, and experiment with no pressure. Great for learning the ropes.</div>
+      </div>
+      <div class="mode-card" onclick="location.href='quickplay.html'">
+        <div class="mi">⚡</div><div class="mn">Quick Play</div>
+        <div class="md">The classic single-store price war. One town, a handful of rivals, hold market share to win. Fast games, leaderboard scores. The original Supermarket Wars.</div>
+      </div>
+    </div>
+    <div style="margin-top:28px;">
+      <div class="section-title">Continue a saved empire</div>
+      <div id="saveSlots"></div>
+      <div id="cloudStatus" style="color:var(--muted);font-size:12px;font-family:'Space Mono';margin-top:6px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: SETUP -->
+<div class="screen" id="scr-setup">
+  <div class="wrap">
+    <button class="btn ghost sm" onclick="showScreen('scr-mode')" style="margin-bottom:16px;">← Back</button>
+    <h1 class="cond" id="setupTitle" style="font-size:36px;">New Campaign</h1>
+    <div class="tag" id="setupSub" style="color:var(--dim);margin-bottom:20px;">Choose your chain name, home metro, and starting town.</div>
+
+    <div class="field" style="max-width:420px;">
+      <label>Chain Name</label>
+      <input type="text" id="chainName" maxlength="28" placeholder="e.g. GalaxyMart" value="GalaxyMart">
+    </div>
+
+    <div class="field" id="realismField" style="display:none;max-width:520px;">
+      <label>Realism (Sandbox)</label>
+      <div class="pickrow" id="realismPick"></div>
+    </div>
+    <div class="field" id="difficultyField" style="display:none;max-width:560px;">
+      <label>Difficulty (Campaign) — the world escalates as you grow</label>
+      <div class="pickrow" id="difficultyPick"></div>
+    </div>
+
+    <div class="field">
+      <label>Home Metro</label>
+      <div class="pickrow" id="metroPick"></div>
+    </div>
+
+    <div class="field" id="townField" style="display:none;">
+      <label>Starting Town <span style="color:var(--muted);text-transform:none;letter-spacing:0;">— your first store opens here</span></label>
+      <div class="town-grid" id="startTownGrid" style="max-height:420px;overflow-y:auto;padding:2px;"></div>
+    </div>
+
+    <button class="btn money" id="foundBtn" style="display:none;margin-top:10px;" onclick="foundChain()">Open First Store →</button>
+  </div>
+</div>
+
+<!-- SCREEN: GAME -->
+<div class="screen" id="scr-game">
+  <div class="hud">
+    <div class="stat"><span class="l">Cash</span><span class="v money" id="hudCash">$0</span></div>
+    <div class="stat"><span class="l">Net Worth</span><span class="v" id="hudNW">$0</span></div>
+    <div class="stat"><span class="l">Stores</span><span class="v" id="hudStores">0</span></div>
+    <div class="stat"><span class="l">Weekly Net</span><span class="v" id="hudWeekly">$0</span></div>
+    <div class="stat"><span class="l">Metros</span><span class="v" id="hudMetros">1</span></div>
+    <div class="stat"><span class="l">Debt</span><span class="v" id="hudDebt">$0</span></div>
+    <div class="spacer"></div>
+    <span class="wk" id="hudWeek">Week 1 · 2026</span>
+    <button class="btn ghost sm" onclick="openBusinessHub()">🏢</button>
+    <button class="btn ghost sm" onclick="openLoansModal()">🏦</button>
+    <button class="btn ghost sm" onclick="openStaffModal()">👔</button>
+    <button class="btn ghost sm" onclick="openSettings()">⚙</button>
+    <button class="btn ghost sm" onclick="saveGame(true)">💾</button>
+    <button class="btn ghost sm" onclick="quitToMenu()">Quit</button>
+  </div>
+  <div class="wrap">
+    <div class="tabs" id="gameTabs">
+      <div class="tab on" data-tab="overview" onclick="switchTab('overview')">Overview</div>
+      <div class="tab" data-tab="map" onclick="switchTab('map')">Metro Map</div>
+      <div class="tab" data-tab="stores" onclick="switchTab('stores')">My Stores</div>
+      <div class="tab" data-tab="competition" onclick="switchTab('competition')">Competition</div>
+      <div class="tab" data-tab="ranking" onclick="switchTab('ranking')">🏆 Ranking</div>
+      <div class="tab" data-tab="stats" onclick="switchTab('stats')">Stats</div>
+      <div class="tab" data-tab="rnd" onclick="switchTab('rnd')">R&D</div>
+      <div class="tab" data-tab="ads" onclick="switchTab('ads')">Ads</div>
+      <div class="tab" data-tab="geomap" onclick="switchTab('geomap')">Map</div>
+      <div class="tab" data-tab="expand" onclick="switchTab('expand')">Expand</div>
+    </div>
+
+    <div class="tabpane on" id="pane-overview"></div>
+    <div class="tabpane" id="pane-map"></div>
+    <div class="tabpane" id="pane-stores"></div>
+    <div class="tabpane" id="pane-competition"></div>
+    <div class="tabpane" id="pane-ranking"></div>
+    <div class="tabpane" id="pane-stats"></div>
+    <div class="tabpane" id="pane-rnd"></div>
+    <div class="tabpane" id="pane-ads"></div>
+    <div class="tabpane" id="pane-geomap"></div>
+    <div class="tabpane" id="pane-expand"></div>
+  </div>
+  <button class="big-cta" id="advanceBtn" onclick="advanceWeek()">▶ Advance Week</button>
+</div>
+
+<!-- generic modal -->
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal('modal')"><div class="box" id="modalBox"></div></div>
+<!-- settings modal -->
+<div class="modal" id="settingsModal"><div class="box">
+  <h2>Settings</h2>
+  <div class="field" style="margin-top:14px;">
+    <label>Weekly Operations</label>
+    <div class="pickrow">
+      <div class="pillpick" id="opAuto" onclick="setOpsMode('auto')"><div class="pn">Auto-run</div><div class="pd">Stores operate on their strategy</div></div>
+      <div class="pillpick" id="opHybrid" onclick="setOpsMode('hybrid')"><div class="pn">Hybrid</div><div class="pd">Set defaults, intervene as needed</div></div>
+    </div>
+  </div>
+  <div class="field">
+    <label>Auto-price strategy (for auto-run stores)</label>
+    <select id="autoStrategy" onchange="setAutoStrategy(this.value)">
+      <option value="balanced">Balanced — steady margins</option>
+      <option value="aggressive">Aggressive — undercut for share</option>
+      <option value="premium">Premium — high price, high quality</option>
+    </select>
+  </div>
+  <button class="btn ghost" onclick="closeModal('settingsModal')" style="margin-top:8px;">Close</button>
+</div></div>
+
+<!-- leaderboard -->
+<div class="modal" id="gxyLbPanel"><div class="box" style="max-width:440px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <h2>🏆 Empire Leaderboard</h2>
+    <button class="btn ghost sm" onclick="closeModal('gxyLbPanel')">✕</button>
+  </div>
+  <div style="font-size:.8rem;color:var(--dim);margin-bottom:12px;">Highest net worth across all empires.</div>
+  <div id="gxyLbList"><div style="color:var(--dim);">Loading…</div></div>
+</div></div>
+
+<div id="toastMount"></div>
+<script src="empire-towns.js"></script>
+<script src="empire-regions.js"></script>
+<script src="empire-rivals.js"></script>
+<script src="empire-geo.js"></script>
+<script src="empire-intl.js"></script>
+<script src="empire-engine.js"></script>
+<script>
+/* ============================================================
+   SUPERMARKET WARS: EMPIRE — game logic
+   Uses GXY_METROS (towns) + GXY_ENGINE (sim) + GXY_NATIONAL_RIVALS.
+   ============================================================ */
+const E = window.GXY_ENGINE;
+/* region-specific rival roster with sensible fallback */
+function rivalRosterFor(metroKey){
+  if(window.GXY_INTL_RIVALS && window.GXY_INTL_RIVALS[metroKey]) return window.GXY_INTL_RIVALS[metroKey];
+  if(window.GXY_REGIONAL_RIVALS && window.GXY_REGIONAL_RIVALS[metroKey]) return window.GXY_REGIONAL_RIVALS[metroKey];
+  const isUK = GXY_METROS[metroKey] && GXY_METROS[metroKey].currency==='£';
+  return (isUK && window.GXY_UK_RIVALS) ? window.GXY_UK_RIVALS : window.GXY_NATIONAL_RIVALS;
+}
+/* merge adjacent-region metros into the metro map (regions start locked) */
+if(window.GXY_REGIONS){ Object.keys(window.GXY_REGIONS).forEach(k=>{ if(!window.GXY_METROS[k]) window.GXY_METROS[k]=window.GXY_REGIONS[k]; }); }
+if(window.GXY_INTL){ Object.keys(window.GXY_INTL).forEach(k=>{ if(!window.GXY_METROS[k]) window.GXY_METROS[k]=window.GXY_INTL[k]; }); }
+/* build a lookup: region label -> metro key (for unlocking by name) */
+const REGION_LABEL_TO_KEY = {};
+if(window.GXY_METROS){ Object.keys(window.GXY_METROS).forEach(k=>{ REGION_LABEL_TO_KEY[window.GXY_METROS[k].name]=k; REGION_LABEL_TO_KEY[window.GXY_METROS[k].region||window.GXY_METROS[k].name]=k; }); }
+const $ = s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function money(n){ const c=(G&&G.currency)||'$'; n=Math.round(n); return (n<0?'-'+c:c)+Math.abs(n).toLocaleString(); }
+function toast(msg){ const m=$('#toastMount'); m.innerHTML='<div class="toast">'+esc(msg)+'</div>'; clearTimeout(window._tt); window._tt=setTimeout(()=>m.innerHTML='',2600); }
+
+/* difficulty / realism presets */
+const REALISM = {
+  light:    { name:"Light",    dd:"Forgiving, streamlined", startCash:120000, agingMult:0.4, upkeepMult:0.8, failState:false },
+  moderate: { name:"Moderate", dd:"Balanced challenge",      startCash:90000,  agingMult:0.7, upkeepMult:1.0, failState:false },
+  full:     { name:"Full",     dd:"Maximum realism",         startCash:65000,  agingMult:1.0, upkeepMult:1.0, failState:true },
+};
+
+/* master game state */
+let G = null;
+/* G = { mode, realism, chainName, currency, week, year, cash,
+        metros:{KEY:{unlocked,rivalsByTown:{}}}, homeMetro,
+        stores:[], opsMode:'hybrid', autoStrategy:'balanced', slot } */
+
+let SETUP = { mode:'campaign', realism:'full', metro:null, town:null, chainName:'GalaxyMart' };
+
+function chooseMode(mode){
+  SETUP.mode=mode;
+  showScreen('scr-setup');
+  $('#setupTitle').textContent = mode==='campaign' ? 'New Campaign' : 'New Sandbox';
+  $('#setupSub').textContent = mode==='campaign'
+    ? 'Choose your chain name, home metro, and starting town. Full realism.'
+    : 'Choose your realism depth, chain name, metro, and starting town.';
+  $('#realismField').style.display = mode==='sandbox' ? '' : 'none';
+  $('#difficultyField').style.display = mode==='campaign' ? '' : 'none';
+  if(mode==='sandbox') renderRealismPick();
+  if(mode==='campaign') renderDifficultyPick();
+  renderMetroPick();
+  $('#townField').style.display='none';
+  $('#foundBtn').style.display='none';
+}
+function renderRealismPick(){
+  $('#realismPick').innerHTML = Object.keys(REALISM).map(k=>
+    `<div class="pillpick ${SETUP.realism===k?'on':''}" onclick="pickRealism('${k}')"><div class="pn">${REALISM[k].name}</div><div class="pd">${REALISM[k].dd}</div></div>`
+  ).join('');
+}
+function pickRealism(k){ SETUP.realism=k; renderRealismPick(); }
+function renderDifficultyPick(){
+  if(!SETUP.difficulty) SETUP.difficulty='hard';
+  document.querySelector('#difficultyPick').innerHTML = Object.keys(DIFFICULTY).map(k=>
+    `<div class="pillpick ${SETUP.difficulty===k?'on':''}" onclick="pickDifficulty('${k}')"><div class="pn">${DIFFICULTY[k].name}</div><div class="pd">${DIFFICULTY[k].dd}</div></div>`
+  ).join('');
+}
+function pickDifficulty(k){ SETUP.difficulty=k; renderDifficultyPick(); }
+
+function renderMetroPick(){
+  $('#metroPick').innerHTML = Object.keys(GXY_METROS).map(k=>{
+    const m=GXY_METROS[k];
+    return `<div class="pillpick ${SETUP.metro===k?'on':''}" onclick="pickMetro('${k}')"><div class="pn">${m.flag} ${m.name}</div><div class="pd">${m.state} · ${m.towns.length} towns</div></div>`;
+  }).join('');
+}
+function pickMetro(k){
+  SETUP.metro=k; SETUP.town=null;
+  renderMetroPick();
+  const m=GXY_METROS[k];
+  $('#townField').style.display='';
+  // show towns sorted by population desc, with open cost preview
+  const towns=[...m.towns].sort((a,b)=>b.pop-a.pop);
+  $('#startTownGrid').innerHTML = towns.map(t=>townCardHTML(t,'pickStartTown')).join('');
+  $('#foundBtn').style.display='none';
+}
+function incColor(inc){ return ['#6b7891','#e5342a','#f5a623','#3b6fe0','#8a5cf6','#2ecc71'][inc]||'#6b7891'; }
+function incLabel(inc){ return ['','Budget','Working','Middle','Upscale','Affluent'][inc]||''; }
+function townCardHTML(t, onclick, owned){
+  return `<div class="town ${owned?'owned':''}" onclick="${onclick}('${esc(t.name)}')">
+    <div class="tn">${esc(t.name)}</div>
+    <div class="tmeta"><span class="incdot" style="background:${incColor(t.income)}"></span>${incLabel(t.income)} · ${t.pop}k people</div>
+    <div class="tbars">
+      <div class="tb"><div class="bl">Demand</div><div class="bv">${t.pop>=40?'High':t.pop>=15?'Med':'Low'}</div></div>
+      <div class="tb"><div class="bl">Rivals</div><div class="bv">${t.comp>1.1?'Tough':t.comp<0.8?'Light':'Some'}</div></div>
+      <div class="tb"><div class="bl">Open</div><div class="bv">${money(E.openCost(t)).replace(/,000$/,'k')}</div></div>
+    </div>
+  </div>`;
+}
+function pickStartTown(name){
+  SETUP.town=name;
+  // highlight
+  document.querySelectorAll('#startTownGrid .town').forEach(el=>el.style.borderColor='');
+  event.currentTarget.style.borderColor='var(--good)';
+  $('#foundBtn').style.display='';
+}
+
+function foundChain(){
+  const name=($('#chainName').value||'GalaxyMart').trim().slice(0,28);
+  if(!SETUP.metro||!SETUP.town){ toast('Pick a metro and starting town.'); return; }
+  const realism = SETUP.mode==='campaign' ? 'full' : SETUP.realism;
+  const R=REALISM[realism];
+  const chosenDiff = SETUP.mode==='campaign' ? (SETUP.difficulty||'hard') : 'normal';
+  const m=GXY_METROS[SETUP.metro];
+  const town=m.towns.find(t=>t.name===SETUP.town);
+  const openCost=E.openCost(town);
+
+  G = {
+    mode:SETUP.mode, realism, chainName:name, currency:m.currency||'$',
+    week:1, year:2026, cash:(SETUP.mode==='campaign'?DIFFICULTY[chosenDiff].startCash:R.startCash) - openCost,
+    difficulty:chosenDiff,
+    homeMetro:SETUP.metro,
+    metros:{ [SETUP.metro]:{ unlocked:true, rivalsByTown:{} } },
+    stores:[], opsMode:'hybrid', autoStrategy:'balanced',
+    slot: currentSlot!=null?currentSlot:pickFreeSlot(),
+    lastWeeklyNet:0, history:[]
+  };
+  currentSlot=G.slot;
+  ensureV3State();
+  ensureV4State();
+  ensureV5State();
+  ensureV7State();
+  // open first store
+  const s=E.newStore(name+' '+town.name, town.name, 1400);
+  s.metro=SETUP.metro;
+  G.stores.push(s);
+  initMetroRivals(SETUP.metro);
+
+  showScreen('scr-game');
+  switchTab('overview');
+  refreshHUD();
+  toast('🎉 '+name+' is open in '+town.name+'!');
+  saveGame(false);
+}
+
+/* lazily build + cache a town's local rivals */
+function ensureTownRivals(metroKey, town){
+  const M=G.metros[metroKey]; if(!M.rivalsByTown) M.rivalsByTown={};
+  if(!M.rivalsByTown[town.name]){
+    M.rivalsByTown[town.name]=E.townRivals(town, rivalRosterFor(metroKey));
+  }
+  return M.rivalsByTown[town.name];
+}
+function townByName(metroKey, name){ return GXY_METROS[metroKey].towns.find(t=>t.name===name); }
+function myStoresIn(metroKey, townName){ return G.stores.filter(s=>s.metro===metroKey && s.town===townName); }
+
+/* ============================================================
+   RENDERING — screens, tabs, HUD
+   ============================================================ */
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $('#'+id).classList.add('active'); window.scrollTo(0,0); }
+function switchTab(name){
+  document.querySelectorAll('#gameTabs .tab').forEach(t=>t.classList.toggle('on', t.dataset.tab===name));
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('on'));
+  $('#pane-'+name).classList.add('on');
+  if(name==='overview') renderOverview();
+  if(name==='map') renderMap();
+  if(name==='stores') renderStores();
+  if(name==='competition') renderCompetition();
+  if(name==='ranking') renderRanking();
+  if(name==='stats') renderStats();
+  if(name==='rnd') renderRnd();
+  if(name==='ads') renderAds();
+  if(name==='geomap') renderGeoMapV6();
+  if(name==='expand') renderExpand();
+}
+
+function netWorth(){
+  let nw=G.cash;
+  G.stores.forEach(s=>{ nw += (s.capacity*8) * E.ageAppeal(s); }); // store asset value depreciates with age
+  return Math.round(nw);
+}
+function refreshHUD(){
+  $('#hudCash').textContent=money(G.cash);
+  $('#hudNW').textContent=money(netWorth());
+  $('#hudStores').textContent=G.stores.length;
+  $('#hudWeekly').textContent=(G.lastWeeklyNet>=0?'+':'')+money(G.lastWeeklyNet);
+  $('#hudWeekly').className='v '+(G.lastWeeklyNet>=0?'net-pos':'net-neg');
+  $('#hudMetros').textContent=Object.values(G.metros).filter(m=>m.unlocked).length;
+  ensureV4State();
+  const dEl=$('#hudDebt'); if(dEl){ dEl.textContent=money(G.debt.principal); dEl.className='v '+(G.debt.principal>0?'net-neg':''); }
+  ensureV5State();
+  if(G.ipo && G.ipo.public){ const wk=$('#hudWeek'); if(wk) wk.textContent='📈 '+money(G.ipo.sharePrice)+' · Wk '+G.week; }
+  const se=(typeof currentSeason==='function')?currentSeason():null;
+  $('#hudWeek').textContent=(se?se.emoji+' ':'')+'Week '+G.week+' · '+G.year;
+}
+
+function renderOverview(){
+  const wkNet=G.lastWeeklyNet;
+  const storeCount=G.stores.length;
+  const metros=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  // per-metro store tallies
+  const byMetro=metros.map(k=>({key:k, name:GXY_METROS[k].name, n:G.stores.filter(s=>s.metro===k).length}));
+  // recent history sparkline-ish
+  const hist=G.history.slice(-8);
+  $('#pane-overview').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px;">
+      <div class="store"><div class="section-title">Empire Net Worth</div><div class="cond" style="font-size:34px;font-weight:700;color:var(--good)">${money(netWorth())}</div><div style="color:var(--dim);font-size:12px;">${storeCount} store${storeCount!==1?'s':''} across ${metros.length} metro${metros.length!==1?'s':''}</div></div>
+      <div class="store"><div class="section-title">Last Week</div><div class="cond" style="font-size:34px;font-weight:700;" class="${wkNet>=0?'net-pos':'net-neg'}"><span style="color:${wkNet>=0?'var(--good)':'var(--bad)'}">${wkNet>=0?'+':''}${money(wkNet)}</span></div><div style="color:var(--dim);font-size:12px;">Cash on hand: ${money(G.cash)}</div></div>
+      <div class="store"><div class="section-title">Operations</div><div class="cond" style="font-size:24px;font-weight:700;text-transform:capitalize;">${G.opsMode}</div><div style="color:var(--dim);font-size:12px;">Auto-price: ${G.autoStrategy} · <a onclick="openSettings()" style="color:var(--brand);cursor:pointer;">change</a></div></div>
+    </div>
+    ${(function(){
+      ensureV7State(); ensureEconomy();
+      const ph=ECON_PHASES[G.economy.phase];
+      const tt=topTrends();
+      return `<div class="section-title">Market Intelligence</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+        <div class="store"><div class="section-title">Economy</div><div class="cond" style="font-size:22px;font-weight:700;">${ph.emoji} ${ph.name}</div><div style="color:var(--dim);font-size:12px;">Inflation ${((G.economy.inflation-1)*100).toFixed(1)}% · Rank #${myRank()}</div></div>
+        <div class="store"><div class="section-title">Rising Trends</div><div style="font-size:13px;line-height:1.7;">${tt.map(t=>`${t.def.emoji} ${esc(t.def.name)} <span style="color:var(--dim);">${Math.round(t.strength*100)}%</span>`).join('<br>')}</div></div>
+      </div>`;
+    })()}
+    <div class="section-title">Stores by Metro</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+      ${byMetro.map(m=>`<div class="store" style="flex:0 0 auto;padding:12px 16px;"><div class="cond" style="font-size:18px;font-weight:700;">${esc(m.name)}${GXY_METROS[m.key].intl?' '+GXY_METROS[m.key].flag:''}</div><div style="color:var(--dim);font-size:12px;">${m.n} store${m.n!==1?'s':''}</div></div>`).join('')}
+    </div>
+    ${hist.length?`<div class="section-title">Recent Weeks</div><div class="store"><div style="display:flex;gap:6px;align-items:flex-end;height:70px;">${hist.map(h=>{const pos=h.net>=0;const ht=Math.min(60,Math.abs(h.net)/Math.max(1,Math.max(...hist.map(x=>Math.abs(x.net))))*60);return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;"><div style="width:100%;background:${pos?'var(--good)':'var(--bad)'};height:${ht}px;border-radius:4px 4px 0 0;opacity:.85;"></div></div>`;}).join('')}</div><div style="color:var(--muted);font-size:11px;margin-top:6px;">Weekly net, last ${hist.length} weeks</div></div>`:''}
+    <div class="empty-hint" style="margin-top:10px;">Press <span class="kbd">Advance Week</span> to run operations. Manage pricing and growth in <b>My Stores</b> and <b>Expand</b>.</div>
+  `;
+}
+
+function ageClass(s){ const y=s.ageWeeks/52; return y<3?'age-new':y<7?'age-mid':'age-old'; }
+function ageLabel(s){ const y=s.ageWeeks/52; return (y<1?'New':y.toFixed(0)+'yr'+(y>=2?'s':''))+' old'; }
+
+function renderStores(){
+  if(!G.stores.length){ $('#pane-stores').innerHTML='<div class="empty-hint">No stores yet. Open one from the Metro Map.</div>'; return; }
+  const bulkBar=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;"><div style="color:var(--dim);font-size:13px;">${G.stores.length} store${G.stores.length!==1?'s':''}</div><button class="btn sm" onclick="openBulkActions()">⚡ Bulk Actions</button></div>`;
+  $('#pane-stores').innerHTML = bulkBar + `<div class="store-list">${G.stores.map(s=>storeCardHTML(s)).join('')}</div>`;
+}
+function storeCardHTML(s){
+  const town=townByName(s.metro,s.town);
+  const appeal=E.ageAppeal(s);
+  return `<div class="store">
+    <div class="sh">
+      <div><div class="snm">${esc(s.name)}</div><div class="sloc">${esc(GXY_METROS[s.metro].name)} · ${esc(s.town)}</div></div>
+      <span class="sage ${ageClass(s)}">${ageLabel(s)}</span>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="srow"><span class="k">Weekly net</span><span class="v ${s.lastNet>=0?'net-pos':'net-neg'}">${s.lastNet>=0?'+':''}${money(s.lastNet)}</span></div>
+      <div class="srow"><span class="k">Local share</span><span class="v">${(s.share*100||0).toFixed(0)}%</span></div>
+      <div class="srow"><span class="k">Price level</span><span class="v">${s.priceMult.toFixed(2)}×</span></div>
+      <div class="srow"><span class="k">Quality</span><span class="v">${(s.quality*100).toFixed(0)}</span></div>
+      <div class="srow"><span class="k">Capacity</span><span class="v">${s.capacity.toLocaleString()}</span></div>
+      <div class="srow"><span class="k">Condition</span><span class="v">${(appeal*100).toFixed(0)}%</span></div>
+    </div>
+    <div class="sactions">
+      <button class="btn sm" onclick="openStore('${s.id}')">Manage</button>
+      <button class="btn ghost sm" onclick="doExpand('${s.id}')">Expand +${money(E.expandCost(s)).replace(/,000$/,'k')}</button>
+      ${s.ageWeeks>52*2?`<button class="btn ghost sm" onclick="openRemodel('${s.id}')">Remodel</button>`:''}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   MAP + EXPAND tabs
+   ============================================================ */
+function renderMap(){
+  const mk=(G._viewMetro && G.metros[G._viewMetro]?.unlocked) ? G._viewMetro : G.homeMetro;
+  G._viewMetro=mk;
+  const m=GXY_METROS[mk];
+  const towns=[...m.towns].sort((a,b)=>b.pop-a.pop);
+  const unlocked=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  const switcher = unlocked.length>1 ? `<div class="pickrow" style="margin-bottom:14px;">${unlocked.map(k=>`<div class="pillpick ${k===mk?'on':''}" onclick="focusMetro('${k}')" style="padding:8px 12px;"><div class="pn" style="font-size:15px;">${GXY_METROS[k].flag} ${esc(GXY_METROS[k].name)}</div><div class="pd">${G.stores.filter(s=>s.metro===k).length} stores</div></div>`).join('')}</div>` : '';
+  $('#pane-map').innerHTML = `
+    <div class="section-title">${esc(m.name)} — ${m.towns.length} towns</div>
+    ${switcher}
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Tap a town to open a store there. Towns you already operate in are marked. High-population towns have more demand but tougher competition.</div>
+    <div class="town-grid">${towns.map(t=>{
+      const owned=myStoresIn(mk,t.name).length>0;
+      return townCardHTML(t,'openTownAction',owned);
+    }).join('')}</div>`;
+}
+function openTownAction(name){
+  const mk=(G._viewMetro && G.metros[G._viewMetro]?.unlocked)?G._viewMetro:G.homeMetro; const town=townByName(mk,name);
+  const mine=myStoresIn(mk,name);
+  const cost=E.openCost(town);
+  const rivals=rivalsInTown(mk,town);
+  showModal(`
+    <h2>${esc(town.name)}</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;"><span class="incdot" style="background:${incColor(town.income)}"></span>${incLabel(town.income)} · ${town.pop}k people · weekly grocery demand ~${money(E.townDemand(town))}</div>
+    <div class="store" style="margin-bottom:14px;">
+      <div class="section-title">Local Competition</div>
+      ${rivals.map(r=>`<div class="srow"><span class="k">${esc(r.name)} <span style="color:var(--muted)">(${r.kind})</span></span><span class="v">${(r.share*100||0).toFixed(0)}%</span></div>`).join('')||'<div style="color:var(--dim)">None yet</div>'}
+    </div>
+    ${mine.length?`<div class="store" style="margin-bottom:14px;"><div class="section-title">Your Stores Here (${mine.length})</div>${mine.map(s=>`<div class="srow"><span class="k">${esc(s.name)}</span><span class="v ${s.lastNet>=0?'net-pos':'net-neg'}">${s.lastNet>=0?'+':''}${money(s.lastNet)}/wk</span></div>`).join('')}</div>`:''}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn money" onclick="openStoreIn('${mk}','${esc(name)}')" ${G.cash<cost?'disabled':''}>Open Store — ${money(cost)}</button>
+      <button class="btn ghost" onclick="closeModal('modal')">Close</button>
+    </div>
+    ${G.cash<cost?`<div style="color:var(--bad);font-size:12px;margin-top:8px;">Need ${money(cost-G.cash)} more.</div>`:''}
+  `);
+}
+function openStoreIn(mk, townName){
+  ensureV3State();
+  const town=townByName(mk,townName); const cost=Math.round(E.openCost(town)*rndEffect('openCost')*boardMod('openCost'));
+  if(G.cash<cost){ toast('Not enough cash.'); return; }
+  G.cash-=cost;
+  const s=E.newStore(G.chainName+' '+townName, townName, 1300);
+  s.metro=mk; s.priceMult=defaultPriceForStrategy();
+  if(rndEffect('quality')>0) s.quality=+(s.quality+rndEffect('quality')).toFixed(2);
+  G.stores.push(s);
+  initMetroRivals(mk);
+  closeModal('modal'); refreshHUD(); toast('🏪 New store opened in '+townName+'!');
+  switchTab('stores'); saveGame(false);
+}
+
+function renderExpand(){
+  const storeCount=G.stores.length;
+  const unlockedMetros=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  const homeM=GXY_METROS[G.homeMetro];
+  const homeCoverage=Math.round(G.stores.filter(s=>s.metro===G.homeMetro).length / homeM.towns.length*100);
+
+  // regional breakdown (per-metro performance)
+  const breakdown=unlockedMetros.map(k=>{
+    const stores=G.stores.filter(s=>s.metro===k);
+    const net=stores.reduce((a,s)=>a+(s.lastNet||0),0);
+    return { key:k, name:GXY_METROS[k].name, stores:stores.length, net,
+             coverage:Math.round(stores.length/GXY_METROS[k].towns.length*100) };
+  }).sort((a,b)=>b.stores-a.stores);
+
+  // gather all adjacent regions across the metros you operate in
+  const adjSet={};
+  unlockedMetros.forEach(k=>{
+    (GXY_METROS[k].adjacentRegions||[]).forEach(label=>{
+      const rk=REGION_LABEL_TO_KEY[label];
+      if(rk && !G.metros[rk]?.unlocked){ adjSet[rk]=label; }
+    });
+  });
+  const adjacent=Object.keys(adjSet);
+
+  $('#pane-expand').innerHTML = `
+    <div class="section-title">Empire Overview</div>
+    <div class="store" style="margin-bottom:16px;">
+      <div class="srow"><span class="k">Total stores</span><span class="v">${storeCount}</span></div>
+      <div class="srow"><span class="k">Metros / regions active</span><span class="v">${unlockedMetros.length}</span></div>
+      <div class="srow"><span class="k">Home metro coverage</span><span class="v">${homeCoverage}%</span></div>
+      <div class="srow"><span class="k">Total unified cash</span><span class="v money">${money(G.cash)}</span></div>
+    </div>
+
+    <div class="section-title">Regional Breakdown</div>
+    <div style="color:var(--dim);font-size:12.5px;margin-bottom:10px;">One company, one cash pool — here's how each region performs.</div>
+    <div class="store-list" style="margin-bottom:20px;">
+      ${breakdown.map(b=>`
+        <div class="store">
+          <div class="sh"><div><div class="snm">${esc(b.name)}</div><div class="sloc">${b.stores} store${b.stores!==1?'s':''} · ${b.coverage}% coverage</div></div>
+          ${b.key===G.homeMetro?'<span class="sage age-new">HOME</span>':''}</div>
+          <div class="srow" style="margin-top:8px;"><span class="k">Weekly net</span><span class="v ${b.net>=0?'net-pos':'net-neg'}">${b.net>=0?'+':''}${money(b.net)}</span></div>
+          <div class="sactions"><button class="btn ghost sm" onclick="focusMetro('${b.key}')">View Map</button></div>
+        </div>`).join('')}
+    </div>
+
+    <div class="section-title">Expand to Adjacent Regions</div>
+    <div style="color:var(--dim);font-size:12.5px;margin-bottom:12px;">Unlock new regions by growing your chain. Enter a region and your unified cash comes with you — build stores there just like home. This is the path to a nationwide empire.</div>
+    ${adjacent.length ? adjacent.map((rk,i)=>{
+      const region=GXY_METROS[rk];
+      const need=regionUnlockNeed(rk);
+      const can=storeCount>=need;
+      return `<div class="store" style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div><div class="cond" style="font-size:20px;font-weight:700;">${region.flag} ${esc(region.name)}</div>
+          <div style="color:var(--dim);font-size:12px;">${region.towns.length} towns · ${region.currency==='£'?'UK market':'US market'} · ${can?'✓ Ready to enter':'Unlocks at '+need+' stores'}</div></div>
+          <button class="btn ${can?'money':'ghost'} sm" ${can?'':'disabled'} onclick="enterRegion('${rk}')">${can?'Enter Region →':'🔒 '+need+' stores'}</button>
+        </div></div>`;
+    }).join('') : '<div class="empty-hint">Build more stores to reveal adjacent regions to expand into.</div>'}
+
+    ${Object.keys(GXY_METROS).filter(k=>!G.metros[k]?.unlocked && !adjacent.includes(k) && !GXY_METROS[k].intl).length ? `<div style="color:var(--muted);font-size:12px;margin-top:14px;text-align:center;">More regions open up as you expand outward toward nationwide scale.</div>`:''}
+
+    ${(function(){
+      // International expansion — the endgame. Shows once you're a major national player.
+      const intlKeys=Object.keys(GXY_METROS).filter(k=>GXY_METROS[k].intl && !G.metros[k]?.unlocked);
+      if(!intlKeys.length) return '';
+      const unlocked=intlUnlockedYet();
+      return `<div class="section-title" style="margin-top:24px;">🌍 International Expansion</div>
+        <div style="color:var(--dim);font-size:12.5px;margin-bottom:12px;">${unlocked?'Your empire is a national powerhouse — now take '+esc(G.chainName)+' global. Enter foreign markets with their own currencies, cities, and local competition.':'🔒 The final frontier. International markets unlock once you become a <b>top-6 national chain</b> (or reach 40+ stores). Climb the national ranking to open the world.'}</div>
+        ${unlocked ? intlKeys.map(rk=>{
+          const region=GXY_METROS[rk];
+          const need=regionUnlockNeed(rk);
+          const can=storeCount>=need;
+          return `<div class="store" style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div><div class="cond" style="font-size:20px;font-weight:700;">${region.flag} ${esc(region.name)}</div>
+              <div style="color:var(--dim);font-size:12px;">${region.towns.length} districts · ${esc(region.region)} · ${region.currency} · ${can?'✓ Ready':'Needs '+need+' stores'}</div></div>
+              <button class="btn ${can?'money':'ghost'} sm" ${can?'':'disabled'} onclick="enterRegion('${rk}')">${can?'Expand Abroad →':'🔒 '+need+' stores'}</button>
+            </div></div>`;
+        }).join('') : `<div class="store" style="opacity:0.6;"><div style="display:flex;gap:12px;flex-wrap:wrap;">${intlKeys.slice(0,7).map(rk=>`<span style="font-size:13px;">${GXY_METROS[rk].flag} ${esc(GXY_METROS[rk].name)}</span>`).join('')}</div></div>`}`;
+    })()}
+  `;
+}
+function regionUnlockNeed(rk){
+  // scale unlock requirement by region size — bigger regions need more scale
+  const region=GXY_METROS[rk];
+  // international metros are the endgame — require major national scale
+  if(region && region.intl){ return 40; }
+  const base = 12;
+  const sizeBonus = region.towns.length>30?8 : region.towns.length>20?4 : 0;
+  return base + sizeBonus;
+}
+function intlUnlockedYet(){
+  // international expansion opens once you're a top-6 national player OR 40+ stores
+  if(typeof myRank==='function' && myRank()<=6) return true;
+  return G.stores.length>=40;
+}
+function focusMetro(k){
+  // switch the Metro Map to show this metro
+  G._viewMetro=k;
+  switchTab('map');
+}
+function enterRegion(rk){
+  const region=GXY_METROS[rk];
+  if(!region){ toast('Region not found.'); return; }
+  if(G.metros[rk]?.unlocked){ toast('Already in '+region.name+'.'); focusMetro(rk); return; }
+  if(region.intl && !intlUnlockedYet()){ toast('🌍 International expansion unlocks once you\'re a top-6 national chain (or 40+ stores).'); return; }
+  const need=regionUnlockNeed(rk);
+  if(G.stores.length<need){ toast('Need '+need+' stores to enter '+region.name+'.'); return; }
+  // unlock the region metro — cash carries across (unified pool)
+  G.metros[rk]={ unlocked:true, chains:null, indep:{} };
+  initMetroRivals(rk);
+  toast('🚀 Entered '+region.name+'! Build your chain here.');
+  G._viewMetro=rk;
+  refreshHUD();
+  switchTab('map');
+  saveGame(false);
+}
+
+function expansionTiers(){
+  const n=G.stores.length;
+  return [
+    {label:'First store', need:1, unlocked:n>=1},
+    {label:'Local chain', need:5, unlocked:n>=5},
+    {label:'Metro power', need:15, unlocked:n>=15},
+    {label:'Regional', need:30, unlocked:n>=30},
+    {label:'Multi-metro', need:60, unlocked:n>=60},
+    {label:'Nationwide', need:150, unlocked:n>=150},
+  ];
+}
+function expandToRegion(regionName){
+  // For now, expansion into adjacent regions is acknowledged; full metro data for
+  // adjacent regions is generated procedurally from the home metro's style.
+  toast('Expansion to '+regionName+' — new metro coming online!');
+  // (Layer: generate a metro for the region. Kept lightweight for reliability.)
+}
+
+/* ============================================================
+   STORE MANAGEMENT — pricing, quality, marketing, remodel/rebuild
+   ============================================================ */
+function openStore(id){
+  const s=G.stores.find(x=>x.id===id); if(!s) return;
+  const town=townByName(s.metro,s.town);
+  showModal(storeDetailHTML(s,town));
+}
+function storeDetailHTML(s,town){
+  const appeal=E.ageAppeal(s), upkeep=E.storeUpkeep(s);
+  const remodelC=E.remodelCost(s), rebuildC=E.rebuildCost(s), expandC=E.expandCost(s);
+  const qc=Math.round(6000*Math.pow(1.3,(s.quality-1)/0.1));
+  return `
+    <h2>${esc(s.name)}</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:6px;">${esc(GXY_METROS[s.metro].name)} · ${esc(s.town)} · <span class="incdot" style="background:${incColor(town.income)}"></span>${incLabel(town.income)} shoppers</div>
+    <div style="color:var(--dim);font-size:12px;margin-bottom:14px;">${incLabel(town.income)} towns ${town.income<=2?'reward LOW prices':town.income>=4?'reward QUALITY':'want balance'}. Condition ${(appeal*100).toFixed(0)}% · upkeep ${money(upkeep)}/wk</div>
+
+    <div class="section-title">Pricing <span style="color:var(--muted);text-transform:none;letter-spacing:0;">(higher = more margin, fewer shoppers)</span></div>
+    <div class="price-row"><span style="flex:1;">Price level</span>
+      <button class="step" onclick="adjPrice('${s.id}',-0.05)">−</button>
+      <span class="price-val" id="pv-${s.id}">${s.priceMult.toFixed(2)}×</span>
+      <button class="step" onclick="adjPrice('${s.id}',0.05)">+</button>
+    </div>
+    <div style="color:var(--muted);font-size:11px;margin:4px 0 14px;">1.00× = at cost (loss-leader) · 1.35× typical · 1.7×+ premium</div>
+
+    <div class="section-title">Invest</div>
+    <div style="display:grid;gap:8px;">
+      <button class="btn ghost" style="text-align:left;" onclick="investStore('${s.id}','marketing')" ${G.cash<1500?'disabled':''}>📣 Marketing push — ${money(1500)} <span style="color:var(--dim);font-size:12px;">(now ${(s.marketing*100).toFixed(0)})</span></button>
+      <button class="btn ghost" style="text-align:left;" onclick="investStore('${s.id}','quality')" ${G.cash<qc?'disabled':''}>✨ Upgrade quality — ${money(qc)} <span style="color:var(--dim);font-size:12px;">(now ${(s.quality*100).toFixed(0)})</span></button>
+      <button class="btn ghost" style="text-align:left;" onclick="investStore('${s.id}','expand')" ${G.cash<expandC?'disabled':''}>📦 Expand capacity +200 — ${money(expandC)} <span style="color:var(--dim);font-size:12px;">(now ${s.capacity.toLocaleString()})</span></button>
+      ${!s.selfCheckout?`<button class="btn ghost" style="text-align:left;" onclick="investStore('${s.id}','selfcheckout')" ${G.cash<4000?'disabled':''}>🖥️ Self-checkout — ${money(4000)} <span style="color:var(--dim);font-size:12px;">(-15% upkeep)</span></button>`:'<div style="color:var(--good);font-size:12px;">🖥️ Self-checkout installed</div>'}
+    </div>
+
+    <div class="section-title" style="margin-top:16px;">Maintenance</div>
+    <div style="color:var(--dim);font-size:12px;margin-bottom:8px;">This store is <b>${ageLabel(s)}</b>. Aging cuts appeal and raises upkeep. Remodel for a partial refresh; rebuild for a full reset.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" onclick="openRemodel('${s.id}')">Remodel…</button>
+      <button class="btn pink" onclick="openRebuild('${s.id}')">Rebuild…</button>
+      <button class="btn ghost" onclick="confirmClose('${s.id}')">Close Store</button>
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:16px;">Done</button>
+  `;
+}
+function refreshStoreModal(id){ const s=G.stores.find(x=>x.id===id); if(s && $('#modal').classList.contains('show')) showModal(storeDetailHTML(s, townByName(s.metro,s.town))); }
+
+function adjPrice(id,d){ const s=G.stores.find(x=>x.id===id); if(!s)return; s.priceMult=Math.max(1.0,Math.min(2.2,+(s.priceMult+d).toFixed(2))); const pv=$('#pv-'+id); if(pv)pv.textContent=s.priceMult.toFixed(2)+'×'; saveGame(false); }
+function investStore(id,kind){
+  const s=G.stores.find(x=>x.id===id); if(!s)return;
+  if(kind==='marketing'){ if(G.cash<1500)return; G.cash-=1500; s.marketing=+(s.marketing+0.5).toFixed(2); }
+  if(kind==='quality'){ const c=Math.round(6000*Math.pow(1.3,(s.quality-1)/0.1)); if(G.cash<c)return; G.cash-=c; s.quality=+(s.quality+0.1).toFixed(2); }
+  if(kind==='expand'){ const c=E.expandCost(s); if(G.cash<c)return; G.cash-=c; s.capacity+=200; }
+  if(kind==='selfcheckout'){ if(G.cash<4000)return; G.cash-=4000; s.selfCheckout=true; }
+  refreshHUD(); refreshStoreModal(id); toast('Investment applied.'); saveGame(false);
+}
+function doExpand(id){ investStore(id,'expand'); if(!$('#modal').classList.contains('show')) renderStores(); }
+function doRemodel(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return; const c=E.remodelCost(s);
+  if(G.cash<c){ toast('Not enough cash to remodel.'); return; }
+  G.cash-=c; s.ageWeeks=Math.max(0, s.ageWeeks-52*4); s.reputation=Math.min(1.3,s.reputation+0.05);
+  refreshHUD(); refreshStoreModal(id); renderStores(); toast('🔨 Remodeled — store refreshed!'); saveGame(false);
+}
+function doRebuild(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return; const c=E.rebuildCost(s);
+  if(G.cash<c){ toast('Not enough cash to rebuild.'); return; }
+  G.cash-=c; s.ageWeeks=0; s.reputation=1.1; s.quality=Math.max(s.quality,1.05);
+  refreshHUD(); refreshStoreModal(id); renderStores(); toast('🏗️ Rebuilt — good as new!'); saveGame(false);
+}
+function confirmClose(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return;
+  if(!confirm('Close '+s.name+'? You recover a small amount of its value.')) return;
+  G.cash+=Math.round(s.capacity*3*E.ageAppeal(s)); // salvage
+  G.stores=G.stores.filter(x=>x.id!==id);
+  closeModal('modal'); refreshHUD(); renderStores(); switchTab('stores'); toast('Store closed.'); saveGame(false);
+}
+
+function defaultPriceForStrategy(){ return G.autoStrategy==='aggressive'?1.2 : G.autoStrategy==='premium'?1.6 : 1.35; }
+
+
+/* ============================================================
+   DEEP RIVAL AI — metro-wide chains that expand & react
+   Each metro has 2-3 "chain rivals" that own stores across towns,
+   earn money, and open new stores in profitable towns (moderate).
+   ============================================================ */
+function initMetroRivals(metroKey){
+  const M=G.metros[metroKey]; if(M.chains) return M.chains;
+  const metro=GXY_METROS[metroKey];
+  const isUK=metro.currency==='£';
+  const pool=rivalRosterFor(metroKey);
+  // pick 3 distinct chains spanning discounter/balanced/premium
+  const picks=[
+    (pool.budget||[])[0],
+    (pool.mid||[])[0],
+    (pool.premium||[])[0]
+  ].filter(Boolean);
+  const seen=new Set();
+  M.chains=picks.filter(p=>{ if(seen.has(p.name))return false; seen.add(p.name); return true; }).map(p=>({
+    name:p.name, kind:p.kind, cash:80000,
+    priceMult:p.kind==='discounter'?1.14:p.kind==='premium'?1.65:1.4,
+    quality:p.kind==='premium'?1.3:p.kind==='discounter'?0.88:1.0,
+    stores:[], // {townName, store}
+    aggro:0.9+Math.random()*0.3
+  }));
+  // seed each chain with 2-3 starting stores in random-ish towns
+  const towns=[...metro.towns].sort((a,b)=>b.pop-a.pop);
+  M.chains.forEach((ch,ci)=>{
+    const startN=2+Math.floor(Math.random()*2);
+    for(let i=0;i<startN;i++){
+      const t=towns[(ci*3+i)%Math.min(towns.length,15)];
+      chainOpenStore(ch,t,metroKey);
+    }
+  });
+  return M.chains;
+}
+function chainOpenStore(chain, town, metroKey){
+  const s=E.newStore(chain.name, town.name, 1100+Math.round(town.pop*3));
+  s.metro=metroKey; s.isRival=true; s.chain=chain.name;
+  s.kind=chain.kind; s.priceMult=chain.priceMult; s.quality=chain.quality;
+  s.ageWeeks=52*(1+Math.floor(Math.random()*6));
+  chain.stores.push(s);
+  return s;
+}
+// gather ALL rival stores in a town (from every chain) + independent locals
+function rivalsInTown(metroKey, town){
+  const M=G.metros[metroKey];
+  const chains=initMetroRivals(metroKey);
+  let list=[];
+  chains.forEach(ch=>{ ch.stores.forEach(s=>{ if(s.town===town.name) list.push(s); }); });
+  // plus 0-1 independent local (small) so small towns aren't empty
+  const indep=ensureIndepRival(metroKey, town);
+  if(indep) list.push(indep);
+  return list;
+}
+function ensureIndepRival(metroKey, town){
+  const M=G.metros[metroKey]; M.indep=M.indep||{};
+  if(M.indep[town.name]===undefined){
+    // only smaller/rural towns get a lone independent; big towns rely on chains
+    if(town.pop<25 && Math.random()<0.6){
+      const s=E.newStore("Independent Market", town.name, 900+town.pop*4);
+      s.metro=metroKey; s.isRival=true; s.kind='balanced'; s.priceMult=1.42; s.quality=0.95;
+      s.ageWeeks=52*(3+Math.floor(Math.random()*10));
+      M.indep[town.name]=s;
+    } else { M.indep[town.name]=null; }
+  }
+  return M.indep[town.name];
+}
+// weekly: chains earn from their stores, react on price, and expand moderately
+function runRivalChains(metroKey){
+  const M=G.metros[metroKey];
+  const chains=initMetroRivals(metroKey);
+  const metro=GXY_METROS[metroKey];
+  chains.forEach(chain=>{
+    let profit=0;
+    chain.stores.forEach(s=>{
+      s.ageWeeks++;
+      // earn from EVERY store. If the store shares a town with the player it already
+      // has a real lastNet from simTown; otherwise estimate its solo performance.
+      let net = s.lastNet;
+      if(net===undefined || net===0 || !s._simmedThisWeek){
+        net = estimateRivalNet(s, townByName(metroKey, s.town));
+      }
+      s._simmedThisWeek=false;
+      s.lastNet=net;
+      profit += net;
+    });
+    chain.cash += profit;
+
+    // FLUID price reaction: nudge toward a healthy share every week
+    chain.stores.forEach(s=>{
+      const sh=s.share||0.25;
+      if(sh<0.22) s.priceMult=Math.max(1.04,+(s.priceMult*0.97).toFixed(2));      // losing -> cut harder
+      else if(sh<0.30) s.priceMult=Math.max(1.04,+(s.priceMult*0.99).toFixed(2)); // slipping -> trim
+      else if(sh>0.45) s.priceMult=+(s.priceMult*1.02).toFixed(2);                // dominant -> raise
+      // aggressive chains also invest in marketing/quality occasionally
+      if(chain.aggro>1.0 && Math.random()<0.15) s.marketing=Math.min(1.2, s.marketing+0.3);
+    });
+
+    // CONTINUOUS EXPANSION: chains open where they can afford it, moderate pace.
+    // Multiple rolls so a rich chain can grow faster; cheaper towns are reachable.
+    let expansions = 0;
+    const maxPerWeek = 1;
+    while(expansions < maxPerWeek){
+      // coverage cap: no chain may exceed ~45% of a metro's towns (keeps the field open)
+      const coverageCap = Math.ceil(metro.towns.length*0.45);
+      if(chain.stores.length >= coverageCap) break;
+      const inTowns=new Set(chain.stores.map(s=>s.town));
+      const candidates=metro.towns
+        .filter(t=>!inTowns.has(t.name))
+        .filter(t=>chain.cash > E.openCost(t)*1.2 + 40000)
+        .sort((a,b)=>b.pop-a.pop);
+      if(!candidates.length) break;
+      // moderate probability gate so it's steady, not explosive
+      if(Math.random() > 0.22*chain.aggro){ break; }
+      // prefer towns matching the chain's tier, weighted toward bigger pop
+      const pick = pickExpansionTown(chain, candidates);
+      const dimFactor = chain.kind==='premium' ? 0.14 : 0.06; // premium slows faster
+      chain.cash -= E.openCost(pick)*0.9 * (1 + chain.stores.length*dimFactor);
+      chainOpenStore(chain, pick, metroKey);
+      if(metroKey===G.homeMetro){ G._rivalNews=(G._rivalNews?G._rivalNews+' · ':'')+chain.name+' opened in '+pick.name; }
+      expansions++;
+    }
+  });
+}
+
+// estimate a rival store's weekly net when it's not co-simulated with the player.
+// Stable, type-aware model so ALL chain types are viable and expand at similar rates
+// (real discounters win on volume, premium on margin — both profitable).
+function estimateRivalNet(s, town){
+  if(!town) return 0;
+  // baseline share depends on chain type matching the town's income
+  let baseShare;
+  if(s.kind==='discounter') baseShare = town.income<=2 ? 0.38 : 0.27;      // volume play
+  else if(s.kind==='premium') baseShare = town.income>=4 ? 0.30 : 0.18;    // margin play
+  else baseShare = 0.31;                                                    // balanced
+  // established stores hold share; aging erodes it
+  baseShare *= E.ageAppeal(s);
+  // v4: at higher threat, rivals compete harder (bigger empires face tougher rivals)
+  if(typeof threatLevel==='function'){ baseShare *= (1 + threatLevel()*0.15); }
+  s.share = baseShare;
+  let rev = baseShare * E.townDemand(town);
+  const maxRev = s.capacity * 48;
+  if(rev>maxRev) rev=maxRev;
+  // effective margin: discounters thin but high-volume, premium fat, balanced middle
+  const margin = s.kind==='discounter' ? 0.155 : s.kind==='premium' ? 0.175 : 0.17;
+  const grossProfit = rev * margin;
+  const upkeepFactor = s.kind==='discounter' ? 0.62 : 0.8; // discounters run very lean
+  const upkeep = E.storeUpkeep(s) * upkeepFactor;
+  return Math.round(grossProfit - upkeep);
+}
+
+// choose which town a chain expands into (tier-aware, pop-weighted)
+function pickExpansionTown(chain, candidates){
+  // score: bigger pop good; income match to chain kind good
+  const scored = candidates.slice(0,12).map(t=>{
+    let score = t.pop;
+    if(chain.kind==='premium') score *= (t.income>=4?1.6:0.7);
+    else if(chain.kind==='discounter') score *= (t.income<=2?1.6:0.8);
+    else score *= 1.0;
+    return {t, score};
+  }).sort((a,b)=>b.score-a.score);
+  // pick from top few with some randomness
+  const top=scored.slice(0,4);
+  return top[Math.floor(Math.random()*top.length)].t;
+}
+
+// metro-wide competition summary for the player
+function metroCompetition(metroKey){
+  const chains=initMetroRivals(metroKey);
+  const metro=GXY_METROS[metroKey];
+  const myStores=G.stores.filter(s=>s.metro===metroKey);
+  const totalTowns=metro.towns.length;
+  const rows=chains.map(ch=>({
+    name:ch.name, kind:ch.kind, stores:ch.stores.length,
+    coverage:Math.round(ch.stores.length/totalTowns*100)
+  }));
+  rows.push({name:G.chainName+' (you)', kind:'you', stores:myStores.length, coverage:Math.round(myStores.length/totalTowns*100), you:true});
+  rows.sort((a,b)=>b.stores-a.stores);
+  return rows;
+}
+
+
+/* ============================================================
+   v2: COMPETITION TAB
+   ============================================================ */
+function renderCompetition(){
+  const mk=G.homeMetro;
+  const comp=metroCompetition(mk);
+  const metro=GXY_METROS[mk];
+  const maxStores=Math.max(...comp.map(r=>r.stores),1);
+  $('#pane-competition').innerHTML = `
+    <div class="section-title">${esc(metro.name)} — Market Landscape</div>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Rival chains operate metro-wide. They earn money, react to your prices, and expand into new towns — just like you. Outgrow them town by town.</div>
+    <div class="store" style="margin-bottom:16px;">
+      ${comp.map(r=>`
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px;">
+            <span style="font-weight:700;${r.you?'color:var(--good)':''}">${esc(r.name)}</span>
+            <span class="mono" style="color:var(--dim);">${r.stores} stores · ${r.coverage}%</span>
+          </div>
+          <div style="height:10px;background:var(--panel2);border-radius:6px;overflow:hidden;">
+            <div style="height:100%;width:${Math.round(r.stores/maxStores*100)}%;background:${r.you?'var(--gradMoney)':'var(--gradBrand)'};border-radius:6px;"></div>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="margin:16px 0;"><button class="btn ghost sm" onclick="G._compDetail=!G._compDetail;renderCompetition();">${G._compDetail?'Hide':'Show'} town-by-town view</button></div>
+    ${G._compDetail?renderCompetitionDetail(mk):''}
+    <div class="section-title">Where Rivals Are Strong</div>
+    <div style="color:var(--dim);font-size:12.5px;margin-bottom:10px;">Towns where a rival chain dominates — targets for you to contest, or avoid.</div>
+    <div class="town-grid">${rivalStrongholds(mk).map(x=>`
+      <div class="town" onclick="openTownAction('${esc(x.town)}')">
+        <div class="tn">${esc(x.town)}</div>
+        <div class="tmeta">${esc(x.leader)} leads · ${x.share}% share</div>
+        <div class="tbars"><div class="tb"><div class="bl">Your stores</div><div class="bv">${x.mine}</div></div><div class="tb"><div class="bl">Pop</div><div class="bv">${x.pop}k</div></div></div>
+      </div>`).join('')}</div>
+  `;
+}
+function rivalStrongholds(mk){
+  const metro=GXY_METROS[mk];
+  const chains=initMetroRivals(mk);
+  // find towns where a chain has a store and estimate leader
+  const townMap={};
+  chains.forEach(ch=>ch.stores.forEach(s=>{ (townMap[s.town]=townMap[s.town]||[]).push({name:ch.name,share:s.share||0.2}); }));
+  return Object.keys(townMap).map(tn=>{
+    const town=townByName(mk,tn)||{pop:0};
+    const leaders=townMap[tn].sort((a,b)=>b.share-a.share);
+    return { town:tn, leader:leaders[0].name, share:Math.round(leaders[0].share*100), mine:myStoresIn(mk,tn).length, pop:town.pop };
+  }).sort((a,b)=>b.share-a.share).slice(0,12);
+}
+
+/* ============================================================
+   v2: BULK INVESTING
+   ============================================================ */
+function openBulkActions(){
+  const groups=bulkGroups();
+  showModal(`
+    <h2>Bulk Actions</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Apply an investment to many stores at once. Choose a group, then an action.</div>
+    <div class="field"><label>Apply to</label>
+      <select id="bulkGroup">${groups.map((g,i)=>`<option value="${i}">${esc(g.label)} (${g.stores.length})</option>`).join('')}</select>
+    </div>
+    <div class="section-title">Action</div>
+    <div style="display:grid;gap:8px;">
+      <button class="btn ghost" style="text-align:left;" onclick="applyBulk('marketing')">📣 Marketing push — ${money(1500)} each</button>
+      <button class="btn ghost" style="text-align:left;" onclick="applyBulk('quality')">✨ Quality upgrade — cost varies</button>
+      <button class="btn ghost" style="text-align:left;" onclick="applyBulk('selfcheckout')">🖥️ Self-checkout — ${money(4000)} each</button>
+      <button class="btn ghost" style="text-align:left;" onclick="applyBulk('remodel')">🔨 Standard remodel — cost varies</button>
+      <button class="btn ghost" style="text-align:left;" onclick="applyBulk('rebuild')">🏗️ Rebuild stores — cost varies</button>
+    </div>
+    <div id="bulkMsg" style="color:var(--dim);font-size:12px;margin-top:10px;"></div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:14px;">Close</button>
+  `);
+}
+function bulkGroups(){
+  const all=G.stores;
+  const groups=[{label:'All stores', stores:all}];
+  // by metro
+  Object.keys(G.metros).filter(k=>G.metros[k].unlocked).forEach(mk=>{
+    const s=all.filter(x=>x.metro===mk); if(s.length) groups.push({label:'All in '+GXY_METROS[mk].name, stores:s});
+  });
+  // by age
+  const old=all.filter(s=>s.ageWeeks>=52*5); if(old.length) groups.push({label:'Stores 5+ years old', stores:old});
+  const losing=all.filter(s=>s.lastNet<0); if(losing.length) groups.push({label:'Unprofitable stores', stores:losing});
+  return groups;
+}
+function applyBulk(kind){
+  const gi=+$('#bulkGroup').value; const group=bulkGroups()[gi]; if(!group) return;
+  let count=0, spent=0;
+  group.stores.forEach(s=>{
+    if(kind==='marketing'){ if(G.cash<1500)return; G.cash-=1500;spent+=1500; s.marketing=+(s.marketing+0.5).toFixed(2); count++; }
+    else if(kind==='quality'){ const c=Math.round(6000*Math.pow(1.3,(s.quality-1)/0.1)); if(G.cash<c)return; G.cash-=c;spent+=c; s.quality=+(s.quality+0.1).toFixed(2); count++; }
+    else if(kind==='selfcheckout'){ if(s.selfCheckout)return; if(G.cash<4000)return; G.cash-=4000;spent+=4000; s.selfCheckout=true; count++; }
+    else if(kind==='remodel'){ const c=E.remodelCost(s); if(G.cash<c)return; G.cash-=c;spent+=c; s.ageWeeks=Math.max(0,s.ageWeeks-52*4); count++; }
+    else if(kind==='rebuild'){ const c=E.rebuildCost(s); if(G.cash<c)return; G.cash-=c;spent+=c; s.ageWeeks=0; s.reputation=1.1; s.quality=Math.max(s.quality,1.05); count++; }
+  });
+  $('#bulkMsg').textContent=`Applied to ${count} store(s) · spent ${money(spent)}.`;
+  refreshHUD(); toast('Bulk action: '+count+' stores updated.'); saveGame(false);
+}
+
+/* ============================================================
+   v2: REMODEL / REBUILD DEPTH (tiers + focus)
+   ============================================================ */
+function openRemodel(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return;
+  const base=E.remodelCost(s);
+  showModal(`
+    <h2>Remodel — ${esc(s.name)}</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:6px;">This store is ${ageLabel(s)}, condition ${(E.ageAppeal(s)*100).toFixed(0)}%. A remodel refreshes it. Pick a tier and a focus.</div>
+    <div class="section-title" style="margin-top:12px;">Tier</div>
+    <div class="pickrow" id="remodelTier">
+      <div class="pillpick on" data-tier="basic" onclick="pickRTier(this)"><div class="pn">Basic</div><div class="pd">${money(Math.round(base*0.6))} · −2 yrs age</div></div>
+      <div class="pillpick" data-tier="standard" onclick="pickRTier(this)"><div class="pn">Standard</div><div class="pd">${money(base)} · −4 yrs age</div></div>
+      <div class="pillpick" data-tier="premium" onclick="pickRTier(this)"><div class="pn">Premium</div><div class="pd">${money(Math.round(base*1.7))} · −6 yrs, +rep</div></div>
+    </div>
+    <div class="section-title" style="margin-top:14px;">Focus</div>
+    <div class="pickrow" id="remodelFocus">
+      <div class="pillpick on" data-focus="appearance" onclick="pickRFocus(this)"><div class="pn">Appearance</div><div class="pd">+reputation & appeal</div></div>
+      <div class="pillpick" data-focus="capacity" onclick="pickRFocus(this)"><div class="pn">Capacity</div><div class="pd">+150 capacity</div></div>
+      <div class="pillpick" data-focus="efficiency" onclick="pickRFocus(this)"><div class="pn">Efficiency</div><div class="pd">−upkeep (self-checkout)</div></div>
+    </div>
+    <button class="btn money" style="margin-top:16px;" onclick="doRemodelDetailed('${s.id}')">Confirm Remodel</button>
+    <button class="btn ghost" style="margin-top:8px;" onclick="closeModal('modal')">Cancel</button>
+  `);
+  window._rTier='basic'; window._rFocus='appearance';
+}
+function pickRTier(el){ el.parentElement.querySelectorAll('.pillpick').forEach(p=>p.classList.remove('on')); el.classList.add('on'); window._rTier=el.dataset.tier; }
+function pickRFocus(el){ el.parentElement.querySelectorAll('.pillpick').forEach(p=>p.classList.remove('on')); el.classList.add('on'); window._rFocus=el.dataset.focus; }
+function doRemodelDetailed(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return;
+  const base=E.remodelCost(s);
+  const tier=window._rTier||'basic', focus=window._rFocus||'appearance';
+  const cost=Math.round(base*(tier==='basic'?0.6:tier==='premium'?1.7:1));
+  if(G.cash<cost){ toast('Not enough cash.'); return; }
+  G.cash-=cost;
+  const yrs=tier==='basic'?2:tier==='premium'?6:4;
+  s.ageWeeks=Math.max(0,s.ageWeeks-52*yrs);
+  if(tier==='premium') s.reputation=Math.min(1.4,s.reputation+0.08);
+  if(focus==='appearance') s.reputation=Math.min(1.4,s.reputation+0.06);
+  if(focus==='capacity') s.capacity+=150;
+  if(focus==='efficiency') s.selfCheckout=true;
+  closeModal('modal'); refreshHUD(); renderStores(); toast('🔨 Remodel complete ('+tier+', '+focus+')!'); saveGame(false);
+}
+function openRebuild(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return;
+  const base=E.rebuildCost(s);
+  showModal(`
+    <h2>Rebuild — ${esc(s.name)}</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:6px;">A full teardown & rebuild. Resets age to zero and lets you spec a bigger, better store.</div>
+    <div class="section-title" style="margin-top:12px;">New Store Class</div>
+    <div class="pickrow" id="rebuildTier">
+      <div class="pillpick on" data-tier="standard" onclick="pickBTier(this)"><div class="pn">Standard</div><div class="pd">${money(base)} · same size, new</div></div>
+      <div class="pillpick" data-tier="super" onclick="pickBTier(this)"><div class="pn">Supercenter</div><div class="pd">${money(Math.round(base*1.8))} · +600 cap, +quality</div></div>
+      <div class="pillpick" data-tier="flagship" onclick="pickBTier(this)"><div class="pn">Flagship</div><div class="pd">${money(Math.round(base*2.8))} · +1200 cap, premium</div></div>
+    </div>
+    <button class="btn pink" style="margin-top:16px;" onclick="doRebuildDetailed('${s.id}')">Confirm Rebuild</button>
+    <button class="btn ghost" style="margin-top:8px;" onclick="closeModal('modal')">Cancel</button>
+  `);
+  window._bTier='standard';
+}
+function pickBTier(el){ el.parentElement.querySelectorAll('.pillpick').forEach(p=>p.classList.remove('on')); el.classList.add('on'); window._bTier=el.dataset.tier; }
+function doRebuildDetailed(id){
+  const s=G.stores.find(x=>x.id===id); if(!s)return;
+  const base=E.rebuildCost(s); const tier=window._bTier||'standard';
+  const cost=Math.round(base*(tier==='super'?1.8:tier==='flagship'?2.8:1));
+  if(G.cash<cost){ toast('Not enough cash.'); return; }
+  G.cash-=cost; s.ageWeeks=0; s.reputation=1.1;
+  if(tier==='super'){ s.capacity+=600; s.quality=Math.max(s.quality,1.15); }
+  if(tier==='flagship'){ s.capacity+=1200; s.quality=Math.max(s.quality,1.3); s.reputation=1.2; }
+  closeModal('modal'); refreshHUD(); renderStores(); toast('🏗️ Rebuilt as '+tier+'!'); saveGame(false);
+}
+
+
+/* ============================================================
+   v3: R&D, ADS, SEASONS, BOARD, STATS
+   ============================================================ */
+
+/* --- company-level state init (safe on old saves) --- */
+function ensureV3State(){
+  if(!G.rnd) G.rnd={ points:0, unlocked:{} };
+  if(!G.ads) G.ads={ campaigns:[], autopilot:false, autoBudget:0 };
+  if(G.season===undefined) G.season=0;
+  if(!G.board) G.board={ nextWeek:13, target:null, lastResult:null };
+  if(!G.stats) G.stats={ totalRevenue:0, totalProfit:0, weeksRun:0, peakNetWorth:0 };
+}
+
+/* --- R&D TREE --- */
+const RND_TREE = {
+  logistics1:  { name:"Supply Chain I", cost:3, dd:"−8% upkeep at all stores", effect:{upkeep:0.92} },
+  logistics2:  { name:"Supply Chain II", cost:6, dd:"−8% more upkeep", req:"logistics1", effect:{upkeep:0.92} },
+  procurement: { name:"Bulk Procurement", cost:4, dd:"+5% margin everywhere", effect:{margin:1.05} },
+  branding:    { name:"National Branding", cost:5, dd:"+15% marketing effect", effect:{mkt:1.15} },
+  construction:{ name:"Modular Construction", cost:4, dd:"−15% store open cost", effect:{openCost:0.85} },
+  freshness:   { name:"Freshness Systems", cost:5, dd:"+0.1 quality at all stores", effect:{quality:0.1} },
+  analytics:   { name:"Demand Analytics", cost:6, dd:"+6% demand capture", req:"branding", effect:{demand:1.06} },
+  automation:  { name:"Checkout Automation", cost:7, dd:"−12% upkeep, faster service", req:"logistics2", effect:{upkeep:0.88} },
+};
+function rndUnlocked(k){ return G.rnd.unlocked[k]; }
+function rndEffect(type){
+  // aggregate all unlocked effects of a type (multiplicative or additive)
+  let mult=1, add=0;
+  Object.keys(G.rnd.unlocked).forEach(k=>{
+    const e=RND_TREE[k]&&RND_TREE[k].effect; if(!e)return;
+    if(e[type]!==undefined){ if(type==='quality') add+=e[type]; else mult*=e[type]; }
+  });
+  return type==='quality'?add:mult;
+}
+function renderRnd(){
+  ensureV3State();
+  $('#pane-rnd').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div class="section-title" style="margin:0;">Research & Development</div>
+      <div class="store" style="padding:8px 16px;"><span style="color:var(--dim);font-size:12px;">R&D Points</span> <span class="mono" style="font-weight:700;font-size:18px;color:var(--brand);">${G.rnd.points}</span></div>
+    </div>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:16px;">Earn R&D points as your empire grows (1 point per milestone week). Spend them on permanent company-wide upgrades.</div>
+    <div class="store-list">
+      ${Object.keys(RND_TREE).map(k=>{
+        const r=RND_TREE[k]; const owned=rndUnlocked(k);
+        const locked=r.req && !rndUnlocked(r.req);
+        const afford=G.rnd.points>=r.cost;
+        return `<div class="store" style="${owned?'border-color:var(--good);':''}">
+          <div class="sh"><div><div class="snm">${esc(r.name)}</div><div class="sloc">${esc(r.dd)}</div></div>
+          ${owned?'<span class="sage age-new">✓ OWNED</span>':''}</div>
+          ${r.req?`<div style="color:var(--muted);font-size:11px;margin-top:6px;">Requires: ${RND_TREE[r.req].name}</div>`:''}
+          ${!owned?`<div class="sactions"><button class="btn sm" ${(!afford||locked)?'disabled':''} onclick="buyRnd('${k}')">${locked?'🔒 Locked':afford?'Research ('+r.cost+' pts)':'Need '+r.cost+' pts'}</button></div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+function buyRnd(k){
+  ensureV3State();
+  const r=RND_TREE[k]; if(!r||rndUnlocked(k))return;
+  if(r.req && !rndUnlocked(r.req)){ toast('Research the prerequisite first.'); return; }
+  if(G.rnd.points<r.cost){ toast('Not enough R&D points.'); return; }
+  G.rnd.points-=r.cost; G.rnd.unlocked[k]=true;
+  // apply instant effects (quality/freshness bumps existing stores)
+  if(r.effect.quality){ G.stores.forEach(s=>s.quality=+(s.quality+r.effect.quality).toFixed(2)); }
+  refreshHUD(); renderRnd(); toast('🔬 Researched: '+r.name); saveGame(false);
+}
+
+/* --- SALES ADS --- */
+const AD_TYPES = {
+  local:    { name:"Local Flyers", cost:800,  reach:0.3, dd:"Cheap, small boost" },
+  radio:    { name:"Radio Spot", cost:2000, reach:0.6, dd:"Moderate metro reach" },
+  tv:       { name:"TV Campaign", cost:5000, reach:1.0, dd:"Big metro-wide boost" },
+  digital:  { name:"Digital/Social", cost:3000, reach:0.8, dd:"Targets younger shoppers" },
+};
+function renderAds(){
+  ensureV3State();
+  $('#pane-ads').innerHTML = `
+    <div class="section-title">Advertising</div>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Run ad campaigns to boost store appeal metro-wide. Customize a campaign, or switch on autopilot to let marketing run itself.</div>
+    <div class="store" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div><div class="snm" style="font-size:18px;">Autopilot</div><div class="sloc">Automatically runs cost-effective ads each week</div></div>
+        <button class="btn ${G.ads.autopilot?'money':'ghost'} sm" onclick="toggleAdAuto()">${G.ads.autopilot?'✓ ON':'OFF'}</button>
+      </div>
+      ${G.ads.autopilot?`<div class="field" style="margin-top:12px;margin-bottom:0;"><label>Weekly ad budget: ${money(G.ads.autoBudget)}</label><input type="range" min="0" max="10000" step="500" value="${G.ads.autoBudget}" oninput="setAdBudget(this.value)" style="width:100%;"></div>`:''}
+    </div>
+    <div style="margin-bottom:14px;"><button class="btn" onclick="openAdCreator()">🎨 Create Custom Campaign</button></div>
+    <div class="section-title">Quick Launch</div>
+    <div style="color:var(--dim);font-size:12.5px;margin-bottom:10px;">Choose a target region:</div>
+    <div class="field" style="max-width:320px;"><select id="adMetro">${Object.keys(G.metros).filter(k=>G.metros[k].unlocked).map(k=>`<option value="${k}">${esc(GXY_METROS[k].name)}</option>`).join('')}</select></div>
+    <div class="store-list">
+      ${Object.keys(AD_TYPES).map(k=>{ const a=AD_TYPES[k];
+        return `<div class="store"><div class="sh"><div><div class="snm">${esc(a.name)}</div><div class="sloc">${esc(a.dd)}</div></div></div>
+          <div class="srow" style="margin-top:8px;"><span class="k">Cost</span><span class="v">${money(a.cost)}</span></div>
+          <div class="srow"><span class="k">Reach</span><span class="v">${Math.round(a.reach*100)}%</span></div>
+          <div class="sactions"><button class="btn sm" ${G.cash<a.cost?'disabled':''} onclick="runAd('${k}')">Launch</button></div></div>`;
+      }).join('')}
+    </div>
+    ${G.ads.campaigns.length?`<div class="section-title" style="margin-top:18px;">Active Campaigns</div>${G.ads.campaigns.map((c,i)=>`<div class="store" style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;"><span>${esc(AD_TYPES[c.type].name)} · ${esc(GXY_METROS[c.metro].name)}</span><span class="mono" style="color:var(--dim);">${c.weeksLeft}wk left</span></div></div>`).join('')}`:''}
+  `;
+}
+function toggleAdAuto(){ ensureV3State(); G.ads.autopilot=!G.ads.autopilot; if(G.ads.autopilot&&!G.ads.autoBudget)G.ads.autoBudget=2000; renderAds(); saveGame(false); }
+function setAdBudget(v){ ensureV3State(); G.ads.autoBudget=+v; const lbl=document.querySelector('#pane-ads label'); if(lbl)lbl.textContent='Weekly ad budget: '+money(+v); saveGame(false); }
+function runAd(type){
+  ensureV3State(); const a=AD_TYPES[type]; if(!a||G.cash<a.cost)return;
+  const mk=$('#adMetro').value||G.homeMetro;
+  G.cash-=a.cost;
+  G.ads.campaigns.push({type, metro:mk, weeksLeft:4, reach:a.reach});
+  // immediate marketing bump to stores in that metro
+  const boost=a.reach*rndEffect('mkt');
+  G.stores.filter(s=>s.metro===mk).forEach(s=>s.marketing=Math.min(1.5, s.marketing+boost*0.4));
+  refreshHUD(); renderAds(); toast('📣 '+a.name+' launched in '+GXY_METROS[mk].name+'!'); saveGame(false);
+}
+function processAds(){
+  ensureV3State();
+  // autopilot: spend budget on best-value ads
+  if(G.ads.autopilot && G.ads.autoBudget>0 && G.cash>G.ads.autoBudget){
+    let budget=G.ads.autoBudget;
+    const mk=G.homeMetro;
+    // pick affordable ads greedily by reach/cost
+    const ranked=Object.keys(AD_TYPES).sort((a,b)=>(AD_TYPES[b].reach/AD_TYPES[b].cost)-(AD_TYPES[a].reach/AD_TYPES[a].cost));
+    for(const k of ranked){ if(AD_TYPES[k].cost<=budget){ budget-=AD_TYPES[k].cost; G.cash-=AD_TYPES[k].cost;
+      const boost=AD_TYPES[k].reach*rndEffect('mkt');
+      G.stores.filter(s=>s.metro===mk).forEach(s=>s.marketing=Math.min(1.5,s.marketing+boost*0.3)); break; } }
+  }
+  // tick active campaigns (sustained boost)
+  G.ads.campaigns.forEach(c=>{ c.weeksLeft--; const boost=c.reach*rndEffect('mkt');
+    G.stores.filter(s=>s.metro===c.metro).forEach(s=>s.marketing=Math.min(1.5,s.marketing+boost*0.15)); });
+  G.ads.campaigns=G.ads.campaigns.filter(c=>c.weeksLeft>0);
+}
+
+/* --- STATS MENU --- */
+function renderStats(){
+  ensureV3State();
+  const stores=G.stores;
+  const totalRev=stores.reduce((a,s)=>a+(s.lastRev||0),0);
+  const totalNet=stores.reduce((a,s)=>a+(s.lastNet||0),0);
+  const avgShare=stores.length?stores.reduce((a,s)=>a+(s.share||0),0)/stores.length:0;
+  // sort stores by net
+  const ranked=[...stores].sort((a,b)=>(b.lastNet||0)-(a.lastNet||0));
+  $('#pane-stats').innerHTML = `
+    <div class="section-title">Company Performance</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="store"><div class="section-title">Weekly Revenue</div><div class="cond" style="font-size:26px;font-weight:700;">${money(totalRev)}</div></div>
+      <div class="store"><div class="section-title">Weekly Net</div><div class="cond" style="font-size:26px;font-weight:700;color:${totalNet>=0?'var(--good)':'var(--bad)'};">${totalNet>=0?'+':''}${money(totalNet)}</div></div>
+      <div class="store"><div class="section-title">Avg Share</div><div class="cond" style="font-size:26px;font-weight:700;">${(avgShare*100).toFixed(0)}%</div></div>
+      <div class="store"><div class="section-title">Total Stores</div><div class="cond" style="font-size:26px;font-weight:700;">${stores.length}</div></div>
+      <div class="store"><div class="section-title">Lifetime Revenue</div><div class="cond" style="font-size:22px;font-weight:700;">${money(G.stats.totalRevenue)}</div></div>
+      <div class="store"><div class="section-title">Peak Net Worth</div><div class="cond" style="font-size:22px;font-weight:700;">${money(G.stats.peakNetWorth)}</div></div>
+    </div>
+    <div class="section-title">Store Leaderboard — by weekly net</div>
+    <div class="store"><table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="color:var(--dim);text-align:left;border-bottom:1px solid var(--line);"><th style="padding:6px;">Store</th><th>Region</th><th style="text-align:right;">Share</th><th style="text-align:right;">Revenue</th><th style="text-align:right;">Net</th></tr>
+      ${ranked.slice(0,20).map(s=>`<tr style="border-bottom:1px solid var(--line);"><td style="padding:6px;font-weight:600;">${esc(s.town)}</td><td style="color:var(--dim);">${esc(GXY_METROS[s.metro].name)}</td><td style="text-align:right;" class="mono">${((s.share||0)*100).toFixed(0)}%</td><td style="text-align:right;" class="mono">${money(s.lastRev||0)}</td><td style="text-align:right;" class="mono ${(s.lastNet||0)>=0?'net-pos':'net-neg'}">${(s.lastNet||0)>=0?'+':''}${money(s.lastNet||0)}</td></tr>`).join('')}
+    </table>${ranked.length>20?`<div style="color:var(--muted);font-size:11px;margin-top:8px;">Showing top 20 of ${ranked.length} stores.</div>`:''}</div>
+  `;
+}
+
+
+/* --- SEASONS --- */
+const SEASONS = [
+  { name:"Spring", emoji:"🌸", demandMult:1.0,  dd:"Steady demand" },
+  { name:"Summer", emoji:"☀️", demandMult:1.08, dd:"Grilling & travel boost" },
+  { name:"Fall",   emoji:"🍂", demandMult:1.02, dd:"Back-to-school" },
+  { name:"Winter", emoji:"❄️", demandMult:1.18, dd:"Holiday shopping surge" },
+];
+function currentSeason(){ ensureV3State(); return SEASONS[Math.floor(((G.week-1)%52)/13)%4]; }
+function seasonDemandMult(){ return currentSeason().demandMult; }
+// seasonal events fire at certain weeks
+const SEASON_EVENTS = {
+  1:  { name:"New Year Rush", emoji:"🎉", dd:"Shoppers stock up", demand:1.15, weeks:2 },
+  20: { name:"Summer Kickoff", emoji:"🌭", dd:"Cookout season", demand:1.12, weeks:3 },
+  34: { name:"Back to School", emoji:"🎒", dd:"Family restocking", demand:1.10, weeks:2 },
+  47: { name:"Holiday Season", emoji:"🎄", dd:"Biggest shopping weeks", demand:1.25, weeks:4 },
+  44: { name:"Thanksgiving", emoji:"🦃", dd:"Grocery demand peaks", demand:1.3, weeks:1 },
+};
+function checkSeasonEvent(){
+  ensureV3State();
+  const wk=((G.week-1)%52)+1;
+  const ev=SEASON_EVENTS[wk];
+  if(ev && G._lastSeasonEvent!==G.week){
+    G._lastSeasonEvent=G.week;
+    G._activeSeasonEvent={ ...ev, weeksLeft:ev.weeks };
+    toast(ev.emoji+' '+ev.name+' — '+ev.dd+'!');
+  }
+  if(G._activeSeasonEvent){ G._activeSeasonEvent.weeksLeft--; if(G._activeSeasonEvent.weeksLeft<=0) G._activeSeasonEvent=null; }
+}
+function seasonEventMult(){ return G._activeSeasonEvent ? G._activeSeasonEvent.demand : 1.0; }
+
+/* --- BOARD MEETINGS (target + strategic choice) --- */
+function checkBoardMeeting(){
+  ensureV3State();
+  if(G.week < G.board.nextWeek) return;
+  // evaluate previous target
+  if(G.board.target){
+    const met = evalBoardTarget(G.board.target);
+    G.board.lastResult = met;
+    if(met){ G.rnd.points+=2; G.cash+=G.board.target.reward; }
+  }
+  openBoardMeeting();
+}
+function evalBoardTarget(t){
+  if(t.kind==='stores') return G.stores.length>=t.value;
+  if(t.kind==='networth') return netWorth()>=t.value;
+  if(t.kind==='metros') return Object.values(G.metros).filter(m=>m.unlocked).length>=t.value;
+  return false;
+}
+function makeBoardTarget(){
+  const n=G.stores.length, nw=netWorth();
+  const roll=Math.random();
+  if(roll<0.4) return { kind:'stores', value:n+Math.max(3,Math.round(n*0.3)), reward:15000, dd:'' };
+  if(roll<0.7) return { kind:'networth', value:Math.round(nw*1.4), reward:20000, dd:'' };
+  return { kind:'metros', value:Object.values(G.metros).filter(m=>m.unlocked).length+1, reward:25000, dd:'' };
+}
+const BOARD_CHOICES = [
+  { id:'aggressive', name:"Aggressive Expansion", dd:"−10% open costs this quarter, but +5% upkeep", apply:()=>{ G._boardMod={openCost:0.9, upkeep:1.05}; } },
+  { id:'efficiency', name:"Efficiency Drive", dd:"−10% upkeep, but marketing less effective", apply:()=>{ G._boardMod={upkeep:0.9, mkt:0.9}; } },
+  { id:'premium',    name:"Premium Push", dd:"+8% margins, but slower demand", apply:()=>{ G._boardMod={margin:1.08, demand:0.96}; } },
+  { id:'value',      name:"Value Leadership", dd:"+6% demand, but thinner margins", apply:()=>{ G._boardMod={demand:1.06, margin:0.96}; } },
+];
+function openBoardMeeting(){
+  ensureV3State();
+  const newTarget=makeBoardTarget();
+  const choices=[...BOARD_CHOICES].sort(()=>Math.random()-0.5).slice(0,2);
+  const lastMsg = G.board.lastResult===true ? '<div style="color:var(--good);font-weight:700;margin-bottom:10px;">✓ Last target met! Bonus paid.</div>'
+                : G.board.lastResult===false ? '<div style="color:var(--bad);font-weight:700;margin-bottom:10px;">✗ Last target missed.</div>' : '';
+  showModal(`
+    <h2>📋 Board Meeting — Q${Math.ceil(G.week/13)}</h2>
+    ${lastMsg}
+    <div class="section-title" style="margin-top:8px;">This Quarter's Target</div>
+    <div class="store" style="margin-bottom:14px;"><div style="font-weight:700;font-size:15px;">${boardTargetText(newTarget)}</div><div style="color:var(--dim);font-size:12px;margin-top:4px;">Reward: ${money(newTarget.reward)} + 2 R&D points</div></div>
+    <div class="section-title">Choose a Strategic Direction</div>
+    <div style="display:grid;gap:8px;">
+      ${choices.map(c=>`<button class="btn ghost" style="text-align:left;padding:12px;" onclick="chooseBoardDirection('${c.id}')"><div style="font-weight:700;">${esc(c.name)}</div><div style="color:var(--dim);font-size:12px;">${esc(c.dd)}</div></button>`).join('')}
+    </div>
+  `);
+  G.board.target=newTarget;
+  G.board.nextWeek=G.week+13;
+}
+function boardTargetText(t){
+  if(t.kind==='stores') return 'Reach '+t.value+' total stores';
+  if(t.kind==='networth') return 'Reach '+money(t.value)+' net worth';
+  if(t.kind==='metros') return 'Operate in '+t.value+' metros/regions';
+  return 'Grow the company';
+}
+function chooseBoardDirection(id){
+  const c=BOARD_CHOICES.find(x=>x.id===id); if(c){ c.apply(); toast('📋 Board direction set: '+c.name); }
+  closeModal('modal'); saveGame(false);
+}
+function boardMod(type){ return (G._boardMod&&G._boardMod[type])||1; }
+
+
+/* --- GEOGRAPHIC MAP --- */
+/* Approximate metro center coordinates (lat, lng). Town positions are
+   scattered deterministically around their metro center for a realistic look. */
+const METRO_COORDS = Object.assign({}, (window.GXY_INTL_COORDS||{}), {
+  STL:{lat:38.63,lng:-90.20}, NYC:{lat:40.71,lng:-74.01}, LA:{lat:34.05,lng:-118.24},
+  CHI:{lat:41.88,lng:-87.63}, HOU:{lat:29.76,lng:-95.37}, DAL:{lat:32.78,lng:-96.80},
+  MIN:{lat:44.98,lng:-93.27}, LDN:{lat:51.51,lng:-0.13},
+  CENIL:{lat:39.80,lng:-89.64}, KC:{lat:39.10,lng:-94.58}, SOIL:{lat:38.52,lng:-89.98},
+  MIDMO:{lat:38.95,lng:-92.33}, LI:{lat:40.79,lng:-73.13}, HV:{lat:41.20,lng:-73.80},
+  NNJ:{lat:40.73,lng:-74.17}, CT:{lat:41.30,lng:-72.93}, OC:{lat:33.70,lng:-117.83},
+  IE:{lat:34.00,lng:-117.40}, SD:{lat:32.72,lng:-117.16}, VC:{lat:34.25,lng:-119.10},
+  ROCK:{lat:42.27,lng:-89.09}, MKE:{lat:43.04,lng:-87.91}, NWI:{lat:41.58,lng:-87.35},
+  AUS:{lat:30.27,lng:-97.74}, SATX:{lat:29.42,lng:-98.49}, BMT:{lat:30.08,lng:-94.10},
+  OKC:{lat:35.47,lng:-97.52}, ETX:{lat:32.35,lng:-95.30}, ROMN:{lat:44.02,lng:-92.48},
+  DUL:{lat:46.79,lng:-92.10}, WWI:{lat:44.81,lng:-91.50}, STC:{lat:45.56,lng:-94.16},
+  HOMEC:{lat:51.45,lng:-0.97}, BHAM:{lat:52.49,lng:-1.89}, MANC:{lat:53.48,lng:-2.24}, BRHTN:{lat:50.82,lng:-0.14},
+});
+// deterministic pseudo-random from a string (so town dots stay put)
+function hashPos(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))&0xffffffff; } return h; }
+function townCoord(metroKey, town){
+  const c=METRO_COORDS[metroKey]; if(!c) return null;
+  const h=hashPos(metroKey+town.name);
+  const angle=(h%360)*Math.PI/180;
+  const dist=0.08+((h>>9)%100)/100*0.55; // spread radius in degrees
+  return { lat:c.lat+Math.sin(angle)*dist*0.7, lng:c.lng+Math.cos(angle)*dist };
+}
+// project lat/lng to SVG x/y for a given view (US or UK or single metro)
+function project(lat,lng,view){
+  // view: {minLat,maxLat,minLng,maxLng,w,h}
+  const x=((lng-view.minLng)/(view.maxLng-view.minLng))*view.w;
+  const y=((view.maxLat-lat)/(view.maxLat-view.minLat))*view.h;
+  return {x,y};
+}
+function renderGeoMap(){
+  ensureV3State();
+  const unlocked=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  // decide view: if any US metro, show US; UK shown separately if present
+  const hasUS=unlocked.some(k=>GXY_METROS[k].currency==='$');
+  const hasUK=unlocked.some(k=>GXY_METROS[k].currency==='£');
+  const scope=G._mapScope||(hasUS?'US':'UK');
+  const W=760, H=440;
+  let view;
+  if(scope==='US'){ view={minLat:24,maxLat:49.5,minLng:-125,maxLng:-66,w:W,h:H}; }
+  else { view={minLat:49.8,maxLat:55.9,minLng:-6,maxLng:2,w:W,h:H}; }
+
+  // build dots for every metro (unlocked = show towns; locked but known = show as expandable hub)
+  let dots='';
+  const allMetroKeys=Object.keys(METRO_COORDS).filter(k=>GXY_METROS[k] && (scope==='US'?GXY_METROS[k].currency==='$':GXY_METROS[k].currency==='£'));
+  allMetroKeys.forEach(mk=>{
+    const c=METRO_COORDS[mk]; const p=project(c.lat,c.lng,view);
+    const isUnlocked=G.metros[mk]&&G.metros[mk].unlocked;
+    const myCount=G.stores.filter(s=>s.metro===mk).length;
+    if(isUnlocked){
+      // draw your store dots
+      G.stores.filter(s=>s.metro===mk).forEach(s=>{
+        const t=townByName(mk,s.town); if(!t)return; const tc=townCoord(mk,t); const tp=project(tc.lat,tc.lng,view);
+        dots+=`<circle cx="${tp.x.toFixed(1)}" cy="${tp.y.toFixed(1)}" r="3.2" fill="#2ecc71" opacity="0.9"><title>${esc(s.town)} (${esc(GXY_METROS[mk].name)})</title></circle>`;
+      });
+      // metro label
+      dots+=`<text x="${p.x.toFixed(1)}" y="${(p.y-8).toFixed(1)}" fill="#eaf0fb" font-size="10" font-weight="700" text-anchor="middle">${esc(GXY_METROS[mk].name)} (${myCount})</text>`;
+      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5" fill="none" stroke="#2ecc71" stroke-width="1.5" opacity="0.5"/>`;
+    } else {
+      // expandable hub (clickable)
+      const need=typeof regionUnlockNeed==='function'?regionUnlockNeed(mk):15;
+      const can=G.stores.length>=need;
+      dots+=`<g style="cursor:pointer;" onclick="mapClickMetro('${mk}')"><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${can?'#f5a623':'#6b7891'}" opacity="0.8"><title>${esc(GXY_METROS[mk].name)} — ${can?'ready to enter':'locked ('+need+' stores)'}</title></circle></g>`;
+    }
+  });
+
+  const scopeToggle = (hasUS&&hasUK) ? `<div class="pickrow" style="margin-bottom:12px;"><div class="pillpick ${scope==='US'?'on':''}" onclick="setMapScope('US')" style="padding:6px 14px;"><div class="pn" style="font-size:14px;">🇺🇸 US</div></div><div class="pillpick ${scope==='UK'?'on':''}" onclick="setMapScope('UK')" style="padding:6px 14px;"><div class="pn" style="font-size:14px;">🇬🇧 UK</div></div></div>` : '';
+
+  $('#pane-geomap').innerHTML = `
+    <div class="section-title">Empire Map</div>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:12px;">🟢 Your stores · 🟠 ready to expand · ⚪ locked region. Tap an orange hub to enter a new region.</div>
+    ${scopeToggle}
+    <div class="store" style="padding:10px;overflow-x:auto;">
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:600px;background:#0b0f16;border-radius:10px;">
+        <rect x="0" y="0" width="${W}" height="${H}" fill="#0b0f16"/>
+        ${scope==='US'?usOutline(view):ukOutline(view)}
+        ${dots}
+      </svg>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;font-size:12px;color:var(--dim);">
+      <span>🟢 ${G.stores.length} stores</span>
+      <span>📍 ${Object.keys(G.metros).filter(k=>G.metros[k].unlocked).length} regions active</span>
+    </div>
+  `;
+}
+function setMapScope(s){ G._mapScope=s; renderGeoMap(); }
+function mapClickMetro(mk){
+  if(G.metros[mk]&&G.metros[mk].unlocked){ focusMetro(mk); switchTab('map'); return; }
+  if(typeof enterRegion==='function'){ enterRegion(mk); }
+}
+// simple US outline (very rough bounding shape for context)
+function usOutline(view){
+  return `<path d="M ${project(48.5,-124,view).x},${project(48.5,-124,view).y}
+    L ${project(49,-95,view).x},${project(49,-95,view).y}
+    L ${project(47,-83,view).x},${project(47,-83,view).y}
+    L ${project(43,-79,view).x},${project(43,-79,view).y}
+    L ${project(45,-67,view).x},${project(45,-67,view).y}
+    L ${project(31,-81,view).x},${project(31,-81,view).y}
+    L ${project(25,-80,view).x},${project(25,-80,view).y}
+    L ${project(29,-95,view).x},${project(29,-95,view).y}
+    L ${project(26,-97,view).x},${project(26,-97,view).y}
+    L ${project(32,-117,view).x},${project(32,-117,view).y}
+    L ${project(42,-124,view).x},${project(42,-124,view).y} Z"
+    fill="#141b28" stroke="#2a3346" stroke-width="1"/>`;
+}
+function ukOutline(view){
+  return `<path d="M ${project(55.8,-5,view).x},${project(55.8,-5,view).y}
+    L ${project(55,-2,view).x},${project(55,-2,view).y}
+    L ${project(53,0.5,view).x},${project(53,0.5,view).y}
+    L ${project(51,1.5,view).x},${project(51,1.5,view).y}
+    L ${project(50,-1,view).x},${project(50,-1,view).y}
+    L ${project(50.2,-5,view).x},${project(50.2,-5,view).y}
+    L ${project(53,-4.5,view).x},${project(53,-4.5,view).y} Z"
+    fill="#141b28" stroke="#2a3346" stroke-width="1"/>`;
+}
+
+
+/* ============================================================
+   v4: DIFFICULTY, ESCALATION, LOANS, AGGRESSIVE RIVALS,
+       EVENTS, STAFF, REPUTATION, FAIL STATE
+   ============================================================ */
+
+/* difficulty levels (Campaign only; Sandbox uses realism + safe) */
+const DIFFICULTY = {
+  normal: { name:"Normal", dd:"A fair fight", threatMult:0.7,  interestRate:0.010, eventBad:0.18, failState:true,  startCash:85000 },
+  hard:   { name:"Hard",   dd:"They come for you", threatMult:1.0, interestRate:0.015, eventBad:0.28, failState:true, startCash:70000 },
+  brutal: { name:"Brutal", dd:"Survive if you can", threatMult:1.4, interestRate:0.022, eventBad:0.38, failState:true, startCash:55000 },
+};
+function diff(){ return DIFFICULTY[G.difficulty] || DIFFICULTY.normal; }
+
+/* ESCALATION: the world gets harder as your empire grows.
+   Scales from 0 (tiny) to ~1.0+ (huge) based on stores + net worth. */
+function escalation(){
+  if(!G) return 0;
+  const storeScale = Math.min(1, G.stores.length/30);          // maxes ~30 stores
+  const nwScale = Math.min(1, netWorth()/3000000);             // maxes ~$3M
+  return (storeScale*0.6 + nwScale*0.4);                        // 0..1
+}
+// combined threat level = difficulty × escalation (Sandbox = 0)
+function threatLevel(){
+  if(!G || G.mode==='sandbox') return 0;
+  return diff().threatMult * (0.3 + escalation()*0.9);          // floor so it's never zero in campaign
+}
+
+function ensureV4State(){
+  if(!G) return;
+  if(!G.difficulty) G.difficulty = (G.mode==='campaign'?'hard':'normal');
+  if(!G.debt) G.debt = { principal:0, loans:[] };
+  if(G.reputation===undefined) G.reputation = 1.0;   // company-wide 0.5..1.5
+  if(!G.staff) G.staff = { managers:0, wageBill:0 };
+  if(G._activeCrises===undefined) G._activeCrises = [];
+  if(G._failed===undefined) G._failed = false;
+}
+
+
+/* --- LOANS & DEBT --- */
+function maxLoan(){
+  // credit limit scales with net worth (minus existing debt)
+  const capacity = Math.max(50000, netWorth()*0.6);
+  return Math.max(0, Math.round(capacity - G.debt.principal));
+}
+function totalDebt(){ return G.debt.principal; }
+function weeklyInterest(){ return Math.round(G.debt.principal * diff().interestRate * (typeof econInterestMult==='function'?econInterestMult():1)); }
+function takeLoan(amount){
+  ensureV4State();
+  amount=Math.round(amount);
+  if(amount<=0) return;
+  if(amount>maxLoan()){ toast('Loan exceeds your credit limit.'); return; }
+  G.debt.principal += amount;
+  G.debt.loans.push({ amount, week:G.week, rate:diff().interestRate });
+  G.cash += amount;
+  refreshHUD(); toast('🏦 Borrowed '+money(amount)+' — interest '+(diff().interestRate*100).toFixed(1)+'%/wk');
+  saveGame(false);
+}
+function repayDebt(amount){
+  ensureV4State();
+  amount=Math.min(Math.round(amount), G.debt.principal, G.cash);
+  if(amount<=0){ toast('Nothing to repay or no cash.'); return; }
+  G.cash -= amount; G.debt.principal -= amount;
+  refreshHUD(); toast('✓ Repaid '+money(amount)+'. Debt now '+money(G.debt.principal));
+  saveGame(false);
+}
+function processDebt(){
+  ensureV4State();
+  if(G.debt.principal>0){
+    const interest = weeklyInterest();
+    G.cash -= interest;
+    G._lastInterest = interest;
+  } else { G._lastInterest=0; }
+}
+
+function openBusinessHub(){
+  ensureV5State();
+  const ipoLabel = G.ipo.public ? 'Stock: '+money(G.ipo.sharePrice) : (ipoEligible()?'Go Public (IPO)':'IPO (locked)');
+  showModal(`
+    <h2>🏢 Corporate</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Manage your company's strategic assets.</div>
+    <div style="display:grid;gap:8px;">
+      <button class="btn ghost" style="text-align:left;padding:14px;" onclick="closeModal('modal');openLabelModal();"><div style="font-weight:700;">🏷️ Private Label</div><div style="color:var(--dim);font-size:12px;">${esc(LABEL_TIERS[G.privateLabel.tier].name)} — develop own-brand lines for better margins</div></button>
+      <button class="btn ghost" style="text-align:left;padding:14px;" onclick="closeModal('modal');openWarehouseModal();"><div style="font-weight:700;">🏭 Distribution Network</div><div style="color:var(--dim);font-size:12px;">${G.warehouses.length} warehouse(s) — cut supply costs for nearby stores</div></button>
+      <button class="btn ghost" style="text-align:left;padding:14px;" onclick="closeModal('modal');openAcquisitionsModal();"><div style="font-weight:700;">🤝 Acquisitions</div><div style="color:var(--dim);font-size:12px;">Buy out rival chains to absorb their stores</div></button>
+      <button class="btn ghost" style="text-align:left;padding:14px;" onclick="closeModal('modal');openDepartmentsModal();"><div style="font-weight:700;">🏬 Departments</div><div style="color:var(--dim);font-size:12px;">Add bakery, pharmacy, deli & more across all stores</div></button>
+      <button class="btn ghost" style="text-align:left;padding:14px;" onclick="closeModal('modal');openStockModal();"><div style="font-weight:700;">📈 Stock Market</div><div style="color:var(--dim);font-size:12px;">${esc(ipoLabel)}</div></button>
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:14px;">Close</button>
+  `);
+}
+
+function openLoansModal(){
+  ensureV4State();
+  const limit=maxLoan();
+  showModal(`
+    <h2>🏦 Finance</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Borrow to expand faster — but interest accrues every week, and heavy debt can sink you. Credit scales with your net worth.</div>
+    <div class="store" style="margin-bottom:14px;">
+      <div class="srow"><span class="k">Current debt</span><span class="v ${G.debt.principal>0?'net-neg':''}">${money(G.debt.principal)}</span></div>
+      <div class="srow"><span class="k">Weekly interest</span><span class="v net-neg">${money(weeklyInterest())}</span></div>
+      <div class="srow"><span class="k">Interest rate</span><span class="v">${(diff().interestRate*100).toFixed(1)}%/wk</span></div>
+      <div class="srow"><span class="k">Available credit</span><span class="v money">${money(limit)}</span></div>
+    </div>
+    <div class="section-title">Borrow</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      ${[25000,50000,100000,250000].map(a=>`<button class="btn sm" ${a>limit?'disabled':''} onclick="takeLoan(${a});closeModal('modal');openLoansModal();">${money(a)}</button>`).join('')}
+    </div>
+    <div class="section-title">Repay</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${[25000,50000,100000].map(a=>`<button class="btn ghost sm" ${(G.debt.principal<a||G.cash<a)?'disabled':''} onclick="repayDebt(${a});closeModal('modal');openLoansModal();">${money(a)}</button>`).join('')}
+      <button class="btn ghost sm" ${(G.debt.principal<=0||G.cash<=0)?'disabled':''} onclick="repayDebt(Math.min(G.debt.principal,G.cash));closeModal('modal');openLoansModal();">Repay Max</button>
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:16px;">Close</button>
+  `);
+}
+
+
+/* --- AGGRESSIVE RIVALS: they attack your best towns --- */
+function runRivalAggression(metroKey){
+  ensureV4State();
+  const threat=threatLevel();
+  if(threat<=0) return;
+  const M=G.metros[metroKey]; if(!M||!M.chains) return;
+  const metro=GXY_METROS[metroKey];
+
+  // find YOUR most profitable towns in this metro
+  const myStores=G.stores.filter(s=>s.metro===metroKey);
+  if(!myStores.length) return;
+  const byNet=[...myStores].sort((a,b)=>(b.lastNet||0)-(a.lastNet||0));
+  const targets=byNet.slice(0, Math.max(1, Math.round(threat*3))); // more targets at higher threat
+
+  M.chains.forEach(chain=>{
+    // chance to start a price war in one of your best towns
+    if(Math.random() < 0.12*threat){
+      const target=targets[Math.floor(Math.random()*targets.length)];
+      if(!target) return;
+      // does the chain have a store in that town? if not, maybe OPEN one aggressively (invasion)
+      let rStore=chain.stores.find(s=>s.town===target.town);
+      if(!rStore && chain.cash>50000 && Math.random()<0.5*threat){
+        const town=townByName(metroKey,target.town);
+        if(town){ rStore=chainOpenStore(chain,town,metroKey); chain.cash-=E.openCost(town)*0.8;
+          G._rivalNews=(G._rivalNews?G._rivalNews+' · ':'')+chain.name+' invaded '+target.town+'!'; }
+      }
+      if(rStore){
+        // price war: rival slashes price to undercut you
+        rStore.priceMult=Math.max(1.02, rStore.priceMult*0.88);
+        rStore._priceWar=6; // weeks of aggressive pricing
+        target._underAttack=4;
+      }
+    }
+    // sustained price-war stores keep prices low then relax
+    chain.stores.forEach(s=>{ if(s._priceWar>0){ s._priceWar--; if(s._priceWar===0) s.priceMult=Math.min(1.5,s.priceMult*1.15); } });
+  });
+}
+
+/* --- CRISIS EVENTS (economy comes after you) --- */
+const CRISES = {
+  recession:  { name:"Recession", emoji:"📉", dd:"Consumer spending drops sharply", demand:0.78, weeks:8 },
+  supplyshock:{ name:"Supply Shock", emoji:"📦", dd:"Wholesale costs spike", upkeep:1.35, weeks:5 },
+  fuelspike:  { name:"Fuel Price Spike", emoji:"⛽", dd:"Logistics costs surge", upkeep:1.2, weeks:4 },
+  scandal:    { name:"Product Recall", emoji:"⚠️", dd:"A recall hits your reputation", rep:-0.2, weeks:1 },
+  strike:     { name:"Worker Strike", emoji:"✊", dd:"Staff walkouts cut capacity", capacity:0.7, weeks:3 },
+  pandemic:   { name:"Health Scare", emoji:"🦠", dd:"Panic-buying then slump", demand:0.85, weeks:6 },
+};
+function maybeCrisis(){
+  ensureV4State();
+  const threat=threatLevel();
+  const chance = diff().eventBad * (0.5 + threat*1.2); // bigger empire = more crises
+  if(Math.random() > chance*0.4) return; // per-week crisis roll
+  const keys=Object.keys(CRISES);
+  const key=keys[Math.floor(Math.random()*keys.length)];
+  const c=CRISES[key];
+  // scandal is instant
+  if(c.rep){ G.reputation=Math.max(0.5, G.reputation+c.rep); toast(c.emoji+' '+c.name+' — reputation hit!'); return; }
+  G._activeCrises.push({ ...c, key, weeksLeft:c.weeks });
+  toast(c.emoji+' CRISIS: '+c.name+' — '+c.dd+' ('+c.weeks+'wk)');
+}
+function crisisDemandMult(){ let m=1; G._activeCrises.forEach(c=>{ if(c.demand)m*=c.demand; }); return m; }
+function crisisUpkeepMult(){ let m=1; G._activeCrises.forEach(c=>{ if(c.upkeep)m*=c.upkeep; }); return m; }
+function crisisCapacityMult(){ let m=1; G._activeCrises.forEach(c=>{ if(c.capacity)m*=c.capacity; }); return m; }
+function tickCrises(){ ensureV4State(); G._activeCrises.forEach(c=>c.weeksLeft--); G._activeCrises=G._activeCrises.filter(c=>c.weeksLeft>0); }
+
+
+/* --- STAFF & MANAGEMENT --- */
+// each store ideally has a manager; managers cost wages but boost performance.
+// understaffed stores (more stores than managers) underperform.
+function staffCoverage(){
+  ensureV4State();
+  if(!G.stores.length) return 1;
+  return Math.min(1, G.staff.managers / G.stores.length);
+}
+function staffWageBill(){ ensureV4State(); return G.staff.managers * 1200; } // per manager/week
+function staffPerformanceMult(){
+  // full coverage = +8% performance; understaffed = penalty
+  const cov=staffCoverage();
+  return 0.9 + cov*0.18; // 0.9 (no staff) .. 1.08 (full)
+}
+function hireManager(n){
+  ensureV4State(); n=n||1;
+  const cost=n*3000; // hiring/training cost
+  if(G.cash<cost){ toast('Not enough cash to hire.'); return; }
+  G.cash-=cost; G.staff.managers+=n;
+  refreshHUD(); toast('👔 Hired '+n+' manager'+(n>1?'s':'')+'.'); if($('#modal').classList.contains('show'))openStaffModal(); saveGame(false);
+}
+function fireManager(n){
+  ensureV4State(); n=Math.min(n||1, G.staff.managers);
+  G.staff.managers-=n;
+  toast('Let go '+n+' manager'+(n>1?'s':'')+'.'); if($('#modal').classList.contains('show'))openStaffModal(); saveGame(false);
+}
+function openStaffModal(){
+  ensureV4State();
+  const cov=Math.round(staffCoverage()*100);
+  showModal(`
+    <h2>👔 Staff & Management</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Managers keep stores running well. Aim for one per store. Understaffed chains underperform; wages are paid weekly.</div>
+    <div class="store" style="margin-bottom:14px;">
+      <div class="srow"><span class="k">Managers</span><span class="v">${G.staff.managers}</span></div>
+      <div class="srow"><span class="k">Stores</span><span class="v">${G.stores.length}</span></div>
+      <div class="srow"><span class="k">Coverage</span><span class="v ${cov>=100?'net-pos':cov<60?'net-neg':''}">${cov}%</span></div>
+      <div class="srow"><span class="k">Weekly wage bill</span><span class="v net-neg">${money(staffWageBill())}</span></div>
+      <div class="srow"><span class="k">Performance</span><span class="v">${staffPerformanceMult()>=1?'+':''}${Math.round((staffPerformanceMult()-1)*100)}%</span></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn sm" onclick="hireManager(1)">Hire 1 (${money(3000)})</button>
+      <button class="btn sm" onclick="hireManager(5)">Hire 5 (${money(15000)})</button>
+      <button class="btn ghost sm" ${G.staff.managers<1?'disabled':''} onclick="fireManager(1)">Let go 1</button>
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:16px;">Close</button>
+  `);
+}
+
+/* --- COMPANY REPUTATION --- */
+// reputation 0.5..1.5 affects all stores' appeal. Built slowly, lost fast.
+function reputationMult(){ ensureV4State(); return 0.85 + (G.reputation-0.5)*0.3; } // 0.5->0.85, 1.5->1.15
+function driftReputation(){
+  ensureV4State();
+  // slowly drifts toward a baseline set by staff coverage + not being in crisis
+  const target = 1.0 + staffCoverage()*0.3;
+  G.reputation += (target - G.reputation)*0.05;
+  G.reputation = Math.max(0.5, Math.min(1.5, G.reputation));
+}
+
+/* --- FAIL STATE --- */
+function checkFailState(){
+  ensureV4State();
+  if(G.mode==='sandbox') return false;
+  if(!diff().failState) return false;
+  // fail if: deeply in debt beyond credit AND cash negative, or net worth deeply negative
+  const insolvent = (G.cash < 0 && G.debt.principal > netWorth()+G.cash);
+  const bankrupt = netWorth() < -50000;
+  if(insolvent || bankrupt){
+    if(!G._failWarned){ G._failWarned=true; toast('⚠️ INSOLVENCY WARNING — repay debt or raise cash!'); return false; }
+    G._failed=true;
+    endGameFail();
+    return true;
+  }
+  // recovered
+  if(G.cash>=0 && netWorth()>0) G._failWarned=false;
+  return false;
+}
+function endGameFail(){
+  showModal(`<h2>💀 Bankrupt</h2>
+    <p style="color:var(--dim);margin:10px 0 16px;">Your empire collapsed under its debts. ${G.chainName} operated ${G.stores.length} stores across ${Object.values(G.metros).filter(m=>m.unlocked).length} regions before the creditors moved in.</p>
+    <div class="store" style="margin-bottom:14px;">
+      <div class="srow"><span class="k">Peak net worth</span><span class="v">${money((G.stats&&G.stats.peakNetWorth)||0)}</span></div>
+      <div class="srow"><span class="k">Weeks survived</span><span class="v">${(G.stats&&G.stats.weeksRun)||G.week}</span></div>
+    </div>
+    <button class="btn" onclick="closeModal('modal');quitToMenu();">Main Menu</button>`);
+}
+
+
+/* ============================================================
+   v5: PRIVATE LABEL, WAREHOUSES, ACQUISITIONS, IPO
+   ============================================================ */
+function ensureV5State(){
+  if(!G) return;
+  if(!G.privateLabel) G.privateLabel = { tier:0 };  // 0=none,1=store brand,2=premium own-brand
+  if(!G.warehouses) G.warehouses = [];              // {id, metro, lat, lng, level}
+  if(!G.ipo) G.ipo = { public:false, sharePrice:0, shares:0, week:0, history:[] };
+  if(G._acquiredChains===undefined) G._acquiredChains = [];
+}
+
+/* --- PRIVATE LABEL --- */
+const LABEL_TIERS = [
+  { name:"None", dd:"Sell only national brands", margin:1.0, quality:0, cost:0 },
+  { name:"Store Brand", dd:"Value own-label lines — better margins", margin:1.08, quality:-0.03, cost:40000 },
+  { name:"Premium Own-Brand", dd:"Quality own-label — margin AND appeal", margin:1.14, quality:0.05, cost:120000 },
+];
+function labelMargin(){ ensureV5State(); return LABEL_TIERS[G.privateLabel.tier].margin; }
+function labelQuality(){ ensureV5State(); return LABEL_TIERS[G.privateLabel.tier].quality; }
+function developLabel(){
+  ensureV5State();
+  const next=G.privateLabel.tier+1;
+  if(next>=LABEL_TIERS.length){ toast('Own-brand fully developed.'); return; }
+  const cost=LABEL_TIERS[next].cost;
+  if(G.cash<cost){ toast('Need '+money(cost)+' to develop.'); return; }
+  G.cash-=cost; G.privateLabel.tier=next;
+  // premium tier bumps existing store quality
+  if(LABEL_TIERS[next].quality>0) G.stores.forEach(s=>s.quality=+(s.quality+LABEL_TIERS[next].quality).toFixed(2));
+  refreshHUD(); toast('🏷️ Developed: '+LABEL_TIERS[next].name); if($('#modal').classList.contains('show'))openLabelModal(); saveGame(false);
+}
+function openLabelModal(){
+  ensureV5State();
+  const t=G.privateLabel.tier;
+  showModal(`
+    <h2>🏷️ Private Label</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Develop your own product lines to cut out wholesalers and boost margins across every store.</div>
+    <div class="store-list">
+      ${LABEL_TIERS.map((tier,i)=>`<div class="store" style="${i===t?'border-color:var(--good);':''}">
+        <div class="sh"><div><div class="snm">${esc(tier.name)}</div><div class="sloc">${esc(tier.dd)}</div></div>
+        ${i===t?'<span class="sage age-new">✓ CURRENT</span>':''}</div>
+        ${i>0?`<div class="srow" style="margin-top:8px;"><span class="k">Margin bonus</span><span class="v net-pos">+${Math.round((tier.margin-1)*100)}%</span></div>
+        <div class="srow"><span class="k">Quality effect</span><span class="v">${tier.quality>=0?'+':''}${tier.quality}</span></div>`:''}
+        ${i===t+1?`<div class="sactions"><button class="btn sm" ${G.cash<tier.cost?'disabled':''} onclick="developLabel()">Develop (${money(tier.cost)})</button></div>`:''}
+      </div>`).join('')}
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:14px;">Close</button>
+  `);
+}
+
+
+/* --- WAREHOUSES / DISTRIBUTION CENTERS (real geography) --- */
+const WAREHOUSE_LEVELS = [
+  { name:"Depot", range:0.9, discount:0.10, cost:80000, upkeep:2500 },     // range in coord-degrees
+  { name:"Distribution Center", range:1.6, discount:0.16, cost:180000, upkeep:5000 },
+  { name:"Regional Hub", range:2.8, discount:0.22, cost:400000, upkeep:9000 },
+];
+// distance between two lat/lng points (rough, in degrees)
+function coordDist(a,b){ const dlat=a.lat-b.lat, dlng=(a.lng-b.lng)*Math.cos(a.lat*Math.PI/180); return Math.sqrt(dlat*dlat+dlng*dlng); }
+// get a store's coordinate
+function storeCoord(s){ const t=townByName(s.metro,s.town); return t?townCoord(s.metro,t):null; }
+// best (largest) supply discount a store gets from any warehouse in range
+function storeSupplyDiscount(s){
+  ensureV5State();
+  const sc=storeCoord(s); if(!sc) return 0;
+  let best=0;
+  G.warehouses.forEach(w=>{
+    const wl=WAREHOUSE_LEVELS[w.level];
+    const d=coordDist(sc,{lat:w.lat,lng:w.lng});
+    if(d<=wl.range){ best=Math.max(best, wl.discount*(1 - d/wl.range*0.4)); } // closer = full discount
+  });
+  return best; // 0..0.22 reduction on upkeep
+}
+function warehouseUpkeepTotal(){ ensureV5State(); return G.warehouses.reduce((a,w)=>a+WAREHOUSE_LEVELS[w.level].upkeep,0); }
+function storesServedBy(w){
+  const wl=WAREHOUSE_LEVELS[w.level];
+  return G.stores.filter(s=>{ const sc=storeCoord(s); return sc && coordDist(sc,{lat:w.lat,lng:w.lng})<=wl.range; }).length;
+}
+function buildWarehouse(metroKey, level){
+  ensureV5State();
+  level=level||0;
+  const wl=WAREHOUSE_LEVELS[level];
+  if(G.cash<wl.cost){ toast('Need '+money(wl.cost)+'.'); return; }
+  const c=METRO_COORDS[metroKey]; if(!c){ toast('Unknown region.'); return; }
+  G.cash-=wl.cost;
+  G.warehouses.push({ id:'w'+Math.random().toString(36).slice(2,7), metro:metroKey, lat:c.lat, lng:c.lng, level });
+  refreshHUD(); toast('🏭 '+wl.name+' built near '+GXY_METROS[metroKey].name); if($('#modal').classList.contains('show'))openWarehouseModal(); saveGame(false);
+}
+function upgradeWarehouse(id){
+  ensureV5State();
+  const w=G.warehouses.find(x=>x.id===id); if(!w||w.level>=WAREHOUSE_LEVELS.length-1)return;
+  const nl=WAREHOUSE_LEVELS[w.level+1];
+  const cost=nl.cost-WAREHOUSE_LEVELS[w.level].cost;
+  if(G.cash<cost){ toast('Need '+money(cost)+' to upgrade.'); return; }
+  G.cash-=cost; w.level++;
+  refreshHUD(); toast('⬆️ Upgraded to '+nl.name); openWarehouseModal(); saveGame(false);
+}
+function openWarehouseModal(){
+  ensureV5State();
+  const unlocked=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  showModal(`
+    <h2>🏭 Distribution Network</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Warehouses cut supply costs for nearby stores — the closer and denser your stores, the more you save. Rewards building clusters over scattered stores.</div>
+    ${G.warehouses.length?`<div class="section-title">Your Warehouses</div><div class="store-list" style="margin-bottom:16px;">
+      ${G.warehouses.map(w=>{const wl=WAREHOUSE_LEVELS[w.level];return `<div class="store">
+        <div class="sh"><div><div class="snm">${wl.name}</div><div class="sloc">${esc(GXY_METROS[w.metro].name)} area</div></div></div>
+        <div class="srow" style="margin-top:8px;"><span class="k">Stores served</span><span class="v">${storesServedBy(w)}</span></div>
+        <div class="srow"><span class="k">Supply discount</span><span class="v net-pos">up to −${Math.round(wl.discount*100)}%</span></div>
+        <div class="srow"><span class="k">Weekly upkeep</span><span class="v net-neg">${money(wl.upkeep)}</span></div>
+        ${w.level<WAREHOUSE_LEVELS.length-1?`<div class="sactions"><button class="btn sm" onclick="upgradeWarehouse('${w.id}')">Upgrade to ${WAREHOUSE_LEVELS[w.level+1].name}</button></div>`:''}
+      </div>`;}).join('')}</div>`:''}
+    <div class="section-title">Build New Warehouse</div>
+    <div class="field" style="max-width:320px;"><select id="whMetro">${unlocked.map(k=>`<option value="${k}">${esc(GXY_METROS[k].name)} (${G.stores.filter(s=>s.metro===k).length} stores)</option>`).join('')}</select></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${WAREHOUSE_LEVELS.map((wl,i)=>`<button class="btn ${i===0?'':'ghost'} sm" ${G.cash<wl.cost?'disabled':''} onclick="buildWarehouse(document.getElementById('whMetro').value,${i})">${wl.name} (${money(wl.cost)})</button>`).join('')}
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:16px;">Close</button>
+  `);
+}
+
+
+/* --- ACQUISITIONS --- */
+// buy out a rival chain in a metro: absorb its stores, remove the competitor.
+function acquisitionPrice(chain){
+  // valuation: per-store value + a premium; bigger chains cost much more
+  const perStore = 55000;
+  return Math.round(chain.stores.length * perStore * 1.4);
+}
+function ipoEligible(){ return netWorth()>1500000 && G.stores.length>=20 && !G.ipo.public; }
+function computeSharePrice(){
+  ensureV5State();
+  // share price reflects net worth, profitability, and growth
+  const base = netWorth()/ (G.ipo.shares||1000000);
+  const profitBonus = 1 + Math.max(-0.3, Math.min(0.5, (G.lastWeeklyNet||0)/50000));
+  return Math.max(0.5, base*profitBonus);
+}
+function goPublic(){
+  ensureV5State();
+  if(!ipoEligible()){ toast('Not eligible for IPO yet (need $1.5M net worth & 20+ stores).'); return; }
+  const shares=1000000;
+  const price=Math.max(1, netWorth()/shares);
+  const raised=Math.round(price*shares*0.3); // sell 30% to the public
+  G.ipo.public=true; G.ipo.shares=shares; G.ipo.week=G.week; G.ipo.sharePrice=price;
+  G.cash+=raised;
+  refreshHUD();
+  showModal(`<h2>📈 ${esc(G.chainName)} is now public!</h2>
+    <p style="color:var(--dim);margin:10px 0 14px;">You listed on the exchange, raising <b style="color:var(--good);">${money(raised)}</b> in capital by selling 30% of the company. Your opening share price is <b>${money(price)}</b>.</p>
+    <div class="store" style="margin-bottom:14px;"><div style="color:var(--dim);font-size:12px;">Now shareholders watch your every move. Keep the price climbing — a crash brings board pressure. Grow profitably and the market rewards you.</div></div>
+    <button class="btn" onclick="closeModal('modal')">Let's go</button>`);
+  saveGame(false);
+}
+function processIPO(){
+  ensureV5State();
+  if(!G.ipo.public) return;
+  const newPrice=computeSharePrice();
+  // smooth toward computed price
+  G.ipo.sharePrice = G.ipo.sharePrice*0.7 + newPrice*0.3;
+  G.ipo.history.push(+G.ipo.sharePrice.toFixed(2));
+  if(G.ipo.history.length>60) G.ipo.history.shift();
+  // shareholder pressure: if price falls a lot from peak, board penalty
+  const peak=Math.max(...G.ipo.history);
+  if(G.ipo.sharePrice < peak*0.6 && Math.random()<0.1){
+    toast('📉 Shareholders are unhappy — share price is sliding!');
+  }
+}
+function openStockModal(){
+  ensureV5State();
+  if(!G.ipo.public){
+    const elig=ipoEligible();
+    showModal(`<h2>📈 Go Public (IPO)</h2>
+      <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Take ${esc(G.chainName)} public to raise a major capital injection by selling shares. Afterward, your share price tracks your performance — and shareholders expect growth.</div>
+      <div class="store" style="margin-bottom:14px;">
+        <div class="srow"><span class="k">Requirement: net worth</span><span class="v ${netWorth()>=1500000?'net-pos':'net-neg'}">${money(netWorth())} / ${money(1500000)}</span></div>
+        <div class="srow"><span class="k">Requirement: stores</span><span class="v ${G.stores.length>=20?'net-pos':'net-neg'}">${G.stores.length} / 20</span></div>
+        ${elig?`<div class="srow"><span class="k">Est. capital raised</span><span class="v money">${money(Math.round(netWorth()*0.3))}</span></div>`:''}
+      </div>
+      <button class="btn money" ${elig?'':'disabled'} onclick="goPublic()">${elig?'Go Public →':'Not eligible yet'}</button>
+      <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:8px;">Close</button>`);
+    return;
+  }
+  // public: show share price + chart
+  const h=G.ipo.history; const max=Math.max(...h,1),min=Math.min(...h,0);
+  const spark=h.slice(-40).map((v,i)=>{ const x=i/39*300; const y=40-((v-min)/(max-min||1))*40; return (i?'L':'M')+x.toFixed(1)+','+y.toFixed(1); }).join(' ');
+  const mktCap=G.ipo.sharePrice*G.ipo.shares;
+  showModal(`<h2>📈 ${esc(G.chainName)} (Public)</h2>
+    <div class="store" style="margin-bottom:14px;">
+      <div class="srow"><span class="k">Share price</span><span class="v money">${money(G.ipo.sharePrice)}</span></div>
+      <div class="srow"><span class="k">Market cap</span><span class="v">${money(mktCap)}</span></div>
+      <div class="srow"><span class="k">Shares outstanding</span><span class="v">${(G.ipo.shares/1000000).toFixed(1)}M</span></div>
+      <svg viewBox="0 0 300 44" style="width:100%;height:60px;margin-top:10px;"><path d="${spark}" fill="none" stroke="var(--good)" stroke-width="2"/></svg>
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')">Close</button>`);
+}
+
+
+/* ============================================================
+   v6: COMPANY-WIDE ACQUISITIONS (absorb / banner / liquidate / partial)
+   ============================================================ */
+// A "company" = a named chain that exists across ALL metros where it operates.
+// Acquiring buys the WHOLE company (every store in every region), much harder.
+
+// gather a company's full footprint across all unlocked metros
+function companyFootprint(chainName){
+  const stores=[];
+  Object.keys(G.metros).filter(k=>G.metros[k].unlocked).forEach(mk=>{
+    const M=G.metros[mk]; if(!M.chains)return;
+    M.chains.forEach((ch,ci)=>{ if(ch.name===chainName){ ch.stores.forEach(s=>stores.push({store:s, metro:mk, chainIdx:ci})); } });
+  });
+  return stores;
+}
+function listAcquirableCompanies(){
+  const names={};
+  Object.keys(G.metros).filter(k=>G.metros[k].unlocked).forEach(mk=>{
+    const M=G.metros[mk]; if(!M.chains)return;
+    M.chains.forEach(ch=>{ if(ch.stores.length){ if(!names[ch.name])names[ch.name]={name:ch.name,kind:ch.kind,stores:0,metros:new Set()}; names[ch.name].stores+=ch.stores.length; names[ch.name].metros.add(mk); } });
+  });
+  return Object.values(names).map(c=>({...c, metros:[...c.metros]}));
+}
+function companyValuation(comp){
+  // company-wide acquisitions are MUCH harder: higher per-store, scale premium,
+  // and a control premium that grows with how dominant the target is.
+  const perStore=95000;
+  const scalePremium=1 + Math.min(1.2, comp.stores*0.03); // bigger target = pricier
+  const multiMetroPremium=1 + (comp.metros.length-1)*0.15;
+  return Math.round(comp.stores*perStore*scalePremium*multiMetroPremium);
+}
+function openAcquisitionsModal(){
+  ensureV5State();
+  const comps=listAcquirableCompanies().sort((a,b)=>b.stores-a.stores);
+  showModal(`
+    <h2>🤝 Mergers & Acquisitions</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Acquire an entire competing company — every store across every region it operates in. A major endgame move: expensive, but it removes a rival nationwide and hands you their whole footprint.</div>
+    ${comps.length?comps.map(c=>{
+      const val=companyValuation(c);
+      return `<div class="store" style="margin-bottom:10px;">
+        <div class="sh"><div><div class="snm">${esc(c.name)}</div><div class="sloc">${c.stores} stores across ${c.metros.length} region${c.metros.length!==1?'s':''} · ${c.kind}</div></div></div>
+        <div class="srow" style="margin-top:8px;"><span class="k">Acquisition price</span><span class="v ${G.cash<val?'net-neg':''}">${money(val)}</span></div>
+        <div class="sactions"><button class="btn sm" ${G.cash<val?'disabled':''} onclick="openAcquireOptions('${esc(c.name)}')">${G.cash<val?'Need '+money(val):'Acquire…'}</button></div>
+      </div>`;
+    }).join(''):'<div class="empty-hint">No companies to acquire in your active regions yet.</div>'}
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:14px;">Close</button>
+  `);
+}
+// step 2: choose what to do with the acquired brand
+function openAcquireOptions(chainName){
+  const comp=listAcquirableCompanies().find(c=>c.name===chainName); if(!comp)return;
+  const val=companyValuation(comp);
+  const liquidValue=Math.round(comp.stores*38000); // salvage if you liquidate
+  showModal(`
+    <h2>Acquire ${esc(chainName)}</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:8px;">${comp.stores} stores · ${comp.metros.length} regions · ${money(val)}</div>
+    <div class="section-title">Choose your integration strategy</div>
+    <div style="display:grid;gap:8px;">
+      <button class="btn ghost" style="text-align:left;padding:13px;" onclick="doAcquire('${esc(chainName)}','absorb')"><div style="font-weight:700;">🔄 Absorb & Rebrand</div><div style="color:var(--dim);font-size:12px;">All ${comp.stores} stores become ${esc(G.chainName)}. Full integration, your pricing & standards.</div></button>
+      <button class="btn ghost" style="text-align:left;padding:13px;" onclick="doAcquire('${esc(chainName)}','banner')"><div style="font-weight:700;">🏷️ Keep as Banner</div><div style="color:var(--dim);font-size:12px;">Run them under the ${esc(chainName)} name as a subsidiary. Keeps their local loyalty (+reputation).</div></button>
+      <button class="btn ghost" style="text-align:left;padding:13px;" onclick="openPartialAcquire('${esc(chainName)}')"><div style="font-weight:700;">✂️ Partial — Pick Regions</div><div style="color:var(--dim);font-size:12px;">Buy only the stores in regions you choose (cheaper).</div></button>
+      <button class="btn ghost" style="text-align:left;padding:13px;" onclick="doAcquire('${esc(chainName)}','liquidate')"><div style="font-weight:700;">💰 Acquire & Liquidate</div><div style="color:var(--dim);font-size:12px;">Buy then sell off stores for ~${money(liquidValue)}. Removes the rival, recovers some cash. Net cost ${money(val-liquidValue)}.</div></button>
+    </div>
+    <button class="btn ghost" onclick="openAcquisitionsModal()" style="margin-top:14px;">← Back</button>
+  `);
+}
+function doAcquire(chainName, mode, metroFilter){
+  ensureV5State();
+  const comp=listAcquirableCompanies().find(c=>c.name===chainName); if(!comp)return;
+  let val=companyValuation(comp);
+  // partial: recompute for only selected metros
+  let footprint=companyFootprint(chainName);
+  if(metroFilter && metroFilter.length){
+    footprint=footprint.filter(f=>metroFilter.includes(f.metro));
+    val=Math.round(val * footprint.length/Math.max(1,comp.stores));
+  }
+  if(G.cash<val){ toast('Not enough cash.'); return; }
+  G.cash-=val;
+  let added=0, salvage=0;
+  const isBanner = mode==='banner';
+  footprint.forEach(f=>{
+    if(mode==='liquidate'){ salvage+=38000; return; } // don't keep the stores
+    const s=E.newStore((isBanner?chainName:G.chainName)+' '+f.store.town, f.store.town, f.store.capacity);
+    s.metro=f.metro; s.priceMult=defaultPriceForStrategy(); s.quality=Math.max(0.9,f.store.quality); s.ageWeeks=f.store.ageWeeks;
+    if(isBanner){ s.banner=chainName; } // keep banner identity
+    G.stores.push(s); added++;
+  });
+  if(mode==='liquidate'){ G.cash+=salvage; }
+  if(isBanner){ G.reputation=Math.min(1.5, G.reputation+0.08); } // banner keeps goodwill
+  // remove the acquired company from the map (all its stores in the affected metros)
+  const affectedMetros = metroFilter && metroFilter.length ? metroFilter : comp.metros;
+  affectedMetros.forEach(mk=>{
+    const M=G.metros[mk]; if(!M.chains)return;
+    M.chains = M.chains.filter(ch=>ch.name!==chainName);
+  });
+  G._acquiredChains=G._acquiredChains||[]; G._acquiredChains.push(chainName);
+  refreshHUD(); closeModal('modal');
+  if(mode==='liquidate') toast('💰 Acquired & liquidated '+chainName+' — recovered '+money(salvage));
+  else toast('🤝 Acquired '+chainName+(isBanner?' (kept as banner)':' — '+added+' stores rebranded')+'!');
+  switchTab('stores'); saveGame(false);
+}
+function openPartialAcquire(chainName){
+  const comp=listAcquirableCompanies().find(c=>c.name===chainName); if(!comp)return;
+  if(!G._partialSel) G._partialSel={};
+  G._partialSel[chainName]=G._partialSel[chainName]||[];
+  const sel=G._partialSel[chainName];
+  showModal(`
+    <h2>Partial Acquisition — ${esc(chainName)}</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:12px;">Select which regions' stores to buy:</div>
+    <div style="display:grid;gap:6px;">
+      ${comp.metros.map(mk=>{
+        const n=companyFootprint(chainName).filter(f=>f.metro===mk).length;
+        const on=sel.includes(mk);
+        return `<button class="btn ${on?'':'ghost'} sm" style="text-align:left;" onclick="togglePartial('${esc(chainName)}','${mk}')">${on?'✓ ':''}${esc(GXY_METROS[mk].name)} (${n} stores)</button>`;
+      }).join('')}
+    </div>
+    <button class="btn money" style="margin-top:14px;" ${sel.length?'':'disabled'} onclick="doAcquire('${esc(chainName)}','absorb',G._partialSel['${esc(chainName)}'])">Acquire Selected Regions</button>
+    <button class="btn ghost" onclick="openAcquireOptions('${esc(chainName)}')" style="margin-top:8px;">← Back</button>
+  `);
+}
+function togglePartial(chainName, mk){
+  G._partialSel[chainName]=G._partialSel[chainName]||[];
+  const sel=G._partialSel[chainName];
+  const i=sel.indexOf(mk); if(i>=0)sel.splice(i,1); else sel.push(mk);
+  openPartialAcquire(chainName);
+}
+
+
+/* ============================================================
+   v6: BULK REBUILD + GRANULAR COMPETITION VIEW
+   ============================================================ */
+// (applyBulk gets a 'rebuild' case added via integration; this adds the helper)
+function bulkRebuild(stores){
+  let count=0, spent=0;
+  stores.forEach(s=>{ const c=E.rebuildCost(s); if(G.cash>=c){ G.cash-=c; spent+=c; s.ageWeeks=0; s.reputation=1.1; s.quality=Math.max(s.quality,1.05); count++; } });
+  return {count, spent};
+}
+
+/* granular competition: per-town breakdown in a metro */
+function renderCompetitionDetail(metroKey){
+  const metro=GXY_METROS[metroKey];
+  const chains=initMetroRivals(metroKey);
+  // build per-town competitor map
+  const townRows=metro.towns.map(t=>{
+    const rivals=[];
+    chains.forEach(ch=>ch.stores.forEach(s=>{ if(s.town===t.name) rivals.push({name:ch.name,kind:ch.kind,share:s.share||0}); }));
+    const mine=myStoresIn(metroKey,t.name);
+    if(!rivals.length && !mine.length) return null;
+    return { town:t.name, pop:t.pop, income:t.income, rivals, mine:mine.length,
+             myShare: mine.reduce((a,s)=>a+(s.share||0),0) };
+  }).filter(Boolean).sort((a,b)=>b.pop-a.pop);
+  return `
+    <div class="section-title">${esc(metro.name)} — Town-by-Town Competition</div>
+    <div style="color:var(--dim);font-size:12.5px;margin-bottom:12px;">Every contested town in this region: who's there and who leads.</div>
+    <div class="store-list">
+      ${townRows.map(r=>`<div class="store">
+        <div class="sh"><div><div class="snm">${esc(r.town)}</div><div class="sloc"><span class="incdot" style="background:${incColor(r.income)}"></span>${r.pop}k people</div></div>
+        ${r.mine?`<span class="sage age-new">You: ${Math.round(r.myShare*100)}%</span>`:'<span class="sage age-old">No presence</span>'}</div>
+        <div style="margin-top:8px;">
+          ${r.rivals.length?r.rivals.map(rv=>`<div class="srow"><span class="k">${esc(rv.name)} <span style="color:var(--muted)">(${rv.kind})</span></span><span class="v">${Math.round(rv.share*100)}%</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px;">No rivals here — open territory!</div>'}
+        </div>
+        ${!r.mine?`<div class="sactions"><button class="btn sm" onclick="G._viewMetro='${metroKey}';openTownAction('${esc(r.town)}')">Open store here</button></div>`:''}
+      </div>`).join('')}
+    </div>`;
+}
+
+
+/* ============================================================
+   v6: CUSTOM AD CREATOR + DEMAND-BASED AUTOPILOT + MORE R&D
+   ============================================================ */
+// custom ad: player picks medium + message focus + intensity → computed cost & effect
+const AD_MEDIA = {
+  flyers:  { name:"Flyers", base:600, reach:0.3 },
+  radio:   { name:"Radio", base:1800, reach:0.6 },
+  tv:      { name:"TV", base:4500, reach:1.0 },
+  digital: { name:"Digital", base:2600, reach:0.8 },
+  billboard:{ name:"Billboards", base:3200, reach:0.7 },
+};
+const AD_FOCUS = {
+  price:   { name:"Low Prices", dd:"Best in budget towns", tier:'budget' },
+  quality: { name:"Quality & Fresh", dd:"Best in affluent towns", tier:'premium' },
+  brand:   { name:"Brand & Loyalty", dd:"Builds reputation", tier:'all' },
+  weekly:  { name:"Weekly Deals", dd:"Broad appeal", tier:'all' },
+};
+function customAdCost(media, intensity){ return Math.round(AD_MEDIA[media].base * intensity); }
+function openAdCreator(){
+  ensureV3State();
+  if(!G._adDraft) G._adDraft={ media:'radio', focus:'weekly', intensity:1, metro:G.homeMetro };
+  const d=G._adDraft;
+  const cost=customAdCost(d.media, d.intensity);
+  const unlocked=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  showModal(`
+    <h2>🎨 Create Ad Campaign</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Design a custom campaign — pick the medium, message, and intensity. Cost scales with reach and intensity.</div>
+    <div class="section-title">Medium</div>
+    <div class="pickrow" style="margin-bottom:12px;">${Object.keys(AD_MEDIA).map(k=>`<div class="pillpick ${d.media===k?'on':''}" onclick="setAdDraft('media','${k}')" style="padding:8px 12px;"><div class="pn" style="font-size:14px;">${AD_MEDIA[k].name}</div><div class="pd">reach ${Math.round(AD_MEDIA[k].reach*100)}%</div></div>`).join('')}</div>
+    <div class="section-title">Message Focus</div>
+    <div class="pickrow" style="margin-bottom:12px;">${Object.keys(AD_FOCUS).map(k=>`<div class="pillpick ${d.focus===k?'on':''}" onclick="setAdDraft('focus','${k}')" style="padding:8px 12px;"><div class="pn" style="font-size:14px;">${AD_FOCUS[k].name}</div><div class="pd">${AD_FOCUS[k].dd}</div></div>`).join('')}</div>
+    <div class="section-title">Intensity: ${d.intensity}×</div>
+    <input type="range" min="1" max="3" step="1" value="${d.intensity}" oninput="setAdDraft('intensity',+this.value)" style="width:100%;margin-bottom:12px;">
+    <div class="section-title">Target Region</div>
+    <div class="field" style="max-width:300px;"><select onchange="setAdDraft('metro',this.value)">${unlocked.map(k=>`<option value="${k}" ${d.metro===k?'selected':''}>${esc(GXY_METROS[k].name)}</option>`).join('')}</select></div>
+    <div class="store" style="margin-bottom:12px;"><div class="srow"><span class="k">Campaign cost</span><span class="v ${G.cash<cost?'net-neg':''}">${money(cost)}</span></div><div class="srow"><span class="k">Duration</span><span class="v">${2+d.intensity} weeks</span></div></div>
+    <button class="btn money" ${G.cash<cost?'disabled':''} onclick="launchCustomAd()">Launch Campaign</button>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:8px;">Cancel</button>
+  `);
+}
+function setAdDraft(k,v){ G._adDraft[k]=v; openAdCreator(); }
+function launchCustomAd(){
+  ensureV3State();
+  const d=G._adDraft; const cost=customAdCost(d.media,d.intensity);
+  if(G.cash<cost){ toast('Not enough cash.'); return; }
+  G.cash-=cost;
+  const reach=AD_MEDIA[d.media].reach*rndEffect('mkt')*d.intensity;
+  G.ads.campaigns.push({type:'custom', label:AD_MEDIA[d.media].name+' · '+AD_FOCUS[d.focus].name, metro:d.metro, weeksLeft:2+d.intensity, reach, focus:d.focus});
+  // immediate boost, focus-weighted by town tier
+  G.stores.filter(s=>s.metro===d.metro).forEach(s=>{
+    const t=townByName(s.metro,s.town); let mult=1;
+    if(d.focus==='price'&&t.income<=2)mult=1.4; if(d.focus==='quality'&&t.income>=4)mult=1.4;
+    s.marketing=Math.min(1.6, s.marketing+reach*0.4*mult);
+  });
+  if(d.focus==='brand') G.reputation=Math.min(1.5,G.reputation+0.03*d.intensity);
+  refreshHUD(); closeModal('modal'); toast('🎨 Campaign launched in '+GXY_METROS[d.metro].name+'!'); saveGame(false);
+}
+// demand-based autopilot: advertises where demand (and your share gap) is highest
+function processSmartAds(){
+  ensureV3State();
+  if(!G.ads.autopilot || !G.ads.autoBudget || G.cash<G.ads.autoBudget) return;
+  // find the metro where you have stores with the LOWEST avg share (most to gain)
+  const unlocked=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  let bestMetro=null, worstShare=1;
+  unlocked.forEach(mk=>{
+    const ss=G.stores.filter(s=>s.metro===mk); if(!ss.length)return;
+    const avg=ss.reduce((a,s)=>a+(s.share||0),0)/ss.length;
+    if(avg<worstShare){ worstShare=avg; bestMetro=mk; }
+  });
+  if(!bestMetro) return;
+  let budget=G.ads.autoBudget;
+  const media=Object.keys(AD_MEDIA).filter(k=>AD_MEDIA[k].base<=budget).sort((a,b)=>(AD_MEDIA[b].reach/AD_MEDIA[b].base)-(AD_MEDIA[a].reach/AD_MEDIA[a].base));
+  if(media[0]){ const k=media[0]; G.cash-=AD_MEDIA[k].base;
+    const reach=AD_MEDIA[k].reach*rndEffect('mkt');
+    G.stores.filter(s=>s.metro===bestMetro).forEach(s=>s.marketing=Math.min(1.6,s.marketing+reach*0.3)); }
+}
+
+/* --- MORE R&D ITEMS (extend the tree) --- */
+const RND_TREE_V6 = {
+  coldchain:  { name:"Cold Chain Tech", cost:6, dd:"+0.08 quality, fresh goods", effect:{quality:0.08} },
+  loyalty:    { name:"Loyalty Program", cost:5, dd:"+10% marketing effect", effect:{mkt:1.10} },
+  privatebrand:{ name:"R&D Kitchen", cost:8, dd:"+6% margin (own brands)", req:"procurement", effect:{margin:1.06} },
+  ecommerce:  { name:"E-Commerce Platform", cost:9, dd:"+8% demand capture", req:"analytics", effect:{demand:1.08} },
+  greenenergy:{ name:"Green Energy", cost:7, dd:"−10% upkeep (solar)", req:"logistics1", effect:{upkeep:0.90} },
+  ai_pricing: { name:"AI Dynamic Pricing", cost:10, dd:"+8% margin, smarter prices", req:"privatebrand", effect:{margin:1.08} },
+  robotics:   { name:"Warehouse Robotics", cost:9, dd:"−12% upkeep", req:"automation", effect:{upkeep:0.88} },
+  megabrand:  { name:"National Icon Status", cost:12, dd:"+18% marketing, +reputation", req:"loyalty", effect:{mkt:1.18} },
+};
+Object.assign(RND_TREE, RND_TREE_V6);
+
+
+/* ============================================================
+   v6: ACCURATE MAP with real US state borders
+   ============================================================ */
+function renderGeoMapV6(){
+  ensureV5State();
+  const unlocked=Object.keys(G.metros).filter(k=>G.metros[k].unlocked);
+  const hasUS=unlocked.some(k=>GXY_METROS[k].currency==='$');
+  const hasUK=unlocked.some(k=>GXY_METROS[k].currency==='£');
+  const scope=G._mapScope||(hasUS?'US':'UK');
+  const W=820, H=500;
+  let view;
+  if(scope==='US'){ view={minLat:24.5,maxLat:49.5,minLng:-125,maxLng:-66.5,w:W,h:H}; }
+  else { view={minLat:49.8,maxLat:55.9,minLng:-6,maxLng:2,w:W,h:H}; }
+
+  // draw real state borders (US only)
+  let statePaths='';
+  if(scope==='US' && window.GXY_US_STATES){
+    Object.keys(window.GXY_US_STATES).forEach(name=>{
+      window.GXY_US_STATES[name].forEach(ring=>{
+        let d='M'; ring.forEach((pt,i)=>{ const p=project(pt[1],pt[0],view); d+=(i?'L':'')+p.x.toFixed(1)+','+p.y.toFixed(1)+' '; }); d+='Z';
+        statePaths+=`<path d="${d}" fill="#141b28" stroke="#2a3346" stroke-width="0.7"/>`;
+      });
+    });
+  } else if(scope==='UK'){ statePaths=ukOutline(view); }
+
+  // dots
+  let dots='';
+  const allMetroKeys=Object.keys(METRO_COORDS).filter(k=>GXY_METROS[k] && (scope==='US'?GXY_METROS[k].currency==='$':GXY_METROS[k].currency==='£'));
+  // draw warehouses first (behind stores)
+  (G.warehouses||[]).forEach(w=>{
+    if((scope==='US')!==(GXY_METROS[w.metro].currency==='$'))return;
+    const p=project(w.lat,w.lng,view);
+    const wl=WAREHOUSE_LEVELS[w.level];
+    const rPix=(wl.range/(view.maxLng-view.minLng))*view.w;
+    dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rPix.toFixed(0)}" fill="#f5a623" opacity="0.06"/>`;
+    dots+=`<rect x="${(p.x-3).toFixed(1)}" y="${(p.y-3).toFixed(1)}" width="6" height="6" fill="#f5a623" opacity="0.9"><title>${wl.name} (${GXY_METROS[w.metro].name})</title></rect>`;
+  });
+  allMetroKeys.forEach(mk=>{
+    const c=METRO_COORDS[mk]; const p=project(c.lat,c.lng,view);
+    const isUnlocked=G.metros[mk]&&G.metros[mk].unlocked;
+    const myCount=G.stores.filter(s=>s.metro===mk).length;
+    if(isUnlocked){
+      G.stores.filter(s=>s.metro===mk).forEach(s=>{
+        const t=townByName(mk,s.town); if(!t)return; const tc=townCoord(mk,t); const tp=project(tc.lat,tc.lng,view);
+        const banner=s.banner?'#8a5cf6':'#2ecc71';
+        dots+=`<circle cx="${tp.x.toFixed(1)}" cy="${tp.y.toFixed(1)}" r="2.8" fill="${banner}" opacity="0.9"><title>${esc(s.town)} (${esc(GXY_METROS[mk].name)})</title></circle>`;
+      });
+      dots+=`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="none" stroke="#2ecc71" stroke-width="1.3" opacity="0.6"/>`;
+      dots+=`<text x="${p.x.toFixed(1)}" y="${(p.y-7).toFixed(1)}" fill="#eaf0fb" font-size="9" font-weight="700" text-anchor="middle" opacity="0.85">${esc(GXY_METROS[mk].name)} (${myCount})</text>`;
+    } else {
+      const need=typeof regionUnlockNeed==='function'?regionUnlockNeed(mk):15;
+      const can=G.stores.length>=need;
+      dots+=`<g style="cursor:pointer;" onclick="mapClickMetro('${mk}')"><circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${can?'#f5a623':'#6b7891'}" opacity="0.75"><title>${esc(GXY_METROS[mk].name)} — ${can?'ready to enter':'locked ('+need+' stores)'}</title></circle></g>`;
+    }
+  });
+
+  const scopeToggle=(hasUS&&hasUK)?`<div class="pickrow" style="margin-bottom:12px;"><div class="pillpick ${scope==='US'?'on':''}" onclick="setMapScope('US')" style="padding:6px 14px;"><div class="pn" style="font-size:14px;">🇺🇸 US</div></div><div class="pillpick ${scope==='UK'?'on':''}" onclick="setMapScope('UK')" style="padding:6px 14px;"><div class="pn" style="font-size:14px;">🇬🇧 UK</div></div></div>`:'';
+
+  $('#pane-geomap').innerHTML=`
+    <div class="section-title">Empire Map</div>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:12px;">🟢 Your stores · 🟣 banner stores · 🟧 warehouses · 🟠 ready to expand · ⚪ locked. Tap an orange hub to enter a region.</div>
+    ${scopeToggle}
+    <div class="store" style="padding:8px;overflow-x:auto;">
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:640px;background:#0b0f16;border-radius:10px;">
+        <rect x="0" y="0" width="${W}" height="${H}" fill="#0b0f16"/>
+        ${statePaths}${dots}
+      </svg>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;font-size:12px;color:var(--dim);">
+      <span>🟢 ${G.stores.length} stores</span><span>🏭 ${(G.warehouses||[]).length} warehouses</span><span>📍 ${unlocked.length} regions</span>
+    </div>`;
+}
+
+
+/* ============================================================
+   v7: NATIONAL RANKING LADDER + TRENDS + ECONOMY + REAL ESTATE
+       + LABOR + SUPPLY CHAIN/DEPARTMENTS + INTERNATIONAL
+   ============================================================ */
+
+/* --- NATIONAL RANKING: 10 named rival companies you climb past --- */
+// Each has a "national scale" score that grows over time; you climb by out-scaling them.
+const NATIONAL_RIVALS = [
+  { name:"Walmart",        base:2600, growth:1.008, kind:"discounter" },
+  { name:"Kroger",         base:1400, growth:1.007, kind:"balanced" },
+  { name:"Costco",         base:1200, growth:1.009, kind:"discounter" },
+  { name:"Albertsons",     base:900,  growth:1.006, kind:"balanced" },
+  { name:"Publix",         base:800,  growth:1.007, kind:"premium" },
+  { name:"Ahold Delhaize", base:700,  growth:1.006, kind:"balanced" },
+  { name:"H-E-B",          base:500,  growth:1.008, kind:"balanced" },
+  { name:"Meijer",         base:420,  growth:1.006, kind:"balanced" },
+  { name:"Wegmans",        base:300,  growth:1.007, kind:"premium" },
+  { name:"WinCo Foods",    base:220,  growth:1.006, kind:"discounter" },
+];
+function ensureV7State(){
+  if(!G) return;
+  if(!G.rank) G.rank={ nationals:null, initialized:false };
+  if(!G.rank.nationals){
+    G.rank.nationals=NATIONAL_RIVALS.map(r=>({ name:r.name, score:r.base, growth:r.growth, kind:r.kind }));
+    G.rank.initialized=true;
+  }
+  if(G.trends===undefined) G.trends=null;
+  if(G.economy===undefined) G.economy=null;
+  if(G.realEstate===undefined) G.realEstate={};
+  if(G.labor===undefined) G.labor=null;
+  if(G.departments===undefined) G.departments={};
+  if(G.intlUnlocked===undefined) G.intlUnlocked=false;
+}
+// your national "scale score" = a function of stores, net worth, coverage
+function myNationalScore(){
+  ensureV7State();
+  const storeScore = G.stores.length * 6;
+  const nwScore = netWorth()/50000;
+  const regionScore = Object.values(G.metros).filter(m=>m.unlocked).length * 15;
+  return Math.round(storeScore + nwScore + regionScore);
+}
+function nationalRanking(){
+  ensureV7State();
+  const all=[...G.rank.nationals.map(r=>({name:r.name, score:Math.round(r.score), you:false})),
+             {name:G.chainName+' (you)', score:myNationalScore(), you:true}];
+  all.sort((a,b)=>b.score-a.score);
+  return all;
+}
+function myRank(){ const r=nationalRanking(); return r.findIndex(x=>x.you)+1; }
+function rankTitle(){
+  const rank=myRank(), total=11;
+  if(rank===1) return "#1 — National Champion";
+  if(rank<=3) return "Top 3 — National Powerhouse";
+  if(rank<=6) return "Top 6 — Major Chain";
+  if(rank<=9) return "Rising National Player";
+  return "Regional Contender";
+}
+function processRanking(){
+  ensureV7State();
+  // nationals grow slowly over time
+  G.rank.nationals.forEach(r=>{ r.score*=r.growth; });
+  // check for #1 victory
+  if(myRank()===1 && !G._wonNational && G.stores.length>=30){
+    G._wonNational=true;
+    setTimeout(()=>{ if(typeof showModal==='function') showModal(`<h2>🏆 #1 in the Nation!</h2><p style="color:var(--dim);margin:10px 0 16px;">${esc(G.chainName)} is now the largest grocery chain in the country — you've out-scaled Walmart itself. From a single store to a national champion.</p><button class="btn" onclick="closeModal('modal')">Keep building</button>`); }, 500);
+  }
+}
+function renderRanking(){
+  ensureV7State();
+  const ranking=nationalRanking();
+  const maxScore=Math.max(...ranking.map(r=>r.score),1);
+  $('#pane-ranking').innerHTML=`
+    <div class="section-title">National Ranking</div>
+    <div class="store" style="margin-bottom:16px;text-align:center;padding:18px;">
+      <div style="color:var(--dim);font-size:12px;letter-spacing:1px;text-transform:uppercase;">Your Standing</div>
+      <div class="cond" style="font-size:32px;font-weight:700;color:var(--brand);">#${myRank()} of ${ranking.length}</div>
+      <div style="color:var(--dim);font-size:14px;">${esc(rankTitle())}</div>
+    </div>
+    <div class="section-title">The Leaderboard — Climb to #1</div>
+    <div class="store">
+      ${ranking.map((r,i)=>`<div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px;">
+          <span style="font-weight:700;${r.you?'color:var(--good);':''}">${i+1}. ${esc(r.name)}</span>
+          <span class="mono" style="color:var(--dim);">${r.score.toLocaleString()}</span>
+        </div>
+        <div style="height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${Math.round(r.score/maxScore*100)}%;background:${r.you?'var(--gradMoney)':'var(--gradBrand)'};border-radius:5px;"></div></div>
+      </div>`).join('')}
+    </div>
+    <div class="empty-hint">Grow your scale — stores, net worth, and regions — to climb past the national chains. Reach #1 to become the country's largest grocer.</div>`;
+}
+
+
+/* --- CONSUMER TRENDS (rise & fall over time) --- */
+const TREND_TYPES = [
+  { id:'organic',  name:"Organic & Natural", emoji:"🥬", favors:'premium' },
+  { id:'delivery', name:"Online Delivery",   emoji:"📦", favors:'balanced' },
+  { id:'value',    name:"Value Shopping",    emoji:"💵", favors:'discounter' },
+  { id:'local',    name:"Local & Fresh",     emoji:"🌾", favors:'premium' },
+  { id:'bulk',     name:"Bulk Buying",       emoji:"📦", favors:'discounter' },
+  { id:'convenience',name:"Grab & Go",       emoji:"🥤", favors:'balanced' },
+];
+function ensureTrends(){
+  ensureV7State();
+  if(!G.trends){ G.trends=TREND_TYPES.map(t=>({ id:t.id, strength:0.5+Math.random()*0.3, dir:Math.random()<0.5?1:-1 })); }
+}
+function tickTrends(){
+  ensureTrends();
+  G.trends.forEach(t=>{
+    t.strength += t.dir*(0.005+Math.random()*0.01);
+    if(t.strength>1){ t.strength=1; t.dir=-1; }
+    if(t.strength<0.15){ t.strength=0.15; t.dir=1; }
+    if(Math.random()<0.02) t.dir*=-1; // occasional reversal
+  });
+}
+// how well your stores align with current trends (based on your investments/quality)
+function trendAlignment(store){
+  ensureTrends();
+  const t=townByName(store.metro,store.town);
+  let bonus=1;
+  G.trends.forEach(tr=>{
+    const def=TREND_TYPES.find(x=>x.id===tr.id);
+    if(!def) return;
+    // premium-favoring trends reward high quality; discounter trends reward low price
+    if(def.favors==='premium' && store.quality>1.1) bonus += tr.strength*0.04;
+    if(def.favors==='discounter' && store.priceMult<1.25) bonus += tr.strength*0.04;
+    if(def.favors==='balanced' && store.marketing>0.3) bonus += tr.strength*0.03;
+  });
+  return bonus;
+}
+function topTrends(){ ensureTrends(); return [...G.trends].sort((a,b)=>b.strength-a.strength).slice(0,3).map(t=>({...t, def:TREND_TYPES.find(x=>x.id===t.id)})); }
+
+/* --- ECONOMIC CYCLES (boom/bust, inflation, interest) --- */
+function ensureEconomy(){
+  ensureV7State();
+  if(!G.economy){ G.economy={ phase:'stable', weeksInPhase:0, inflation:1.0, sentiment:1.0 }; }
+}
+const ECON_PHASES = {
+  boom:      { name:"Boom", emoji:"📈", demand:1.12, sentiment:1.15 },
+  stable:    { name:"Stable", emoji:"➖", demand:1.0, sentiment:1.0 },
+  slowdown:  { name:"Slowdown", emoji:"📉", demand:0.94, sentiment:0.9 },
+  recession: { name:"Recession", emoji:"🔻", demand:0.82, sentiment:0.75 },
+  recovery:  { name:"Recovery", emoji:"🔼", demand:1.03, sentiment:1.05 },
+};
+function tickEconomy(){
+  ensureEconomy();
+  const e=G.economy; e.weeksInPhase++;
+  // phase transitions (semi-random, cyclical)
+  const transitions={ boom:['stable','slowdown'], stable:['boom','slowdown'], slowdown:['recession','stable'], recession:['recovery'], recovery:['stable','boom'] };
+  if(e.weeksInPhase>12+Math.random()*20){
+    const opts=transitions[e.phase]||['stable'];
+    e.phase=opts[Math.floor(Math.random()*opts.length)]; e.weeksInPhase=0;
+    if(typeof toast==='function') toast(ECON_PHASES[e.phase].emoji+' Economy: '+ECON_PHASES[e.phase].name);
+  }
+  // inflation creeps up in boom, down in recession
+  const infTarget = e.phase==='boom'?1.03 : e.phase==='recession'?0.99 : 1.01;
+  e.inflation += (infTarget-1)*0.02;
+  e.sentiment += (ECON_PHASES[e.phase].sentiment - e.sentiment)*0.1;
+}
+function econDemandMult(){ ensureEconomy(); return ECON_PHASES[G.economy.phase].demand * G.economy.sentiment; }
+function econInterestMult(){ ensureEconomy(); return G.economy.phase==='boom'?1.3 : G.economy.phase==='recession'?0.7 : 1.0; }
+
+
+/* --- REAL ESTATE (rent/land cost per town) --- */
+// prime, high-income, high-pop towns cost more to operate in (weekly rent).
+function townRent(store){
+  const t=townByName(store.metro,store.town); if(!t) return 0;
+  // rent scales with income tier and population; a store in Beverly Hills costs more than rural
+  const base = 800 + t.income*400 + t.pop*3;
+  ensureEconomy();
+  return Math.round(base * (G.economy?G.economy.inflation:1));
+}
+function totalRent(){ return G.stores.reduce((a,s)=>a+townRent(s),0); }
+
+/* --- LABOR MARKET (regional wages, hiring difficulty) --- */
+function ensureLabor(){
+  ensureV7State();
+  if(!G.labor){ G.labor={ wageIndex:1.0, unrest:0 }; }
+}
+// wage cost per store varies by region income + national wage index
+function storeWages(store){
+  ensureLabor();
+  const t=townByName(store.metro,store.town); if(!t) return 0;
+  const regionMult = 0.85 + t.income*0.08; // affluent areas = higher wages
+  return Math.round(700 * regionMult * G.labor.wageIndex);
+}
+function totalWages(){ ensureLabor(); return G.stores.reduce((a,s)=>a+storeWages(s),0); }
+function tickLabor(){
+  ensureLabor();
+  ensureEconomy();
+  // wages rise with inflation and in booms; unrest grows if understaffed
+  const target = (G.economy.phase==='boom'?1.15:G.economy.phase==='recession'?0.95:1.0);
+  G.labor.wageIndex += (target - G.labor.wageIndex)*0.03 + 0.001; // slow creep up
+  // labor unrest if staff coverage is low
+  if(typeof staffCoverage==='function'){
+    const cov=staffCoverage();
+    if(cov<0.5) G.labor.unrest=Math.min(1,G.labor.unrest+0.03);
+    else G.labor.unrest=Math.max(0,G.labor.unrest-0.02);
+    if(G.labor.unrest>0.7 && Math.random()<0.05 && typeof toast==='function'){ toast('✊ Labor unrest is high — hire more managers!'); }
+  }
+}
+function laborUnrestPenalty(){ ensureLabor(); return 1 - G.labor.unrest*0.15; } // up to -15% performance
+
+
+/* --- DEPARTMENTS / PRODUCT LINES (company-wide investments) --- */
+// unlock departments that boost demand/margin across all stores, with upkeep.
+const DEPARTMENTS = {
+  bakery:    { name:"In-Store Bakery", emoji:"🥖", cost:60000, demand:1.04, upkeepPerStore:120, dd:"Fresh bread draws shoppers" },
+  deli:      { name:"Deli Counter", emoji:"🧀", cost:80000, demand:1.05, upkeepPerStore:150, dd:"Prepared foods boost visits" },
+  pharmacy:  { name:"Pharmacy", emoji:"💊", cost:150000, demand:1.07, margin:1.03, upkeepPerStore:200, dd:"Prescriptions bring loyal traffic" },
+  floral:    { name:"Floral", emoji:"💐", cost:40000, demand:1.02, margin:1.02, upkeepPerStore:80, dd:"High-margin impulse buys" },
+  seafood:   { name:"Seafood Counter", emoji:"🦐", cost:70000, demand:1.03, quality:0.03, upkeepPerStore:140, dd:"Premium fresh appeal" },
+  cafe:      { name:"In-Store Café", emoji:"☕", cost:90000, demand:1.04, upkeepPerStore:160, dd:"Keeps shoppers longer" },
+  pharmacy2: { name:"Health Clinic", emoji:"🏥", cost:250000, demand:1.05, margin:1.04, req:'pharmacy', upkeepPerStore:300, dd:"In-store clinics — destination traffic" },
+};
+function hasDept(id){ ensureV7State(); return G.departments[id]; }
+function deptDemandMult(){ ensureV7State(); let m=1; Object.keys(G.departments).forEach(id=>{ if(G.departments[id]&&DEPARTMENTS[id]&&DEPARTMENTS[id].demand) m*=DEPARTMENTS[id].demand; }); return m; }
+function deptMarginMult(){ ensureV7State(); let m=1; Object.keys(G.departments).forEach(id=>{ if(G.departments[id]&&DEPARTMENTS[id]&&DEPARTMENTS[id].margin) m*=DEPARTMENTS[id].margin; }); return m; }
+function deptUpkeepTotal(){ ensureV7State(); let per=0; Object.keys(G.departments).forEach(id=>{ if(G.departments[id]&&DEPARTMENTS[id]) per+=DEPARTMENTS[id].upkeepPerStore; }); return per*G.stores.length; }
+function buyDepartment(id){
+  ensureV7State();
+  const d=DEPARTMENTS[id]; if(!d||hasDept(id))return;
+  if(d.req && !hasDept(d.req)){ toast('Requires '+DEPARTMENTS[d.req].name+' first.'); return; }
+  if(G.cash<d.cost){ toast('Need '+money(d.cost)+'.'); return; }
+  G.cash-=d.cost; G.departments[id]=true;
+  if(d.quality){ G.stores.forEach(s=>s.quality=+(s.quality+d.quality).toFixed(2)); }
+  refreshHUD(); toast(d.emoji+' Added '+d.name+' company-wide!'); if($('#modal').classList.contains('show'))openDepartmentsModal(); saveGame(false);
+}
+function openDepartmentsModal(){
+  ensureV7State();
+  showModal(`
+    <h2>🏬 Departments & Product Lines</h2>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px;">Add departments across all your stores. Each draws more shoppers or boosts margins, but adds weekly upkeep per store.</div>
+    <div class="store-list">
+      ${Object.keys(DEPARTMENTS).map(id=>{ const d=DEPARTMENTS[id]; const owned=hasDept(id); const locked=d.req&&!hasDept(d.req);
+        return `<div class="store" style="${owned?'border-color:var(--good);':''}">
+          <div class="sh"><div><div class="snm">${d.emoji} ${esc(d.name)}</div><div class="sloc">${esc(d.dd)}</div></div>${owned?'<span class="sage age-new">✓</span>':''}</div>
+          <div style="margin-top:8px;">
+            ${d.demand?`<div class="srow"><span class="k">Demand</span><span class="v net-pos">+${Math.round((d.demand-1)*100)}%</span></div>`:''}
+            ${d.margin?`<div class="srow"><span class="k">Margin</span><span class="v net-pos">+${Math.round((d.margin-1)*100)}%</span></div>`:''}
+            <div class="srow"><span class="k">Upkeep/store</span><span class="v net-neg">${money(d.upkeepPerStore)}</span></div>
+          </div>
+          ${!owned?`<div class="sactions"><button class="btn sm" ${(G.cash<d.cost||locked)?'disabled':''} onclick="buyDepartment('${id}')">${locked?'🔒 Needs '+DEPARTMENTS[d.req].name:'Add ('+money(d.cost)+')'}</button></div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn ghost" onclick="closeModal('modal')" style="margin-top:14px;">Close</button>
+  `);
+}
+
+/* ============================================================
+   WEEKLY SIMULATION LOOP
+   ============================================================ */
+function advanceWeek(){
+  if(!G) return;
+  ensureV3State();
+  ensureV4State();
+  ensureV5State();
+  ensureV7State();
+  if(G._failed) return;
+  checkSeasonEvent();
+  processAds();
+  processSmartAds();
+  processDebt();
+  maybeCrisis();
+  // v7: tick trends, economy, labor, ranking
+  tickTrends();
+  tickEconomy();
+  tickLabor();
+  processRanking();
+  // auto-run: apply auto strategy to any store flagged auto (in auto mode, all stores)
+  if(G.opsMode==='auto'){ G.stores.forEach(s=>applyAutoStrategy(s)); }
+
+  let totalNet=0;
+  const R=REALISM[G.realism];
+  // group stores by town to sim each town once with all its competitors
+  const townsSeen={};
+  G.stores.forEach(s=>{ const key=s.metro+'|'+s.town; (townsSeen[key]=townsSeen[key]||[]).push(s); });
+
+  Object.keys(townsSeen).forEach(key=>{
+    const [mk,tn]=key.split('|');
+    const town=townByName(mk,tn);
+    const mine=townsSeen[key];
+    const rivals=rivalsInTown(mk,town);
+    // v3: apply season + event + board demand modifiers via town.growth
+    const _baseGrowth=town.growth||1;
+    town.growth=_baseGrowth * seasonDemandMult() * seasonEventMult() * boardMod('demand') * rndEffect('demand') * crisisDemandMult() * reputationMult() * staffPerformanceMult() * econDemandMult() * deptDemandMult() * laborUnrestPenalty();
+    // age stores (rival ages handled by runRivalChains)
+    mine.forEach(s=>{ s.ageWeeks++; });
+    const results=E.simTown(town,mine,rivals);
+    results.forEach(res=>{
+      if(res.store.isRival){ res.store.share=res.share; res.store.lastNet=Math.round(res.net); res.store._simmedThisWeek=true; return; }
+      // v3: R&D + board modifiers on player economics
+      let adjNet=res.net;
+      const upkeepMod=rndEffect('upkeep')*boardMod('upkeep');
+      const marginMod=rndEffect('margin')*boardMod('margin');
+      const crisisUp=crisisUpkeepMult();
+      if(upkeepMod!==1){ adjNet += res.upkeep*(1-upkeepMod); }   // lower upkeep = higher net
+      if(crisisUp!==1){ adjNet -= res.upkeep*(crisisUp-1); }     // crises raise upkeep
+      // v5: private label margin + warehouse supply discount
+      const lblM=labelMargin();
+      if(lblM!==1){ adjNet += res.grossProfit*(lblM-1); }
+      const whDisc=storeSupplyDiscount(res.store);
+      if(whDisc>0){ adjNet += res.upkeep*whDisc; }
+      if(marginMod!==1){ adjNet += res.grossProfit*(marginMod-1); }
+      // v7: department margin + trend alignment (per store)
+      const deptM=deptMarginMult();
+      if(deptM!==1){ adjNet += res.grossProfit*(deptM-1); }
+      const trendA=trendAlignment(res.store);
+      if(trendA!==1){ adjNet += res.revenue*(trendA-1)*0.15; }  // trend alignment lifts revenue slightly
+      res.store.share=res.share; res.store.lastNet=Math.round(adjNet); res.store.lastRev=Math.round(res.revenue);
+      // marketing decays
+      res.store.marketing=Math.max(0,+(res.store.marketing*0.85).toFixed(3));
+      // sold-out nudges reputation down slightly, good weeks up
+      if(res.soldOut) res.store.reputation=Math.max(0.7,res.store.reputation-0.01);
+      else res.store.reputation=Math.min(1.3,res.store.reputation+0.005);
+      totalNet+=adjNet;
+    });
+    town.growth=_baseGrowth; // restore after season/board demand modifiers
+    // (rival chain reactions handled by runRivalChains after all towns sim)
+  });
+
+  // deep rival AI: chains earn, react, and expand across each metro
+  Object.keys(G.metros).filter(k=>G.metros[k].unlocked).forEach(mk=>{ runRivalChains(mk); runRivalAggression(mk); });
+  // v4: staff wages, crises tick, reputation drift
+  G.cash -= staffWageBill();
+  tickCrises();
+  driftReputation();
+  // v5: warehouse upkeep + IPO share price
+  G.cash -= warehouseUpkeepTotal();
+  processIPO();
+  // v7: real estate rent + labor wages + department upkeep (weekly operating costs)
+  G.cash -= totalRent();
+  G.cash -= totalWages();
+  G.cash -= deptUpkeepTotal();
+  if(G._rivalNews){ setTimeout(()=>toast('🏢 '+G._rivalNews),400); G._rivalNews=null; }
+
+  totalNet=Math.round(totalNet);
+  G.cash+=totalNet;
+  G.lastWeeklyNet=totalNet;
+  G.history.push({week:G.week, net:totalNet, nw:netWorth()});
+  if(G.history.length>60) G.history.shift();
+
+  // advance calendar
+  G.week++; if(G.week>52){ G.week=1; G.year++; }
+
+  // random events (light, scaled by realism)
+  maybeEvent();
+
+  // fail state (full realism only)
+  if(R.failState && G.cash<0 && netWorth()<0){ endGame(false); return; }
+
+  refreshHUD();
+  const active=document.querySelector('#gameTabs .tab.on').dataset.tab;
+  switchTab(active);
+  saveGame(false);
+  // v3: board meeting, R&D points, seasonal, stats
+  checkBoardMeeting();
+  if(G.week % 4 === 0) G.rnd.points += 1; // 1 R&D point per 4 weeks
+  G.stats.weeksRun++;
+  const wkRev=G.stores.reduce((a,s)=>a+(s.lastRev||0),0);
+  G.stats.totalRevenue+=wkRev; G.stats.totalProfit+=G.lastWeeklyNet;
+  G.stats.peakNetWorth=Math.max(G.stats.peakNetWorth, netWorth());
+  // v4: fail state
+  if(checkFailState()) return;
+  // milestone checks
+  checkMilestones();
+}
+
+function applyAutoStrategy(s){
+  const town=townByName(s.metro,s.town);
+  if(G.autoStrategy==='aggressive'){ s.priceMult=town.income<=2?1.15:1.25; }
+  else if(G.autoStrategy==='premium'){ s.priceMult=town.income>=4?1.7:1.5; if(s.quality<1.3&&G.cash>8000){/* passive */} }
+  else { s.priceMult=1.35; }
+}
+
+let _lastMilestone=0;
+function checkMilestones(){
+  const n=G.stores.length;
+  const tiers=[5,15,30,60,150];
+  tiers.forEach(t=>{ if(n>=t && _lastMilestone<t){ _lastMilestone=t; toast('🎯 Milestone: '+t+' stores!'); }});
+  // leaderboard submit on big net worth
+  if(window.gxyReportNetWorth) window.gxyReportNetWorth(netWorth());
+}
+
+function maybeEvent(){
+  const R=REALISM[G.realism];
+  if(Math.random()>0.25) return;
+  const roll=Math.random();
+  if(roll<0.3){ const amt=Math.round(2000+Math.random()*4000); G.cash+=amt; toast('💰 Local grant: +'+money(amt)); }
+  else if(roll<0.6 && G.stores.length){ const s=G.stores[Math.floor(Math.random()*G.stores.length)]; s.reputation=Math.min(1.4,s.reputation+0.08); toast('⭐ '+s.town+' store got great press!'); }
+  else if(roll<0.8 && G.stores.length){ const s=G.stores[Math.floor(Math.random()*G.stores.length)]; const cost=Math.round(1500+Math.random()*2500); G.cash-=cost; toast('🔧 Repair at '+s.town+': -'+money(cost)); }
+  else { toast('📈 Regional demand is up this week.'); }
+}
+
+function endGame(won){
+  showModal(`<h2>${won?'🏆 Nationwide!':'💀 Bankrupt'}</h2>
+    <p style="color:var(--dim);margin:10px 0 16px;">${won?'You built a coast-to-coast empire of '+G.stores.length+' stores. Walmart-scale achieved.':'Your empire ran out of money. The chains carved up your markets.'}</p>
+    <button class="btn" onclick="closeModal('modal');quitToMenu();">Main Menu</button>`);
+  if(won && window.gxyReportNetWorth) window.gxyReportNetWorth(netWorth());
+}
+
+/* ============================================================
+   SETTINGS, SAVES, BOOT
+   ============================================================ */
+function openSettings(){
+  $('#opAuto').classList.toggle('on', G.opsMode==='auto');
+  $('#opHybrid').classList.toggle('on', G.opsMode==='hybrid');
+  $('#autoStrategy').value=G.autoStrategy;
+  $('#settingsModal').classList.add('show');
+}
+function setOpsMode(m){ G.opsMode=m; $('#opAuto').classList.toggle('on',m==='auto'); $('#opHybrid').classList.toggle('on',m==='hybrid'); saveGame(false); }
+function setAutoStrategy(v){ G.autoStrategy=v; saveGame(false); }
+
+function showModal(html){ $('#modalBox').innerHTML=html; $('#modal').classList.add('show'); $('#modalBox').scrollTop=0; }
+function closeModal(id){ $('#'+id).classList.remove('show'); }
+function quitToMenu(){ saveGame(false); showScreen('scr-mode'); renderSaveSlots(); }
+
+/* saves: cloud + local, multi-slot */
+let currentSlot=null;
+const LS='gxy_empire_saves';
+function localSaves(){ try{return JSON.parse(localStorage.getItem(LS)||'{}');}catch(e){return{};} }
+function writeLocal(o){ try{localStorage.setItem(LS,JSON.stringify(o));}catch(e){} }
+function pickFreeSlot(){ const s=localSaves(); for(let i=1;i<=6;i++) if(!s['slot'+i]) return i; return 1; }
+function snapshot(){ return { v:1, G, savedAt:Date.now(), label:G?`${G.chainName} · ${GXY_METROS[G.homeMetro].name} · ${G.stores.length} stores · Wk${G.week}/${G.year}`:'Empty' }; }
+async function saveGame(announce){
+  if(!G||currentSlot==null) return;
+  const snap=snapshot(); const all=localSaves(); all['slot'+currentSlot]=snap; writeLocal(all);
+  try{ const m=await import('../assets/gxyaccount.js'); await m.gxyAccount.ready(); if(m.gxyAccount.usesCloud) await m.gxyAccount.save({['empire_slot'+currentSlot]:snap}); }catch(e){}
+  if(announce) toast('💾 Saved to slot '+currentSlot);
+}
+async function renderSaveSlots(){
+  let all=localSaves();
+  try{ const m=await import('../assets/gxyaccount.js'); await m.gxyAccount.ready(); const d=m.gxyAccount.data||{};
+    for(let i=1;i<=6;i++){ if(d['empire_slot'+i] && (!all['slot'+i]||d['empire_slot'+i].savedAt>all['slot'+i].savedAt)) all['slot'+i]=d['empire_slot'+i]; }
+    $('#cloudStatus').textContent=m.gxyAccount.usesCloud?'☁ Synced to your account':'💾 Saved on this device';
+  }catch(e){ $('#cloudStatus').textContent='💾 Saved on this device'; }
+  writeLocal(all);
+  let html='';
+  for(let i=1;i<=6;i++){ const sv=all['slot'+i];
+    if(sv) html+=`<div class="saveslot"><div style="flex:1;"><div class="cond" style="font-size:17px;font-weight:700;">${esc(sv.label||('Save '+i))}</div><div style="color:var(--muted);font-size:11px;font-family:'Space Mono';">Slot ${i} · ${new Date(sv.savedAt).toLocaleDateString()}</div></div><button class="btn sm" onclick="loadSlot(${i})">Play</button><button class="btn ghost sm" onclick="deleteSlot(${i})">✕</button></div>`;
+  }
+  $('#saveSlots').innerHTML=html||'<div style="color:var(--muted);font-size:13px;">No saved empires yet.</div>';
+}
+function loadSlot(i){ const all=localSaves(); const sv=all['slot'+i]; if(!sv)return; G=sv.G; currentSlot=i; if(!G.history)G.history=[]; showScreen('scr-game'); switchTab('overview'); refreshHUD(); }
+async function deleteSlot(i){ if(!confirm('Delete save '+i+'?'))return; const all=localSaves(); delete all['slot'+i]; writeLocal(all); try{const m=await import('../assets/gxyaccount.js');await m.gxyAccount.ready();await m.gxyAccount.save({['empire_slot'+i]:null});}catch(e){} renderSaveSlots(); }
+
+window.addEventListener('DOMContentLoaded', ()=>{ renderSaveSlots(); });
+window.addEventListener('keydown', e=>{ if(e.key==='Enter' && G && $('#scr-game').classList.contains('active') && !$('#modal').classList.contains('show')) advanceWeek(); });
+</script>
+<script type="module">
+import { gxyAccount } from '../assets/gxyaccount.js';
+import { gxyMeta } from '../assets/gxymeta.js';
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCN4mEtGMjSxdgsTlthhzX6FXIjxltJKHQ",authDomain:"gxyhockey.firebaseapp.com",projectId:"gxyhockey",storageBucket:"gxyhockey.firebasestorage.app",messagingSenderId:"474584991663",appId:"1:474584991663:web:b8986544418d6b85fa115a"};
+const app=getApps().length?getApps()[0]:initializeApp(cfg); let db=null; try{db=getFirestore(app);}catch(e){}
+let bestReported=0;
+window.gxyReportNetWorth=async function(nw){
+  if(nw<=bestReported || nw<100000) return; bestReported=nw;
+  await gxyAccount.ready(); const d=gxyAccount.data||{};
+  if(!d.mcUsername||!d.verified||!db) return;
+  try{ await addDoc(collection(db,'scores_empire'),{uid:gxyAccount.user.uid,name:d.mcUsername,netWorth:Math.round(nw),ts:serverTimestamp()});}catch(e){}
+  try{ await gxyMeta.recordGame('empire',{score:Math.round(nw)}); }catch(e){}
+};
+window.gxyOpenLb=async function(){
+  document.getElementById('gxyLbPanel').classList.add('show');
+  const list=document.getElementById('gxyLbList');
+  if(!db){ list.innerHTML='<div style="color:var(--dim);">Leaderboard needs Firestore.</div>'; return; }
+  try{
+    const q=query(collection(db,'scores_empire'),orderBy('netWorth','desc'),limit(10));
+    const snap=await getDocs(q); const rows=[]; snap.forEach(dd=>rows.push(dd.data()));
+    if(!rows.length){ list.innerHTML='<div style="color:var(--dim);">No empires ranked yet.</div>'; return; }
+    list.innerHTML=rows.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+      return '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);"><span style="width:26px;font-weight:800;">'+medal+'</span><img src="https://mc-heads.net/avatar/'+encodeURIComponent(r.name)+'/24" style="width:24px;height:24px;border-radius:5px;" onerror="this.style.visibility=\'hidden\'"><span style="font-weight:700;flex:1;">'+r.name+'</span><span style="font-family:monospace;color:var(--good);">$'+(r.netWorth||0).toLocaleString()+'</span></div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<div style="color:var(--dim);">Leaderboard unavailable.</div>'; }
+};
+</script>
+<script src="smw-updates.js"></script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>

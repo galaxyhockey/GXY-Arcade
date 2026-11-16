@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TV Battles: Station Tycoon · GXY Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080a12; --panel:#111524; --panel2:#171d31; --line:#232c46; --line2:#334066;
+  --ink:#eef1fb; --dim:#9aa6c8; --muted:#5f6b8f;
+  --brand:#3b6fe0; --brand2:#59a0ff; --gold:#f5c451; --red:#e0483b; --green:#2ecc71; --purple:#7c3aed;
+  --gradBrand:linear-gradient(120deg,#3b6fe0,#59a0ff); --gradGold:linear-gradient(120deg,#f5a623,#f5c451);
+  --gradRed:linear-gradient(120deg,#e0483b,#ff6b5b); --gradLive:linear-gradient(120deg,#e0483b,#7c3aed);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+.mono{font-family:'Space Mono',monospace;}
+.cond{font-family:'Barlow Condensed',sans-serif;}
+.anton{font-family:'Anton',sans-serif;letter-spacing:.5px;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px;}
+
+/* ---------- SETUP / START SCREEN ---------- */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+.setup-wrap{max-width:760px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+.tv-logo{text-align:center;margin-bottom:.5rem;}
+.tv-logo .mark{display:inline-flex;align-items:center;gap:.6rem;font-size:3.4rem;line-height:1;}
+.tv-logo h1{font-size:3.6rem;line-height:.95;margin-top:.6rem;text-transform:uppercase;}
+.tv-logo h1 .b{background:var(--gradLive);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.tv-logo p{color:var(--dim);font-size:1.05rem;margin-top:.7rem;max-width:520px;margin-inline:auto;line-height:1.5;}
+.onair{display:inline-flex;align-items:center;gap:.4rem;background:var(--red);color:#fff;font-weight:800;font-size:.7rem;letter-spacing:.12em;padding:.3rem .7rem;border-radius:4px;text-transform:uppercase;animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.55;}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem;}
+.setup-card{margin-top:2rem;}
+.field{margin-bottom:1.3rem;}
+.field>label{display:block;font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.6rem;}
+.tin{width:100%;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:.85rem 1rem;color:var(--ink);font-size:1rem;font-weight:600;}
+.tin:focus{outline:none;border-color:var(--brand);}
+.pickrow{display:flex;gap:.6rem;flex-wrap:wrap;}
+.pill{flex:1;min-width:130px;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;padding:.9rem;cursor:pointer;transition:.18s;text-align:left;}
+.pill:hover{border-color:var(--brand);}
+.pill.on{border-color:var(--brand);background:linear-gradient(160deg,rgba(59,111,224,.18),rgba(59,111,224,.04));box-shadow:0 0 0 1px var(--brand) inset;}
+.pill .pn{font-weight:800;font-size:1.02rem;margin-bottom:.15rem;}
+.pill .pd{font-size:.78rem;color:var(--dim);line-height:1.35;}
+.btn{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-weight:700;padding:.7rem 1.1rem;border-radius:10px;transition:.18s;font-size:.9rem;}
+.btn:hover{border-color:var(--brand);}
+.btn.sm{padding:.5rem .8rem;font-size:.82rem;}
+.btn.primary{background:var(--gradBrand);border:none;color:#fff;}
+.btn.gold{background:var(--gradGold);border:none;color:#20160a;}
+.btn.red{background:var(--gradRed);border:none;color:#fff;}
+.btn.big{width:100%;padding:1rem;font-size:1.05rem;margin-top:.5rem;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.ghost{background:transparent;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;border-bottom:1px solid var(--line);background:rgba(8,10,18,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:40;flex-wrap:wrap;gap:.5rem;}
+.topbar .brand{font-weight:900;font-size:1.05rem;display:flex;align-items:center;gap:.45rem;}
+.topbar .brand .b{background:var(--gradLive);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.back{display:inline-block;color:var(--dim);font-size:.85rem;margin-bottom:1rem;}
+.back:hover{color:#fff;}
+</style>
+</head>
+<body>
+
+<style>
+/* ---------- GAME HUD ---------- */
+.hud{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.4rem .75rem;display:flex;flex-direction:column;line-height:1.15;}
+.stat .l{font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;}
+.stat .v{font-weight:800;font-size:.98rem;}
+.stat .v.good{color:var(--green);} .stat .v.bad{color:var(--red);} .stat .v.gold{color:var(--gold);}
+.game-wrap{max-width:1080px;margin:0 auto;padding:1.25rem 1rem 5rem;}
+.grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:1.25rem;}
+@media(max-width:860px){.grid2{grid-template-columns:1fr;}}
+.section-title{font-family:'Barlow Condensed';font-weight:700;font-size:1.15rem;text-transform:uppercase;letter-spacing:.04em;margin:0 0 .7rem;color:var(--ink);display:flex;align-items:center;gap:.5rem;}
+.section-title .tag{font-size:.62rem;background:var(--panel2);border:1px solid var(--line2);color:var(--dim);padding:.15rem .5rem;border-radius:20px;letter-spacing:.05em;}
+
+/* story cards */
+.story{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;margin-bottom:.8rem;transition:.18s;position:relative;overflow:hidden;}
+.story:hover{border-color:var(--line2);}
+.story.hot{border-color:var(--red);}
+.story.hot::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gradRed);}
+.story .cat{display:inline-block;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:.2rem .55rem;border-radius:5px;margin-bottom:.5rem;}
+.cat-breaking{background:rgba(224,72,59,.18);color:#ff8577;}
+.cat-politics{background:rgba(59,111,224,.18);color:#7fa8ff;}
+.cat-sports{background:rgba(46,204,113,.18);color:#5fe39b;}
+.cat-entertainment{background:rgba(124,58,237,.2);color:#b48cff;}
+.cat-business{background:rgba(245,196,81,.18);color:#f5d281;}
+.cat-weather{background:rgba(89,160,255,.18);color:#8cc0ff;}
+.cat-tech{background:rgba(46,204,255,.16);color:#6fd8ff;}
+.story h3{font-size:1.05rem;font-weight:700;line-height:1.25;margin-bottom:.35rem;}
+.story .meta{display:flex;gap:1rem;flex-wrap:wrap;font-size:.75rem;color:var(--dim);margin-bottom:.7rem;}
+.story .meta b{color:var(--ink);}
+.story .barwrap{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;margin:.2rem 0 .7rem;}
+.story .bar{height:100%;border-radius:4px;}
+.story-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+.tally{display:flex;align-items:baseline;gap:.3rem;}
+.tally .big{font-family:'Anton';font-size:1.5rem;}
+.small{font-size:.78rem;color:var(--dim);}
+.rival-row{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid var(--line);}
+.rival-row:last-child{border:none;}
+.rival-row .logo{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.9rem;color:#fff;flex-shrink:0;}
+.rival-row .rname{font-weight:700;flex:1;font-size:.92rem;}
+.rmeter{width:100%;height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;margin-top:.25rem;}
+.rmeter .fill{height:100%;border-radius:5px;}
+.you-badge{font-size:.6rem;background:var(--gradBrand);color:#fff;padding:.1rem .4rem;border-radius:4px;font-weight:800;}
+.upgrade{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding:.85rem;background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:.6rem;}
+.upgrade .ui{font-size:1.6rem;}
+.upgrade .un{font-weight:700;font-size:.95rem;}
+.upgrade .ud{font-size:.76rem;color:var(--dim);line-height:1.35;}
+.up-lvl{font-size:.66rem;color:var(--gold);font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.74);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal.show{display:flex;}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:18px;max-width:520px;width:100%;padding:1.6rem;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modal h2{font-family:'Barlow Condensed';font-weight:700;font-size:1.7rem;margin-bottom:.3rem;}
+@media(max-width:640px){
+  .modal{align-items:flex-end;padding:0;}
+  .modal .box{max-width:100%;border-radius:20px 20px 0 0;max-height:92dvh;padding:1.3rem 1.1rem calc(1.3rem + env(safe-area-inset-bottom,0px));animation:sheetUp .28s var(--ease);}
+}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);padding:.8rem 1.3rem;border-radius:12px;font-weight:600;z-index:200;box-shadow:0 14px 34px rgba(0,0,0,.5);max-width:90vw;text-align:center;font-size:.9rem;animation:tin .3s var(--ease);}
+@keyframes tin{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+.result-line{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.9rem;}
+.result-line:last-child{border:none;}
+.result-line .n{font-weight:800;}
+.lb-row{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);}
+.lb-row:last-child{border:none;}
+.empty{color:var(--muted);font-size:.86rem;text-align:center;padding:1.5rem;}
+.seg-toggle{display:flex;gap:.3rem;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.25rem;margin-bottom:1rem;}
+.seg-toggle button{flex:1;background:transparent;color:var(--dim);font-weight:700;padding:.5rem;border-radius:7px;font-size:.82rem;}
+.seg-toggle button.on{background:var(--brand);color:#fff;}
+.kbd{background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:.1rem .45rem;font-size:.8rem;font-family:'Space Mono';}
+.pulse{animation:pulse 1.6s infinite;} @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+</style>
+<style>
+/* v2 station tycoon UI */
+.toolbar{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem;}
+.toolbar .btn{flex:1;min-width:80px;}
+.city-row{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem;}
+.citytab{background:var(--panel2);border:1px solid var(--line2);color:var(--dim);font-weight:700;padding:.45rem .8rem;border-radius:9px;font-size:.82rem;}
+.citytab.on{background:var(--gradBrand);color:#fff;border:none;}
+.citytab.add{border-style:dashed;color:var(--dim);}
+.sched{display:flex;flex-direction:column;gap:.55rem;}
+.slot{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s;min-height:66px;}
+.slot:hover{border-color:var(--line2);}
+.slot.filled{border-color:var(--line2);}
+.slot-time{width:92px;flex-shrink:0;background:var(--panel2);padding:.6rem;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line);}
+.slot-time b{font-family:'Barlow Condensed';font-size:1rem;text-transform:uppercase;letter-spacing:.03em;}
+.slot-time span{font-size:.68rem;color:var(--muted);}
+.slot-body{flex:1;padding:.6rem .75rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.slot-empty{color:var(--muted);font-size:.85rem;font-weight:600;}
+.slot-show{flex:1;}
+.slot-title{font-weight:700;font-size:.95rem;margin:.2rem 0;}
+.slot-meta{font-size:.68rem;color:var(--dim);}
+.slot-clear{background:var(--panel2);border:1px solid var(--line2);color:var(--dim);width:26px;height:26px;border-radius:7px;flex-shrink:0;font-size:.8rem;}
+.slot-clear:hover{border-color:var(--red);color:var(--red);}
+.genre-chip{display:inline-flex;align-items:center;gap:.25rem;font-size:.66rem;font-weight:800;padding:.18rem .5rem;border-radius:6px;background:var(--panel2);border:1px solid var(--line2);}
+.g-news{color:#8cc0ff;} .g-sitcom{color:#f5d281;} .g-drama{color:#ff8577;} .g-reality{color:#b48cff;}
+.g-kids{color:#5fe39b;} .g-sports{color:#a3e635;} .g-talk{color:#7fd8ff;} .g-movie{color:#f472b6;}
+.g-gameshow{color:#f5c451;} .g-documentary{color:#67e8f9;}
+.onfit{color:var(--green);} .offfit{color:#f59e6b;} .lic{color:#f5c451;} .owned{color:#67e8f9;}
+.lib-list,.market-item{margin-bottom:.5rem;}
+.lib-item{display:flex;gap:.6rem;align-items:center;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:.6rem;cursor:pointer;transition:.15s;}
+.lib-item:hover{border-color:var(--brand);}
+.lib-title{font-weight:700;font-size:.9rem;}
+.lib-meta{font-size:.7rem;color:var(--dim);}
+.market-item{background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:.7rem;}
+.market-item.taken{opacity:.5;}
+.genre-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.35rem;}
+.genre-btn{background:var(--panel2);border:1px solid var(--line2);color:var(--dim);padding:.45rem;border-radius:8px;font-size:.74rem;font-weight:700;}
+.genre-btn.on{border-color:var(--brand);color:#fff;background:linear-gradient(160deg,rgba(59,111,224,.2),transparent);}
+.chip-btn{background:var(--panel);border:1px solid var(--line2);color:var(--dim);padding:.25rem .5rem;border-radius:6px;font-size:.7rem;font-weight:600;}
+.chip-btn.on{background:var(--brand);color:#fff;border:none;}
+.rival-row{display:flex;align-items:center;gap:.7rem;padding:.55rem 0;border-bottom:1px solid var(--line);}
+.rival-row:last-child{border:none;}
+.rival-row .logo{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;color:#fff;flex-shrink:0;}
+.rival-row .rname{font-weight:700;flex:1;font-size:.88rem;}
+.rmeter{width:100%;height:7px;background:var(--panel2);border-radius:5px;overflow:hidden;margin-top:.25rem;}
+.rmeter .fill{height:100%;border-radius:5px;}
+.you-badge{font-size:.58rem;background:var(--gradBrand);color:#fff;padding:.08rem .35rem;border-radius:4px;font-weight:800;}
+.result-line{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--line);font-size:.88rem;}
+.result-line:last-child{border:none;} .result-line .n{font-weight:800;}
+.section-title{font-family:'Barlow Condensed';font-weight:700;font-size:1.1rem;text-transform:uppercase;letter-spacing:.03em;margin:0 0 .6rem;}
+.mobile-tabs2{display:none;}
+</style>
+<!-- ============ SETUP SCREEN ============ -->
+<div class="screen active" id="scr-setup">
+  <div class="setup-wrap">
+    <a class="back" href="index.html">← GXY Arcade</a>
+    <div class="tv-logo">
+      <div class="mark">📺</div>
+      <h1>TV <span class="b">Battles</span></h1>
+      <p style="font-weight:700;color:var(--gold);letter-spacing:.05em;font-size:.9rem;margin-top:.3rem;">STATION TYCOON</p>
+      <p>Build a television empire. Own stations across cities, program your schedule slot by slot, and stock your library by licensing hits, producing originals, or buying shows outright. Out-rate every rival network to rule the airwaves.</p>
+    </div>
+    <div class="card setup-card">
+      <div class="field">
+        <label>Name your network</label>
+        <input class="tin" id="netName" maxlength="24" placeholder="e.g. GXY Network" value="GXY Network">
+      </div>
+      <div class="field">
+        <label>Network identity</label>
+        <div class="pickrow" id="stylePick"></div>
+      </div>
+      <div class="field">
+        <label>Run length</label>
+        <div class="pickrow" id="lenPick"></div>
+      </div>
+      <button class="btn primary big" onclick="startGame()">Launch Network →</button>
+    </div>
+    <p class="small" style="text-align:center;margin-top:1rem;">Your best season score can be submitted to the arcade leaderboard.</p>
+  </div>
+</div>
+
+<!-- ============ GAME SCREEN ============ -->
+<div class="screen" id="scr-game">
+  <div class="topbar">
+    <div class="brand">📺 <span id="hudName">GXY Network</span></div>
+    <div class="hud" id="hud"></div>
+    <div style="display:flex;gap:.4rem;">
+      <button class="btn sm" onclick="openLeaderboard()">🏆</button>
+      <button class="btn sm" onclick="quitConfirm()">Quit</button>
+    </div>
+  </div>
+  <div class="game-wrap">
+    <div class="seg-toggle" id="mobileTabs" style="display:none;">
+      <button class="on" data-view="schedule" onclick="setView('schedule')">Schedule</button>
+      <button data-view="side" onclick="setView('side')">Ratings & Business</button>
+    </div>
+    <div class="grid2">
+      <div id="col-main">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem;flex-wrap:wrap;gap:.5rem;">
+          <div class="section-title" style="margin:0;">🗓️ Programming <span class="tag" id="weekTag">Week 1</span></div>
+          <button class="btn gold sm" onclick="advanceWeek()">▶ Air This Week</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn sm" onclick="openMarket()">📺 Content Market</button>
+          <button class="btn sm" onclick="openStudio()">🎬 Studio</button>
+          <button class="btn sm" onclick="openTalent()">✍️ Talent</button>
+          <button class="btn sm" onclick="openDeals()">🤝 Ad Sales</button>
+          <button class="btn sm" onclick="openExpand()">📡 Expand</button>
+        </div>
+        <div id="scheduleView"></div>
+      </div>
+      <div id="col-side">
+        <div class="card">
+          <div class="section-title">📊 Ratings War</div>
+          <div id="ratingsBoard"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this&&window._allowClose!==false)closeModal()"><div class="box" id="modalBox"></div></div>
+<div id="toastMount"></div>
+<script src="tv-shows.js"></script>
+<script>
+/* ============================================================
+   TV BATTLES v2 — STATION TYCOON
+   Core: own stations across cities, program a schedule, and build
+   a content library by licensing, producing, or buying shows.
+   ============================================================ */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmt(n){return Math.round(n).toLocaleString();}
+function money(n){const neg=n<0;n=Math.abs(Math.round(n));let s;if(n>=1e6)s='$'+(n/1e6).toFixed(n>=1e7?1:2)+'M';else if(n>=1e3)s='$'+(n/1e3).toFixed(0)+'k';else s='$'+n;return (neg?'-':'')+s;}
+function moneyFull(n){return '$'+Math.round(n).toLocaleString();}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function rand(a,b){return a+Math.random()*(b-a);}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+/* ---------- GENRES & DEMOGRAPHICS ---------- */
+const GENRES={
+  news:      {name:"News",emoji:"📰",demo:'seniors',slots:['morning','evening','late']},
+  sitcom:    {name:"Sitcom",emoji:"😂",demo:'young',slots:['primetime','evening']},
+  drama:     {name:"Drama",emoji:"🎭",demo:'adults',slots:['primetime']},
+  reality:   {name:"Reality",emoji:"📸",demo:'young',slots:['primetime','evening']},
+  kids:      {name:"Kids",emoji:"🧸",demo:'kids',slots:['morning','daytime']},
+  sports:    {name:"Sports",emoji:"🏈",demo:'adults',slots:['primetime','evening']},
+  talk:      {name:"Talk Show",emoji:"🎙️",demo:'seniors',slots:['daytime','late']},
+  movie:     {name:"Movie",emoji:"🎬",demo:'adults',slots:['primetime','late']},
+  gameshow:  {name:"Game Show",emoji:"🎰",demo:'families',slots:['evening','daytime']},
+  documentary:{name:"Documentary",emoji:"🌍",demo:'adults',slots:['evening','late']},
+};
+const DEMOS={
+  kids:{name:"Kids",emoji:"🧒"},
+  young:{name:"Young Adults",emoji:"🧑"},
+  adults:{name:"Adults",emoji:"👔"},
+  families:{name:"Families",emoji:"👪"},
+  seniors:{name:"Seniors",emoji:"👴"},
+};
+
+/* ---------- TIME SLOTS (the schedule backbone) ---------- */
+const SLOTS=[
+  {id:'morning',  name:"Morning",   time:"6–9a",  reach:0.55, ad:0.7},
+  {id:'daytime',  name:"Daytime",   time:"9a–4p", reach:0.5,  ad:0.6},
+  {id:'evening',  name:"Evening",   time:"4–8p",  reach:0.85, ad:1.1},
+  {id:'primetime',name:"Primetime", time:"8–11p", reach:1.0,  ad:1.6},
+  {id:'late',     name:"Late Night", time:"11p–1a",reach:0.45, ad:0.65},
+];
+function slotById(id){return SLOTS.find(s=>s.id===id);}
+
+/* ---------- SHOW LIBRARY (licensable / buyable catalog) ---------- */
+/* Fictional show names to avoid real IP. Each has genre, quality, appeal. */
+const SHOW_CATALOG=(window.GXY_TV_SHOWS||[]).map(s=>({...s}));
+if(!SHOW_CATALOG.length){ /* fallback if file missing */
+  SHOW_CATALOG.push({title:"House Show",genre:'sitcom',q:0.6,era:'modern',eps:20});
+}
+const PRODUCIBLE=['sitcom','drama','reality','kids','talk','gameshow','documentary','movie'];
+
+/* first + last name pools for talent */
+const TALENT_FIRST=["Ava","Marcus","Lena","Dex","Rosa","Cole","Nina","Theo","Bianca","Reed","Juno","Cass","Ivy","Ravi","Mona","Kip"];
+const TALENT_LAST=["Vale","Sterling","Cruz","Hayes","Monroe","Okafor","Bishop","Frost","Delgado","Payne","Sato","Rhodes","Quinn","Ellis"];
+function makeTalentName(){return pick(TALENT_FIRST)+' '+pick(TALENT_LAST);}
+
+/* ---------- CITIES (market to expand into) ---------- */
+const CITIES=[
+  {id:'gxycity',name:"GXY City",market:1.0,taste:{},startCost:0},
+  {id:'lakeside',name:"Lakeside",market:0.75,taste:{reality:1.2,sports:1.15},startCost:250000},
+  {id:'rivton',name:"Rivton",market:0.85,taste:{drama:1.2,news:1.1},startCost:350000},
+  {id:'sunport',name:"Sunport",market:0.9,taste:{kids:1.2,gameshow:1.15,sitcom:1.1},startCost:500000},
+  {id:'ironvale',name:"Ironvale",market:1.1,taste:{sports:1.25,talk:1.1},startCost:750000},
+  {id:'crestbay',name:"Crestbay",market:1.3,taste:{drama:1.15,movie:1.2,documentary:1.2},startCost:1100000},
+  {id:'aurora',name:"Aurora Heights",market:1.5,taste:{news:1.15,drama:1.1,movie:1.15},startCost:1600000},
+];
+function cityById(id){return CITIES.find(c=>c.id===id);}
+
+/* ---------- SETUP ---------- */
+const NETSTYLES={
+  broadcaster:{name:"Big Broadcaster",emoji:"📡",dd:"Balanced, mass-market reach.",bias:{}},
+  entertainment:{name:"Entertainment",emoji:"🌟",dd:"Sitcoms, reality, movies shine.",bias:{sitcom:1.15,reality:1.15,movie:1.15,news:0.85}},
+  prestige:{name:"Prestige",emoji:"🏆",dd:"Drama & docs; awards magnet.",bias:{drama:1.2,documentary:1.2,news:1.1,reality:0.8}},
+  scrappy:{name:"Scrappy Upstart",emoji:"🔥",dd:"Cheaper content, hungrier crowd.",bias:{},cheap:true},
+};
+const LENGTHS={
+  short:{name:"Short",dd:"1 season (13 wks)",weeks:13},
+  full:{name:"Full",dd:"2 seasons (26 wks)",weeks:26},
+  epic:{name:"Epic",dd:"4 seasons (52 wks)",weeks:52},
+};
+const SETUP={style:'broadcaster',len:'full',netName:'GXY Network'};
+
+/* ---------- RIVAL NETWORKS ---------- */
+const RIVAL_DEFS=[
+  {name:"Apex Broadcasting",color:"#e0483b",skill:1.05,style:'sports'},
+  {name:"Vista Media",color:"#3b6fe0",skill:1.0,style:'drama'},
+  {name:"Pinnacle TV",color:"#7c3aed",skill:0.95,style:'reality'},
+  {name:"Beacon Networks",color:"#f5a623",skill:0.9,style:'news'},
+];
+
+/* ---------- GAME STATE ---------- */
+let G=null;
+let _showId=0, _talentId=0;
+function newGame(){
+  const len=LENGTHS[SETUP.len];
+  const home=CITIES[0];
+  G={ netName:SETUP.netName||'GXY Network', style:SETUP.style,
+    week:1, weeks:len.weeks, cash:800000, netReputation:1.0,
+    rating:40, peakRating:40, awards:0,
+    library:[],          // shows you can schedule {id,title,genre,q,ownership:'license'|'owned',licWeeksLeft,licFee,appealBoost}
+    talent:[],           // hired stars {id,name,genre,boost,salary,assignedTo}
+    stations:[{ city:'gxycity', schedule:blankSchedule(), unlocked:true }],
+    activeCity:'gxycity',
+    productions:[],       // in-progress originals {id,title,genre,weeksLeft,quality,cost}
+    rivals:RIVAL_DEFS.map(r=>({...r,rating:38+Math.random()*16,library:Math.floor(rand(3,6))})),
+    offers:[],            // weekly license/buy offers in the market
+    view:'schedule',
+    seasonScore:0, ended:false, adDeals:[] };
+  seedStartingLibrary();
+  refreshMarketOffers();
+}
+function blankSchedule(){ const s={}; SLOTS.forEach(sl=>s[sl.id]=null); return s; }
+function seedStartingLibrary(){
+  // start with a few cheap licensed shows so you can fill a schedule immediately
+  const picks=[...SHOW_CATALOG].sort(()=>Math.random()-0.5).slice(0,4);
+  picks.forEach(p=>{
+    G.library.push(makeLicensedShow(p, true));
+  });
+  // everyone starts able to run news (produced in-house, cheap)
+  G.library.push(initSeries({id:++_showId,title:G.netName+" News",genre:'news',q:0.55,ownership:'owned',licWeeksLeft:Infinity,licFee:0,airings:0,fatigue:0,isNews:true},0));
+  ensureNews(); syncNewsShowQuality();
+}
+function makeLicensedShow(cat, cheapStart){
+  const styleBias=NETSTYLES[G?G.style:'broadcaster'].bias[cat.genre]||1;
+  const weeks=Math.floor(rand(8,20));
+  const baseFee=Math.round((cat.q*4000+1500)*(cheapStart?0.6:1));
+  const show={id:++_showId,title:cat.title,genre:cat.genre,q:cat.q,ownership:'license',
+    licWeeksLeft:weeks,licFee:baseFee,airings:0,fatigue:0,era:cat.era};
+  return initSeries(show, cat.eps);
+}
+
+/* ---------- CONTENT MARKET: license / buy / produce ---------- */
+function refreshMarketOffers(){
+  // a rotating set of shows available to license or buy this period
+  const n=5;
+  const shuffled=[...SHOW_CATALOG].sort(()=>Math.random()-0.5).slice(0,n);
+  G.offers=shuffled.map(cat=>{
+    const q=clamp(cat.q+rand(-0.05,0.05),0.3,0.98);
+    const licWeeks=Math.floor(rand(8,22));
+    const licFee=Math.round(q*4200+1200);
+    const buyPrice=Math.round((q*q)*180000+40000);
+    return {catTitle:cat.title,genre:cat.genre,q:+q.toFixed(2),licWeeks,licFee,buyPrice,taken:false,era:cat.era,eps:cat.eps};
+  });
+}
+function licenseShow(idx){
+  const o=G.offers[idx]; if(!o||o.taken)return;
+  const upfront=Math.round(o.licFee*2.5); // upfront + weekly fee
+  if(G.cash<upfront){ toast('Not enough cash for the licensing deal.'); return; }
+  G.cash-=upfront; o.taken=true;
+  G.library.push(initSeries({id:++_showId,title:o.catTitle,genre:o.genre,q:o.q,ownership:'license',
+    licWeeksLeft:o.licWeeks,licFee:o.licFee,airings:0,fatigue:0,era:o.era}, o.eps));
+  toast('📺 Licensed "'+o.catTitle+'" for '+o.licWeeks+' weeks');
+  refreshHUD(); if(currentModal==='market')openMarket();
+}
+function buyShow(idx){
+  const o=G.offers[idx]; if(!o||o.taken)return;
+  if(G.cash<o.buyPrice){ toast('Not enough cash to buy this show outright.'); return; }
+  G.cash-=o.buyPrice; o.taken=true;
+  G.library.push(initSeries({id:++_showId,title:o.catTitle,genre:o.genre,q:o.q,ownership:'owned',
+    licWeeksLeft:Infinity,licFee:0,airings:0,fatigue:0,era:o.era}, o.eps));
+  toast('💎 Bought "'+o.catTitle+'" outright — it\'s yours forever');
+  refreshHUD(); if(currentModal==='market')openMarket();
+}
+
+/* ---------- PRODUCE ORIGINALS ---------- */
+const PRODUCTION_TIERS={
+  low:{name:"Low Budget",cost:60000,weeks:3,qBase:0.4,qVar:0.25},
+  mid:{name:"Mid Budget",cost:160000,weeks:4,qBase:0.55,qVar:0.28},
+  blockbuster:{name:"Blockbuster",cost:400000,weeks:6,qBase:0.7,qVar:0.3},
+};
+function startProduction(genre,tier){
+  const t=PRODUCTION_TIERS[tier];
+  if(G.cash<t.cost){ toast('Not enough cash to greenlight this.'); return; }
+  G.cash-=t.cost;
+  const title=makeShowTitle(genre);
+  G.productions.push({id:++_showId,title,genre,weeksLeft:t.weeks,tier,cost:t.cost,qBase:t.qBase,qVar:t.qVar});
+  toast('🎬 Greenlit "'+title+'" — in production '+t.weeks+' weeks');
+  refreshHUD(); if(currentModal==='studio')openStudio();
+}
+function tickProductions(){
+  const done=[];
+  G.productions.forEach(p=>{ p.weeksLeft--; if(p.weeksLeft<=0)done.push(p); });
+  done.forEach(p=>{
+    // quality roll — the gamble. talent & reputation nudge it up.
+    let q=clamp(p.qBase+rand(0,p.qVar)*G.netReputation, 0.25, 0.99);
+    const hit=q>0.8, flop=q<0.45;
+    G.library.push(initSeries({id:++_showId,title:p.title,genre:p.genre,q:+q.toFixed(2),ownership:'owned',
+      licWeeksLeft:Infinity,licFee:0,airings:0,fatigue:0,original:true,hit,era:'new'}));
+    G.productions=G.productions.filter(x=>x!==p);
+    setTimeout(()=>toast((hit?'🌟 HIT! ':flop?'💤 Flop: ':'✔ Wrapped: ')+'"'+p.title+'" (quality '+Math.round(q*100)+')'),200);
+  });
+}
+const TITLE_WORDS={
+  sitcom:["Apartment","Neighbors","The Crew","Family Ties","Roommates","Happy Hour"],
+  drama:["Shadows","The Verdict","Bloodline","Cold Harbor","Legacy","Fracture"],
+  reality:["Survive","Made It","Real Talk","The Challenge","Unscripted","Big Break"],
+  kids:["Adventures","Wonderland","Rainbow","Critter Club","Space Kids","Story Time"],
+  talk:["Tonight","Coffee Talk","The Roundtable","Open Mic","Real Life"],
+  gameshow:["Jackpot","The Big Deal","Win It All","Puzzle Master","Cash Grab"],
+  documentary:["Uncovered","The Truth","Deep Dive","Frontiers","Witness"],
+  movie:["Midnight","The Heist","Last Stand","Echoes","Nightfall"],
+  sports:["Game Day","The Championship","Overtime","Pro League"],
+  news:["Report","Newshour","Update","Frontline"],
+};
+function makeShowTitle(genre){ const w=TITLE_WORDS[genre]||["Untitled"]; return pick(w)+(Math.random()<0.4?' '+pick(["Live","Nights","Weekly","Now","Extra"]):''); }
+
+/* ---------- SCHEDULING ---------- */
+function assignToSlot(showId, slotId){
+  const st=activeStation();
+  // remove this show from any other slot first (a show airs once)
+  SLOTS.forEach(sl=>{ if(st.schedule[sl.id]===showId) st.schedule[sl.id]=null; });
+  st.schedule[slotId]=showId;
+  renderSchedule();
+}
+function clearSlot(slotId){ activeStation().schedule[slotId]=null; renderSchedule(); }
+function activeStation(){ return G.stations.find(s=>s.city===G.activeCity); }
+function libraryById(id){ return G.library.find(s=>s.id===id); }
+
+/* fit score: does this show suit this slot? (genre likes certain slots) */
+function slotFit(show, slotId){
+  const g=GENRES[show.genre]; if(!g)return 0.8;
+  return g.slots.includes(slotId)?1.0:0.6;
+}
+
+/* ---------- WEEKLY SIM: air the full schedule across all stations ---------- */
+function airWeek(){
+  const styleBias=NETSTYLES[G.style].bias;
+  let totalViewers=0, totalAd=0, totalLicFees=0, totalSalaries=0;
+  const perStation=[];
+  // v3: compute the newsroom coverage bonus once for this week
+  const newsBonus=computeNewsBonus();
+  const airedPerf={}; // showId -> did it perform well this week (for series momentum)
+
+  G.stations.forEach(st=>{
+    if(!st.unlocked)return;
+    const city=cityById(st.city);
+    let stationViewers=0, stationScore=0, filledSlots=0;
+    SLOTS.forEach(sl=>{
+      const showId=st.schedule[sl.id];
+      if(!showId){ return; }
+      const show=libraryById(showId); if(!show)return;
+      filledSlots++;
+      const g=GENRES[show.genre];
+      const styleM=styleBias[show.genre]||1;
+      const cityTaste=(city.taste&&city.taste[show.genre])||1;
+      const fit=slotFit(show,sl.id);
+      const talentBoost=talentBoostFor(show);
+      // fatigue: airing the same show too often wears it out
+      const fatigueM=Math.max(0.55,1-show.fatigue*0.06);
+      // v3 multipliers: genre trend, show age, audience momentum, and news coverage
+      const trendM=trendMult(show.genre);
+      const ageM=ageMult(show);
+      const audM=show.isNews?1:audienceMult(show);
+      const newsM=show.isNews?newsBonus:1;
+      const quality=show.q*styleM*cityTaste*fit*fatigueM*talentBoost*G.netReputation*trendM*ageM*audM*newsM;
+      // viewers this slot
+      const slotViewers=quality*sl.reach*city.market*100000;
+      stationViewers+=slotViewers;
+      stationScore+=quality*sl.reach;
+      // ad revenue for the slot
+      totalAd+=slotViewers*sl.ad*0.9;
+      // wear the show
+      show.airings++; show.fatigue=Math.min(6,show.fatigue+1);
+      // v3: track performance (did it beat a baseline?) for series momentum
+      const perfGood = (quality/(fit||1)) > 0.7;
+      airedPerf[show.id]=airedPerf[show.id]||perfGood;
+    });
+    // empty slots hurt (dead air / infomercials)
+    stationViewers*= (0.5+0.5*(filledSlots/SLOTS.length));
+    totalViewers+=stationViewers;
+    perStation.push({city:city.name,viewers:Math.round(stationViewers),filled:filledSlots});
+  });
+
+  // v3: advance the series arc for every show that aired
+  Object.keys(airedPerf).forEach(id=>{ const s=libraryById(+id); if(s) advanceSeriesOnAir(s, airedPerf[id]); });
+
+  // fatigue decays for shows NOT aired this week
+  const airedIds=new Set();
+  G.stations.forEach(st=>SLOTS.forEach(sl=>{if(st.schedule[sl.id])airedIds.add(st.schedule[sl.id]);}));
+  G.library.forEach(s=>{ if(!airedIds.has(s.id)) s.fatigue=Math.max(0,s.fatigue-1); });
+
+  // license fees + talent salaries (weekly costs)
+  G.library.forEach(s=>{ if(s.ownership==='license'&&s.licWeeksLeft>0){ totalLicFees+=s.licFee; } });
+  G.talent.forEach(t=>{ totalSalaries+=t.salary; });
+  // v3: news division weekly cost
+  const newsCost=newsWeeklyCost();
+
+  // ad deals bonus
+  let dealIncome=0; G.adDeals.forEach(d=>{ if(d.weeksLeft>0){ dealIncome+=d.weekly; d.weeksLeft--; } });
+  G.adDeals=G.adDeals.filter(d=>d.weeksLeft>0);
+  // v3: syndication income
+  const syndIncome=tickSyndication();
+
+  // ---- ratings: your network score vs rivals ----
+  const myScore=perStation.reduce((a,s)=>a+s.viewers,0)/100000;
+  G.rivals.forEach(r=>{
+    const rScore=(r.rating/40)*r.skill*r.library*rand(0.8,1.15);
+    r._score=rScore;
+  });
+  const field=[myScore,...G.rivals.map(r=>r._score)];
+  const avg=field.reduce((a,b)=>a+b,0)/field.length;
+  const rel=(myScore-avg)/Math.max(avg,1);
+  G.rating=clamp(G.rating+rel*4, 5, 100);
+  G.peakRating=Math.max(G.peakRating,G.rating);
+  G.rivals.forEach(r=>{ const rr=(r._score-avg)/Math.max(avg,1); r.rating=clamp(r.rating+rr*3.5+rand(-1,1),5,100); if(Math.random()<0.05)r.library++; });
+
+  // ---- money ----
+  const revenue=totalAd+dealIncome+syndIncome;
+  const costs=totalLicFees+totalSalaries+newsCost;
+  G.cash += Math.round(revenue-costs);
+
+  // tick licenses down; expire
+  const expired=[];
+  G.library.forEach(s=>{ if(s.ownership==='license'){ s.licWeeksLeft--; if(s.licWeeksLeft<=0)expired.push(s); } });
+  if(expired.length){ const ids=new Set(expired.map(e=>e.id));
+    G.stations.forEach(st=>SLOTS.forEach(sl=>{if(ids.has(st.schedule[sl.id]))st.schedule[sl.id]=null;}));
+    G.library=G.library.filter(s=>!ids.has(s.id));
+  }
+
+  return { totalViewers:Math.round(totalViewers), revenue:Math.round(revenue), costs:Math.round(costs),
+    net:Math.round(revenue-costs), perStation, expired:expired.map(e=>e.title),
+    syndIncome:Math.round(syndIncome), newsCost:Math.round(newsCost) };
+}
+function talentBoostFor(show){
+  let b=1; G.talent.forEach(t=>{ if(t.assignedTo===show.id) b+=t.boost; }); return b;
+}
+
+/* ---------- TALENT MARKET ---------- */
+function refreshTalent(){
+  if(!G._talentPool||G._talentPool.length<3){
+    G._talentPool=[];
+    for(let i=0;i<4;i++){
+      const genre=pick(PRODUCIBLE.concat(['news','sports']));
+      const boost=+rand(0.08,0.35).toFixed(2);
+      const salary=Math.round(boost*40000+3000);
+      G._talentPool.push({id:++_talentId,name:makeTalentName(),genre,boost,salary});
+    }
+  }
+}
+function hireTalent(idx){
+  refreshTalent();
+  const t=G._talentPool[idx]; if(!t)return;
+  const signing=t.salary*3;
+  if(G.cash<signing){ toast('Not enough cash for the signing bonus.'); return; }
+  G.cash-=signing;
+  G.talent.push({...t,assignedTo:null});
+  G._talentPool.splice(idx,1);
+  toast('✍️ Signed '+t.name+' ('+GENRES[t.genre]?.name+' specialist)');
+  refreshHUD(); if(currentModal==='talent')openTalent();
+}
+function assignTalent(talentId,showId){
+  const t=G.talent.find(x=>x.id===talentId); if(!t)return;
+  t.assignedTo=t.assignedTo===showId?null:showId;
+  if(currentModal==='talent')openTalent();
+}
+function fireTalent(talentId){
+  G.talent=G.talent.filter(t=>t.id!==talentId);
+  if(currentModal==='talent')openTalent();
+}
+
+/* ---------- STATIONS / CITY EXPANSION ---------- */
+function buyStation(cityId){
+  const city=cityById(cityId); if(!city)return;
+  if(G.stations.some(s=>s.city===cityId)){ toast('You already own a station there.'); return; }
+  if(G.cash<city.startCost){ toast('Not enough cash to launch there.'); return; }
+  G.cash-=city.startCost;
+  G.stations.push({city:cityId,schedule:blankSchedule(),unlocked:true});
+  toast('📡 Launched a station in '+city.name+'!');
+  refreshHUD(); if(currentModal==='expand')openExpand();
+}
+function switchCity(cityId){
+  if(!G.stations.some(s=>s.city===cityId))return;
+  G.activeCity=cityId; renderAll();
+}
+
+/* ---------- AD DEALS ---------- */
+function refreshAdDeals(){
+  if(!G._adOffers||G._adOffers.length<2){
+    G._adOffers=[];
+    for(let i=0;i<3;i++){
+      const demo=pick(Object.keys(DEMOS));
+      const weeks=Math.floor(rand(4,12));
+      const weekly=Math.round(rand(6000,22000)*(1+G.rating/100));
+      const req=Math.round(rand(35,60)); // min rating required
+      G._adOffers.push({sponsor:pick(["ZipCola","MegaMart","AutoNation","FreshBite","GloboBank","Nimbus Air","TechTonic"]),demo,weeks,weekly,req});
+    }
+  }
+}
+function signAdDeal(idx){
+  refreshAdDeals();
+  const d=G._adOffers[idx]; if(!d)return;
+  if(G.rating<d.req){ toast('Your rating is too low for this sponsor (need '+d.req+').'); return; }
+  G.adDeals.push({sponsor:d.sponsor,weekly:d.weekly,weeksLeft:d.weeks});
+  G._adOffers.splice(idx,1);
+  toast('🤝 Signed ad deal with '+d.sponsor+' — '+money(d.weekly)+'/wk');
+  refreshHUD(); if(currentModal==='deals')openDeals();
+}
+
+/* ---------- WEEK ADVANCE ---------- */
+function advanceWeek(){
+  const filled=SLOTS.filter(sl=>activeStation().schedule[sl.id]).length;
+  if(filled===0){ toast('Schedule at least one show before airing the week.'); return; }
+  const result=airWeek();
+  tickProductions();
+  // v3: genre trends drift, refresh next week's news stories
+  tickTrends();
+  generateNewsStories();
+  // periodic refreshes
+  if(G.week%2===0) refreshMarketOffers();
+  refreshTalent(); refreshAdDeals();
+  maybeEvent();
+  // v3: gather season finales to present renewal decisions after the results
+  result.finales=processSeasonFinales();
+  showWeekResults(result);
+}
+function finishWeek(){
+  window._allowClose=true;
+  closeModal();
+  if(G.week>=G.weeks){ endSeason(); return; }
+  G.week++;
+  renderAll();
+  if(G.view)setView(G.view);
+}
+function maybeEvent(){
+  if(Math.random()<0.2){
+    const evs=[
+      {t:"🏆 Awards Buzz",d:"Critics love your lineup — reputation up.",fx:()=>{G.netReputation=clamp(G.netReputation+0.04,0.5,2);G.awards++;}},
+      {t:"💸 Ad Market Boom",d:"A sponsor paid a premium. +"+'$40k.',fx:()=>{G.cash+=40000;}},
+      {t:"📉 Rival Scandal",d:"A competitor stumbled; you gained ground.",fx:()=>{G.rating=clamp(G.rating+2.5,5,100);pick(G.rivals).rating-=3;}},
+      {t:"🎭 Talent Poached",d:"A rival tried to poach your stars — morale dip.",fx:()=>{G.netReputation=clamp(G.netReputation-0.02,0.5,2);}},
+    ];
+    const e=pick(evs); e.fx(); setTimeout(()=>toast(e.t+' — '+e.d),300);
+  }
+}
+
+/* ---------- SEASON END ---------- */
+function myRank(){
+  const all=[{r:G.rating,you:true},...G.rivals.map(r=>({r:r.rating,you:false}))].sort((a,b)=>b.r-a.r);
+  return all.findIndex(x=>x.you)+1;
+}
+function endSeason(){
+  G.ended=true;
+  const rank=myRank();
+  const ownedShows=G.library.filter(s=>s.ownership==='owned').length;
+  const score=Math.round(G.rating*1200 + (5-rank)*10000 + G.stations.length*8000 + ownedShows*3000 + G.awards*5000 + G.peakRating*300 + Math.max(0,G.cash)/500);
+  G.seasonScore=score;
+  const won=rank===1;
+  window.gxyLastRun={won:won,rank:rank};
+  if(window.gxyReportScore) window.gxyReportScore(score);
+  showModal(`<h2>${won?'🏆':rank<=2?'🥈':'📺'} Season Finale</h2>
+    <p style="color:var(--dim);margin:.4rem 0 1rem;font-size:.92rem;">${won?`<b style="color:var(--gold);">${esc(G.netName)} is the #1 network in the country!</b>`:`${esc(G.netName)} finished ranked <b>#${rank}</b> of ${G.rivals.length+1}.`}</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap;">
+      <div class="stat" style="flex:1;"><span class="l">Final Rating</span><span class="v gold">${G.rating.toFixed(1)}</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Stations</span><span class="v">${G.stations.length}</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Awards</span><span class="v">${G.awards}</span></div>
+    </div>
+    <div class="card" style="text-align:center;margin-bottom:1rem;"><div class="small">Network Score</div><div class="anton" style="font-size:2.4rem;background:var(--gradGold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">${fmt(score)}</div></div>
+    <button class="btn gold big" onclick="submitScore()">🏆 Submit to Leaderboard</button>
+    <button class="btn ghost big" style="margin-top:.5rem;" onclick="location.reload()">Play Again</button>`);
+}
+function submitScore(){ if(window.gxyReportScore)window.gxyReportScore(G.seasonScore); toast('Score submitted!'); setTimeout(openLeaderboard,700); }
+
+/* ---------- SETUP SCREEN ---------- */
+function renderSetup(){
+  $('#stylePick').innerHTML=Object.keys(NETSTYLES).map(k=>{const s=NETSTYLES[k];
+    return `<div class="pill ${SETUP.style===k?'on':''}" onclick="SETUP.style='${k}';renderSetup()"><div class="pn">${s.emoji} ${esc(s.name)}</div><div class="pd">${esc(s.dd)}</div></div>`;}).join('');
+  $('#lenPick').innerHTML=Object.keys(LENGTHS).map(k=>{const l=LENGTHS[k];
+    return `<div class="pill ${SETUP.len===k?'on':''}" onclick="SETUP.len='${k}';renderSetup()"><div class="pn">${esc(l.name)}</div><div class="pd">${esc(l.dd)}</div></div>`;}).join('');
+}
+
+/* ---------- HUD ---------- */
+function refreshHUD(){
+  $('#hudName').textContent=G.netName;
+  $('#weekTag').textContent='Week '+G.week+' / '+G.weeks;
+  $('#hud').innerHTML=`
+    <div class="stat"><span class="l">Rating</span><span class="v gold">${G.rating.toFixed(1)}</span></div>
+    <div class="stat"><span class="l">Rank</span><span class="v ${myRank()===1?'good':''}">#${myRank()}</span></div>
+    <div class="stat"><span class="l">Cash</span><span class="v ${G.cash<0?'bad':''}">${money(G.cash)}</span></div>
+    <div class="stat"><span class="l">Stations</span><span class="v">${G.stations.length}</span></div>`;
+}
+
+/* ---------- SCHEDULE GRID (the core view) ---------- */
+function renderSchedule(){
+  const st=activeStation(); const city=cityById(st.city);
+  // city switcher
+  const cityTabs=G.stations.map(s=>{const c=cityById(s.city);
+    return `<button class="citytab ${s.city===G.activeCity?'on':''}" onclick="switchCity('${s.city}')">📡 ${esc(c.name)}</button>`;}).join('');
+  let html=`<div class="city-row">${cityTabs}<button class="citytab add" onclick="openExpand()">＋ New Station</button></div>`;
+  html+=`<div class="small" style="margin:.2rem 0 .8rem;">Programming <b>${esc(city.name)}</b> · Market size ${Math.round(city.market*100)}%${cityTasteLabel(city)}</div>`;
+  html+=`<div class="sched">`;
+  SLOTS.forEach(sl=>{
+    const showId=st.schedule[sl.id]; const show=showId?libraryById(showId):null;
+    const fit=show?slotFit(show,sl.id):0;
+    html+=`<div class="slot ${show?'filled':''}" onclick="openSlotPicker('${sl.id}')">
+      <div class="slot-time"><b>${sl.name}</b><span>${sl.time}</span></div>
+      <div class="slot-body">`;
+    if(show){
+      const g=GENRES[show.genre];
+      html+=`<div class="slot-show">
+        <span class="genre-chip g-${show.genre}">${g.emoji} ${g.name}</span>
+        <div class="slot-title">${esc(show.title)}</div>
+        <div class="slot-meta">${'★'.repeat(Math.round(show.q*5)).padEnd(5,'☆')} ${fit<1?'<span class="offfit">off-slot</span>':'<span class="onfit">good slot</span>'}${show.ownership==='license'?` · <span class="lic">licensed ${show.licWeeksLeft}wk</span>`:show.original?' · <span class="owned">original</span>':' · <span class="owned">owned</span>'}${show.fatigue>2?' · <span class="offfit">overplayed</span>':''}</div>
+      </div>
+      <button class="slot-clear" onclick="event.stopPropagation();clearSlot('${sl.id}')">✕</button>`;
+    } else {
+      html+=`<div class="slot-empty">+ Assign a show</div>`;
+    }
+    html+=`</div></div>`;
+  });
+  html+=`</div>`;
+  $('#scheduleView').innerHTML=html;
+}
+function cityTasteLabel(city){
+  if(!city.taste||!Object.keys(city.taste).length)return '';
+  const likes=Object.keys(city.taste).map(g=>GENRES[g].emoji).join('');
+  return ` · Loves ${likes}`;
+}
+
+/* ---------- LIBRARY / SLOT PICKER ---------- */
+function openSlotPicker(slotId){
+  const sl=slotById(slotId);
+  const avail=G.library.filter(s=>s); // all shows
+  currentModal='slotpick';
+  let html=`<h2>Program ${sl.name}</h2><p class="small" style="margin:.2rem 0 1rem;">${sl.time} · Pick a show from your library. Shows matched to their ideal slot perform better.</p>`;
+  if(!avail.length){ html+='<p class="empty">Your library is empty. Visit the Content Market to license or buy shows.</p>'; }
+  else{
+    html+=`<div class="lib-list">`+avail.map(s=>{const g=GENRES[s.genre];const fit=slotFit(s,slotId);
+      return `<div class="lib-item" onclick="assignToSlot(${s.id},'${slotId}');closeModal()">
+        <span class="genre-chip g-${s.genre}">${g.emoji}</span>
+        <div style="flex:1;"><div class="lib-title">${esc(s.title)}</div><div class="lib-meta">${g.name} · ${'★'.repeat(Math.round(s.q*5))} ${fit>=1?'<span class="onfit">✓ ideal slot</span>':'<span class="offfit">off-slot −40%</span>'}${s.ownership==='license'?` · <span class="lic">${s.licWeeksLeft}wk left</span>`:''}${s.fatigue>2?' · <span class="offfit">overplayed</span>':''}</div></div>
+      </div>`;}).join('')+`</div>`;
+  }
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Cancel</button>`;
+  showModal(html);
+}
+
+/* ---------- rating war board ---------- */
+function renderRatings(){
+  const board=[{name:G.netName,color:'#3b6fe0',rating:G.rating,you:true},...G.rivals.map(r=>({name:r.name,color:r.color,rating:r.rating,you:false}))].sort((a,b)=>b.rating-a.rating);
+  const max=Math.max(...board.map(b=>b.rating),1);
+  $('#ratingsBoard').innerHTML=board.map((b,i)=>`
+    <div class="rival-row"><div class="logo" style="background:${b.color};">${i+1}</div>
+      <div style="flex:1;"><div style="display:flex;justify-content:space-between;"><span class="rname">${esc(b.name)} ${b.you?'<span class="you-badge">YOU</span>':''}</span><span class="mono" style="font-weight:700;">${b.rating.toFixed(1)}</span></div>
+      <div class="rmeter"><div class="fill" style="width:${Math.round(b.rating/max*100)}%;background:${b.color};"></div></div></div>
+    </div>`).join('');
+}
+function renderAll(){ refreshHUD();renderSchedule();renderRatings(); }
+
+/* ---------- CONTENT MARKET MODAL ---------- */
+function openMarket(){
+  currentModal='market';
+  let html=`<h2>📺 Content Market</h2><p class="small" style="margin:.2rem 0 1rem;">License shows for a weekly fee, or buy them outright to own forever. Offers refresh over time.</p>`;
+  html+=G.offers.map((o,i)=>{const g=GENRES[o.genre];
+    return `<div class="market-item ${o.taken?'taken':''}">
+      <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.5rem;">
+        <span class="genre-chip g-${o.genre}">${g.emoji} ${g.name}</span>
+        <div style="flex:1;"><div class="lib-title">${esc(o.catTitle)}</div><div class="lib-meta">Quality ${'★'.repeat(Math.round(o.q*5))} (${Math.round(o.q*100)})</div></div>
+      </div>
+      ${o.taken?'<div class="small" style="color:var(--muted);">✓ Acquired</div>':`<div style="display:flex;gap:.4rem;">
+        <button class="btn sm" style="flex:1;" onclick="licenseShow(${i})">License · ${money(o.licFee)}/wk<br><span style="font-size:.62rem;opacity:.7;">${o.licWeeks}wk · ${money(o.licFee*2.5)} upfront</span></button>
+        <button class="btn gold sm" style="flex:1;" onclick="buyShow(${i})">Buy · ${money(o.buyPrice)}<br><span style="font-size:.62rem;opacity:.7;">own forever</span></button>
+      </div>`}
+    </div>`;}).join('');
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+/* ---------- STUDIO (produce originals) MODAL ---------- */
+let _prodGenre='sitcom';
+function openStudio(){
+  currentModal='studio';
+  let html=`<h2>🎬 Production Studio</h2><p class="small" style="margin:.2rem 0 1rem;">Greenlight an original show. Higher budgets mean better odds of a hit — but every original is a gamble. Hits are yours forever and boost your reputation.</p>`;
+  if(G.productions.length){
+    html+=`<div class="section-title" style="font-size:.95rem;">In Production</div>`;
+    html+=G.productions.map(p=>`<div class="market-item"><div style="display:flex;justify-content:space-between;"><span><b>${esc(p.title)}</b> <span class="small">${GENRES[p.genre].name}</span></span><span class="small">${p.weeksLeft}wk left</span></div></div>`).join('');
+  }
+  html+=`<div class="section-title" style="font-size:.95rem;margin-top:1rem;">Greenlight New</div>`;
+  html+=`<div class="small" style="margin-bottom:.4rem;">Genre</div><div class="genre-grid">`+PRODUCIBLE.map(g=>`<button class="genre-btn ${_prodGenre===g?'on':''}" onclick="_prodGenre='${g}';openStudio()">${GENRES[g].emoji} ${GENRES[g].name}</button>`).join('')+`</div>`;
+  html+=`<div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.8rem;">`+Object.keys(PRODUCTION_TIERS).map(t=>{const pt=PRODUCTION_TIERS[t];
+    return `<button class="btn ${t==='blockbuster'?'gold':''}" style="text-align:left;" ${G.cash<pt.cost?'disabled':''} onclick="startProduction('${_prodGenre}','${t}')"><b>${pt.name}</b> · ${money(pt.cost)} <span class="small">· ${pt.weeks}wk · quality ~${Math.round((pt.qBase+pt.qVar/2)*100)}</span></button>`;}).join('')+`</div>`;
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+/* ---------- TALENT MODAL ---------- */
+function openTalent(){
+  refreshTalent(); currentModal='talent';
+  let html=`<h2>✍️ Talent Agency</h2><p class="small" style="margin:.2rem 0 1rem;">Sign stars to boost your shows. Assign talent to a matching show for the biggest lift. Salaries are paid weekly.</p>`;
+  if(G.talent.length){
+    html+=`<div class="section-title" style="font-size:.95rem;">Your Roster</div>`;
+    html+=G.talent.map(t=>{const assigned=t.assignedTo?libraryById(t.assignedTo):null;const matches=G.library.filter(s=>s.genre===t.genre);
+      return `<div class="market-item"><div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><b>${esc(t.name)}</b> <span class="small">${GENRES[t.genre]?.emoji} +${Math.round(t.boost*100)}% · ${money(t.salary)}/wk</span><br><span class="small">${assigned?'On: '+esc(assigned.title):'Unassigned'}</span></div>
+        <button class="btn sm" onclick="fireTalent(${t.id})">Release</button></div>
+        ${matches.length?`<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.4rem;">`+matches.map(s=>`<button class="chip-btn ${t.assignedTo===s.id?'on':''}" onclick="assignTalent(${t.id},${s.id})">${esc(s.title)}</button>`).join('')+`</div>`:'<div class="small" style="margin-top:.3rem;color:var(--muted);">No matching '+(GENRES[t.genre]?.name||'')+' shows in library yet.</div>'}
+      </div>`;}).join('');
+  }
+  html+=`<div class="section-title" style="font-size:.95rem;margin-top:1rem;">Available Free Agents</div>`;
+  html+=G._talentPool.map((t,i)=>`<div class="market-item"><div style="display:flex;justify-content:space-between;align-items:center;">
+    <div><b>${esc(t.name)}</b> <span class="small">${GENRES[t.genre]?.emoji} ${GENRES[t.genre]?.name} · +${Math.round(t.boost*100)}%</span><br><span class="small">${money(t.salary)}/wk · ${money(t.salary*3)} to sign</span></div>
+    <button class="btn gold sm" ${G.cash<t.salary*3?'disabled':''} onclick="hireTalent(${i})">Sign</button></div></div>`).join('');
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+/* ---------- EXPAND (new stations) MODAL ---------- */
+function openExpand(){
+  currentModal='expand';
+  let html=`<h2>📡 Expand Your Network</h2><p class="small" style="margin:.2rem 0 1rem;">Launch stations in new cities. Bigger markets mean more viewers — but each city has its own tastes and needs its own schedule.</p>`;
+  html+=CITIES.map(c=>{const owned=G.stations.some(s=>s.city===c.id);
+    return `<div class="market-item ${owned?'taken':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><b>${esc(c.name)}</b> <span class="small">Market ${Math.round(c.market*100)}%${cityTasteLabel(c)}</span></div>
+        ${owned?'<span class="small" style="color:var(--green);">✓ Owned</span>':`<button class="btn gold sm" ${G.cash<c.startCost?'disabled':''} onclick="buyStation('${c.id}')">${c.startCost===0?'Free':money(c.startCost)}</button>`}
+      </div></div>`;}).join('');
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+/* ---------- AD DEALS MODAL ---------- */
+function openDeals(){
+  refreshAdDeals(); currentModal='deals';
+  let html=`<h2>🤝 Ad Sales</h2><p class="small" style="margin:.2rem 0 1rem;">Sign sponsors for steady weekly income. Bigger deals need a higher network rating.</p>`;
+  if(G.adDeals.length){ html+=`<div class="section-title" style="font-size:.95rem;">Active Deals</div>`+G.adDeals.map(d=>`<div class="market-item"><div style="display:flex;justify-content:space-between;"><b>${esc(d.sponsor)}</b><span class="small">${money(d.weekly)}/wk · ${d.weeksLeft}wk left</span></div></div>`).join(''); }
+  html+=`<div class="section-title" style="font-size:.95rem;margin-top:1rem;">Offers</div>`;
+  html+=G._adOffers.map((d,i)=>`<div class="market-item"><div style="display:flex;justify-content:space-between;align-items:center;">
+    <div><b>${esc(d.sponsor)}</b> <span class="small">wants ${DEMOS[d.demo].emoji} ${DEMOS[d.demo].name}</span><br><span class="small">${money(d.weekly)}/wk · ${d.weeks}wk · needs rating ${d.req}</span></div>
+    <button class="btn sm ${G.rating>=d.req?'gold':''}" ${G.rating<d.req?'disabled':''} onclick="signAdDeal(${i})">${G.rating>=d.req?'Sign':'Rating '+d.req}</button></div></div>`).join('');
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+/* ---------- WEEK RESULTS ---------- */
+function showWeekResults(r){
+  const rank=myRank();
+  const delta=G._prevRating!==undefined?(G.rating-G._prevRating):0;
+  G._pendingFinales = (r.finales||[]).slice();
+  let html=`<h2>📊 Week ${G.week} Ratings</h2>
+    <div style="display:flex;gap:.5rem;margin:.6rem 0 1rem;flex-wrap:wrap;">
+      <div class="stat" style="flex:1;"><span class="l">Viewers</span><span class="v">${fmt(r.totalViewers)}</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Rating</span><span class="v gold">${G.rating.toFixed(1)} <span style="font-size:.7rem;color:${delta>=0?'var(--green)':'var(--red)'};">${delta>=0?'▲':'▼'}${Math.abs(delta).toFixed(1)}</span></span></div>
+      <div class="stat" style="flex:1;"><span class="l">Rank</span><span class="v ${rank===1?'good':''}">#${rank}</span></div>
+    </div>
+    ${r.perStation.length>1?`<div class="section-title" style="font-size:.9rem;">By Station</div>`+r.perStation.map(s=>`<div class="result-line"><span>${esc(s.city)} <span class="small">(${s.filled}/5 slots)</span></span><span class="n">${fmt(s.viewers)}</span></div>`).join(''):''}
+    <div class="result-line" style="margin-top:.5rem;"><span>Ad revenue</span><span class="n" style="color:var(--green);">+${moneyFull(r.revenue-(r.syndIncome||0))}</span></div>
+    ${r.syndIncome?`<div class="result-line"><span>📡 Syndication</span><span class="n" style="color:var(--green);">+${moneyFull(r.syndIncome)}</span></div>`:''}
+    <div class="result-line"><span>Licenses, salaries & news</span><span class="n" style="color:var(--red);">−${moneyFull(r.costs)}</span></div>
+    <div class="result-line"><span><b>Net</b></span><span class="n" style="color:${r.net>=0?'var(--green)':'var(--red)'};">${r.net>=0?'+':'−'}${moneyFull(Math.abs(r.net))}</span></div>
+    ${r.expired.length?`<div class="small" style="margin-top:.6rem;color:var(--gold);">⏳ Licenses expired: ${r.expired.map(esc).join(', ')}</div>`:''}
+    <button class="btn primary big" style="margin-top:1rem;" onclick="afterResults()">${G._pendingFinales.length?'Season Finales →':(G.week>=G.weeks?'See Finale →':'Next Week →')}</button>`;
+  G._prevRating=G.rating;
+  window._allowClose=false;
+  showModal(html);
+}
+/* after the results screen: present any season-finale renewal decisions, then advance */
+function afterResults(){
+  // owned shows that hit a finale get a renew/reboot/cancel decision
+  const owned=(G._pendingFinales||[]).filter(s=>s.ownership==='owned'&&libraryById(s.id));
+  if(owned.length){
+    const s=owned[0];
+    G._pendingFinales=G._pendingFinales.filter(x=>x.id!==s.id);
+    showFinaleDecision(s);
+    return;
+  }
+  // licensed shows that finished a season just note it (they keep airing until license ends)
+  G._pendingFinales=[];
+  finishWeek();
+}
+function showFinaleDecision(s){
+  window._allowClose=false;
+  const fading=(s.age||0)>=3;
+  const renewCost=Math.round(40000*(1+(s.age||0)*0.3));
+  const rebootCost=Math.round(120000*(1+(s.age||0)*0.15));
+  const aud=Math.round((s.audience||0.5)*100);
+  showModal(`<h2>🎬 Season Finale</h2>
+    <p class="small" style="margin:.3rem 0 1rem;"><b>"${esc(s.title)}"</b> just wrapped Season ${s.season}. ${fading?'It\'s showing its age — audiences are cooling.':'It still has momentum.'} What next?</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+      <div class="stat" style="flex:1;"><span class="l">Audience</span><span class="v ${aud>90?'good':aud<60?'bad':''}">${aud}</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Age</span><span class="v">${s.age||0} seasons</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Quality</span><span class="v gold">${Math.round(s.q*100)}</span></div>
+    </div>
+    <button class="btn primary big" ${G.cash<renewCost?'disabled':''} onclick="doRenew(${s.id})">✅ Renew — ${money(renewCost)}${fading?' <span style="opacity:.7;font-size:.7rem;">(quality may keep sliding)</span>':''}</button>
+    <button class="btn gold big" style="margin-top:.5rem;" ${G.cash<rebootCost?'disabled':''} onclick="doReboot(${s.id})">🔄 Reboot — ${money(rebootCost)} <span style="opacity:.75;font-size:.7rem;">(fresh, +quality)</span></button>
+    <button class="btn big" style="margin-top:.5rem;background:transparent;border:1px solid var(--line2);" onclick="doCancelFinale(${s.id})">🚫 Cancel the show</button>`);
+}
+function doRenew(id){ if(renewShow(id)){ afterResults(); } }
+function doReboot(id){ rebootShow(id); afterResults(); }
+function doCancelFinale(id){ cancelShow(id); afterResults(); }
+
+
+/* ============================================================
+   v3: SERIES LIFECYCLE — episodes, seasons, audience momentum, aging
+   ============================================================ */
+/* A show now tracks a running "series" state. We attach these fields
+   to every show when it enters the library (via initSeries). */
+function initSeries(show, catEps){
+  const g=GENRES[show.genre];
+  const eps = catEps!==undefined ? catEps : (show.eps!==undefined ? show.eps : defaultEps(show.genre));
+  show.season = show.season||1;
+  show.epsTotal = eps||0;           // 0 = one-off (movie): no season arc
+  show.epsAired = 0;
+  show.audience = show.audience!==undefined?show.audience : 0.5; // momentum 0..1.5, builds as it airs
+  show.age = show.age||0;           // seasons completed; drives decline
+  show.peaked = false;
+  show.finale = false;              // set true the week its season ends
+  return show;
+}
+function defaultEps(genre){
+  return ({sitcom:20,drama:13,reality:14,kids:22,sports:20,talk:150,movie:0,gameshow:90,documentary:8})[genre]||16;
+}
+/* age multiplier: shows peak around season 2-3 then decline */
+function ageMult(show){
+  const a=show.age||0;
+  if(a<=1) return 1.0;
+  if(a===2) return 1.05;   // sophomore/junior peak
+  if(a===3) return 1.0;
+  if(a===4) return 0.9;
+  if(a===5) return 0.78;
+  return Math.max(0.5, 0.78 - (a-5)*0.08); // long decline
+}
+/* audience momentum multiplier */
+function audienceMult(show){ return 0.7 + (show.audience||0.5)*0.5; } // 0.5 aud -> 0.95 ; 1.5 aud -> 1.45
+
+/* called each week a show AIRS: advance its episode/season arc */
+function advanceSeriesOnAir(show, performedWell){
+  if(show.isNews) return; // news handled separately
+  if(show.epsTotal<=0){ // one-off (movie): audience doesn't build, mild fatigue only
+    return;
+  }
+  show.epsAired++;
+  // audience builds if it performed well, erodes if not
+  const drift = performedWell ? 0.06 : -0.05;
+  show.audience = clamp((show.audience||0.5)+drift, 0.2, 1.5);
+  // season finale?
+  if(show.epsAired>=show.epsTotal){
+    show.finale = true;
+  }
+}
+/* called at week-advance: process any shows that hit their finale */
+function processSeasonFinales(){
+  const finales=[];
+  G.library.forEach(show=>{
+    if(show.finale && !show.isNews){
+      finales.push(show);
+      show.finale=false;
+    }
+  });
+  return finales; // caller shows renewal UI for OWNED shows; licensed ones auto-handle
+}
+/* renewal actions */
+function renewShow(showId){
+  const s=libraryById(showId); if(!s)return;
+  s.season++; s.age++; s.epsAired=0; s.epsTotal=s.epsTotal||defaultEps(s.genre);
+  // renewing a tired show costs production money
+  const cost=Math.round(40000*(1+s.age*0.3));
+  if(G.cash<cost){ toast('Not enough cash to renew '+s.title+' ('+money(cost)+').'); return false; }
+  G.cash-=cost;
+  // slight quality drift with age unless rebooted
+  s.q=clamp(s.q*ageMult(s)/ageMult({age:s.age-1}), 0.3, 0.99);
+  toast('✅ Renewed "'+s.title+'" for Season '+s.season+' ('+money(cost)+')');
+  refreshHUD();
+  return true;
+}
+function cancelShow(showId){
+  const s=libraryById(showId); if(!s)return;
+  // pull from all schedules
+  G.stations.forEach(st=>SLOTS.forEach(sl=>{ if(st.schedule[sl.id]===showId)st.schedule[sl.id]=null; }));
+  G.library=G.library.filter(x=>x.id!==showId);
+  toast('🚫 Cancelled "'+s.title+'"');
+  refreshHUD(); renderAll();
+}
+function rebootShow(showId){
+  const s=libraryById(showId); if(!s)return;
+  const cost=Math.round(120000*(1+s.age*0.15));
+  if(G.cash<cost){ toast('Reboot costs '+money(cost)+'.'); return; }
+  G.cash-=cost;
+  s.age=0; s.season++; s.epsAired=0; s.audience=0.7; s.q=clamp(s.q*1.15,0.3,0.99); s.peaked=false;
+  toast('🔄 Rebooted "'+s.title+'" — fresh start, quality boosted!');
+  refreshHUD();
+}
+
+
+/* ============================================================
+   v3: GENRE TRENDS — audience tastes rise and fall
+   ============================================================ */
+function ensureTrends(){
+  if(!G.trends){
+    G.trends={};
+    Object.keys(GENRES).forEach(g=>{ G.trends[g]={strength:1.0, dir:Math.random()<0.5?1:-1}; });
+    // start a couple of genres "hot" and one "cold" for flavor
+    const keys=Object.keys(GENRES);
+    G.trends[pick(keys)].strength=1.25;
+    G.trends[pick(keys)].strength=0.8;
+  }
+}
+function tickTrends(){
+  ensureTrends();
+  Object.keys(G.trends).forEach(g=>{
+    const t=G.trends[g];
+    t.strength += t.dir*rand(0.01,0.035);
+    if(t.strength>1.4){ t.strength=1.4; t.dir=-1; }
+    if(t.strength<0.65){ t.strength=0.65; t.dir=1; }
+    if(Math.random()<0.04) t.dir*=-1; // random reversal
+  });
+}
+function trendMult(genre){ ensureTrends(); return G.trends[genre]?G.trends[genre].strength:1; }
+function hotGenres(){ ensureTrends(); return Object.keys(G.trends).sort((a,b)=>G.trends[b].strength-G.trends[a].strength); }
+
+/* ============================================================
+   v3: SYNDICATION — license your OWNED shows out for passive income
+   ============================================================ */
+function syndicationValue(show){
+  // based on quality, audience, and how fresh it is; only owned shows
+  const base = show.q*show.q*8000;
+  const audB = audienceMult(show);
+  const ageB = Math.max(0.4, 1-(show.age||0)*0.1);
+  return Math.round(base*audB*ageB);
+}
+function canSyndicate(show){ return show.ownership==='owned' && !show.isNews && !show.syndicated; }
+function syndicateShow(showId){
+  const s=libraryById(showId); if(!s||!canSyndicate(s))return;
+  const weekly=syndicationValue(s);
+  const weeks=Math.floor(rand(8,20));
+  s.syndicated={weekly, weeksLeft:weeks};
+  toast('📡 Syndicated "'+s.title+'" — '+money(weekly)+'/wk for '+weeks+'wk');
+  refreshHUD(); if(currentModal==='syndication')openSyndication();
+}
+function tickSyndication(){
+  let income=0;
+  G.library.forEach(s=>{
+    if(s.syndicated){
+      income+=s.syndicated.weekly;
+      s.syndicated.weeksLeft--;
+      if(s.syndicated.weeksLeft<=0) s.syndicated=null;
+    }
+  });
+  return income;
+}
+function openSyndication(){
+  currentModal='syndication';
+  const owned=G.library.filter(s=>s.ownership==='owned'&&!s.isNews);
+  let html=`<h2>📡 Syndication</h2><p class="small" style="margin:.2rem 0 1rem;">License your owned shows to other markets for passive weekly income. The show keeps airing on your network too — it's free money for hits you own.</p>`;
+  if(!owned.length){ html+='<p class="empty">You don\'t own any shows yet. Produce originals or buy shows outright to syndicate them.</p>'; }
+  else html+=owned.map(s=>{const g=GENRES[s.genre];const val=syndicationValue(s);
+    return `<div class="market-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><span class="genre-chip g-${s.genre}">${g.emoji}</span> <b>${esc(s.title)}</b> <span class="small">S${s.season||1} · ${'★'.repeat(Math.round(s.q*5))}</span></div>
+        ${s.syndicated?`<span class="small" style="color:var(--green);">📡 ${money(s.syndicated.weekly)}/wk (${s.syndicated.weeksLeft}wk)</span>`:`<button class="btn gold sm" onclick="syndicateShow(${s.id})">Syndicate<br><span style="font-size:.62rem;opacity:.8;">~${money(val)}/wk</span></button>`}
+      </div></div>`;}).join('');
+  html+=`<button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+
+/* ============================================================
+   v3: NEWS DIVISION — management layer + breaking-news minigame
+   ============================================================ */
+function ensureNews(){
+  if(!G.news){
+    G.news={ reporters:2, bureaus:['gxycity'], credibility:0.6, budget:0, stories:[], covered:0 };
+  }
+}
+/* --- management layer --- */
+const NEWS_UPGRADES={
+  reporter:{name:"Hire Reporter",emoji:"🧑‍💼",dd:"+1 reporter → cover more stories & higher news quality",cost:()=>Math.round(18000+G.news.reporters*9000),weekly:()=>4000},
+};
+function newsQuality(){
+  ensureNews();
+  // your in-house news show quality is driven by reporters + credibility + bureaus
+  return clamp(0.35 + G.news.reporters*0.05 + G.news.credibility*0.35 + (G.news.bureaus.length-1)*0.04, 0.3, 0.98);
+}
+function newsWeeklyCost(){ ensureNews(); return G.news.reporters*4000 + G.news.bureaus.length*2000; }
+function hireReporter(){
+  ensureNews();
+  const cost=Math.round(18000+G.news.reporters*9000);
+  if(G.cash<cost){ toast('Not enough cash to hire.'); return; }
+  G.cash-=cost; G.news.reporters++;
+  syncNewsShowQuality();
+  toast('🧑‍💼 Hired a reporter — news quality up');
+  refreshHUD(); if(currentModal==='news')openNewsDivision();
+}
+const BUREAU_CITIES=[
+  {id:'lakeside',name:'Lakeside',cost:60000},
+  {id:'rivton',name:'Rivton',cost:75000},
+  {id:'sunport',name:'Sunport',cost:90000},
+  {id:'ironvale',name:'Ironvale',cost:110000},
+  {id:'crestbay',name:'Crestbay',cost:140000},
+];
+function openBureau(cityId){
+  ensureNews();
+  const b=BUREAU_CITIES.find(x=>x.id===cityId); if(!b)return;
+  if(G.news.bureaus.includes(cityId)){ toast('Bureau already open there.'); return; }
+  if(G.cash<b.cost){ toast('Not enough cash.'); return; }
+  G.cash-=b.cost; G.news.bureaus.push(cityId);
+  syncNewsShowQuality();
+  toast('📰 Opened a news bureau in '+b.name);
+  refreshHUD(); if(currentModal==='news')openNewsDivision();
+}
+/* keep the in-house News show's quality synced to the division */
+function syncNewsShowQuality(){
+  ensureNews();
+  G.library.filter(s=>s.isNews).forEach(s=>{ s.q=newsQuality(); });
+}
+
+/* --- breaking-news minigame (returns from v1) --- */
+const NEWS_CATS=['breaking','politics','sports','entertainment','business','weather','tech'];
+const NEWS_CAT_LABEL={breaking:'Breaking',politics:'Politics',sports:'Sports',entertainment:'Entertainment',business:'Business',weather:'Weather',tech:'Tech'};
+const NEWS_HEADLINES={
+  breaking:["Bridge Collapse Snarls Downtown","Factory Fire Forces Evacuations","Mayor Resigns in Surprise Move","Power Grid Fails Citywide","Train Derailment Halts Commute"],
+  politics:["Governor Unveils Budget Plan","Heated Debate Splits Council","New Tax Bill Sparks Protests","Election Poll Shows Dead Heat"],
+  sports:["Home Team Clinches Playoff Spot","Star Player Traded in Shocker","Underdogs Stun Champions","Stadium Deal Approved"],
+  entertainment:["Pop Star Announces Tour","Blockbuster Shatters Records","Awards Show Delivers Upsets","Celebrity Wedding Draws Crowds"],
+  business:["Tech Firm Announces 500 Jobs","Startup Valued at a Billion","Market Hits New High","Merger Creates Industry Titan"],
+  weather:["Record Heatwave Grips Region","Blizzard Warning Issued","Hurricane Tracks Toward Coast","Flash Flood Watch in Effect"],
+  tech:["New Device Sells Out in Hours","Cyber Outage Hits Businesses","AI Lab Opens Downtown","Gaming Expo Draws Thousands"],
+};
+function generateNewsStories(){
+  ensureNews();
+  const n=Math.min(5, 2+Math.floor(G.news.reporters/2)); // more reporters = more stories to chase
+  G.news.stories=[];
+  for(let i=0;i<n;i++){
+    const cat=pick(NEWS_CATS);
+    let heat=rand(0.4,1.0);
+    if(cat==='breaking'&&Math.random()<0.5)heat=Math.min(1,heat+0.25);
+    G.news.stories.push({id:i,cat,title:pick(NEWS_HEADLINES[cat]),heat:+heat.toFixed(2),invested:0});
+  }
+}
+function newsCoverageBudget(){ ensureNews(); return Math.round(15000 + G.rating*300 + G.news.reporters*2000); }
+function investNews(id,amt){
+  const s=G.news.stories.find(x=>x.id===id); if(!s)return;
+  const budget=newsCoverageBudget();
+  const spent=G.news.stories.reduce((a,x)=>a+x.invested,0);
+  const remain=budget-spent;
+  if(amt>0)amt=Math.min(amt,remain);
+  s.invested=Math.max(0,s.invested+amt);
+  if(currentModal==='newsroom')openNewsroom();
+}
+function autoNews(){
+  ensureNews();
+  const budget=newsCoverageBudget();
+  G.news.stories.forEach(s=>s.invested=0);
+  const weights=G.news.stories.map(s=>s.heat);
+  const tot=weights.reduce((a,b)=>a+b,0)||1;
+  G.news.stories.forEach((s,i)=>s.invested=Math.round(budget*weights[i]/tot/1000)*1000);
+  if(currentModal==='newsroom')openNewsroom();
+}
+/* the newsroom minigame result feeds a bonus into your news shows this week */
+function computeNewsBonus(){
+  ensureNews();
+  if(!G.news.stories.length) return 1;
+  let score=0,maxScore=0;
+  G.news.stories.forEach(s=>{
+    const moneyFactor=Math.sqrt(s.invested/1000);
+    score+=moneyFactor*s.heat;
+    maxScore+=Math.sqrt(newsCoverageBudget()/1000)*s.heat/G.news.stories.length;
+  });
+  // credibility grows with good coverage
+  const covered=G.news.stories.filter(s=>s.invested>0).length;
+  G.news.covered+=covered;
+  if(covered>=G.news.stories.length*0.6) G.news.credibility=clamp(G.news.credibility+0.01,0,1);
+  else G.news.credibility=clamp(G.news.credibility-0.005,0,1);
+  syncNewsShowQuality();
+  // bonus multiplier applied to news-genre shows: 0.85 (ignored) .. 1.35 (great coverage)
+  return clamp(0.85 + score*0.02, 0.85, 1.4);
+}
+
+
+/* --- News Division management modal --- */
+function openNewsDivision(){
+  ensureNews(); currentModal='news';
+  const reporterCost=Math.round(18000+G.news.reporters*9000);
+  let html=`<h2>📰 News Division</h2><p class="small" style="margin:.2rem 0 1rem;">Your news operation powers every News show on your schedule. More reporters, bureaus, and credibility mean higher news quality — and steady, loyal viewers.</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+      <div class="stat" style="flex:1;"><span class="l">News Quality</span><span class="v gold">${Math.round(newsQuality()*100)}</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Credibility</span><span class="v">${Math.round(G.news.credibility*100)}%</span></div>
+      <div class="stat" style="flex:1;"><span class="l">Weekly Cost</span><span class="v bad">${money(newsWeeklyCost())}</span></div>
+    </div>
+    <div class="section-title" style="font-size:.95rem;">Staff</div>
+    <div class="market-item"><div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><b>Reporters:</b> ${G.news.reporters} <span class="small">· each adds quality & lets you chase more stories</span></div>
+      <button class="btn gold sm" ${G.cash<reporterCost?'disabled':''} onclick="hireReporter()">Hire ${money(reporterCost)}</button>
+    </div></div>
+    <div class="section-title" style="font-size:.95rem;margin-top:1rem;">News Bureaus</div>
+    <div class="small" style="margin-bottom:.5rem;">Bureaus in more cities boost credibility and coverage reach.</div>`;
+  BUREAU_CITIES.forEach(b=>{const have=G.news.bureaus.includes(b.id);
+    html+=`<div class="market-item"><div style="display:flex;justify-content:space-between;align-items:center;">
+      <div><b>${esc(b.name)} Bureau</b></div>
+      ${have?'<span class="small" style="color:var(--green);">✓ Open</span>':`<button class="btn sm" ${G.cash<b.cost?'disabled':''} onclick="openBureau('${b.id}')">${money(b.cost)}</button>`}
+    </div></div>`;});
+  html+=`<button class="btn primary big" style="margin-top:1rem;" onclick="openNewsroom()">🎙️ Enter the Newsroom →</button>
+    <button class="btn ghost big" style="margin-top:.5rem;" onclick="closeModal()">Close</button>`;
+  showModal(html);
+}
+
+/* --- Newsroom breaking-news minigame modal --- */
+function openNewsroom(){
+  ensureNews();
+  if(!G.news.stories.length) generateNewsStories();
+  currentModal='newsroom';
+  const budget=newsCoverageBudget();
+  const spent=G.news.stories.reduce((a,s)=>a+s.invested,0);
+  const remain=budget-spent;
+  let html=`<h2>🎙️ The Newsroom</h2><p class="small" style="margin:.2rem 0 .8rem;">Assign your coverage budget to tonight's stories. Big stories well-covered boost your News shows' ratings this week and build credibility.</p>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;flex-wrap:wrap;gap:.4rem;">
+      <div><div class="small">Coverage budget</div><div class="tally"><span class="big cond">${money(remain)}</span><span class="small">of ${money(budget)} left</span></div></div>
+      <button class="btn ghost sm" onclick="autoNews()">Auto-Assign</button>
+    </div>`;
+  html+=G.news.stories.map(s=>{const pct=Math.min(100,Math.round(s.invested/Math.max(budget*0.5,1)*100));const hot=s.heat>0.8;
+    return `<div class="market-item" style="${hot?'border-color:var(--red);':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+        <span class="genre-chip g-news" style="${hot?'color:#ff8577;':''}">${hot?'🔥 ':''}${NEWS_CAT_LABEL[s.cat]}</span>
+        <span class="small">potential ${Math.round(s.heat*100)} · ${money(s.invested)}</span>
+      </div>
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:.4rem;">${esc(s.title)}</div>
+      <div class="rmeter" style="margin-bottom:.5rem;"><div class="fill" style="width:${pct}%;background:var(--gradGold);"></div></div>
+      <div style="display:flex;gap:.35rem;flex-wrap:wrap;">
+        <button class="btn sm" ${remain<2000?'disabled':''} onclick="investNews(${s.id},2000)">+$2k</button>
+        <button class="btn sm" ${remain<5000?'disabled':''} onclick="investNews(${s.id},5000)">+$5k</button>
+        <button class="btn sm" ${remain<1000?'disabled':''} onclick="investNews(${s.id},remain)">Max</button>
+        <button class="btn ghost sm" ${s.invested<=0?'disabled':''} onclick="investNews(${s.id},-9999999)">Clear</button>
+      </div></div>`;}).join('');
+  html+=`<div class="small" style="margin-top:.6rem;color:var(--dim);">Coverage locks in when you air the week. This carries into your ratings.</div>
+    <button class="btn ghost big" style="margin-top:.8rem;" onclick="closeModal()">Done</button>`;
+  showModal(html);
+}
+
+
+/* ---------- VIEW TOGGLE (mobile) ---------- */
+let currentModal=null;
+function setView(v){
+  G.view=v;
+  const mobile=window.innerWidth<=860;
+  if(mobile){
+    $('#col-main').style.display=v==='schedule'?'block':'none';
+    $('#col-side').style.display=v==='side'?'block':'none';
+  } else { $('#col-main').style.display='block';$('#col-side').style.display='block'; }
+  $$('#mobileTabs button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+}
+function handleResize(){
+  const mobile=window.innerWidth<=860;
+  $('#mobileTabs').style.display=mobile?'flex':'none';
+  if(!mobile){ $('#col-main').style.display='block';$('#col-side').style.display='block'; }
+  else setView(G?G.view:'schedule');
+}
+
+/* ---------- LIFECYCLE ---------- */
+function startGame(){
+  SETUP.netName=$('#netName').value.trim()||'GXY Network';
+  newGame();
+  $('#scr-setup').classList.remove('active');
+  $('#scr-game').classList.add('active');
+  handleResize(); renderAll();
+  toast('📡 You\'re on the air! Fill your schedule and air your first week.');
+}
+function quitConfirm(){
+  window._allowClose=true;
+  showModal(`<h2>Quit season?</h2><p class="small" style="margin:.4rem 0 1rem;">Your progress will be lost.</p>
+    <button class="btn red big" onclick="location.reload()">Quit to Menu</button>
+    <button class="btn ghost big" style="margin-top:.5rem;" onclick="closeModal()">Keep Playing</button>`);
+}
+function showModal(html){ $('#modalBox').innerHTML=html;$('#modal').classList.add('show');$('#modalBox').scrollTop=0; }
+function closeModal(){ if(window._allowClose===false)return; $('#modal').classList.remove('show');currentModal=null; }
+function toast(msg){ const m=$('#toastMount');m.innerHTML='<div class="toast">'+esc(msg)+'</div>';clearTimeout(window._tt);window._tt=setTimeout(()=>m.innerHTML='',2800); }
+
+window.openLeaderboard=function(){
+  window._allowClose=true; currentModal='lb';
+  showModal(`<h2>🏆 Top Networks</h2><p class="small" style="margin-bottom:1rem;">Highest season scores.</p><div id="lbList"><p class="empty pulse">Loading…</p></div><button class="btn ghost big" onclick="closeModal()">Close</button>`);
+  if(window.gxyLoadLeaderboard) window.gxyLoadLeaderboard();
+};
+
+window.addEventListener('resize',handleResize);
+renderSetup();
+</script>
+<script type="module">
+import { gxyAccount } from '../assets/gxyaccount.js';
+import { gxyMeta } from '../assets/gxymeta.js';
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCN4mEtGMjSxdgsTlthhzX6FXIjxltJKHQ",authDomain:"gxyhockey.firebaseapp.com",projectId:"gxyhockey",storageBucket:"gxyhockey.firebasestorage.app",messagingSenderId:"474584991663",appId:"1:474584991663:web:b8986544418d6b85fa115a"};
+const app=getApps().length?getApps()[0]:initializeApp(cfg); let db=null; try{db=getFirestore(app);}catch(e){}
+let bestReported=0;
+window.gxyReportScore=async function(score){
+  if(score<=bestReported) return; bestReported=score;
+  await gxyAccount.ready(); const d=gxyAccount.data||{};
+  if(!d.mcUsername||!d.verified||!db) return;
+  try{ await addDoc(collection(db,'scores_tvbattles'),{uid:gxyAccount.user.uid,name:d.mcUsername,score:Math.round(score),ts:serverTimestamp()});}catch(e){}
+  try{ const r=window.gxyLastRun||{}; await gxyMeta.recordGame('tvbattles',{score:Math.round(score), won:!!r.won}); }catch(e){}
+};
+window.gxyLoadLeaderboard=async function(){
+  const list=document.getElementById('lbList'); if(!list)return;
+  if(!db){ list.innerHTML='<p class="empty">Leaderboard needs Firestore configured.</p>'; return; }
+  try{
+    const q=query(collection(db,'scores_tvbattles'),orderBy('score','desc'),limit(10));
+    const snap=await getDocs(q); const rows=[]; snap.forEach(dd=>rows.push(dd.data()));
+    if(!rows.length){ list.innerHTML='<p class="empty">No networks ranked yet. Be the first!</p>'; return; }
+    list.innerHTML=rows.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+      return '<div class="lb-row"><span style="width:26px;font-weight:800;">'+medal+'</span><img src="https://mc-heads.net/avatar/'+encodeURIComponent(r.name)+'/24" style="width:24px;height:24px;border-radius:5px;" onerror="this.style.visibility=\'hidden\'"><span style="font-weight:700;flex:1;">'+r.name+'</span><span class="mono" style="color:var(--gold);">'+(r.score||0).toLocaleString()+'</span></div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<p class="empty">Leaderboard unavailable right now.</p>'; }
+};
+</script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>

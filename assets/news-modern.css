@@ -1,0 +1,245 @@
+/* ============================================================
+   GXY NEWSPAPER — MODERN EDITORIAL SKIN  (v2)
+   Keeps the NEWSPAPER identity (serif headlines, masthead,
+   columns, section rail) but as a polished digital publication:
+   warm off-white reading surface, real editorial typography,
+   a gradient masthead, refined rules & drop caps.
+   Injected by theme.js on newspaper pages in MODERN mode only,
+   unless the reader turned on Legacy. Never in Retro/Aero.
+   ============================================================ */
+
+/* import an editorial serif for headlines */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap');
+
+html:not([data-theme="retro"]):not([data-theme="aero"]) body{
+  background:#0c0e14 !important;      /* dark frame around the "paper" */
+  color:#1a1a1a !important;
+  font-family:'Newsreader',Georgia,serif !important;
+}
+
+/* ---------- top utility bar: slim, editorial ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .top-bar{
+  background:#0b0f1c !important;color:#aeb9d6 !important;border:none !important;
+  border-bottom:1px solid #1c2540 !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;font-size:.72rem !important;
+  letter-spacing:.06em !important;text-transform:uppercase;
+}
+
+/* ---------- masthead: gradient wordmark, refined rules ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) header{
+  background:#0b0f1c !important;border-bottom:none !important;position:relative;overflow:hidden;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) header::before{
+  content:"";position:absolute;inset:-60% -10% auto -10%;height:240%;
+  background:radial-gradient(40% 60% at 25% 0%,rgba(195,55,100,.28),transparent 60%),
+            radial-gradient(40% 60% at 80% 0%,rgba(29,38,113,.45),transparent 60%);
+  filter:blur(34px);pointer-events:none;}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .masthead{
+  position:relative;z-index:1;border-bottom:none !important;padding:2.2rem 0 1.6rem !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .masthead h1{
+  font-family:'Fraunces','Playfair Display',Georgia,serif !important;
+  font-weight:900 !important;font-size:3.6rem !important;letter-spacing:-1px !important;
+  display:inline-block !important;
+  background:linear-gradient(120deg,#5ed8ff,#0ED2F7 35%,#C33764) !important;
+  -webkit-background-clip:text !important;background-clip:text !important;
+  -webkit-text-fill-color:transparent !important;color:transparent !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .masthead p{
+  color:#8ea0c4 !important;letter-spacing:.32em !important;font-family:'Segoe UI',system-ui,sans-serif !important;
+  text-transform:uppercase;font-size:.72rem !important;
+}
+
+/* ---------- nav: editorial section rail ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) nav{
+  background:#0b0f1c !important;border-top:1px solid #1c2540 !important;border-bottom:3px double #2a3557 !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) nav a{
+  color:#c3cce0 !important;background:none !important;border:none !important;font-weight:700 !important;
+  font-size:.82rem !important;letter-spacing:.02em;padding:.6rem .8rem !important;transition:color .2s;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) nav a:hover{ color:#0ED2F7 !important;background:none !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) nav a.home{ color:#e26a94 !important; }
+
+/* ---------- the reading surface: warm off-white "paper" ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .container{
+  background:#f7f5ef !important;color:#1a1a1a !important;
+  max-width:1120px;margin:1.5rem auto !important;border-radius:6px;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);padding:2.5rem !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .edition-bar{
+  border-bottom:2px solid #1a1a1a !important;color:#5a5750 !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;font-size:.74rem !important;
+  text-transform:uppercase;letter-spacing:.08em;padding-bottom:.7rem !important;
+}
+
+/* ---------- lead headline: big editorial serif + drop cap ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .headline-strip{ border-bottom:1px solid #d9d5c8 !important;padding-bottom:1.5rem;margin-bottom:1.5rem; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .article-lead h3,
+html:not([data-theme="retro"]):not([data-theme="aero"]) .headline-strip h2,
+html:not([data-theme="retro"]):not([data-theme="aero"]) .headline-link{
+  font-family:'Fraunces','Playfair Display',Georgia,serif !important;
+  color:#111 !important;font-weight:900 !important;letter-spacing:-.5px !important;line-height:1.08 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .article-lead h3{ font-size:2.4rem !important;margin-bottom:.6rem; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .deck{
+  color:#4a4740 !important;font-style:italic;font-size:1.05rem !important;line-height:1.5 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .article-lead .article-body{ column-count:2;column-gap:2rem; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .article-lead .article-body::first-letter{
+  font-family:'Fraunces',Georgia,serif;font-size:3.4rem;font-weight:900;float:left;line-height:.8;
+  padding:.1rem .5rem .1rem 0;color:#C33764;}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .article-body{
+  color:#26241f !important;font-size:1rem !important;line-height:1.75 !important;font-family:'Newsreader',Georgia,serif !important;
+}
+
+/* ---------- columns ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .columns-grid{ border-top:2px solid #1a1a1a;padding-top:1.5rem;margin-top:1.5rem; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .col-article{
+  background:transparent !important;border:none !important;border-right:1px solid #ddd8c9 !important;
+  border-radius:0 !important;padding:0 1.5rem 0 0 !important;transition:none !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .col-article:hover{ transform:none !important;box-shadow:none !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .col-article h4{
+  font-family:'Fraunces',Georgia,serif !important;color:#111 !important;font-weight:600 !important;font-size:1.25rem !important;line-height:1.15;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .col-article a:hover h4{ color:#C33764 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .col-article p{ color:#3a372f !important; }
+
+/* ---------- section labels: editorial kicker, not a chip ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .section-label,
+html:not([data-theme="retro"]):not([data-theme="aero"]) .sidebar-tag{
+  background:none !important;color:#C33764 !important;padding:0 !important;border-radius:0 !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;font-weight:800 !important;
+  font-size:.68rem !important;letter-spacing:.14em !important;text-transform:uppercase;
+  border-bottom:2px solid #C33764;display:inline-block;padding-bottom:.15rem !important;margin-bottom:.4rem;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .byline{
+  color:#7a7568 !important;font-family:'Segoe UI',system-ui,sans-serif !important;font-size:.76rem !important;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+
+/* ---------- sidebar ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .sidebar-section{
+  background:#efece2 !important;border:1px solid #ddd8c9 !important;border-radius:8px !important;
+  border-top:4px solid transparent !important;border-image:linear-gradient(90deg,#1D2671,#C33764) 1 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .sidebar-section > *:first-child{
+  font-family:'Segoe UI',system-ui,sans-serif !important;text-transform:uppercase;letter-spacing:.08em;
+  font-size:.72rem !important;font-weight:800;color:#1D2671 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .sidebar-story{ border-bottom:1px solid #ddd8c9 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .sidebar-story h4{ font-family:'Fraunces',Georgia,serif !important;color:#111 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .sidebar-story p{ color:#4a4740 !important; }
+
+/* ---------- archive CTA: gradient banner ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .archive-cta{
+  background:linear-gradient(120deg,#1D2671,#C33764) !important;border:none !important;border-radius:10px !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .archive-cta *{ color:#fff !important;font-family:'Segoe UI',system-ui,sans-serif !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .archive-cta a{
+  background:rgba(255,255,255,.16) !important;border-radius:8px;padding:.55rem 1.1rem;font-weight:700;
+}
+
+/* ---------- read-more, links, search ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .read-more{
+  color:#C33764 !important;font-weight:700 !important;font-family:'Segoe UI',system-ui,sans-serif !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .article-body a{ color:#1D2671 !important;text-decoration:underline; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .search-box{
+  background:#fff !important;border:1px solid #ccc7b8 !important;color:#1a1a1a !important;border-radius:8px !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .result-item{ border-bottom:1px solid #ddd8c9 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .result-title{ font-family:'Fraunces',Georgia,serif !important;color:#111 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .result-desc{ color:#4a4740 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .back-link{ color:#7a7568 !important; }
+
+/* ---------- footer ---------- */
+html:not([data-theme="retro"]):not([data-theme="aero"]) footer{
+  background:#0b0f1c !important;color:#8ea0c4 !important;border-top:1px solid #1c2540 !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;
+}
+
+@media(max-width:760px){
+  html:not([data-theme="retro"]):not([data-theme="aero"]) .article-lead .article-body{column-count:1;}
+  html:not([data-theme="retro"]):not([data-theme="aero"]) .masthead h1{font-size:2.4rem !important;}
+  html:not([data-theme="retro"]):not([data-theme="aero"]) .col-article{border-right:none !important;padding-right:0 !important;}
+}
+
+/* ============================================================
+   GXY WEATHER — modern editorial treatment
+   (weather.html is a newspaper page; these style its forecast
+   body to match the modern skin instead of the old red almanac)
+   ============================================================ */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .page-head h1{
+  font-family:'Fraunces','Playfair Display',Georgia,serif !important;color:#111 !important;font-weight:900 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .page-head p{ color:#4a4740 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .status-line{
+  font-family:'Segoe UI',system-ui,sans-serif !important;color:#5a5750 !important;
+}
+/* Today card -> gradient hero panel */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-card{
+  background:linear-gradient(120deg,#1D2671,#C33764) !important;border-radius:18px !important;
+  box-shadow:0 16px 40px rgba(29,38,113,.3) !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-info .label{ color:#B2FEFA !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-cond{ color:#e9edf8 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-stats{ color:#c9d3ee !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-stats b,
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-meta b{ color:#fff !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .today-meta{ color:#a9b6dd !important; }
+
+/* section titles */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .section-title{
+  font-family:'Fraunces',Georgia,serif !important;color:#111 !important;
+  border-bottom:2px solid #C33764 !important;
+}
+/* forecast day cards */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .fc-day{
+  background:#efece2 !important;border:1px solid #ddd8c9 !important;border-radius:14px !important;
+  border-top:3px solid transparent !important;border-image:linear-gradient(90deg,#1D2671,#C33764) 1 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .fc-day .t{ color:#111 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .region-card{
+  background:#efece2 !important;border:1px solid #ddd8c9 !important;border-radius:12px !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .region-card .rn{ color:#111 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .discussion{
+  background:#efece2 !important;border:1px solid #ddd8c9 !important;border-left:4px solid #C33764 !important;border-radius:0 10px 10px 0 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .discussion p{ color:#26241f !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .chart-wrap{
+  background:#efece2 !important;border:1px solid #ddd8c9 !important;border-radius:14px !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .impact{
+  background:#efece2 !important;border-left:4px solid #1D2671 !important;border-radius:0 10px 10px 0 !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .impact h4{ color:#1D2671 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .impact p{ color:#26241f !important; }
+/* mod download box -> gradient accent */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .mod-box{
+  background:#efece2 !important;border:2px solid transparent !important;
+  border-image:linear-gradient(120deg,#1D2671,#C33764) 1 !important;border-radius:14px !important;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .mod-box h4{ color:#111 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .mod-box p{ color:#4a4740 !important; }
+html:not([data-theme="retro"]):not([data-theme="aero"]) .mod-dl{
+  background:linear-gradient(120deg,#1D2671,#C33764) !important;color:#fff !important;border-radius:10px !important;
+}
+/* weather alert banner stays red/urgent but rounded */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .alert{ border-radius:12px !important; }
+
+/* ---------- front-page fixes ---------- */
+/* top utility bar: pad the edges so text isn't clipped at screen sides */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .top-bar{
+  padding-left:2rem !important;padding-right:2rem !important;max-width:1120px;margin:0 auto;
+}
+/* edition/breaking bar: gradient strip, crisp white text */
+html:not([data-theme="retro"]):not([data-theme="aero"]) .edition-bar{
+  background:linear-gradient(90deg,#C33764,#1D2671) !important;color:#fff !important;
+  font-family:'Segoe UI',system-ui,sans-serif !important;font-weight:600;
+}
+html:not([data-theme="retro"]):not([data-theme="aero"]) .edition-bar *{ color:#fff !important;opacity:1 !important; }

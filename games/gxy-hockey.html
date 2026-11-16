@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GXY Arcade Hockey · GXY Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a1424; --panel:#0f1c30; --panel2:#16263f; --line:#22334f; --line2:#324767;
+  --ink:#eaf1fb; --dim:#93a8c6; --muted:#5d7093;
+  --ice:#dce9f5; --ice2:#b8d4ea; --red:#d61f26; --red2:#ff4b52; --blue:#1f5fd6;
+  --gold:#f5c451; --green:#2ecc71;
+  --gradRed:linear-gradient(120deg,#d61f26,#ff4b52); --gradIce:linear-gradient(160deg,#eaf3fb,#c3ddf0);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+.mono{font-family:'Space Mono',monospace;}
+.anton{font-family:'Anton',sans-serif;letter-spacing:.5px;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.screen{display:none;}.screen.active{display:block;}
+.back{display:inline-block;color:var(--dim);font-size:.85rem;margin-bottom:1rem;}
+.back:hover{color:#fff;}
+
+/* start */
+.start-wrap{max-width:640px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+.logo{text-align:center;margin-bottom:1.5rem;}
+.logo .puck{font-size:3.2rem;}
+.logo h1{font-family:'Anton';font-size:3rem;line-height:1;margin-top:.5rem;text-transform:uppercase;}
+.logo h1 .r{color:var(--red2);}
+.logo .flag{display:inline-block;background:rgba(214,31,38,.15);border:1px solid rgba(214,31,38,.4);color:#ff8a8f;font-weight:800;font-size:.75rem;letter-spacing:.05em;padding:.3rem .7rem;border-radius:20px;margin-top:.8rem;text-transform:uppercase;}
+.logo p{color:var(--dim);margin-top:.9rem;line-height:1.5;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem;}
+.field{margin-bottom:1.2rem;}
+.field>label{display:block;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:.6rem;}
+.pickrow{display:flex;gap:.6rem;flex-wrap:wrap;}
+.pill{flex:1;min-width:100px;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;padding:.85rem;cursor:pointer;transition:.18s;text-align:center;}
+.pill:hover{border-color:var(--red2);}
+.pill.on{border-color:var(--red2);background:linear-gradient(160deg,rgba(214,31,38,.18),transparent);box-shadow:0 0 0 1px var(--red2) inset;}
+.pill .pn{font-weight:800;}
+.pill .pd{font-size:.72rem;color:var(--dim);margin-top:.15rem;}
+.btn{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-weight:700;padding:.7rem 1.1rem;border-radius:10px;transition:.18s;font-size:.9rem;}
+.btn:hover{border-color:var(--red2);}
+.btn.red{background:var(--gradRed);border:none;color:#fff;}
+.btn.big{width:100%;padding:1rem;font-size:1.05rem;}
+.btn.ghost{background:transparent;}
+.btn.sm{padding:.5rem .8rem;font-size:.82rem;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* game */
+.game-top{display:flex;align-items:center;justify-content:space-between;padding:.6rem .9rem;border-bottom:1px solid var(--line);background:rgba(10,20,36,.9);position:sticky;top:0;z-index:20;flex-wrap:wrap;gap:.5rem;}
+.game-top .brand{font-family:'Anton';font-size:1rem;letter-spacing:.5px;}
+.game-top .brand .r{color:var(--red2);}
+.hud{display:flex;gap:.45rem;flex-wrap:wrap;}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:.35rem .65rem;display:flex;flex-direction:column;line-height:1.15;min-width:52px;}
+.stat .l{font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;}
+.stat .v{font-weight:800;font-size:.95rem;font-family:'Space Mono';}
+.stat .v.gold{color:var(--gold);}.stat .v.red{color:var(--red2);}
+.rinkwrap{max-width:560px;margin:1rem auto;padding:0 1rem;}
+#rink{display:block;width:100%;height:auto;background:var(--gradIce);border-radius:14px;border:1px solid var(--line2);touch-action:none;cursor:crosshair;box-shadow:0 10px 40px rgba(0,0,0,.3);}
+.hint{text-align:center;color:var(--dim);font-size:.85rem;margin-top:.8rem;padding:0 1rem;}
+.controls{max-width:560px;margin:.8rem auto 0;padding:0 1rem;display:flex;gap:.5rem;justify-content:center;}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.74);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal.show{display:flex;}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:18px;max-width:420px;width:100%;padding:1.6rem;max-height:88vh;overflow-y:auto;text-align:center;}
+.modal h2{font-family:'Anton';font-size:1.7rem;margin-bottom:.4rem;}
+@media(max-width:560px){.modal{align-items:flex-end;padding:0;}.modal .box{max-width:100%;border-radius:18px 18px 0 0;}}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);padding:.7rem 1.2rem;border-radius:11px;font-weight:600;z-index:200;font-size:.86rem;}
+.stat-big{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.6rem;flex:1;}
+.stat-big .l{font-size:.62rem;color:var(--muted);text-transform:uppercase;font-weight:700;}
+.stat-big .v{font-family:'Space Mono';font-weight:700;font-size:1.2rem;}
+.lb-row{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);text-align:left;}
+.lb-row:last-child{border:none;}
+.empty{color:var(--muted);font-size:.85rem;padding:1.2rem;}
+.pulse{animation:pulse 1.5s infinite;}@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+.modes{display:grid;gap:.8rem;margin-top:.5rem;}
+.mode{background:var(--panel,#0f1c30);border:1px solid var(--line,#22334f);border-radius:16px;padding:1.2rem;cursor:pointer;transition:.16s;display:flex;gap:1rem;align-items:center;}
+.mode:hover{border-color:var(--red,#d61f26);transform:translateY(-2px);}
+.mode .mic{font-size:2.1rem;}
+.mode .mt{flex:1;}.mode h3{font-size:1.15rem;font-weight:800;}
+.mode p{color:var(--dim,#93a8c6);font-size:.84rem;margin-top:.2rem;line-height:1.4;}
+.mode .arrow{color:var(--red2,#ff4b52);font-size:1.3rem;}
+.hkcard{background:var(--panel2,#16263f);border:1px solid var(--line,#22334f);border-radius:12px;padding:1rem;margin-bottom:.8rem;}
+.hkcard h3{font-size:1rem;font-weight:800;margin-bottom:.3rem;}
+.hktbl{width:100%;border-collapse:collapse;font-size:.82rem;}
+.hktbl th{text-align:left;padding:.4rem .5rem;color:var(--muted,#5d7093);font-size:.65rem;text-transform:uppercase;border-bottom:1px solid var(--line,#22334f);}
+.hktbl td{padding:.4rem .5rem;border-bottom:1px solid var(--line,#22334f);}
+.hktbl tr:last-child td{border:none;}.hktbl .me{background:rgba(214,31,38,.12);}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.7rem;}
+.pcard{border-radius:12px;padding:.8rem;text-align:center;border:2px solid;position:relative;background:linear-gradient(160deg,rgba(255,255,255,.06),transparent);}
+.pcard.common{border-color:#6b7a90;}.pcard.rare{border-color:#3b82f6;}.pcard.epic{border-color:#a855f7;}.pcard.legend{border-color:#f5c451;box-shadow:0 0 16px rgba(245,196,81,.25);}
+.pcard .pos{font-size:.62rem;font-weight:800;letter-spacing:.05em;color:var(--dim,#93a8c6);text-transform:uppercase;}
+.pcard .ovr{font-family:'Space Mono',monospace;font-weight:700;font-size:1.8rem;line-height:1;}
+.pcard .pnm{font-weight:700;font-size:.82rem;margin-top:.2rem;}
+.pcard .rar{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem;}
+.pcard.common .rar{color:#8ea0b8;}.pcard.rare .rar{color:#60a5fa;}.pcard.epic .rar{color:#c084fc;}.pcard.legend .rar{color:#f5c451;}
+.pcard.in-lineup::after{content:'✓ LINEUP';position:absolute;top:.4rem;right:.4rem;font-size:.55rem;font-weight:800;color:#04210f;background:#22e07f;padding:.1rem .35rem;border-radius:4px;}
+.pcard .cbtn{margin-top:.5rem;width:100%;padding:.4rem;border-radius:7px;font-size:.72rem;font-weight:700;border:1px solid var(--line2,#324767);background:transparent;color:var(--ink,#eaf1fb);cursor:pointer;}
+.boost-row{display:flex;justify-content:space-between;font-size:.82rem;padding:.35rem 0;border-bottom:1px solid var(--line,#22334f);}
+.boost-row:last-child{border:none;}.boost-row b{color:var(--green,#2ecc71);font-family:'Space Mono',monospace;}
+.pack{background:linear-gradient(160deg,#1a3a5c,#0f1c30);border:1px solid var(--line2,#324767);border-radius:14px;padding:1.3rem;text-align:center;}
+</style>
+</head>
+<body>
+
+<script>
+/* Region gate — GXY Arcade Hockey is a CANADA EXCLUSIVE.
+   Mirrors the arcade rule; if the visitor isn't in CA, show a lock screen. */
+window.GXY_REGION_RULES = window.GXY_REGION_RULES || {};
+window.GXY_REGION_RULES['gxy-hockey'] = {
+  allow: ['CA'],
+  reason: "GXY Arcade Hockey is a Canadian exclusive. 🇨🇦"
+};
+(function guard(){
+  if(!window.gxyRegion){ return setTimeout(guard,120); }
+  window.gxyRegion.ready(function(R){
+    if(R.allows('gxy-hockey')) return;
+    document.body.innerHTML =
+      '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem;font-family:system-ui,sans-serif;color:#eaf1fb;">'+
+        '<div style="max-width:420px;">'+
+          '<div style="font-size:3rem;margin-bottom:.6rem;">🏒🔒</div>'+
+          '<h1 style="font-size:1.5rem;margin-bottom:.5rem;">Canadian Exclusive</h1>'+
+          '<p style="opacity:.8;line-height:1.5;margin-bottom:1.3rem;">GXY Arcade Hockey is only available in Canada 🇨🇦. You appear to be in '+R.flag+' '+R.country+'.</p>'+
+          '<button onclick="gxyRegion.open()" style="font:inherit;font-weight:800;padding:.7rem 1.2rem;border-radius:10px;border:1px solid #324767;background:#16263f;color:#eaf1fb;cursor:pointer;margin-right:.5rem;">🌍 Change region</button>'+
+          '<a href="index.html" style="font:inherit;font-weight:800;padding:.7rem 1.2rem;border-radius:10px;border:1px solid #324767;color:#eaf1fb;text-decoration:none;display:inline-block;">← Arcade</a>'+
+        '</div>'+
+      '</div>';
+  });
+})();
+</script>
+
+<!-- START -->
+<!-- MODE SELECT (new landing) -->
+<div class="screen active" id="scr-modes">
+  <div class="start-wrap">
+    <a class="back" href="index.html" data-i18n="nav.back">← GXY Arcade</a>
+    <div class="logo">
+      <div class="puck">🏒</div>
+      <h1>GXY <span class="r">HOCKEY</span></h1>
+      <div class="flag">🇨🇦 Canadian Exclusive</div>
+      <p>Three ways to hit the ice: quick shootouts, a full career, and a card collection to build your dream squad.</p>
+    </div>
+    <div class="modes" id="hkModes">
+      <div class="mode" onclick="goShootout()">
+        <span class="mic">🥅</span>
+        <div class="mt"><h3>Play Now — Shootout</h3><p>Aim, shoot, and beat the goalie for the high score. Your Ice Legends cards boost every shot.</p></div>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mode" onclick="openHkFranchise()">
+        <span class="mic">📋</span>
+        <div class="mt"><h3>Career — Franchise &amp; Player</h3><p>Run a city's club as GM, or create a player, get drafted, and chase the Cup.</p></div>
+        <span class="arrow">→</span>
+      </div>
+      <div class="mode" onclick="openIceLegends()">
+        <span class="mic">🃏</span>
+        <div class="mt"><h3>Ice Legends</h3><p>Open packs, collect player cards, and build a lineup that powers up your shootout.</p></div>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+    <button class="btn ghost big" style="margin-top:.8rem;" onclick="openAchievements()">🏅 Achievements</button>
+  </div>
+</div>
+
+<!-- SETUP (career/legends sub-screens) -->
+<div class="screen" id="scr-setup"><div class="start-wrap"><a class="back" onclick="goModes()">← Modes</a><div id="setupBody"></div></div></div>
+
+<!-- HUB (career season hub) -->
+<div class="screen" id="scr-hub">
+  <div class="game-top">
+    <div class="brand">🏒 <span id="hubTtl">Career</span></div>
+    <div class="hud" id="hubStats"></div>
+    <button class="btn sm" onclick="goModes()">Quit</button>
+  </div>
+  <div class="rinkwrap" style="max-width:720px;"><div id="hubBody"></div></div>
+  <div class="controls" id="hubAdvance" style="flex-wrap:wrap;"></div>
+</div>
+
+<!-- SHOOTOUT SETUP (was the landing) -->
+<div class="screen" id="scr-start">
+  <div class="start-wrap">
+    <a class="back" onclick="goModes()">← Modes</a>
+    <div class="logo">
+      <div class="puck">🥅</div>
+      <h1>GXY <span class="r">SHOOTOUT</span></h1>
+      <p data-i18n="hockey.aim_shoot">Grab your stick and hit the ice! Aim and shoot to beat the goalie and score as many goals as you can before the period ends.</p>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label data-i18n="hockey.difficulty">Difficulty</label>
+        <div class="pickrow" id="diffPick"></div>
+      </div>
+      <div id="legendBonus"></div>
+      <button class="btn red big" onclick="startGame()" data-i18n="hockey.start">Drop the Puck →</button>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.8rem;margin-top:1rem;">Your best score goes on the arcade leaderboard.</p>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="scr-game">
+  <div class="game-top">
+    <div class="brand">🏒 GXY <span class="r">HOCKEY</span></div>
+    <div class="hud" id="hud"></div>
+    <div style="display:flex;gap:.4rem;">
+      <button class="btn sm" onclick="openLeaderboard()">🏆</button>
+      <button class="btn sm" onclick="quitConfirm()" data-i18n="nav.back">Quit</button>
+    </div>
+  </div>
+  <div class="rinkwrap"><canvas id="rink" width="520" height="620"></canvas></div>
+  <p class="hint" id="hint" data-i18n="hockey.aim_shoot">Aim and shoot to score past the goalie!</p>
+  <div class="controls"><button class="btn ghost sm" onclick="pauseToggle()" id="pauseBtn">⏸</button></div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this&&window._allowClose!==false)closeModal()"><div class="box" id="modalBox"></div></div>
+<div id="toastMount"></div>
+<script src="../assets/gxycareer.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmt(n){return Math.round(n).toLocaleString();}
+function T(k,fb){ return (window.gxyLang&&window.gxyLang.t)?window.gxyLang.t(k):(fb||k); }
+
+const DIFFS={
+  easy:{key:'hockey.easy',name:"Rookie",goalieSpeed:1.6,goalieW:120,time:60,puckSpeed:1.0},
+  medium:{key:'hockey.medium',name:"Pro",goalieSpeed:2.6,goalieW:100,time:55,puckSpeed:1.15},
+  hard:{key:'hockey.hard',name:"All-Star",goalieSpeed:3.8,goalieW:82,time:50,puckSpeed:1.3},
+};
+const SETUP={diff:'medium'};
+
+let cv,ctx,W,H,G,rafId,lastT=0;
+
+function newGame(){
+  const d=Object.assign({},DIFFS[SETUP.diff]);
+  const boost=(window.iceLegendsBoost&&window.iceLegendsBoost())||{netW:0,goalieSlow:0,timeAdd:0,scoreMult:1};
+  const goalieW=d.goalieW; // net stays; boost widens scoring gap via goalie slow + time + score mult
+  G={ diff:SETUP.diff, score:0, goals:0, shots:0, saves:0, timeLeft:d.time+ (boost.timeAdd||0),
+      goalie:{x:0,dir:1,w:goalieW,speed:d.goalieSpeed*(1-(boost.goalieSlow||0))},
+      puck:{x:0,y:0,vx:0,vy:0,moving:false,live:false},
+      aim:{active:false,x:0,y:0},
+      paused:false, over:false, streak:0, lastGoalT:0, msg:'', msgT:0,
+      scoreMult:(boost.scoreMult||1), netBonus:(boost.netW||0),
+      d };
+  resetPuck();
+}
+function resetPuck(){
+  G.puck.x=W/2; G.puck.y=H-70; G.puck.vx=0; G.puck.vy=0; G.puck.moving=false; G.puck.live=true;
+}
+
+/* geometry: goal is at the top; net spans a centered width */
+function goalBounds(){ const gw=200+((G&&G.netBonus)||0); return {x1:(W-gw)/2, x2:(W+gw)/2, y:54}; }
+
+function update(dt){
+  if(G.paused||G.over) return;
+  // clock
+  G.timeLeft-=dt;
+  if(G.timeLeft<=0){ G.timeLeft=0; endGame(); return; }
+  // goalie patrol across the goal mouth
+  const gb=goalBounds();
+  const gEl=G.goalie;
+  gEl.x += gEl.dir*gEl.speed*dt*60;
+  const half=gEl.w/2;
+  if(gEl.x < gb.x1+half){ gEl.x=gb.x1+half; gEl.dir=1; }
+  if(gEl.x > gb.x2-half){ gEl.x=gb.x2-half; gEl.dir=-1; }
+  // puck motion
+  const p=G.puck;
+  if(p.moving){
+    p.x += p.vx*dt*60; p.y += p.vy*dt*60;
+    // wall bounce (sides)
+    if(p.x<12){ p.x=12; p.vx=Math.abs(p.vx); } if(p.x>W-12){ p.x=W-12; p.vx=-Math.abs(p.vx); }
+    // friction
+    p.vx*=0.995; p.vy*=0.995;
+    // reached goal line?
+    if(p.y<=gb.y+6){
+      // did the goalie stop it?
+      const gLeft=gEl.x-half, gRight=gEl.x+half;
+      if(p.x>=gb.x1 && p.x<=gb.x2){
+        if(p.x>=gLeft-9 && p.x<=gRight+9){
+          // SAVE
+          G.saves++; G.streak=0; flash('🧤 '+T('hockey.saves','Save'),'#93a8c6');
+          p.vy=Math.abs(p.vy)*0.5; p.y=gb.y+8; setTimeout(()=>{ if(!G.over) resetPuck(); },250); p.moving=false; p.live=false;
+        } else {
+          // GOAL!
+          score(); p.moving=false; p.live=false;
+        }
+      } else {
+        // missed the net entirely (hit end boards)
+        G.streak=0; p.vy=Math.abs(p.vy)*0.4; p.y=gb.y+8; p.moving=false; p.live=false;
+        setTimeout(()=>{ if(!G.over) resetPuck(); },250);
+      }
+    }
+    // came to rest
+    if(Math.abs(p.vx)<0.15 && Math.abs(p.vy)<0.15){ p.moving=false; setTimeout(()=>{ if(!G.over&&p.live) resetPuck(); },200); }
+  }
+  if(G.msgT>0) G.msgT-=dt;
+}
+
+function score(){
+  G.goals++; G.streak++;
+  let pts=100;
+  const bonus=Math.round(G.timeLeft); // faster = more
+  if(G.streak>=3) pts+=50*(G.streak-2); // streak bonus
+  pts+=bonus;
+  pts=Math.round(pts*(G.scoreMult||1));
+  G.score+=pts;
+  flash('🚨 '+T('hockey.goals','GOAL')+'! +'+pts+(G.streak>=3?' 🔥x'+G.streak:''),'#ff4b52');
+  setTimeout(()=>{ if(!G.over) resetPuck(); },500);
+}
+function flash(msg,color){ G.msg=msg; G.msgColor=color||'#fff'; G.msgT=1.1; }
+
+/* aiming: press near the puck, drag to aim, release to shoot */
+function pointerDown(x,y){
+  if(G.over||G.paused) return;
+  const p=G.puck;
+  if(!p.moving && p.live){ G.aim.active=true; G.aim.x=x; G.aim.y=y; }
+}
+function pointerMove(x,y){ if(G.aim.active){ G.aim.x=x; G.aim.y=y; } }
+function pointerUp(){
+  if(!G.aim.active) return;
+  G.aim.active=false;
+  const p=G.puck;
+  // shoot from puck toward the drag direction (pull-back style: aim vector from puck to release point, shoot that way but "up" the rink)
+  let dx=G.aim.x-p.x, dy=G.aim.y-p.y;
+  const dist=Math.hypot(dx,dy);
+  if(dist<8){ return; } // tap, no shot
+  // shooting up the ice: force is proportional to drag, capped
+  const power=Math.min(dist,180)/180; // 0..1
+  const speed=(7+power*9)*G.d.puckSpeed;
+  // normalize direction but force upward (negative y)
+  let ny=dy/dist, nx=dx/dist;
+  if(ny>-0.15) ny=-0.15; // ensure it goes toward the goal
+  const mag=Math.hypot(nx,ny); nx/=mag; ny/=mag;
+  p.vx=nx*speed; p.vy=ny*speed; p.moving=true; G.shots++;
+}
+
+/* ---------- rendering ---------- */
+function draw(){
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  // ice
+  ctx.fillStyle='#eaf3fb'; ctx.fillRect(0,0,W,H);
+  // rink markings
+  const gb=goalBounds();
+  // center red line + blue lines
+  ctx.strokeStyle='rgba(31,95,214,.35)'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(0,H*0.42); ctx.lineTo(W,H*0.42); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,H*0.7); ctx.lineTo(W,H*0.7); ctx.stroke();
+  ctx.strokeStyle='rgba(214,31,38,.5)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(0,gb.y); ctx.lineTo(W,gb.y); ctx.stroke();
+  // center faceoff circle
+  ctx.strokeStyle='rgba(31,95,214,.28)'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.arc(W/2,H*0.56,54,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.arc(W/2,H*0.56,4,0,7); ctx.fillStyle='#1f5fd6'; ctx.fill();
+  // faceoff dots near goal
+  [[W*0.28,H*0.22],[W*0.72,H*0.22]].forEach(([x,y])=>{ ctx.beginPath();ctx.arc(x,y,26,0,7);ctx.stroke(); });
+
+  // goal net
+  ctx.save();
+  ctx.strokeStyle='#d61f26'; ctx.lineWidth=4;
+  ctx.strokeRect(gb.x1, gb.y-30, gb.x2-gb.x1, 30);
+  // net mesh
+  ctx.strokeStyle='rgba(120,140,170,.4)'; ctx.lineWidth=1;
+  for(let x=gb.x1;x<=gb.x2;x+=10){ ctx.beginPath();ctx.moveTo(x,gb.y-30);ctx.lineTo(x,gb.y);ctx.stroke(); }
+  for(let y=gb.y-30;y<=gb.y;y+=8){ ctx.beginPath();ctx.moveTo(gb.x1,y);ctx.lineTo(gb.x2,y);ctx.stroke(); }
+  ctx.restore();
+  // goal line posts
+  ctx.fillStyle='#d61f26';
+  ctx.fillRect(gb.x1-3,gb.y-32,5,34); ctx.fillRect(gb.x2-2,gb.y-32,5,34);
+
+  // goalie
+  const gEl=G.goalie, half=gEl.w/2;
+  ctx.fillStyle='#16263f';
+  roundRect(gEl.x-half, gb.y+2, gEl.w, 20, 6); ctx.fill();
+  ctx.fillStyle='#1f5fd6'; roundRect(gEl.x-half+3, gb.y+4, gEl.w-6, 8, 3); ctx.fill();
+  // goalie mask dot
+  ctx.fillStyle='#eaf1fb'; ctx.beginPath(); ctx.arc(gEl.x, gb.y+12, 6, 0,7); ctx.fill();
+
+  // aim guide
+  const p=G.puck;
+  if(G.aim.active && !p.moving){
+    let dx=G.aim.x-p.x, dy=G.aim.y-p.y; const dist=Math.hypot(dx,dy);
+    const power=Math.min(dist,180)/180;
+    let ny=dy/dist, nx=dx/dist; if(ny>-0.15)ny=-0.15; const mag=Math.hypot(nx,ny); nx/=mag;ny/=mag;
+    ctx.strokeStyle='rgba(214,31,38,'+(0.35+power*0.5)+')'; ctx.lineWidth=3; ctx.setLineDash([8,7]);
+    ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x+nx*180*power, p.y+ny*180*power); ctx.stroke(); ctx.setLineDash([]);
+    // power meter ring
+    ctx.strokeStyle='#d61f26'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(p.x,p.y,16,-Math.PI/2, -Math.PI/2+power*Math.PI*2); ctx.stroke();
+  }
+
+  // puck
+  ctx.fillStyle='#0a0f18'; ctx.beginPath(); ctx.arc(p.x,p.y,9,0,7); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(p.x,p.y,9,0,7); ctx.stroke();
+
+  // flash message
+  if(G.msgT>0){
+    ctx.globalAlpha=Math.min(1,G.msgT); ctx.fillStyle=G.msgColor; ctx.font="800 26px Inter,sans-serif"; ctx.textAlign='center';
+    ctx.fillText(G.msg, W/2, H*0.5); ctx.globalAlpha=1;
+  }
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+function loop(ts){
+  if(!lastT)lastT=ts; let dt=(ts-lastT)/1000; lastT=ts; if(dt>0.1)dt=0.1;
+  update(dt); draw(); refreshHUD();
+  rafId=requestAnimationFrame(loop);
+}
+function refreshHUD(){
+  if(!G)return;
+  $('#hud').innerHTML=
+    '<div class="stat"><span class="l">'+esc(T('hockey.score','Score'))+'</span><span class="v gold">'+fmt(G.score)+'</span></div>'+
+    '<div class="stat"><span class="l">'+esc(T('hockey.goals','Goals'))+'</span><span class="v red">'+G.goals+'</span></div>'+
+    '<div class="stat"><span class="l">'+esc(T('hockey.time','Time'))+'</span><span class="v">'+Math.ceil(G.timeLeft)+'s</span></div>';
+}
+
+/* ---------- lifecycle ---------- */
+function renderStart(){
+  $('#diffPick').innerHTML=Object.keys(DIFFS).map(k=>{const d=DIFFS[k];
+    return '<div class="pill '+(SETUP.diff===k?'on':'')+'" onclick="SETUP.diff=\''+k+'\';renderStart()"><div class="pn">'+esc(T(d.key,d.name))+'</div><div class="pd">'+d.time+'s</div></div>';}).join('');
+}
+function startGame(){
+  cv=$('#rink'); ctx=cv.getContext('2d'); W=cv.width; H=cv.height;
+  newGame();
+  $('#scr-start').classList.remove('active'); $('#scr-game').classList.add('active');
+  bindInput();
+  lastT=0; if(rafId)cancelAnimationFrame(rafId); rafId=requestAnimationFrame(loop);
+  toast(T('hockey.aim_shoot','Aim and shoot to score!'));
+}
+function bindInput(){
+  const rect=()=>cv.getBoundingClientRect();
+  const sx=e=>{const r=rect();const cx=(e.touches?e.touches[0].clientX:e.clientX);return (cx-r.left)*(cv.width/r.width);};
+  const sy=e=>{const r=rect();const cy=(e.touches?e.touches[0].clientY:e.clientY);return (cy-r.top)*(cv.height/r.height);};
+  cv.addEventListener('mousedown',e=>pointerDown(sx(e),sy(e)));
+  cv.addEventListener('mousemove',e=>pointerMove(sx(e),sy(e)));
+  window.addEventListener('mouseup',pointerUp);
+  cv.addEventListener('touchstart',e=>{e.preventDefault();pointerDown(sx(e),sy(e));},{passive:false});
+  cv.addEventListener('touchmove',e=>{e.preventDefault();pointerMove(sx(e),sy(e));},{passive:false});
+  cv.addEventListener('touchend',e=>{e.preventDefault();pointerUp();},{passive:false});
+}
+function pauseToggle(){ G.paused=!G.paused; $('#pauseBtn').textContent=G.paused?'▶':'⏸'; }
+window.pauseToggle=pauseToggle;
+function quitConfirm(){
+  window._allowClose=true;
+  showModal('<h2>'+esc(T('nav.back','Quit'))+'?</h2><p style="color:var(--dim);margin:.4rem 0 1rem;font-size:.88rem;">Your current game will be lost.</p><button class="btn red big" onclick="location.reload()">'+esc(T('nav.back','Quit'))+'</button><button class="btn ghost big" style="margin-top:.5rem;" onclick="closeModal()">'+esc(T('common.close','Cancel'))+'</button>');
+}
+window.quitConfirm=quitConfirm;
+function endGame(){
+  if(G.over)return; G.over=true; G.paused=true;
+  const acc=G.shots?Math.round(G.goals/G.shots*100):0;
+  const finalScore=G.score;
+  G.finalScore=finalScore;
+  window.gxyLastRun={goals:G.goals,saves:G.saves,shots:G.shots};
+  if(window.gxyReportScore) window.gxyReportScore(finalScore);
+  let coinsEarned=0;
+  if(window.awardShootoutCoins) coinsEarned=window.awardShootoutCoins(G.goals,finalScore);
+  if(window.gxyAch && G.goals>=3) window.gxyAch.unlock('hk_hat');
+  window._allowClose=false;
+  showModal('<h2>🏒 '+esc(T('hockey.period_over','Period Over!'))+'</h2>'+
+    '<div style="display:flex;gap:.5rem;margin:1rem 0;">'+
+      '<div class="stat-big"><div class="l">'+esc(T('hockey.goals','Goals'))+'</div><div class="v" style="color:var(--red2);">'+G.goals+'</div></div>'+
+      '<div class="stat-big"><div class="l">'+esc(T('hockey.saves','Saves'))+'</div><div class="v">'+G.saves+'</div></div>'+
+      '<div class="stat-big"><div class="l">'+esc(T('hockey.score','Score'))+'</div><div class="v" style="color:var(--gold);">'+fmt(finalScore)+'</div></div>'+
+    '</div>'+
+    '<p style="color:var(--dim);font-size:.85rem;margin-bottom:.6rem;">'+G.shots+' shots · '+acc+'% accuracy</p>'+
+    (coinsEarned?'<p style="color:var(--gold);font-weight:700;font-size:.9rem;margin-bottom:1rem;">🃏 +'+coinsEarned+' Ice Legends coins earned!</p>':'')+
+    '<button class="btn red big" onclick="submitScore()">'+esc(T('hockey.submit_score','🏆 Submit Score'))+'</button>'+
+    '<button class="btn ghost big" style="margin-top:.5rem;" onclick="goShootout()">'+esc(T('hockey.play_again','Play Again'))+'</button>'+
+    '<button class="btn ghost big" style="margin-top:.5rem;" onclick="goModes()">← Modes</button>');
+}
+function submitScore(){ if(window.gxyReportScore)window.gxyReportScore(G.finalScore||G.score); toast('✓'); setTimeout(openLeaderboard,600); }
+window.submitScore=submitScore; window.startGame=startGame;
+function showModal(html){ $('#modalBox').innerHTML=html; $('#modal').classList.add('show'); }
+function closeModal(){ if(window._allowClose===false)return; $('#modal').classList.remove('show'); }
+window.closeModal=closeModal;
+function toast(msg){ const m=$('#toastMount'); m.innerHTML='<div class="toast">'+esc(msg)+'</div>'; clearTimeout(window._tt); window._tt=setTimeout(()=>m.innerHTML='',2600); }
+window.openLeaderboard=function(){
+  window._allowClose=true;
+  showModal('<h2>'+esc(T('hockey.leaderboard','🏆 Top Scorers'))+'</h2><div id="lbList"><p class="empty pulse">'+esc(T('common.loading','Loading…'))+'</p></div><button class="btn ghost big" style="margin-top:1rem;" onclick="closeModal()">'+esc(T('common.close','Close'))+'</button>');
+  if(window.gxyLoadLeaderboard) window.gxyLoadLeaderboard();
+};
+window.openAchievements=function(){
+  window._allowClose=true;
+  const body=window.gxyAch?gxyAch.viewerHtml('hockey'):'<p class="empty">Achievements loading…</p>';
+  showModal('<h2>🏅 Achievements</h2>'+body+'<button class="btn ghost big" style="margin-top:1rem;" onclick="closeModal()">Close</button>');
+};
+renderStart();
+// re-render start screen text when language changes
+document.addEventListener('gxy-lang',function(){ if($('#scr-start').classList.contains('active')) renderStart(); });
+
+/* ===================== HOCKEY — Career + Ice Legends expansion ===================== */
+const HKC=window.GXYCareer;
+const HK_CITIES=[
+  {city:"Toronto",abbr:"TOR",color:"#00205b"},{city:"Montreal",abbr:"MTL",color:"#af1e2d"},
+  {city:"Boston",abbr:"BOS",color:"#fcb514"},{city:"Buffalo",abbr:"BUF",color:"#003087"},
+  {city:"Detroit",abbr:"DET",color:"#ce1126"},{city:"Ottawa",abbr:"OTT",color:"#c8102e"},
+  {city:"Tampa Bay",abbr:"TB",color:"#00205b"},{city:"Miami",abbr:"FLA",color:"#c8102e"},
+  {city:"Pittsburgh",abbr:"PIT",color:"#ffb81c"},{city:"Philadelphia",abbr:"PHI",color:"#f74902"},
+  {city:"New York",abbr:"NYR",color:"#0038a8"},{city:"Newark",abbr:"NJ",color:"#ce1126"},
+  {city:"Washington",abbr:"WSH",color:"#c8102e"},{city:"Raleigh",abbr:"CAR",color:"#cc0000"},
+  {city:"Chicago",abbr:"CHI",color:"#cf0a2c"},{city:"St. Louis",abbr:"STL",color:"#002f87"},
+  {city:"Nashville",abbr:"NSH",color:"#ffb81c"},{city:"Dallas",abbr:"DAL",color:"#006847"},
+  {city:"Denver",abbr:"COL",color:"#6f263d"},{city:"Minneapolis",abbr:"MIN",color:"#154734"},
+  {city:"Winnipeg",abbr:"WPG",color:"#041e42"},{city:"Edmonton",abbr:"EDM",color:"#ff4c00"},
+  {city:"Calgary",abbr:"CGY",color:"#c8102e"},{city:"Vancouver",abbr:"VAN",color:"#00205b"},
+  {city:"Seattle",abbr:"SEA",color:"#99d9d9"},{city:"Los Angeles",abbr:"LA",color:"#a2aaad"},
+  {city:"San Jose",abbr:"SJ",color:"#006d75"},{city:"Las Vegas",abbr:"VGK",color:"#b4975a"}
+];
+const HK_CFG={
+  seasonLength:16, homeAdv:0.35, allowTies:false,
+  score:{base:3.0,per:0.05,spread:1.5,min:0,max:9,step:1},
+  cities:HK_CITIES,
+  positions:[
+    {key:'C', name:'Center',      stats:[{key:'goals',avg:0.55,round:1},{key:'assists',avg:0.7,round:1},{key:'shots',avg:3,round:1}]},
+    {key:'W', name:'Winger',      stats:[{key:'goals',avg:0.6,round:1},{key:'assists',avg:0.45,round:1},{key:'shots',avg:3.2,round:1}]},
+    {key:'D', name:'Defense',     stats:[{key:'goals',avg:0.18,round:1},{key:'assists',avg:0.5,round:1},{key:'blocks',avg:2.2,round:1}]},
+    {key:'G', name:'Goalie',      stats:[{key:'saves',avg:26,round:1},{key:'ga',avg:2.6,round:1}]}
+  ]
+};
+
+/* ---- navigation ---- */
+function goModes(){ window._allowClose=true; closeModal(); window._onLegends=false; if(window.rafId)cancelAnimationFrame(rafId); showScreen2('modes'); }
+function goShootout(){ showScreen2('start'); renderStart(); renderLegendBonus(); }
+function showScreen2(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='scr-'+id)); window.scrollTo(0,0); }
+window.goModes=goModes; window.goShootout=goShootout; window.showScreen2=showScreen2;
+
+/* show the active Ice Legends bonus on the shootout setup */
+function renderLegendBonus(){
+  const el=$('#legendBonus'); if(!el)return;
+  const b=iceLegendsBoost();
+  const active=(b.netW||b.goalieSlow||b.timeAdd||(b.scoreMult>1));
+  if(!active){ el.innerHTML='<div style="font-size:.78rem;color:var(--muted);margin:.4rem 0;">🃏 No Ice Legends lineup set — visit Ice Legends to collect cards and boost your shootout.</div>'; return; }
+  el.innerHTML='<div class="hkcard" style="margin:.6rem 0;"><h3 style="font-size:.85rem;">🃏 Ice Legends Boost Active</h3>'+
+    (b.scoreMult>1?'<div class="boost-row"><span>Score multiplier</span><b>×'+b.scoreMult.toFixed(2)+'</b></div>':'')+
+    (b.timeAdd?'<div class="boost-row"><span>Extra time</span><b>+'+b.timeAdd+'s</b></div>':'')+
+    (b.goalieSlow?'<div class="boost-row"><span>Goalie slowdown</span><b>-'+Math.round(b.goalieSlow*100)+'%</b></div>':'')+
+    (b.netW?'<div class="boost-row"><span>Wider scoring lane</span><b>+'+b.netW+'</b></div>':'')+'</div>';
+}
+window.renderLegendBonus=renderLegendBonus;
+
+/* ============ ICE LEGENDS (card collection) ============ */
+const RARITIES=[
+  {key:'common',name:'Common',w:60,ovr:[60,72],color:'#6b7a90'},
+  {key:'rare',name:'Rare',w:26,ovr:[72,82],color:'#3b82f6'},
+  {key:'epic',name:'Epic',w:11,ovr:[82,90],color:'#a855f7'},
+  {key:'legend',name:'Legend',w:3,ovr:[90,99],color:'#f5c451'}
+];
+const HK_FN=["Wayne","Mario","Gordie","Bobby","Sidney","Connor","Nathan","Auston","Leon","Cale","Erik","Brad","Nikita","Igor","Carey","Marc","Pavel","Sergei","Jaromir","Teemu"];
+const HK_LN=["Frost","Steele","Blade","Ice","Nord","Puck","Slapshot","Rink","Glacier","Storm","Winters","Northman","Sabre","Comet","Vortex","Granite","Wolfe","Falk","Boreal","Tundra"];
+let LEGENDS={ cards:[], lineup:[], coins:0, loaded:false };
+const LS_LEG='gxy_icelegends';
+
+function loadLegends(){
+  try{ const raw=JSON.parse(localStorage.getItem(LS_LEG)||'{}'); if(raw&&raw.cards){ LEGENDS=Object.assign(LEGENDS,raw); } }catch(e){}
+  LEGENDS.loaded=true;
+  if(LEGENDS.coins===0 && LEGENDS.cards.length===0) LEGENDS.coins=300; // starter coins
+  // pull cloud collection once available; cloud is authoritative if it has more cards
+  if(window.gxyPullLegends) window.gxyPullLegends();
+}
+function applyCloudLegends(cloud){
+  if(!cloud) return;
+  // merge: take the version with more cards (authoritative), keep max coins
+  const localCards=(LEGENDS.cards||[]).length, cloudCards=(cloud.cards||[]).length;
+  if(cloudCards>=localCards){
+    LEGENDS.cards=cloud.cards||LEGENDS.cards;
+    LEGENDS.lineup=cloud.lineup||LEGENDS.lineup;
+  }
+  LEGENDS.coins=Math.max(LEGENDS.coins||0, cloud.coins||0);
+  try{ localStorage.setItem(LS_LEG, JSON.stringify({cards:LEGENDS.cards,lineup:LEGENDS.lineup,coins:LEGENDS.coins})); }catch(e){}
+  // refresh UI if on the legends screen
+  if(document.querySelector('#scr-setup')&&document.querySelector('#scr-setup').classList.contains('active')&&window._onLegends){ openIceLegends(); }
+}
+window.applyCloudLegends=applyCloudLegends;
+function saveLegends(){
+  try{ localStorage.setItem(LS_LEG, JSON.stringify({cards:LEGENDS.cards,lineup:LEGENDS.lineup,coins:LEGENDS.coins})); }catch(e){}
+  if(window.gxySyncLegends) window.gxySyncLegends(LEGENDS);
+}
+function rollRarity(){ const tot=RARITIES.reduce((a,r)=>a+r.w,0); let x=Math.random()*tot; for(const r of RARITIES){ if(x<r.w) return r; x-=r.w; } return RARITIES[0]; }
+function makeCard(){
+  const rar=rollRarity(); const pos=pick(['C','W','D','G']);
+  const ovr=Math.round(rnd(rar.ovr[0],rar.ovr[1]));
+  return { id:'c'+Date.now()+Math.floor(Math.random()*99999), name:pick(HK_FN)+' '+pick(HK_LN), pos, ovr, rarity:rar.key };
+}
+function rnd(a,b){return a+Math.random()*(b-a);}
+function openPack(cost,count){
+  if(LEGENDS.coins<cost){ toast("Not enough coins — play the shootout to earn more!"); return; }
+  LEGENDS.coins-=cost;
+  const pulls=[]; for(let i=0;i<count;i++){ const c=makeCard(); LEGENDS.cards.push(c); pulls.push(c); }
+  saveLegends();
+  if(window.gxyAch){ if(pulls.some(c=>c.rarity==='legend'))window.gxyAch.unlock('hk_legend'); if(LEGENDS.cards.length>=25)window.gxyAch.unlock('hk_collector'); }
+  const best=pulls.slice().sort((a,b)=>b.ovr-a.ovr)[0];
+  showModal('<h2>Pack Opened!</h2><div class="legend-grid" style="margin:1rem 0;">'+pulls.map(cardHtml).join('')+'</div>'+
+    (best.rarity==='legend'||best.rarity==='epic'?'<p style="color:var(--gold);font-weight:700;">🌟 '+best.rarity.toUpperCase()+' pull!</p>':'')+
+    '<button class="btn red big" style="margin-top:.5rem;" onclick="closeModal();openIceLegends();">Nice!</button>');
+  window._allowClose=true;
+}
+const SELL_VALUE={common:15, rare:40, epic:90, legend:200};
+function cardHtml(c,withBtn){
+  const inLine=LEGENDS.lineup.includes(c.id);
+  return '<div class="pcard '+c.rarity+(inLine?' in-lineup':'')+'"><div class="pos">'+c.pos+'</div><div class="ovr">'+c.ovr+'</div><div class="pnm">'+esc(c.name)+'</div><div class="rar">'+c.rarity+'</div>'+
+    (withBtn?'<button class="cbtn" onclick="toggleLineup(\''+c.id+'\')">'+(inLine?'Remove':'Add to Lineup')+'</button>'+
+      (inLine?'':'<button class="cbtn" style="margin-top:.3rem;border-color:rgba(245,196,81,.4);color:var(--gold,#f5c451);" onclick="sellCard(\''+c.id+'\')">💰 Sell ·'+(SELL_VALUE[c.rarity]||10)+'</button>'):'')+'</div>';
+}
+function sellCard(id){
+  const idx=LEGENDS.cards.findIndex(c=>c.id===id); if(idx<0) return;
+  const c=LEGENDS.cards[idx];
+  if(LEGENDS.lineup.includes(id)){ toast("Remove it from your lineup before selling."); return; }
+  const val=SELL_VALUE[c.rarity]||10;
+  LEGENDS.cards.splice(idx,1);
+  LEGENDS.coins+=val; saveLegends();
+  toast("Sold "+esc(c.name)+" for "+val+" coins 💰");
+  openIceLegends();
+}
+window.sellCard=sellCard;
+function toggleLineup(id){
+  const i=LEGENDS.lineup.indexOf(id);
+  if(i>=0){ LEGENDS.lineup.splice(i,1); }
+  else { if(LEGENDS.lineup.length>=5){ toast("Lineup is full (5 cards). Remove one first."); return; } LEGENDS.lineup.push(id); if(window.gxyAch && LEGENDS.lineup.length>=5)window.gxyAch.unlock('hk_fullline'); }
+  saveLegends(); openIceLegends();
+}
+window.toggleLineup=toggleLineup;
+/* boost from lineup: average OVR of up to 5 cards scales the perks */
+function iceLegendsBoost(){
+  if(!LEGENDS.loaded) loadLegends();
+  const line=LEGENDS.lineup.map(id=>LEGENDS.cards.find(c=>c.id===id)).filter(Boolean);
+  if(!line.length) return {netW:0,goalieSlow:0,timeAdd:0,scoreMult:1};
+  const avg=line.reduce((a,c)=>a+c.ovr,0)/line.length;
+  const strength=clamp((avg-60)/39,0,1) * (line.length/5); // 0..1
+  return {
+    netW: Math.round(strength*40),          // up to +40px scoring lane
+    goalieSlow: strength*0.28,               // up to 28% slower goalie
+    timeAdd: Math.round(strength*15),        // up to +15s
+    scoreMult: 1 + strength*0.6              // up to ×1.6
+  };
+}
+window.iceLegendsBoost=iceLegendsBoost;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+function openIceLegends(){
+  if(!LEGENDS.loaded) loadLegends();
+  window._onLegends=true;
+  showScreen2('setup');
+  const line=LEGENDS.lineup.map(id=>LEGENDS.cards.find(c=>c.id===id)).filter(Boolean);
+  const b=iceLegendsBoost();
+  let html='<div class="logo" style="margin-bottom:1rem;"><h1 style="font-size:2rem;">🃏 Ice <span class="r">Legends</span></h1><p>Open packs, collect players, and set a 5-card lineup to power up your shootout.</p></div>';
+  html+='<div class="hkcard" style="display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:.7rem;color:var(--dim);text-transform:uppercase;font-weight:700;">Coins</div><div style="font-family:\'Space Mono\',monospace;font-size:1.6rem;font-weight:700;color:var(--gold);">'+LEGENDS.coins+'</div></div>'+
+    '<div style="font-size:.75rem;color:var(--dim);text-align:right;">Earn coins by playing<br>the shootout 🥅</div></div>';
+  // packs
+  html+='<div class="hkcard"><h3>📦 Open Packs</h3><div class="pickrow" style="margin-top:.5rem;">'+
+    '<button class="pill" onclick="openPack(100,3)"><div class="pn">Standard</div><div class="pd">100 · 3 cards</div></button>'+
+    '<button class="pill" onclick="openPack(250,3)"><div class="pn">Premium</div><div class="pd">250 · better odds*</div></button>'+
+    '</div><div style="font-size:.66rem;color:var(--muted);margin-top:.4rem;">*Premium reroll guarantees at least one Rare+.</div></div>';
+  // lineup + boost
+  html+='<div class="hkcard"><h3>🥅 Active Lineup ('+line.length+'/5)</h3>';
+  if(line.length){
+    html+='<div class="legend-grid" style="margin:.5rem 0;">'+line.map(c=>cardHtml(c,true)).join('')+'</div>';
+    html+='<div style="margin-top:.5rem;">'+
+      '<div class="boost-row"><span>Score multiplier</span><b>×'+b.scoreMult.toFixed(2)+'</b></div>'+
+      '<div class="boost-row"><span>Extra time</span><b>+'+b.timeAdd+'s</b></div>'+
+      '<div class="boost-row"><span>Goalie slowdown</span><b>-'+Math.round(b.goalieSlow*100)+'%</b></div>'+
+      '<div class="boost-row"><span>Wider scoring lane</span><b>+'+b.netW+'</b></div></div>';
+  } else html+='<p style="font-size:.82rem;color:var(--muted);margin:.4rem 0;">No cards in your lineup yet. Add cards from your collection below.</p>';
+  html+='</div>';
+  // collection
+  html+='<div class="hkcard"><h3>🗂️ Collection ('+LEGENDS.cards.length+')</h3>';
+  if(LEGENDS.cards.length){
+    const sorted=LEGENDS.cards.slice().sort((a,b)=>b.ovr-a.ovr);
+    html+='<div class="legend-grid" style="margin-top:.5rem;">'+sorted.map(c=>cardHtml(c,true)).join('')+'</div>';
+  } else html+='<p style="font-size:.82rem;color:var(--muted);margin:.4rem 0;">Open a pack to start your collection!</p>';
+  html+='</div>';
+  html+='<button class="btn red big" onclick="goShootout()">🥅 Play Shootout with this Lineup →</button>';
+  $('#setupBody').innerHTML=html;
+}
+window.openIceLegends=openIceLegends; window.openPack=openPack;
+
+/* award coins after a shootout (called from endGame hook) */
+function awardShootoutCoins(goals,score){
+  if(!LEGENDS.loaded) loadLegends();
+  const coins=20 + goals*10 + Math.floor(score/500);
+  LEGENDS.coins+=coins; saveLegends();
+  return coins;
+}
+window.awardShootoutCoins=awardShootoutCoins;
+
+/* ============ HOCKEY CAREER (franchise + player) ============ */
+let HKFR=null, HKPC=null;
+function openHkFranchise(){
+  // choose franchise or player first
+  showScreen2('setup');
+  window._onLegends=false;
+  $('#setupBody').innerHTML='<div class="logo" style="margin-bottom:1rem;"><h1 style="font-size:2rem;">📋 Career</h1><p>Choose your path.</p></div>'+
+    '<div id="hkResume"></div>'+
+    '<div class="modes">'+
+    '<div class="mode" onclick="hkPickFranchise()"><span class="mic">🏒</span><div class="mt"><h3>Franchise (GM)</h3><p>Run a club across seasons and chase the Cup.</p></div><span class="arrow">→</span></div>'+
+    '<div class="mode" onclick="hkPickPlayer()"><span class="mic">⭐</span><div class="mt"><h3>Player Career</h3><p>Create a player, get drafted, build a legacy.</p></div><span class="arrow">→</span></div>'+
+    '</div>';
+  hkCheckSaves();
+}
+window.openHkFranchise=openHkFranchise;
+
+/* ---- hockey career cloud save / resume ---- */
+function saveHkFranchise(){ if(window.gxySave && HKFR){ window.gxySave.save('hockey', HKFR, 'franchise'); } }
+function saveHkCareer(){ if(window.gxySave && HKPC && !HKPC.retired){ window.gxySave.save('hockey', HKPC, 'career'); } }
+function clearHkFranchiseSave(){ if(window.gxySave) window.gxySave.remove('hockey','franchise'); }
+function clearHkCareerSave(){ if(window.gxySave) window.gxySave.remove('hockey','career'); }
+window.saveHkFranchise=saveHkFranchise; window.saveHkCareer=saveHkCareer;
+window.clearHkFranchiseSave=clearHkFranchiseSave; window.clearHkCareerSave=clearHkCareerSave;
+window.resumeHkFranchise=function(){ if(!window.gxySave)return; window.gxySave.load('hockey','franchise').then(s=>{ if(!s){toast("No saved franchise.");return;} HKFR=s; showScreen2('hub'); $('#hubTtl').textContent='Franchise'; renderHkFranchise(); toast("Resumed "+esc(hkMyTeam().city)+" · Season "+HKFR.league.season); }); };
+window.resumeHkCareer=function(){ if(!window.gxySave)return; window.gxySave.load('hockey','career').then(s=>{ if(!s){toast("No saved career.");return;} HKPC=s; showScreen2('hub'); $('#hubTtl').textContent='Career'; renderHkCareer(); toast("Resumed "+esc(HKPC.player.name)+" · Season "+HKPC.player.season); }); };
+function hkCheckSaves(){
+  if(!window.gxySave) return;
+  const host=$('#hkResume'); if(!host) return;
+  Promise.all([window.gxySave.load('hockey','franchise'), window.gxySave.load('hockey','career')]).then(([fr,pc])=>{
+    let html='';
+    if(fr){ html+='<div class="mode" style="border-color:var(--green,#2ecc71);margin-bottom:.8rem;" onclick="resumeHkFranchise()"><span class="mic">⏯️</span><div class="mt"><h3>Resume Franchise</h3><p>'+esc(fr.league.teams[fr.teamId].city)+' · Season '+fr.league.season+' · '+fr.titles+' Cups</p></div><span class="arrow">→</span></div>'; }
+    if(pc){ html+='<div class="mode" style="border-color:var(--green,#2ecc71);margin-bottom:.8rem;" onclick="resumeHkCareer()"><span class="mic">⏯️</span><div class="mt"><h3>Resume Player Career</h3><p>'+esc(pc.player.name)+' ('+pc.player.position+') · Season '+pc.player.season+' · OVR '+pc.player.overall+'</p></div><span class="arrow">→</span></div>'; }
+    host.innerHTML=html;
+  });
+}
+
+function hkPickFranchise(){
+  const league=HKC.makeLeague(HK_CFG); window._hkLeague=league; window._hkSel=0;
+  let html='<div class="logo" style="margin-bottom:1rem;"><h1 style="font-size:1.8rem;">🏒 Franchise</h1><p>Pick your club.</p></div><div class="hkcard"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.5rem;max-height:320px;overflow-y:auto;" id="hkTeams"></div></div><button class="btn red big" onclick="hkBeginFranchise()">Start Franchise</button>';
+  $('#setupBody').innerHTML=html;
+  renderHkTeams('hkTeams',league.teams);
+}
+window.hkPickFranchise=hkPickFranchise;
+function renderHkTeams(mount,teams){
+  const m=$('#'+mount);
+  m.innerHTML=teams.map((t,i)=>'<div class="tsel '+(i===0?'on':'')+'" data-i="'+i+'" style="cursor:pointer;padding:.5rem .3rem;border:1px solid var(--line2,#324767);border-radius:9px;text-align:center;"><div style="font-weight:800;font-family:\'Anton\',sans-serif;">'+t.abbr+'</div><div style="font-size:.6rem;color:var(--dim);">'+esc(t.city)+'</div><div style="font-size:.58rem;color:var(--gold);">OVR '+t.rating+'</div></div>').join('');
+  m.querySelectorAll('.tsel').forEach(el=>el.addEventListener('click',()=>{ window._hkSel=+el.dataset.i; m.querySelectorAll('.tsel').forEach(e=>e.style.boxShadow=''); el.style.boxShadow='0 0 0 2px var(--red2,#ff4b52) inset'; }));
+}
+function hkBeginFranchise(){
+  HKFR={ league:window._hkLeague, teamId:window._hkSel, titles:0, seasons:0, playoffs:null };
+  showScreen2('hub'); $('#hubTtl').textContent='Franchise'; renderHkFranchise();
+}
+window.hkBeginFranchise=hkBeginFranchise;
+function hkMyTeam(){ return HKFR.league.teams[HKFR.teamId]; }
+function renderHkFranchise(){
+  const L=HKFR.league, t=hkMyTeam();
+  $('#hubStats').innerHTML='<div class="stat"><span class="l">Season</span><span class="v">'+L.season+'</span></div><div class="stat"><span class="l">Record</span><span class="v">'+t.wins+'-'+t.losses+'</span></div><div class="stat"><span class="l">Cups</span><span class="v" style="color:var(--gold)">'+HKFR.titles+'</span></div>';
+  const st=HKC.standings(L); const rank=st.findIndex(x=>x.id===HKFR.teamId)+1;
+  let body='<div class="hkcard"><h3 style="color:'+t.color+'">'+esc(t.city)+' · '+t.abbr+'</h3><div style="font-size:.8rem;color:var(--dim);">Season '+L.season+' · Game '+Math.min(L.week+1,L.schedule.length)+'/'+L.schedule.length+' · Rating '+t.rating+' · Rank #'+rank+'</div>';
+  if(!HKC.seasonDone(L)){
+    const g=(L.schedule[L.week]||[]).find(x=>x.home===HKFR.teamId||x.away===HKFR.teamId);
+    const oppId=g?(g.home===HKFR.teamId?g.away:g.home):null;
+    if(oppId!=null){ body+='<div style="margin:.6rem 0;font-size:.9rem;">Next: <b>vs '+L.teams[oppId].abbr+'</b> ('+L.teams[oppId].city+')</div>'+
+      '<button class="btn red big" onclick="hkSimGame('+oppId+')">⏩ Play Game</button>'; }
+  } else if(!HKFR.playoffs){
+    body+='<div style="margin:.6rem 0;font-size:.85rem;color:var(--dim);">Regular season done! '+(rank<=8?'You made the playoffs (#'+rank+').':'You missed the playoffs.')+'</div>'+
+      '<button class="btn red big" onclick="hkStartPlayoffs()">'+(rank<=8?'🏆 Cup Playoffs':'View Playoffs')+'</button>';
+  } else { body+=hkPlayoffsHtml(); }
+  body+='</div>';
+  body+='<div class="hkcard"><h3>📊 Standings</h3><table class="hktbl"><tr><th></th><th>Team</th><th>W-L</th><th>GF</th><th>GA</th></tr>'+
+    st.slice(0,12).map((tm,i)=>'<tr class="'+(tm.id===HKFR.teamId?'me':'')+'"><td>'+(i+1)+'</td><td style="font-weight:700">'+tm.abbr+'</td><td>'+tm.wins+'-'+tm.losses+'</td><td>'+tm.pf+'</td><td>'+tm.pa+'</td></tr>').join('')+'</table></div>';
+  $('#hubBody').innerHTML=body; $('#hubAdvance').innerHTML='';
+  if(window.saveHkFranchise) saveHkFranchise();
+}
+window.renderHkFranchise=renderHkFranchise;
+function hkSimGame(oppId){
+  const L=HKFR.league, me=hkMyTeam(), opp=L.teams[oppId];
+  const r=HKC.simGame(me,opp,HK_CFG); HKC.recordUserGame(L,HKFR.teamId,oppId,r.hs,r.as);
+  HKC.simWeek(L,HKFR.teamId); HKC.advanceWeek(L);
+  toast((r.hs>r.as?'✅ Won ':'❌ Lost ')+r.hs+'-'+r.as+' vs '+opp.abbr);
+  renderHkFranchise();
+}
+window.hkSimGame=hkSimGame;
+function hkStartPlayoffs(){
+  const st=HKC.standings(HKFR.league); const rank=st.findIndex(x=>x.id===HKFR.teamId)+1;
+  HKFR.playoffs=HKC.makePlayoffs(HKFR.league,8);
+  if(rank>8){ let g=0; while(!HKFR.playoffs.done&&g<5){ HKC.simPlayoffRound(HKFR.league,HKFR.playoffs); g++; } }
+  renderHkFranchise();
+}
+window.hkStartPlayoffs=hkStartPlayoffs;
+function hkPlayoffsHtml(){
+  const po=HKFR.playoffs, L=HKFR.league;
+  if(po.done){
+    const champ=L.teams[po.champion], iWon=po.champion===HKFR.teamId;
+    return '<div style="text-align:center;padding:1rem;"><div style="font-size:2.5rem;">'+(iWon?'🏆':'🥈')+'</div><div style="font-weight:800;font-size:1.15rem;margin-top:.3rem;">'+esc(champ.city)+' win the Cup!</div></div>'+
+      '<button class="btn red big" onclick="hkNextSeason('+(iWon?'true':'false')+')">Next Season →</button>';
+  }
+  const alive=po.alive.includes(HKFR.teamId);
+  let html='<div style="font-size:.85rem;color:var(--dim);margin:.5rem 0;">🏆 Playoffs — Round '+(po.round+1)+' · Alive: '+po.alive.map(id=>L.teams[id].abbr).join(', ')+'</div>';
+  if(alive){ html+='<button class="btn red big" onclick="hkSimPlayoff()">⏩ Play Your Round</button>'; }
+  else html+='<button class="btn big" style="background:var(--panel2)" onclick="hkSimPlayoff()">⏩ Sim Round</button>';
+  return html;
+}
+function hkSimPlayoff(){ HKC.simPlayoffRound(HKFR.league,HKFR.playoffs); if(HKFR.playoffs.done&&HKFR.playoffs.champion===HKFR.teamId){HKFR.titles++; if(window.gxyAch)window.gxyAch.unlock('hk_cup');} renderHkFranchise(); }
+window.hkSimPlayoff=hkSimPlayoff;
+function hkNextSeason(wonCup){
+  HKFR.seasons++;
+  const t=hkMyTeam();
+  if(window.gxyReportScore) window.gxyReportScore(HKFR.titles*10000 + HKFR.seasons*1500 + t.rating*40);
+  const L=HKFR.league;
+  L.teams.forEach(tm=>{tm.wins=0;tm.losses=0;tm.ties=0;tm.pf=0;tm.pa=0;tm.rating=clamp(tm.rating+ri(-3,3),58,95);});
+  L.season++; L.week=0; HKFR.playoffs=null; L.schedule=HKC.makeLeague(HK_CFG).schedule;
+  renderHkFranchise();
+}
+window.hkNextSeason=hkNextSeason;
+function ri(a,b){return Math.floor(a+Math.random()*(b-a+1));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+/* ---- hockey player career ---- */
+function hkPickPlayer(){
+  const html='<div class="logo" style="margin-bottom:1rem;"><h1 style="font-size:1.8rem;">⭐ Player Career</h1><p>Create your player.</p></div>'+
+    '<div class="hkcard"><div class="field"><label style="font-size:.72rem;color:var(--dim);text-transform:uppercase;font-weight:700;display:block;margin-bottom:.4rem;">Name</label><input id="hkpName" maxlength="20" value="'+esc(pick(HK_FN)+' '+pick(HK_LN))+'" style="width:100%;background:#0a1120;border:1px solid var(--line2,#324767);border-radius:9px;color:var(--ink);padding:.6rem;"></div>'+
+    '<div class="field"><label style="font-size:.72rem;color:var(--dim);text-transform:uppercase;font-weight:700;display:block;margin:.6rem 0 .4rem;">Position</label><div class="pickrow" id="hkpPos"></div></div></div>'+
+    '<button class="btn red big" onclick="hkBeginPlayer()">Enter the Draft →</button>';
+  $('#setupBody').innerHTML=html;
+  window._hkpPos='C';
+  $('#hkpPos').innerHTML=HK_CFG.positions.map(p=>'<div class="pill '+(p.key==='C'?'on':'')+'" data-k="'+p.key+'" onclick="window._hkpPos=\''+p.key+'\';document.querySelectorAll(\'#hkpPos .pill\').forEach(e=>e.classList.remove(\'on\'));this.classList.add(\'on\')"><div class="pn">'+p.key+'</div><div class="pd">'+p.name+'</div></div>').join('');
+}
+window.hkPickPlayer=hkPickPlayer;
+function hkBeginPlayer(){
+  const league=HKC.makeLeague(HK_CFG);
+  const player=HKC.makePlayer(HK_CFG,{name:($('#hkpName').value||'Rookie').slice(0,20),position:window._hkpPos,overall:ri(60,68)});
+  const team=HKC.draftPlayer(league,player);
+  HKPC={ league, player, team, week:0, careerStats:{} };
+  showScreen2('hub'); $('#hubTtl').textContent='Career';
+  window._allowClose=true;
+  showModal('<h2>🎉 Drafted!</h2><p style="color:var(--dim);margin:.4rem 0 1rem;">'+esc(player.name)+' ('+player.posName+') drafted #'+player.draftPick+' by <b style="color:'+team.color+'">'+esc(team.city)+'</b>!</p><button class="btn red big" onclick="closeModal();renderHkCareer();">Start Rookie Season</button>');
+}
+window.hkBeginPlayer=hkBeginPlayer;
+function renderHkCareer(){
+  const L=HKPC.league, p=HKPC.player, t=HKPC.team, ss=p.seasonStats||{};
+  $('#hubStats').innerHTML='<div class="stat"><span class="l">Season</span><span class="v">'+p.season+'</span></div><div class="stat"><span class="l">OVR</span><span class="v" style="color:var(--gold)">'+p.overall+'</span></div><div class="stat"><span class="l">Age</span><span class="v">'+p.age+'</span></div>';
+  let body='<div class="hkcard"><h3 style="color:'+t.color+'">'+esc(p.name)+' · '+p.position+'</h3><div style="font-size:.8rem;color:var(--dim);">'+esc(t.city)+' · Season '+p.season+' · Game '+Math.min(HKPC.week+1,L.schedule.length)+'/'+L.schedule.length+' · OVR '+p.overall+'</div>';
+  if(HKPC.week<L.schedule.length){
+    body+='<button class="btn red big" style="margin-top:.6rem;" onclick="hkPlayGame(\'push\')">🔥 Play Hard</button><button class="btn big" style="margin-top:.4rem;background:var(--panel2)" onclick="hkPlayGame(\'steady\')">🎯 Play Smart</button>';
+  } else body+='<button class="btn red big" style="margin-top:.6rem;" onclick="hkEndSeason()">Finish Season →</button>';
+  body+='</div>';
+  if(ss.games) body+='<div class="hkcard"><h3>Season '+p.season+'</h3>'+hkStatLine(p,ss)+'<div class="boost-row"><span>Avg grade</span><b>'+Math.round(ss.gradeSum/ss.games)+'</b></div></div>';
+  if(HKPC.careerStats.games) body+='<div class="hkcard"><h3>🏅 Career</h3>'+hkStatLine(p,HKPC.careerStats)+(p.awards.length?'<div style="margin-top:.4rem;">'+p.awards.map(a=>'<span style="font-size:.62rem;font-weight:800;background:rgba(245,196,81,.18);color:var(--gold);padding:.1rem .4rem;border-radius:5px;margin:.1rem;display:inline-block;">'+esc(a)+'</span>').join('')+'</div>':'')+'</div>';
+  $('#hubBody').innerHTML=body; $('#hubAdvance').innerHTML='';
+  if(window.saveHkCareer) saveHkCareer();
+}
+window.renderHkCareer=renderHkCareer;
+function hkStatLine(p,s){ const pd=HK_CFG.positions.find(x=>x.key===p.position); return '<div style="font-size:.82rem;color:var(--dim);">'+pd.stats.map(st=>st.key+': <b style="color:var(--ink)">'+Math.round(s[st.key]||0)+'</b>').join(' · ')+' · GP: <b style="color:var(--ink)">'+(s.games||0)+'</b></div>'; }
+function hkPlayGame(style){
+  const p=HKPC.player; const opp=pick(HKPC.league.teams.filter(x=>x.id!==HKPC.team.id));
+  let oppR=opp.rating; if(style==='push')oppR-=4;
+  const line=HKC.simPlayerGame(HK_CFG,p,oppR);
+  if(style==='push'){ Object.keys(line).forEach(k=>{if(k!=='grade'&&k!=='ga')line[k]=Math.round(line[k]*1.15);}); line.grade=clamp(line.grade+ri(-8,12),10,99); }
+  HKC.addStats(p.seasonStats,line,HK_CFG,p); HKC.addStats(HKPC.careerStats,line,HK_CFG,p);
+  HKC.simWeek(HKPC.league); HKC.advanceWeek(HKPC.league); HKPC.week++;
+  toast('Game done — grade '+line.grade);
+  renderHkCareer();
+}
+window.hkPlayGame=hkPlayGame;
+function hkEndSeason(){
+  const p=HKPC.player, ss=p.seasonStats, avg=ss.games?ss.gradeSum/ss.games:50;
+  if(p.season===1&&avg>=68)p.awards.push('Rookie of the Year');
+  if(avg>=80)p.awards.push('MVP S'+p.season); else if(avg>=72)p.awards.push('All-Star S'+p.season);
+  const score=Math.round((HKPC.careerStats.gradeSum||0)*3 + p.awards.length*3000 + p.overall*100 + (HKPC.careerStats.games||0)*80);
+  if(window.gxyReportScore) window.gxyReportScore(score);
+  const old=p.overall; HKC.progressPlayer(p);
+  const retire=p.age>=36||(p.age>=33&&p.overall<62);
+  window._allowClose=true;
+  let html='<h2>Season Complete</h2>'+hkStatLine(p,ss)+'<div class="boost-row"><span>Overall</span><b>'+old+' → '+p.overall+'</b></div>';
+  if(p.awards.length)html+='<div style="margin:.5rem 0;">'+p.awards.slice(-2).map(a=>'<span style="font-size:.62rem;font-weight:800;background:rgba(245,196,81,.18);color:var(--gold);padding:.1rem .4rem;border-radius:5px;margin:.1rem;display:inline-block;">'+esc(a)+'</span>').join('')+'</div>';
+  html+='<div class="boost-row"><span>Career score</span><b style="color:var(--gold)">'+score.toLocaleString()+'</b></div>';
+  if(retire){ HKPC.retired=true; if(window.clearHkCareerSave) clearHkCareerSave(); html+='<p style="color:var(--dim);margin:.8rem 0;">After '+(p.season-1)+' seasons, '+esc(p.name)+' retires'+(p.awards.length>=3?' a legend! 🏆':'.')+'</p><button class="btn red big" onclick="closeModal();setTimeout(openLeaderboard,300);">🏆 Finish</button>'; }
+  else { p.seasonStats={}; html+='<button class="btn red big" style="margin-top:.8rem;" onclick="hkContinueCareer()">Next Season →</button><button class="btn big" style="margin-top:.4rem;background:var(--panel2)" onclick="closeModal();setTimeout(openLeaderboard,300);">Retire Now</button>'; }
+  showModal(html);
+}
+window.hkEndSeason=hkEndSeason;
+function hkContinueCareer(){ HKPC.week=0; HKPC.player.seasonStats={}; HKPC.league.teams.forEach(t=>{t.wins=0;t.losses=0;t.ties=0;t.pf=0;t.pa=0;}); HKPC.league.week=0; HKPC.league.season++; closeModal(); renderHkCareer(); }
+window.hkContinueCareer=hkContinueCareer;
+
+// init legends on load
+loadLegends();
+
+</script>
+<script type="module">
+import { gxyAccount } from '../assets/gxyaccount.js';
+import { gxyMeta } from '../assets/gxymeta.js';
+import { gxySave } from '../assets/gxysave.js';
+import '../assets/gxyachievements.js';
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCN4mEtGMjSxdgsTlthhzX6FXIjxltJKHQ",authDomain:"gxyhockey.firebaseapp.com",projectId:"gxyhockey",storageBucket:"gxyhockey.firebasestorage.app",messagingSenderId:"474584991663",appId:"1:474584991663:web:b8986544418d6b85fa115a"};
+const app=getApps().length?getApp():initializeApp(cfg); let db=null; try{db=getFirestore(app);}catch(e){}
+/* ---- Ice Legends cloud sync (cross-device card collection) ---- */
+let _legendsSaveT=null;
+window.gxySyncLegends=function(legends){
+  clearTimeout(_legendsSaveT);
+  _legendsSaveT=setTimeout(()=>{ try{ gxySave.save('hockey', {cards:legends.cards,lineup:legends.lineup,coins:legends.coins}, 'legends'); }catch(e){} }, 1200);
+};
+window.gxyPullLegends=async function(){
+  try{ const cloud=await gxySave.load('hockey','legends'); if(cloud && window.applyCloudLegends) window.applyCloudLegends(cloud); }catch(e){}
+};
+gxySave.ready().then(()=>{ if(window.gxyPullLegends) window.gxyPullLegends(); });
+let bestReported=0;
+window.gxyReportScore=async function(score){
+  if(score<=bestReported) return; bestReported=score;
+  await gxyAccount.ready(); const d=gxyAccount.data||{};
+  if(!d.mcUsername||!d.verified||!db) return;
+  try{ await addDoc(collection(db,'scores_hockey'),{uid:gxyAccount.user.uid,name:d.mcUsername,score:Math.round(score),ts:serverTimestamp()});}catch(e){}
+  try{ const r=window.gxyLastRun||{}; await gxyMeta.recordGame('hockey',{score:Math.round(score), goals:r.goals||0}); }catch(e){}
+};
+window.gxyLoadLeaderboard=async function(){
+  const list=document.getElementById('lbList'); if(!list)return;
+  if(!db){ list.innerHTML='<p class="empty">Leaderboard needs Firestore configured.</p>'; return; }
+  try{
+    const q=query(collection(db,'scores_hockey'),orderBy('score','desc'),limit(10));
+    const snap=await getDocs(q); const rows=[]; snap.forEach(dd=>rows.push(dd.data()));
+    if(!rows.length){ list.innerHTML='<p class="empty">No scorers yet. Be the first!</p>'; return; }
+    list.innerHTML=rows.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+      return '<div class="lb-row"><span style="width:26px;font-weight:800;">'+medal+'</span><img src="https://mc-heads.net/avatar/'+encodeURIComponent(r.name)+'/24" style="width:24px;height:24px;border-radius:5px;" onerror="this.style.visibility=\'hidden\'"><span style="font-weight:700;flex:1;">'+r.name+'</span><span class="mono" style="color:var(--gold);">'+(r.score||0).toLocaleString()+'</span></div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<p class="empty">Leaderboard unavailable right now.</p>'; }
+};
+</script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>

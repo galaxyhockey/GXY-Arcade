@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Technology Empire · GXY Arcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0e1a; --panel:#111726; --panel2:#18202f; --line:#232d42; --line2:#33415f;
+  --ink:#eef2fb; --dim:#8c9bb8; --muted:#5a6a86;
+  --blue:#3b82f6; --cyan:#22d3ee; --green:#22c55e; --gold:#f5c451; --red:#ef4444; --purple:#a855f7;
+  --grad:linear-gradient(120deg,#3b82f6,#22d3ee);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;}
+::-webkit-scrollbar{width:8px;height:8px;}::-webkit-scrollbar-thumb{background:#2a374f;border-radius:6px;}
+
+.screen{display:none;}.screen.active{display:block;}
+.back{color:var(--dim);font-size:.85rem;}.back:hover{color:#fff;}
+
+/* start */
+.start-wrap{max-width:620px;margin:0 auto;padding:2.5rem 1.25rem 4rem;}
+.logo{text-align:center;margin-bottom:1.6rem;}
+.logo .ic{font-size:3rem;}
+.logo h1{font-size:2.6rem;font-weight:900;letter-spacing:-1px;margin-top:.4rem;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.logo p{color:var(--dim);margin-top:.7rem;line-height:1.5;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem;margin-bottom:1rem;}
+.field{margin-bottom:1.1rem;}
+.field>label{display:block;font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin-bottom:.5rem;}
+input,select{width:100%;background:#0b1220;border:1px solid var(--line2);border-radius:10px;color:var(--ink);font-size:.95rem;padding:.7rem .85rem;outline:none;font-family:inherit;}
+input:focus,select:focus{border-color:var(--blue);}
+.pickrow{display:flex;gap:.6rem;flex-wrap:wrap;}
+.pill{flex:1;min-width:90px;background:var(--panel2);border:1px solid var(--line2);border-radius:12px;padding:.8rem;cursor:pointer;transition:.15s;text-align:center;}
+.pill:hover{border-color:var(--blue);}
+.pill.on{border-color:var(--blue);background:linear-gradient(160deg,rgba(59,130,246,.2),transparent);box-shadow:0 0 0 1px var(--blue) inset;}
+.pill .pn{font-weight:800;font-size:.9rem;}
+.pill .pd{font-size:.7rem;color:var(--dim);margin-top:.2rem;}
+.btn{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-weight:700;padding:.7rem 1.1rem;border-radius:10px;transition:.15s;font-size:.9rem;}
+.btn:hover{border-color:var(--blue);}
+.btn.pri{background:var(--grad);border:none;color:#04121f;}
+.btn.green{background:linear-gradient(120deg,#22c55e,#16a34a);border:none;color:#04210f;}
+.btn.gold{background:linear-gradient(120deg,#f5c451,#eab308);border:none;color:#2a1e00;}
+.btn.red{background:#7f1d1d;color:#fecaca;}
+.btn.big{width:100%;padding:1rem;font-size:1.05rem;}
+.btn.sm{padding:.45rem .7rem;font-size:.8rem;}
+.btn.ghost{background:transparent;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* game shell */
+.hdr{position:sticky;top:0;z-index:30;background:rgba(10,14,26,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:.55rem .9rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.hdr .co{font-weight:900;font-size:1rem;display:flex;align-items:center;gap:.4rem;}
+.hdr .co .dot{width:9px;height:9px;border-radius:50%;background:var(--cyan);}
+.hdr .stats{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:auto;}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:.3rem .6rem;display:flex;flex-direction:column;line-height:1.15;min-width:56px;}
+.stat .l{font-size:.56rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
+.stat .v{font-weight:800;font-size:.9rem;font-family:'Space Mono';}
+.stat .v.cash{color:var(--green);}.stat .v.rd{color:var(--cyan);}.stat .v.rep{color:var(--gold);}.stat .v.val{color:var(--purple);}
+
+.main{max-width:920px;margin:0 auto;padding:1rem 1rem 6rem;}
+.tabs{display:flex;gap:.4rem;overflow-x:auto;padding:.3rem 0 1rem;position:sticky;top:49px;background:var(--bg);z-index:20;}
+.tab{flex-shrink:0;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:.5rem .9rem;border-radius:10px;font-weight:700;font-size:.85rem;white-space:nowrap;}
+.tab.on{background:var(--panel);border-color:var(--blue);color:#fff;}
+.page{display:none;}.page.on{display:block;animation:fade .2s var(--ease);}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;}}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.15rem;margin-bottom:1rem;}
+.panel h2{font-size:1rem;font-weight:800;margin-bottom:.2rem;display:flex;align-items:center;gap:.4rem;}
+.panel .sub{color:var(--dim);font-size:.8rem;margin-bottom:.9rem;line-height:1.5;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem;}
+@media(max-width:620px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+.comp{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:.8rem;margin-bottom:.6rem;}
+.comp .top{display:flex;align-items:center;gap:.5rem;}
+.comp .ic{font-size:1.3rem;}
+.comp .nm{font-weight:800;font-size:.9rem;}
+.comp .tier{margin-left:auto;font-family:'Space Mono';font-size:.8rem;color:var(--cyan);}
+.bar{height:7px;background:#0b1220;border-radius:5px;overflow:hidden;margin-top:.5rem;border:1px solid var(--line);}
+.bar .fill{height:100%;background:var(--grad);border-radius:5px;transition:width .4s;}
+.comp .act{margin-top:.6rem;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;}
+.comp .cost{font-size:.75rem;color:var(--dim);}
+
+.slot{display:flex;align-items:center;gap:.6rem;padding:.55rem;background:var(--panel2);border:1px solid var(--line);border-radius:10px;margin-bottom:.5rem;}
+.slot .ic{font-size:1.15rem;}
+.slot .nm{font-weight:700;font-size:.85rem;flex:1;}
+.slot select{width:auto;flex:1;min-width:120px;padding:.4rem .5rem;font-size:.82rem;}
+
+.device{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:.9rem;margin-bottom:.7rem;}
+.device .top{display:flex;align-items:center;gap:.6rem;}
+.device .ic{font-size:1.6rem;}
+.device .nm{font-weight:800;}
+.device .ty{font-size:.72rem;color:var(--dim);}
+.device .q{margin-left:auto;text-align:right;}
+.device .q .qv{font-family:'Space Mono';font-weight:700;font-size:1.1rem;}
+.device .metrics{display:flex;gap:1rem;margin-top:.6rem;flex-wrap:wrap;font-size:.78rem;color:var(--dim);}
+.device .metrics b{color:var(--ink);font-family:'Space Mono';}
+.tag{display:inline-block;font-size:.62rem;font-weight:800;padding:.12rem .45rem;border-radius:5px;text-transform:uppercase;letter-spacing:.03em;}
+.tag.live{background:rgba(34,197,94,.16);color:#6ee7a0;}
+.tag.dead{background:rgba(148,163,184,.14);color:#a9b6cc;}
+.tag.hit{background:rgba(245,196,81,.18);color:#fcd34d;}
+.tag.flop{background:rgba(239,68,68,.16);color:#fca5a5;}
+
+.upg{display:flex;align-items:center;gap:.7rem;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:.8rem;margin-bottom:.6rem;}
+.upg .ic{font-size:1.5rem;}
+.upg .info{flex:1;}
+.upg .nm{font-weight:800;font-size:.9rem;}
+.upg .ds{font-size:.75rem;color:var(--dim);margin-top:.1rem;}
+.upg .lv{font-size:.7rem;color:var(--cyan);margin-top:.15rem;}
+
+.rival{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.85rem;}
+.rival:last-child{border:none;}
+.rival .ic{font-size:1.2rem;}
+.rival .nm{font-weight:700;}
+.rival .share{margin-left:auto;font-family:'Space Mono';color:var(--gold);}
+
+.log{max-height:180px;overflow-y:auto;font-size:.8rem;}
+.log .e{padding:.4rem 0;border-bottom:1px solid var(--line);color:var(--dim);line-height:1.4;}
+.log .e:last-child{border:none;}
+.log .e b{color:var(--ink);}
+.log .e.good b{color:var(--green);}.log .e.bad b{color:var(--red);}
+
+.advance{position:fixed;left:0;right:0;bottom:0;z-index:40;background:linear-gradient(0deg,var(--bg) 60%,transparent);padding:.8rem 1rem calc(.8rem + env(safe-area-inset-bottom,0));display:flex;justify-content:center;}
+.advance .btn{max-width:520px;width:100%;}
+
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px);}
+.modal.show{display:flex;}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:18px;max-width:460px;width:100%;padding:1.5rem;max-height:88vh;overflow-y:auto;}
+.modal h2{font-size:1.5rem;font-weight:900;margin-bottom:.4rem;}
+@media(max-width:520px){.modal{align-items:flex-end;padding:0;}.modal .box{max-width:100%;border-radius:18px 18px 0 0;}}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);padding:.7rem 1.15rem;border-radius:11px;font-weight:600;z-index:200;font-size:.86rem;max-width:90vw;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5);}
+.kv{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--line);font-size:.86rem;}
+.kv:last-child{border:none;}.kv .k{color:var(--dim);}
+.lb-row{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);}
+.lb-row:last-child{border:none;}
+.empty{color:var(--muted);text-align:center;padding:1.4rem;font-size:.85rem;}
+.pulse{animation:pulse 1.4s infinite;}@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div class="screen active" id="scr-start">
+  <div class="start-wrap">
+    <a class="back" href="index.html">← GXY Arcade</a>
+    <div class="logo">
+      <div class="ic">💻</div>
+      <h1>Technology Empire</h1>
+      <p>Found a tech company from a garage and build it into a global empire. Research components, design and launch your own devices, out-innovate rivals, and dominate every era of technology.</p>
+    </div>
+    <div class="card">
+      <div class="field">
+        <label>Choose your path</label>
+        <div class="pickrow" id="modePick"></div>
+      </div>
+      <div id="ceoSetup">
+      <div class="field">
+        <label>Company name</label>
+        <input id="coName" placeholder="e.g. Nexus Devices" maxlength="22" value="Nexus Devices">
+      </div>
+      <div class="field">
+        <label>Founder focus (starting bonus)</label>
+        <div class="pickrow" id="focusPick"></div>
+      </div>
+      <div class="field">
+        <label>Scenario</label>
+        <div class="pickrow" id="scenarioPick"></div>
+      </div>
+      <div class="field">
+        <label>Difficulty</label>
+        <div class="pickrow" id="diffPick"></div>
+      </div>
+      </div>
+      <div id="careerSetup" style="display:none;">
+      <div class="field">
+        <label>Your name</label>
+        <input id="playerName" placeholder="e.g. Alex Rivera" maxlength="22" value="Alex Rivera">
+      </div>
+      <div class="field">
+        <label>Your specialty (starting edge)</label>
+        <div class="pickrow" id="specPick"></div>
+      </div>
+      </div>
+      <button class="btn pri big" id="startBtn" onclick="startGame()">🚀 Found Company</button>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.8rem;" id="startBlurb">Reach the highest company valuation. Your best run goes on the arcade leaderboard.</p>
+    <button class="btn ghost big" style="margin-top:.6rem;" onclick="openAchievements()">🏅 Achievements</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="scr-game">
+  <div class="hdr">
+    <div class="co"><span class="dot"></span><span id="hCo">Company</span></div>
+    <div class="stats" id="hStats"></div>
+  </div>
+  <div class="main">
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-tab="dash">📊 Dashboard</button>
+      <button class="tab" data-tab="rd">🔬 R&amp;D Lab</button>
+      <button class="tab" data-tab="design">🎨 Design</button>
+      <button class="tab" data-tab="devices">📱 Devices</button>
+      <button class="tab" data-tab="company">🏢 Company</button>
+      <button class="tab" data-tab="market">🌐 Market</button>
+    </div>
+
+    <div class="page on" id="pg-dash"></div>
+    <div class="page" id="pg-rd"></div>
+    <div class="page" id="pg-design"></div>
+    <div class="page" id="pg-devices"></div>
+    <div class="page" id="pg-company"></div>
+    <div class="page" id="pg-market"></div>
+    <div class="page" id="pg-work"></div>
+    <div class="page" id="pg-offers"></div>
+  </div>
+  <div class="advance"><button class="btn gold big" id="advBtn" onclick="advanceQuarter()">▶ Next Quarter</button></div>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target===this&&window._allowClose!==false)closeModal()"><div class="box" id="modalBox"></div></div>
+<div id="toastMount"></div>
+<script>
+/* ===================== TECHNOLOGY EMPIRE — data ===================== */
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function money(n){ n=Math.round(n); const a=Math.abs(n); let s;
+  if(a>=1e9) s='$'+(n/1e9).toFixed(2)+'B'; else if(a>=1e6) s='$'+(n/1e6).toFixed(2)+'M';
+  else if(a>=1e3) s='$'+(n/1e3).toFixed(1)+'K'; else s='$'+n;
+  return s; }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function rnd(a,b){return a+Math.random()*(b-a);}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+/* founder focus bonuses */
+const FOCUS={
+  engineer:{key:'engineer',name:"Engineer",desc:"+R&D/qtr",emoji:"🔬"},
+  marketer:{key:'marketer',name:"Marketer",desc:"Hype is cheaper",emoji:"📣"},
+  investor:{key:'investor',name:"Investor",desc:"Extra starting cash",emoji:"💰"}
+};
+const DIFF={
+  easy:{key:'easy',name:"Startup",cash:120000,rd:60,rivalPower:0.8,years:12},
+  normal:{key:'normal',name:"Competitive",cash:80000,rd:40,rivalPower:1.0,years:10},
+  hard:{key:'hard',name:"Cutthroat",cash:50000,rd:30,rivalPower:1.25,years:8}
+};
+/* scenario starts — flavor + modifiers applied on top of difficulty */
+const SCENARIOS={
+  garage:{key:'garage',name:"Garage Startup",emoji:"🚪",desc:"Classic. Nothing but ambition.",mod:g=>{}},
+  funded:{key:'funded',name:"VC-Funded",emoji:"💸",desc:"Flush with cash, sky-high expectations.",mod:g=>{g.cash+=250000;g.rep=15;}},
+  turnaround:{key:'turnaround',name:"Turnaround",emoji:"🔧",desc:"Revive a failing company. Debt & low rep, but a head start on tech.",mod:g=>{g.cash-=40000;g.rep=8;COMPONENTS.forEach(c=>g.research[c.key]=2);}},
+  legacy:{key:'legacy',name:"Established Giant",emoji:"🏛️",desc:"Big rep and tech, but slow and rivals gun for you.",mod:g=>{g.rep=55;g.cash+=100000;COMPONENTS.forEach(c=>g.research[c.key]=3);g.rivals.forEach(r=>r.power*=1.2);}}
+};
+
+/* component categories: each has 6 tiers (0 = none/basic). name per tier for flavor. */
+const COMPONENTS=[
+  {key:'cpu',  name:"Processor", emoji:"⚙️", tiers:["8-bit","16-bit","32-bit","Dual-Core","Quad-Core","Neural Chip"]},
+  {key:'disp', name:"Display",   emoji:"🖥️", tiers:["Mono LCD","Color LCD","HD LCD","OLED","AMOLED","MicroLED"]},
+  {key:'batt', name:"Battery",   emoji:"🔋", tiers:["NiCd","NiMH","Li-Ion","Li-Poly","Graphene","Solid-State"]},
+  {key:'cam',  name:"Camera",    emoji:"📷", tiers:["None","VGA","2MP","12MP","48MP","Cinema"]},
+  {key:'body', name:"Materials", emoji:"🧱", tiers:["Plastic","Polycarbon","Aluminum","Glass","Titanium","Nano-Weave"]},
+  {key:'os',   name:"Software",  emoji:"💾", tiers:["Firmware","BasicOS","SmartOS","CloudOS","AI OS","QuantumOS"]}
+];
+/* tech eras — gate which tier is 'current', raise customer expectations */
+const ERAS=[
+  {name:"Era 1 · The Beginning", maxTier:1, expect:20, hype:1.0},
+  {name:"Era 2 · Going Digital",  maxTier:2, expect:38, hype:1.1},
+  {name:"Era 3 · The Smart Age",  maxTier:3, expect:55, hype:1.25},
+  {name:"Era 4 · Connected World",maxTier:4, expect:62, hype:1.4},
+  {name:"Era 5 · Intelligence",   maxTier:5, expect:70, hype:1.6}
+];
+/* device types: market size, base price band, which components matter most (weights) */
+const DEVICES=[
+  {key:'phone',  name:"Phone",     emoji:"📱", era:0, market:1.0,  base:300,  w:{cpu:.22,disp:.2,batt:.16,cam:.18,body:.12,os:.12}},
+  {key:'tablet', name:"Tablet",    emoji:"📟", era:0, market:0.7,  base:400,  w:{cpu:.2,disp:.26,batt:.16,cam:.08,body:.12,os:.18}},
+  {key:'laptop', name:"Laptop",    emoji:"💻", era:1, market:0.8,  base:800,  w:{cpu:.3,disp:.18,batt:.14,cam:.04,body:.14,os:.2}},
+  {key:'watch',  name:"Smartwatch",emoji:"⌚", era:2, market:0.5,  base:250,  w:{cpu:.18,disp:.2,batt:.24,cam:.02,body:.16,os:.2}},
+  {key:'buds',   name:"Earbuds",   emoji:"🎧", era:2, market:0.55, base:180,  w:{cpu:.14,disp:.0,batt:.3,cam:.0,body:.26,os:.3}},
+  {key:'console',name:"Console",   emoji:"🎮", era:3, market:0.65, base:500,  w:{cpu:.34,disp:.06,batt:.04,cam:.02,body:.18,os:.36}}
+];
+/* company upgrades (leveled) */
+const UPGRADES=[
+  {key:'lab',    name:"R&D Lab",       emoji:"🔬", desc:"+R&D generated each quarter", base:40000,  grow:1.6, effect:"+8 R&D/qtr per level"},
+  {key:'factory',name:"Factory",       emoji:"🏭", desc:"Lowers unit manufacturing cost", base:60000, grow:1.7, effect:"-6% unit cost per level"},
+  {key:'market', name:"Marketing Dept",emoji:"📣", desc:"More hype per marketing dollar", base:50000, grow:1.65,effect:"+15% hype efficiency per level"},
+  {key:'design', name:"Design Studio", emoji:"🎨", desc:"Quality bonus on new devices", base:70000, grow:1.7, effect:"+4% device quality per level"},
+  {key:'office', name:"HQ Expansion",  emoji:"🏢", desc:"Allows more devices on sale at once", base:90000, grow:1.9, effect:"+1 concurrent device per level"}
+];
+/* rival companies */
+const RIVAL_NAMES=["Vertex","Coreon","Zenith Tech","Lumina","Byte Dynamics","Apex Micro","Orbital"];
+/* random events */
+const EVENTS=[
+  {t:"📈 Tech Boom",  d:"Consumer spending surges this quarter — sales are up across the market.", f:g=>{g.eventMod=1.35;}, good:true},
+  {t:"📉 Recession",  d:"An economic downturn cools demand. Sales are down this quarter.", f:g=>{g.eventMod=0.7;}, good:false},
+  {t:"🔥 Viral Buzz", d:"One of your devices is trending online! Hype boosted.", f:g=>{g.hype+=25;}, good:true},
+  {t:"🛠️ Supply Shortage", d:"Component shortages raise your manufacturing costs this quarter.", f:g=>{g.eventCost=1.2;}, good:false},
+  {t:"🏆 Award Season", d:"Your brand won a design award — reputation up!", f:g=>{g.rep=clamp(g.rep+6,0,100);}, good:true},
+  {t:"🐞 Recall Scare", d:"A defect rumor hits — reputation takes a small hit.", f:g=>{g.rep=clamp(g.rep-7,0,100);}, good:false}
+];
+const DEVICE_ADJ=["Nova","Pulse","Edge","Prime","Air","Pro","Max","Fusion","Vibe","Aero","Spark","Zen","Flux","Core","Halo"];
+/* PR crises — decision events with real tradeoffs (CEO mode) */
+const CRISES=[
+  {t:"🔥 Product Recall",d:"A defect report is spreading. A voluntary recall is expensive but protects your brand.",
+   choices:[{label:"Recall & apologize (−cash, +rep)",f:g=>{g.cash-=Math.min(g.cash*0.15,400000);g.rep=clamp(g.rep+6,0,100);log("You issued a recall and owned the mistake. Customers respected it.","good");}},
+            {label:"Deny & downplay (risky)",f:g=>{ if(Math.random()<0.5){g.rep=clamp(g.rep-18,0,100);log("The cover-up backfired — reputation cratered.","bad");}else{g.rep=clamp(g.rep-4,0,100);log("It blew over, mostly.","");}}}]},
+  {t:"⚖️ Patent Lawsuit",d:"A rival claims you infringed their patent. Settle, or fight it in court?",
+   choices:[{label:"Settle quietly (−cash)",f:g=>{g.cash-=Math.min(g.cash*0.2,600000);log("You settled to make it disappear.","");}},
+            {label:"Fight in court (gamble)",f:g=>{ if(Math.random()<0.55){g.rep=clamp(g.rep+5,0,100);log("You won the case — vindicated!","good");}else{g.cash-=Math.min(g.cash*0.3,900000);g.rep=clamp(g.rep-8,0,100);log("You lost — costly and embarrassing.","bad");}}}]},
+  {t:"🔓 Data Breach",d:"Customer data may have leaked. How you respond defines the fallout.",
+   choices:[{label:"Full transparency (+rep, −hype)",f:g=>{g.rep=clamp(g.rep+4,0,100);g.hype=clamp(g.hype-15,0,100);log("You disclosed everything fast. Trust preserved.","good");}},
+            {label:"Stay quiet (risky)",f:g=>{ if(Math.random()<0.5){g.rep=clamp(g.rep-20,0,100);log("The breach leaked to press — trust shattered.","bad");}else{log("It stayed under wraps… for now.","");}}}]},
+  {t:"🌟 Star Poached",d:"A rival is trying to poach your star engineer with a huge offer.",
+   choices:[{label:"Counter-offer (−cash, keep talent)",f:g=>{g.cash-=200000;g.morale=clamp((g.morale||70)+8,0,100);log("You kept your star — the team's thrilled.","good");}},
+            {label:"Let them walk (−morale)",f:g=>{g.morale=clamp((g.morale||70)-15,0,100);g.rep=clamp(g.rep-3,0,100);log("Your star left for a rival. Morale dipped.","bad");}}]}
+];
+/* ===================== TECHNOLOGY EMPIRE — logic ===================== */
+const SETUP={mode:'ceo',focus:'engineer',diff:'normal',spec:'coder',scenario:'garage'};
+let G=null;
+
+/* ===================== CAREER MODE data ===================== */
+const MODES={
+  ceo:{key:'ceo',name:"CEO Mode",emoji:"👔",desc:"Found & run your own company"},
+  career:{key:'career',name:"Career Mode",emoji:"🧑‍💻",desc:"Climb from intern to CEO"}
+};
+const SPECIALTIES={
+  coder:{key:'coder',name:"Engineer",emoji:"⌨️",desc:"+innovation from your work"},
+  designer:{key:'designer',name:"Designer",emoji:"✏️",desc:"+product quality impact"},
+  hustler:{key:'hustler',name:"Hustler",emoji:"🔥",desc:"+performance from projects"},
+  visionary:{key:'visionary',name:"Visionary",emoji:"💡",desc:"faster promotions"}
+};
+/* the career ladder — role, title, salary band, XP to promote, responsibilities unlock */
+const LADDER=[
+  {key:'intern',   title:"Intern",              salary:38000,  xp:100,  reports:0,  power:0.1},
+  {key:'junior',   title:"Junior Engineer",     salary:78000,  xp:220,  reports:0,  power:0.2},
+  {key:'engineer', title:"Engineer",            salary:120000, xp:400,  reports:0,  power:0.35},
+  {key:'senior',   title:"Senior Engineer",     salary:165000, xp:650,  reports:2,  power:0.5},
+  {key:'lead',     title:"Tech Lead",           salary:210000, xp:950,  reports:5,  power:0.65},
+  {key:'manager',  title:"Engineering Manager", salary:260000, xp:1350, reports:12, power:0.8},
+  {key:'director', title:"Director",            salary:340000, xp:1850, reports:30, power:1.0},
+  {key:'vp',       title:"VP of Product",       salary:450000, xp:2500, reports:80, power:1.3},
+  {key:'cto',      title:"CTO",                 salary:650000, xp:3400, reports:200,power:1.7},
+  {key:'ceo',      title:"CEO",                 salary:1200000,xp:99999,reports:999,power:2.5}
+];
+/* work projects you take on each quarter to earn XP + performance */
+const PROJECTS=[
+  {key:'bugfix', name:"Fix critical bugs",     emoji:"🐞", xp:18, perf:6,  risk:0.05, minRole:0, desc:"Safe, steady points."},
+  {key:'feature',name:"Ship a new feature",    emoji:"✨", xp:30, perf:10, risk:0.12, minRole:0, desc:"Solid growth, small risk."},
+  {key:'refactor',name:"Lead a refactor",      emoji:"🧹", xp:26, perf:5,  risk:0.08, minRole:2, desc:"Long-term cred with peers."},
+  {key:'launch', name:"Own a product launch",  emoji:"🚀", xp:55, perf:22, risk:0.25, minRole:3, desc:"High reward, real risk."},
+  {key:'moonshot',name:"Pitch a moonshot",     emoji:"🌙", xp:90, perf:38, risk:0.45, minRole:4, desc:"Career-defining gamble."},
+  {key:'politics',name:"Play office politics", emoji:"🎭", xp:12, perf:18, risk:0.2,  minRole:1, desc:"Boost standing, risk trust."},
+  {key:'mentor', name:"Mentor the team",       emoji:"🧑‍🏫", xp:20, perf:8, risk:0.02, minRole:3, desc:"Builds loyalty & morale."}
+];
+function newCareer(){
+  const spec=SPECIALTIES[SETUP.spec]||SPECIALTIES.coder;
+  const startCo=pick(RIVAL_NAMES);
+  G={
+    mode:'career',
+    playerName:($('#playerName')&&$('#playerName').value||'Alex Rivera').slice(0,22),
+    spec:spec.key, diff:SETUP.diff,
+    roleIdx:0, xp:0, perf:50, morale:75, reputation:20, // personal rep among the industry
+    company:startCo, companyStanding:rnd(35,60), // your employer's health 0-100
+    cash:0, // personal savings
+    year:1, quarter:1, age:24, retireAge:65,
+    projectDraft:null, offers:[], log:[], over:false,
+    boss:pick(["Dana Wells","Marcus Kane","Priya Rao","Tom Becker","Yuki Tanaka"]),
+    promo:null, peakRole:0
+  };
+  log("Started as an <b>"+LADDER[0].title+"</b> at <b>"+esc(startCo)+"</b>. The climb begins.","good");
+  const pl=prestigeLevel(); if(pl>0){ G.reputation=clamp(G.reputation+pl*2,0,100); G.xp+=pl*15; G._prestige=pl; }
+  computeCareer();
+}
+function role(){ return LADDER[G.roleIdx]; }
+function computeCareer(){
+  G.cash=G.cash||0;
+  if(G.roleIdx>G.peakRole) G.peakRole=G.roleIdx;
+  // career "score" = how high you climbed × industry rep × savings
+  G.careerScore=Math.round((G.roleIdx+1)*8000 + G.reputation*1500 + G.cash*0.5 + G.xp*10);
+  if(window.gxyAch){ if(G.roleIdx>=5)window.gxyAch.unlock('te_manager'); if(G.roleIdx>=9)window.gxyAch.unlock('te_ceo_career'); }
+}
+
+function newGame(){
+  const d=DIFF[SETUP.diff];
+  G={
+    name:($('#coName').value||'Nexus Devices').slice(0,22),
+    focus:SETUP.focus, diff:SETUP.diff,
+    cash:d.cash, rd:d.rd, rep:20, hype:0,
+    quarter:1, year:1, maxYears:d.years, era:0,
+    research:{}, // key -> unlocked tier (0 = base tier available)
+    devices:[], // {id,name,type,quality,price,unitCost,comps,launchedQ,sales,revenue,units,status,peak}
+    upgrades:{lab:0,factory:0,market:0,design:0,office:0},
+    rivals:[], log:[], eventMod:1, eventCost:1, over:false, valuation:0, peakVal:0,
+    designDraft:null,
+    // CEO endgame systems
+    isPublic:false, sharePrice:0, boardTarget:0, boardMood:60, boardWarnings:0,
+    employees:{eng:2,design:1,market:1}, morale:70, acqOffers:[], ownedCompanies:[], brands:{}
+  };
+  // starting research: everyone begins with tier 0 in all components
+  COMPONENTS.forEach(c=>{ G.research[c.key]=0; });
+  // founder bonus
+  if(G.focus==='investor') G.cash+=50000;
+  if(G.focus==='engineer') G.rd+=25;
+  // rivals
+  const names=RIVAL_NAMES.slice().sort(()=>Math.random()-0.5).slice(0,4);
+  G.rivals=names.map((n,i)=>({name:n, emoji:pick(["🔺","🟣","🟢","🔵","🟠"]), share:rnd(12,20), power:DIFF[SETUP.diff].rivalPower*rnd(.9,1.15)}));
+  // apply scenario modifiers
+  G.scenario=SETUP.scenario||'garage';
+  const sc=SCENARIOS[G.scenario]; if(sc&&sc.mod) sc.mod(G);
+  // prestige legacy bonus (permanent, grows across runs)
+  const pl=prestigeLevel(); if(pl>0){ G.cash+=pl*15000; G.rd+=pl*5; G._prestige=pl; }
+  computeValuation();
+  log("Founded <b>"+esc(G.name)+"</b>"+(G.scenario!=='garage'?' ('+SCENARIOS[G.scenario].name+')':'')+". Let's build an empire!","good");
+}
+
+function log(html,cls){ G.log.unshift({html,cls:cls||''}); if(G.log.length>40)G.log.pop(); }
+
+/* researched tier for a component (what you can currently put in devices) */
+function compTier(key){ return G.research[key]||0; }
+/* cost to research the NEXT tier of a component */
+function researchCost(key){
+  const next=compTier(key)+1;
+  if(next>5) return null;
+  const rdCost=Math.round(30+next*next*22);
+  const cashCost=Math.round(6000*Math.pow(1.6,next-1));
+  return {next, rd:rdCost, cash:cashCost, name:COMPONENTS.find(c=>c.key===key).tiers[next]};
+}
+function canResearch(key){
+  const rc=researchCost(key); if(!rc) return false;
+  if(rc.next>ERAS[G.era].maxTier+1) return false; // can't leap too far past current era
+  return G.rd>=rc.rd && G.cash>=rc.cash;
+}
+function doResearch(key){
+  const rc=researchCost(key); if(!rc) return;
+  if(rc.next>ERAS[G.era].maxTier+1){ toast("That tier is beyond the current era."); return; }
+  if(G.rd<rc.rd){ toast("Not enough R&D points."); return; }
+  if(G.cash<rc.cash){ toast("Not enough cash."); return; }
+  G.rd-=rc.rd; G.cash-=rc.cash; G.research[key]=rc.next;
+  if(window.gxyAch && G.research[key]>=5) window.gxyAch.unlock('te_maxline');
+  log("Researched <b>"+esc(rc.name)+"</b> ("+COMPONENTS.find(c=>c.key===key).name+").","good");
+  renderAll();
+}
+
+/* ---- device design ---- */
+function newDraft(typeKey){
+  const t=DEVICES.find(d=>d.key===typeKey);
+  const comps={}; COMPONENTS.forEach(c=>{ comps[c.key]=compTier(c.key); });
+  G.designDraft={ type:typeKey, comps, price:t.base, marketing:0, name:suggestName(t) };
+}
+function suggestName(t){ return pick(DEVICE_ADJ)+" "+t.name; }
+function draftQuality(){
+  const dr=G.designDraft; if(!dr) return 0;
+  const t=DEVICES.find(d=>d.key===dr.type);
+  let q=0;
+  const eraMax=Math.max(1,ERAS[G.era].maxTier);
+  COMPONENTS.forEach(c=>{
+    const tier=dr.comps[c.key]||0; const w=t.w[c.key]||0;
+    q += Math.min(1, tier/eraMax)*100*w;
+  });
+  // design studio bonus
+  q *= (1 + G.upgrades.design*0.04);
+  return clamp(Math.round(q),1,100);
+}
+function draftUnitCost(){
+  const dr=G.designDraft; if(!dr) return 0;
+  let cost=0;
+  COMPONENTS.forEach(c=>{ const tier=dr.comps[c.key]||0; cost += tier*tier*7 + tier*12; });
+  cost += 40; // assembly
+  cost *= (1 - G.upgrades.factory*0.06);
+  cost *= G.eventCost;
+  return Math.max(20,Math.round(cost));
+}
+function maxDevices(){ return 2 + G.upgrades.office; }
+function liveDevices(){ return G.devices.filter(d=>d.status==='live'); }
+
+function launchDevice(){
+  const dr=G.designDraft; if(!dr) return;
+  if(liveDevices().length>=maxDevices()){ toast("Max devices on sale reached — expand HQ or retire one."); return; }
+  const t=DEVICES.find(d=>d.key===dr.type);
+  const unitCost=draftUnitCost();
+  const quality=draftQuality();
+  if(dr.price<unitCost){ toast("Price is below unit cost — you'd lose money on every sale."); return; }
+  const mkCost=dr.marketing;
+  if(mkCost>G.cash){ toast("Not enough cash for that marketing budget."); return; }
+  G.cash-=mkCost;
+  const hypeGain=Math.sqrt(mkCost/1000)*6*(1+G.upgrades.market*0.15)*(G.focus==='marketer'?1.25:1);
+  G.hype=clamp(G.hype+hypeGain,0,100);
+  // product-line generations: detect brand line from the name (strip trailing numbers/gen markers)
+  G.brands=G.brands||{};
+  const lineKey=dr.lineKey || (dr.name||suggestName(t)).replace(/\s*\d+$/,'').replace(/\s*(II|III|IV|Pro|Max|Plus)$/i,'').trim().toLowerCase();
+  const brand=G.brands[lineKey]||{gen:0, loyalty:0, bestUnits:0};
+  const gen=brand.gen+1;
+  // brand loyalty gives a sales floor for sequels; strong predecessors boost the sequel
+  const loyaltyBonus=brand.loyalty;
+  const dev={ id:'d'+Date.now()+Math.floor(Math.random()*999), name:dr.name||suggestName(t),
+    type:dr.type, typeName:t.name, emoji:t.emoji, quality, price:Math.round(dr.price), unitCost,
+    comps:Object.assign({},dr.comps), launchedQ:absQuarter(), sales:0, revenue:0, units:0,
+    status:'live', peak:0, age:0, launchEra:G.era, reception:null,
+    lineKey, gen, loyaltyBonus };
+  G.devices.unshift(dev);
+  G.brands[lineKey]={gen, loyalty:brand.loyalty, bestUnits:brand.bestUnits};
+  log("Launched <b>"+esc(dev.name)+"</b>"+(gen>1?' <span style="color:var(--purple);">(Gen '+gen+')</span>':'')+" — quality "+quality+", priced "+money(dev.price)+"."+(loyaltyBonus>0?' Brand loyalty is helping this launch.':''),"good");
+  if(gen>=3 && window.gxyAch) window.gxyAch.unlock('te_dynasty');
+  G.designDraft=null;
+  if(window.gxyAch){ window.gxyAch.unlock('te_first_device'); }
+  showTab('devices'); renderAll();
+}
+function retireDevice(id){
+  const d=G.devices.find(x=>x.id===id); if(!d) return;
+  d.status='retired';
+  log("Retired <b>"+esc(d.name)+"</b> after "+d.units.toLocaleString()+" units sold.","");
+  renderAll();
+}
+
+function absQuarter(){ return (G.year-1)*4 + G.quarter; }
+
+/* ---- company upgrades ---- */
+function upgradeCost(key){ const u=UPGRADES.find(x=>x.key===key); const lv=G.upgrades[key]; return Math.round(u.base*Math.pow(u.grow,lv)); }
+function buyUpgrade(key){
+  const cost=upgradeCost(key);
+  if(G.cash<cost){ toast("Not enough cash."); return; }
+  G.cash-=cost; G.upgrades[key]++;
+  const u=UPGRADES.find(x=>x.key===key);
+  log("Upgraded <b>"+u.name+"</b> to level "+G.upgrades[key]+".","good");
+  renderAll();
+}
+
+/* ---- quarterly sim ---- */
+function rdPerQuarter(){ return Math.round(20 + G.upgrades.lab*8 + (G.focus==='engineer'?8:0) + G.rep*0.2); }
+
+function simDevice(d){
+  const t=DEVICES.find(x=>x.key===d.type);
+  const era=ERAS[G.era];
+  d.age++;
+  // how well quality meets current era expectation
+  const meets = d.quality - era.expect;                 // positive = exceeds expectation
+  let appeal = clamp(50 + meets*1.4, 3, 100);
+  // price sensitivity: compare price to a fair price for this quality/type
+  const fair = t.base * (0.5 + d.quality/100*1.1);
+  const priceRatio = d.price/fair;
+  const priceFactor = clamp(1.5 - priceRatio*0.75, 0.15, 1.6); // cheaper => sells more
+  // hype + reputation + brand
+  const hypeF = 1 + G.hype/140;
+  const repF = 0.6 + G.rep/100*0.8;
+  // market size vs rivals
+  const rivalPressure = 1 - clamp(G.rivals.reduce((a,r)=>a+r.share,0)/100*0.5,0,0.45);
+  // age decay — devices sell less as they get older / era moves on
+  const ageDecay = Math.pow(0.82, d.age-1) * Math.pow(0.7, Math.max(0,G.era-d.launchEra));
+  // brand loyalty: a sequel's fans return (a sales multiplier that scales with the line's earned loyalty)
+  const loyaltyMult = 1 + ((d.loyaltyBonus||0)/100)*0.6;
+  let units = 9000 * t.market * (appeal/100) * priceFactor * hypeF * repF * rivalPressure * ageDecay * G.eventMod * loyaltyMult;
+  units *= rnd(0.85,1.15);
+  units = Math.max(0, Math.round(units));
+  const rev = units*(d.price - d.unitCost);
+  d.units+=units; d.revenue+=rev; d.sales=units;
+  if(units>d.peak) d.peak=units;
+  // reception label after first quarter
+  if(d.age===1){
+    if(appeal>=75 && units>4000){ d.reception='hit'; G.rep=clamp(G.rep+5,0,100); if(window.gxyAch)window.gxyAch.unlock('te_hit'); log("<b>"+esc(d.name)+"</b> is a hit! 🔥","good");
+      if(G.brands&&d.lineKey&&G.brands[d.lineKey]){ G.brands[d.lineKey].loyalty=clamp(G.brands[d.lineKey].loyalty+22,0,100); } }
+    else if(appeal<35 || units<800){ d.reception='flop'; G.rep=clamp(G.rep-4,0,100); log("<b>"+esc(d.name)+"</b> underwhelmed the market.","bad");
+      if(G.brands&&d.lineKey&&G.brands[d.lineKey]){ G.brands[d.lineKey].loyalty=clamp(G.brands[d.lineKey].loyalty-15,0,100); } }
+    else { d.reception='ok'; if(G.brands&&d.lineKey&&G.brands[d.lineKey]){ G.brands[d.lineKey].loyalty=clamp(G.brands[d.lineKey].loyalty+8,0,100); } }
+  }
+  // retire naturally when sales dry up
+  if(d.age>2 && units<300){ d.status='live'; }
+  return {units, rev};
+}
+
+function advanceQuarter(){
+  if(G.over) return;
+  if(isCareer()){ return advanceCareerQuarter(); }
+  // event roll (30% chance)
+  G.eventMod=1; G.eventCost=1; let ev=null;
+  if(Math.random()<0.32){ ev=pick(EVENTS); ev.f(G); }
+  // sim all live devices
+  let qUnits=0, qRev=0;
+  liveDevices().forEach(d=>{ const r=simDevice(d); qUnits+=r.units; qRev+=r.rev; });
+  G.cash+=qRev;
+  // R&D generation
+  const rdGain=rdPerQuarter(); G.rd+=rdGain;
+  // hype + rep natural decay
+  G.hype=clamp(G.hype-8,0,100);
+  // rivals evolve: shares drift, respond to your success
+  G.rivals.forEach(r=>{ r.share=clamp(r.share + rnd(-1.5,1.5)*r.power - (G.rep>60?0.4:0), 4, 40); });
+  // ops cost (salaries scale with company)
+  const ops=Math.round(3000 + G.upgrades.lab*1500 + G.upgrades.office*2500 + liveDevices().length*1200);
+  G.cash-=ops;
+  // advance clock
+  G.quarter++;
+  if(G.quarter>4){ G.quarter=1; G.year++; onNewYear(); }
+  // era progression: every ~2.4 years or by valuation
+  computeValuation();
+  const targetEra=Math.min(ERAS.length-1, Math.floor((G.year-1)/2.4));
+  if(targetEra>G.era){ G.era=targetEra; log("A new era begins: <b>"+ERAS[G.era].name+"</b>. Customer expectations rise.","good"); }
+  // CEO endgame systems: rivals act, IPO, board targets, acquisitions
+  if(ceoSystemsQuarter()===false || G.over) { if(G.over) return; }
+  // log the quarter
+  let line="Q"+((G.quarter-2+4)%4+1)+" results: "+qUnits.toLocaleString()+" units, "+money(qRev)+" revenue.";
+  log(line + (ev?" · "+ev.t:""), qRev>ops?'good':'');
+  if(ev) log("<b>"+ev.t+"</b> — "+ev.d, ev.good?'good':'bad');
+  // bankruptcy / end
+  if(G.cash<-50000){ endGame("bankrupt"); return; }
+  if(G.year>G.maxYears){ endGame("retire"); return; }
+  renderAll();
+  if(window.teAutosave) teAutosave();
+  if(ev){ showModal('<h2>'+ev.t+'</h2><p style="color:var(--dim);line-height:1.6;margin:.5rem 0 1.2rem;">'+esc(ev.d)+'</p><button class="btn pri big" onclick="closeModal()">Continue</button>'); window._allowClose=true; }
+  else if(G._crisisPending){ showCrisis(); }
+}
+function showCrisis(){
+  const c=G._crisisPending; if(!c) return;
+  window._allowClose=false;
+  showModal('<h2>'+c.t+'</h2><p style="color:var(--dim);line-height:1.6;margin:.5rem 0 1.2rem;">'+esc(c.d)+'</p>'+
+    c.choices.map((ch,i)=>'<button class="btn '+(i===0?'pri':'ghost')+' big" style="margin-bottom:.5rem;" onclick="resolveCrisis('+i+')">'+esc(ch.label)+'</button>').join(''));
+}
+function resolveCrisis(i){
+  const c=G._crisisPending; if(!c) return; const ch=c.choices[i]; if(ch&&ch.f) ch.f(G);
+  G._crisisPending=null; window._allowClose=true; closeModal(); computeValuation(); renderAll();
+}
+window.resolveCrisis=resolveCrisis;
+function onNewYear(){ /* hook for yearly effects */ }
+
+/* ===================== CEO MODE — endgame systems (IPO, board, acquisitions, rivals) ===================== */
+function ceoSystemsQuarter(){
+  // PR crisis: occasional decision event with real tradeoffs
+  if(G.devices.length>=1 && Math.random()<0.14 && !G._crisisPending){
+    G._crisisPending=pick(CRISES);
+  }
+  // active rivals: launch their own products, gain/lose share, can price-war
+  G.rivals.forEach(r=>{
+    r.mood = r.mood||'steady';
+    if(Math.random()<0.25){ // rival launches something
+      const hit=Math.random()<0.4;
+      r.share=clamp(r.share+(hit?rnd(2,5):rnd(-1,2)),4,45);
+      if(hit && G.rep<70 && Math.random()<0.5) log("📱 <b>"+esc(r.name)+"</b> launched a hit product — they're gaining ground.","bad");
+    }
+    if(r.share>32 && Math.random()<0.3){ r.mood='aggressive'; }
+  });
+  // IPO offer when big enough
+  if(!G.isPublic && G.valuation>3e6 && !G._ipoOffered){ G._ipoOffered=true; offerIPO(); }
+  // board sets a target each year (public companies)
+  if(G.isPublic){
+    if(G.quarter===1){ G.boardTarget=Math.round(G.valuation*rnd(1.12,1.25)); log("🏛️ The board sets this year's growth target: <b>"+money(G.boardTarget)+"</b> valuation.",""); }
+    // board mood tracks whether you're hitting targets
+    const onTrack=G.valuation>=G.boardTarget*(0.7+G.quarter*0.075);
+    G.boardMood=clamp(G.boardMood+(onTrack?3:-6),0,100);
+    if(G.boardMood<22){ G.boardWarnings++; log("⚠️ The board is losing patience with performance ("+G.boardWarnings+"/3 warnings).","bad");
+      if(G.boardWarnings>=3){ return endGame('fired'); }
+    }
+    // share price tracks valuation + mood + hype
+    G.sharePrice=Math.max(1, Math.round((G.valuation/1e5) * (0.6+G.boardMood/160) * (0.9+G.hype/300)));
+  }
+  // acquisition offers for you to BUY rivals
+  if(G.cash>1.5e6 && Math.random()<0.15 && G.acqOffers.length<1){
+    const target=pick(G.rivals.filter(r=>r.share<22)); if(target){ G.acqOffers.push({name:target.name, price:Math.round(target.share*180000*rnd(.9,1.3)), share:target.share}); log("🤝 <b>"+esc(target.name)+"</b> could be acquired — see the Company tab.",""); }
+  }
+  // big acquisition offer FOR your company (a win condition)
+  if(G.valuation>2e7 && Math.random()<0.1 && !G._bigOffer){ G._bigOffer=true; offerBuyout(); }
+}
+function offerIPO(){
+  window._allowClose=false;
+  showModal('<h2>🏛️ Time to go public?</h2><p style="color:var(--dim);line-height:1.6;margin:.5rem 0 1rem;">Your company has grown enough to IPO. Going public gives a big cash infusion and unlocks share price — but the <b>board</b> will set growth targets, and repeated misses can get you fired.</p>'+
+    '<button class="btn pri big" onclick="doIPO()">📈 Go Public (IPO)</button>'+
+    '<button class="btn ghost big" style="margin-top:.5rem;" onclick="window._allowClose=true;closeModal()">Stay private for now</button>');
+}
+function doIPO(){ window._allowClose=true; closeModal(); G.isPublic=true; const raise=Math.round(G.valuation*0.3); G.cash+=raise; G.boardMood=65;
+  log("🔔 <b>"+esc(G.name)+"</b> went public! Raised "+money(raise)+" in the IPO.","good"); if(window.gxyAch)window.gxyAch.unlock('te_ipo'); renderAll(); }
+function offerBuyout(){
+  const price=Math.round(G.valuation*rnd(1.3,1.7));
+  window._allowClose=false;
+  showModal('<h2>💰 Acquisition Offer!</h2><p style="color:var(--dim);line-height:1.6;margin:.5rem 0 1rem;">A tech giant wants to acquire <b>'+esc(G.name)+'</b> for <b style="color:var(--green);">'+money(price)+'</b>. Take the money and cement your legacy, or stay independent and keep building?</p>'+
+    '<button class="btn pri big" onclick="acceptBuyout('+price+')">🤝 Sell for '+money(price)+'</button>'+
+    '<button class="btn ghost big" style="margin-top:.5rem;" onclick="window._allowClose=true;closeModal()">Stay independent</button>');
+}
+function acceptBuyout(price){ window._allowClose=true; G.cash+=price; G.peakVal=Math.max(G.peakVal,price); log("🏆 You sold "+esc(G.name)+" for "+money(price)+"!","good"); endGame('acquired'); }
+function buyRival(i){ const o=G.acqOffers[i]; if(!o||G.cash<o.price){ toast("Not enough cash to acquire."); return; }
+  G.cash-=o.price; const r=G.rivals.find(x=>x.name===o.name); if(r){ G.rivals.splice(G.rivals.indexOf(r),1); }
+  G.ownedCompanies.push(o.name); G.rep=clamp(G.rep+5,0,100); G.acqOffers.splice(i,1);
+  log("🏢 Acquired <b>"+esc(o.name)+"</b> for "+money(o.price)+"! Their market share is now yours.","good");
+  if(window.gxyAch)window.gxyAch.unlock('te_acquire'); renderAll();
+}
+window.doIPO=doIPO; window.acceptBuyout=acceptBuyout; window.buyRival=buyRival;
+
+/* ===================== CAREER MODE — logic ===================== */
+function careerProjects(){ return PROJECTS.filter(p=>G.roleIdx>=p.minRole); }
+function takeProject(key){
+  const p=PROJECTS.find(x=>x.key===key); if(!p) return;
+  G.projectDraft=key; renderAll();
+}
+function specMods(){
+  const s=G.spec;
+  return { xp:(s==='coder'?1.2:1)*(s==='visionary'?1.15:1), perf:(s==='hustler'?1.25:1)*(s==='designer'?1.12:1) };
+}
+function advanceCareerQuarter(){
+  if(G.over) return;
+  const pk=G.projectDraft||'bugfix'; const p=PROJECTS.find(x=>x.key===pk)||PROJECTS[0];
+  const mods=specMods();
+  // outcome roll
+  const roll=Math.random(); const failed=roll < p.risk*(1.1-(role().power*0.15));
+  let xpGain=Math.round(p.xp*mods.xp*(0.8+Math.random()*0.5));
+  let perfGain=Math.round(p.perf*mods.perf*(0.8+Math.random()*0.5));
+  if(failed){ xpGain=Math.round(xpGain*0.3); perfGain=-Math.round(Math.abs(p.perf)*rnd(0.6,1.1));
+    log("⚠️ <b>"+p.name+"</b> didn't go to plan. A setback, but you learn.","bad"); G.morale=clamp(G.morale-8,0,100);
+  } else {
+    log("✅ <b>"+p.name+"</b> — solid work. +"+xpGain+" XP.","good"); G.morale=clamp(G.morale+3,0,100);
+    if(pk==='moonshot'){ log("🌙 Your moonshot turned heads across the industry!","good"); G.reputation=clamp(G.reputation+10,0,100); }
+    if(pk==='mentor'){ G.morale=clamp(G.morale+5,0,100); }
+    if(pk==='politics'){ G.reputation=clamp(G.reputation-2,0,100); }
+  }
+  G.xp+=Math.max(0,xpGain); G.perf=clamp(G.perf+perfGain,0,100);
+  G.reputation=clamp(G.reputation + (failed?-1:1)*rnd(0.5,2), 0, 100);
+  // salary → savings (quarterly, minus living costs)
+  const q=role().salary/4; const living=q*rnd(0.55,0.7); G.cash+=Math.round(q-living);
+  // employer standing drifts; can trigger layoffs / opportunities
+  G.companyStanding=clamp(G.companyStanding + rnd(-6,6) + (G.roleIdx>=6?G.perf*0.02:0), 5, 100);
+  // promotion check
+  const need=role().xp;
+  if(G.xp>=need && G.roleIdx<LADDER.length-1){
+    if(G.perf>=55 || G.roleIdx<2){ promote(); }
+    else { log("You've got the experience to move up, but your performance review ("+Math.round(G.perf)+"/100) is holding you back.","bad"); }
+  }
+  // random career events
+  careerEvent();
+  // job offers appear when you're doing well
+  if(G.perf>65 && G.reputation>45 && Math.random()<0.22 && G.offers.length<2){ generateOffer(); }
+  // layoff risk if company is failing and you're junior
+  if(G.companyStanding<20 && G.roleIdx<5 && Math.random()<0.25){
+    log("💼 Layoffs hit "+esc(G.company)+". You survived — barely.","bad"); G.morale=clamp(G.morale-12,0,100);
+    if(G.companyStanding<12 && Math.random()<0.5){ layoff(); return; }
+  }
+  // advance clock
+  G.projectDraft=null;
+  G.quarter++; if(G.quarter>4){ G.quarter=1; G.year++; G.age++; }
+  computeCareer();
+  if(G.roleIdx>=LADDER.length-1){ return endCareer('ceo'); }
+  if(G.age>=G.retireAge){ return endCareer('retire'); }
+  renderAll(); if(window.teAutosave) teAutosave();
+}
+function promote(){
+  G.roleIdx++; G.xp=0; G.perf=clamp(G.perf-8,40,100); // reset XP, slight reset as you prove yourself anew
+  const r=role();
+  G.promo=r.title;
+  log("🎉 <b>PROMOTED to "+r.title+"!</b> New salary: "+money(r.salary)+"/yr.","good");
+  window._allowClose=false;
+  showModal('<h2>🎉 Promotion!</h2><p style="color:var(--dim);line-height:1.6;margin:.5rem 0 1rem;">You\'ve been promoted to <b style="color:var(--gold);">'+esc(r.title)+'</b> at '+esc(G.company)+'.<br>Salary: <b class="mono">'+money(r.salary)+'</b>/year'+(r.reports?' · Now leading '+r.reports+' people':'')+'.</p>'+
+    (G.roleIdx===LADDER.length-1?'<p style="color:var(--gold);font-weight:700;">You\'ve reached the top. You are the CEO.</p>':'')+
+    '<button class="btn pri big" onclick="window._allowClose=true;closeModal();renderAll()">'+(G.roleIdx===LADDER.length-1?'Take the throne':'Keep climbing')+'</button>');
+}
+function careerEvent(){
+  if(Math.random()>0.35) return;
+  const evs=[
+    ()=>{ G.morale=clamp(G.morale+10,0,100); log("☕ A great sprint — the team's energized. Morale up.","good"); },
+    ()=>{ G.morale=clamp(G.morale-10,0,100); log("😩 Crunch time and burnout. Morale down.","bad"); },
+    ()=>{ G.reputation=clamp(G.reputation+6,0,100); log("🎤 You spoke at a conference — industry rep up.","good"); },
+    ()=>{ G.perf=clamp(G.perf+8,0,100); log("👏 Your boss "+esc(G.boss)+" praised your work in the all-hands.","good"); },
+    ()=>{ G.perf=clamp(G.perf-8,0,100); log("📉 A missed deadline dinged your last review.","bad"); },
+    ()=>{ G.companyStanding=clamp(G.companyStanding+12,0,100); log("📈 "+esc(G.company)+" had a blockbuster quarter — stock's up.","good"); }
+  ];
+  pick(evs)();
+}
+function generateOffer(){
+  const co=pick(RIVAL_NAMES.filter(n=>n!==G.company));
+  const bump=rnd(1.15,1.5); const newRole=Math.min(LADDER.length-1, G.roleIdx + (Math.random()<0.3?1:0));
+  const off={company:co, role:newRole, salary:Math.round(LADDER[newRole].salary*bump), signing:Math.round(rnd(10000,60000)*(G.roleIdx+1))};
+  G.offers.push(off);
+  log("📬 Job offer from <b>"+esc(co)+"</b> — "+LADDER[newRole].title+", "+money(off.salary)+"/yr.","good");
+}
+function acceptOffer(i){
+  const o=G.offers[i]; if(!o) return;
+  G.company=o.company; G.roleIdx=o.role; G.cash+=o.signing; G.companyStanding=rnd(45,70); G.offers=[]; G.xp=Math.round(G.xp*0.6);
+  log("🤝 You joined <b>"+esc(o.company)+"</b> as "+LADDER[o.role].title+"! Signing bonus "+money(o.signing)+".","good");
+  computeCareer(); renderAll();
+}
+function declineOffer(i){ G.offers.splice(i,1); renderAll(); }
+function layoff(){
+  log("💥 You were laid off from "+esc(G.company)+".","bad");
+  const co=pick(RIVAL_NAMES.filter(n=>n!==G.company));
+  G.company=co; G.companyStanding=rnd(35,60); G.roleIdx=Math.max(0,G.roleIdx-1); G.morale=clamp(G.morale-15,0,100); G.xp=Math.round(G.xp*0.5);
+  log("You landed on your feet at <b>"+esc(co)+"</b> as "+role().title+". Time to rebuild.","");
+  renderAll();
+}
+function endCareer(reason){
+  if(G.over) return; G.over=true; if(window.teClearSave) teClearSave();
+  computeCareer(); const score=G.careerScore; G.finalScore=score;
+  if(window.gxyReportScore) window.gxyReportScore(score);
+  grantPrestige();
+  window._allowClose=false;
+  const madeCEO=G.roleIdx>=LADDER.length-1;
+  const title=madeCEO?"👑 You Made It — CEO!":"🎓 Career Retrospective";
+  const msg=madeCEO
+    ? "You climbed all the way from "+LADDER[0].title+" to CEO of "+esc(G.company)+". A legendary career."
+    : "You retired at age "+G.age+" as "+role().title+" at "+esc(G.company)+". Not a bad run at all.";
+  showModal('<h2>'+title+'</h2><p style="color:var(--dim);margin:.3rem 0 1rem;font-size:.9rem;">'+msg+'</p>'+
+    '<div class="kv"><span class="k">Peak role</span><b style="color:var(--gold);">'+LADDER[G.peakRole].title+'</b></div>'+
+    '<div class="kv"><span class="k">Industry reputation</span><b class="mono">'+Math.round(G.reputation)+'/100</b></div>'+
+    '<div class="kv"><span class="k">Lifetime savings</span><b class="mono" style="color:var(--green);">'+money(G.cash)+'</b></div>'+
+    '<div class="kv"><span class="k">Career score</span><b class="mono" style="color:var(--purple);">'+score.toLocaleString()+'</b></div>'+
+    '<button class="btn pri big" style="margin-top:1rem;" onclick="submitScore()">🏆 Submit Score</button>'+
+    '<button class="btn ghost big" style="margin-top:.5rem;" onclick="location.reload()">Play Again</button>');
+}
+window.takeProject=takeProject; window.acceptOffer=acceptOffer; window.declineOffer=declineOffer;
+
+function computeValuation(){
+  const revRun=G.devices.reduce((a,d)=>a+d.revenue,0);
+  const liveRev=liveDevices().reduce((a,d)=>a+d.sales*(d.price-d.unitCost),0);
+  G.valuation=Math.max(0,Math.round(G.cash + liveRev*8 + revRun*0.4 + G.rep*4000 + G.rd*300 +
+    Object.keys(G.upgrades).reduce((a,k)=>a+G.upgrades[k]*20000,0)));
+  if(G.valuation>G.peakVal) G.peakVal=G.valuation;
+  if(window.gxyAch){ if(G.valuation>=1e6)window.gxyAch.unlock('te_millionaire'); if(G.valuation>=1e9)window.gxyAch.unlock('te_billionaire'); if(G.era>=4)window.gxyAch.unlock('te_era5'); }
+}
+
+function endGame(reason){
+  if(G.over) return; G.over=true;
+  if(window.teClearSave) teClearSave();
+  computeValuation();
+  const finalScore=Math.round(G.peakVal);
+  G.finalScore=finalScore;
+  if(window.gxyReportScore) window.gxyReportScore(finalScore);
+  grantPrestige();
+  window._allowClose=false;
+  const titles={bankrupt:"💸 Bankrupt!", fired:"🚪 Ousted by the Board", acquired:"🤝 Acquired!", retire:"🏆 Empire Report"};
+  const title=titles[reason]||"🏆 Empire Report";
+  const msgs={
+    bankrupt:"Your company ran out of money. Even giants stumble — try a leaner strategy next time.",
+    fired:"The board lost patience and replaced you as CEO. The empire goes on without you.",
+    acquired:"You sold the company at its peak — a founder's dream exit. Legacy secured.",
+    retire:"After "+G.maxYears+" years, here's how "+esc(G.name)+" performed."
+  };
+  const msg=msgs[reason]||msgs.retire;
+  const totalUnits=G.devices.reduce((a,d)=>a+d.units,0);
+  showModal(
+    '<h2>'+title+'</h2><p style="color:var(--dim);margin:.3rem 0 1rem;font-size:.9rem;">'+msg+'</p>'+
+    '<div class="kv"><span class="k">Peak valuation</span><b class="mono" style="color:var(--purple);">'+money(G.peakVal)+'</b></div>'+
+    '<div class="kv"><span class="k">Devices launched</span><b>'+G.devices.length+'</b></div>'+
+    '<div class="kv"><span class="k">Total units sold</span><b class="mono">'+totalUnits.toLocaleString()+'</b></div>'+
+    '<div class="kv"><span class="k">Final reputation</span><b class="mono" style="color:var(--gold);">'+Math.round(G.rep)+'/100</b></div>'+
+    '<div class="kv"><span class="k">Score</span><b class="mono" style="color:var(--green);">'+finalScore.toLocaleString()+'</b></div>'+
+    '<button class="btn pri big" style="margin-top:1rem;" onclick="submitScore()">🏆 Submit Score</button>'+
+    '<button class="btn ghost big" style="margin-top:.5rem;" onclick="location.reload()">Play Again</button>'
+  );
+}
+function submitScore(){ if(window.gxyReportScore)window.gxyReportScore(G.finalScore||G.peakVal); toast("Submitted!"); setTimeout(openLeaderboard,600); }
+window.submitScore=submitScore;
+/* prestige — a permanent legacy bonus that grows with each completed run */
+function grantPrestige(){
+  try{
+    const score=G.finalScore||G.peakVal||G.careerScore||0;
+    const gain=Math.floor(Math.sqrt(score/50000));
+    if(gain<=0) return;
+    const cur=+(localStorage.getItem('te_prestige')||0);
+    localStorage.setItem('te_prestige', cur+gain);
+    G._prestigeGained=gain;
+  }catch(e){}
+}
+function prestigeLevel(){ try{ return +(localStorage.getItem('te_prestige')||0); }catch(e){ return 0; } }
+window.prestigeLevel=prestigeLevel;
+/* ===================== TECHNOLOGY EMPIRE — rendering ===================== */
+function renderHeader(){
+  $('#hCo').textContent=G.name;
+  $('#hStats').innerHTML=
+    '<div class="stat"><span class="l">Cash</span><span class="v cash">'+money(G.cash)+'</span></div>'+
+    '<div class="stat"><span class="l">R&D</span><span class="v rd">'+Math.round(G.rd)+'</span></div>'+
+    '<div class="stat"><span class="l">Rep</span><span class="v rep">'+Math.round(G.rep)+'</span></div>'+
+    '<div class="stat"><span class="l">Value</span><span class="v val">'+money(G.valuation)+'</span></div>'+
+    '<div class="stat"><span class="l">Time</span><span class="v">Y'+G.year+' Q'+G.quarter+'</span></div>';
+}
+function renderDash(){
+  const p=$('#pg-dash');
+  const live=liveDevices();
+  const ceoPanel = (function(){
+    let h='';
+    if(G.isPublic){ h+='<div class="panel"><h2>🏛️ Board & Stock</h2>'+
+      '<div class="kv"><span class="k">Share price</span><b class="mono" style="color:var(--green);">$'+(G.sharePrice||0)+'</b></div>'+
+      '<div class="kv"><span class="k">This year\'s target</span><b class="mono">'+money(G.boardTarget||0)+'</b></div>'+
+      '<div class="sub" style="margin-top:.3rem;">Board confidence</div><div class="bar"><div class="fill" style="width:'+(G.boardMood||0)+'%;background:linear-gradient(120deg,'+((G.boardMood||0)<30?'#ef4444,#b91c1c':'#22c55e,#16a34a')+');"></div></div>'+
+      (G.boardWarnings?'<div class="sub" style="color:#ef4444;margin-top:.3rem;">⚠️ '+G.boardWarnings+'/3 board warnings</div>':'')+'</div>'; }
+    if(G.acqOffers && G.acqOffers.length){ h+='<div class="panel"><h2>🤝 Acquisition Targets</h2>'+
+      G.acqOffers.map((o,i)=>'<div class="kv"><span class="k">'+esc(o.name)+' ('+Math.round(o.share)+'% share)</span><button class="btn pri" onclick="buyRival('+i+')">Buy '+money(o.price)+'</button></div>').join('')+'</div>'; }
+    if(G.ownedCompanies && G.ownedCompanies.length){ h+='<div class="panel"><h2>🏢 Subsidiaries</h2><div class="sub">'+G.ownedCompanies.map(esc).join(', ')+'</div></div>'; }
+    return h;
+  })();
+  p.innerHTML=
+    '<div class="panel"><h2>📊 '+esc(G.name)+'</h2><div class="sub">'+ERAS[G.era].name+' · Year '+G.year+' of '+G.maxYears+' · Quarter '+G.quarter+(G.isPublic?' · <span style="color:var(--green);">PUBLIC</span>':'')+'</div>'+
+      '<div class="grid3">'+
+        '<div class="comp"><div class="top"><span class="ic">💰</span><span class="nm">Cash</span></div><div class="mono" style="font-size:1.2rem;margin-top:.3rem;color:var(--green);">'+money(G.cash)+'</div></div>'+
+        '<div class="comp"><div class="top"><span class="ic">📈</span><span class="nm">Valuation</span></div><div class="mono" style="font-size:1.2rem;margin-top:.3rem;color:var(--purple);">'+money(G.valuation)+'</div></div>'+
+        '<div class="comp"><div class="top"><span class="ic">⭐</span><span class="nm">Reputation</span></div><div class="bar" style="margin-top:.6rem;"><div class="fill" style="width:'+G.rep+'%;background:linear-gradient(120deg,#f5c451,#eab308);"></div></div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="panel"><h2>🔥 Hype</h2><div class="sub">Marketing builds hype; it fades ~8 points each quarter. High hype boosts launches and sales.</div>'+
+      '<div class="bar"><div class="fill" style="width:'+G.hype+'%;"></div></div></div>'+
+    '<div class="panel"><h2>📱 Devices on Sale ('+live.length+'/'+maxDevices()+')</h2>'+
+      (live.length? live.map(miniDevice).join('') : '<div class="empty">No devices on sale. Head to <b>Design</b> to build one.</div>')+'</div>'+
+    ceoPanel+
+    '<div class="panel"><h2>📰 Company Log</h2><div class="log">'+
+      (G.log.length? G.log.map(e=>'<div class="e '+e.cls+'">'+e.html+'</div>').join('') : '<div class="empty">No activity yet.</div>')+
+    '</div></div>';
+}
+function miniDevice(d){
+  return '<div class="device"><div class="top"><span class="ic">'+d.emoji+'</span>'+
+    '<div><div class="nm">'+esc(d.name)+' '+recTag(d)+'</div><div class="ty">'+d.typeName+' · '+money(d.price)+'</div></div>'+
+    '<div class="q"><div class="qv">'+d.quality+'</div><div class="ty">quality</div></div></div>'+
+    '<div class="metrics"><span>Last qtr: <b>'+d.sales.toLocaleString()+'</b> units</span><span>Total: <b>'+d.units.toLocaleString()+'</b></span><span>Revenue: <b>'+money(d.revenue)+'</b></span></div></div>';
+}
+function recTag(d){
+  if(d.status==='retired') return '<span class="tag dead">retired</span>';
+  if(d.reception==='hit') return '<span class="tag hit">hit</span>';
+  if(d.reception==='flop') return '<span class="tag flop">flop</span>';
+  return '<span class="tag live">on sale</span>';
+}
+
+function renderRD(){
+  const p=$('#pg-rd');
+  let html='<div class="panel"><h2>🔬 Research & Development</h2><div class="sub">Spend R&D points and cash to unlock higher component tiers. You have <b class="mono" style="color:var(--cyan);">'+Math.round(G.rd)+' R&D</b>. Current era caps at tier <b>'+(ERAS[G.era].maxTier+1)+'</b>. You generate <b>'+rdPerQuarter()+' R&D</b>/quarter.</div>';
+  COMPONENTS.forEach(c=>{
+    const tier=compTier(c.key); const rc=researchCost(c.key);
+    const tierName=c.tiers[tier];
+    html+='<div class="comp"><div class="top"><span class="ic">'+c.emoji+'</span><span class="nm">'+c.name+'</span><span class="tier">'+tierName+' (T'+tier+')</span></div>'+
+      '<div class="bar"><div class="fill" style="width:'+(tier/5*100)+'%;"></div></div>';
+    if(rc){
+      const locked = rc.next>ERAS[G.era].maxTier+1;
+      const afford = G.rd>=rc.rd && G.cash>=rc.cash;
+      html+='<div class="act"><span class="cost">Next: <b>'+esc(rc.name)+'</b> · '+rc.rd+' R&D · '+money(rc.cash)+'</span>'+
+        '<button class="btn sm '+(afford&&!locked?'pri':'')+'" '+((afford&&!locked)?'':'disabled')+' onclick="doResearch(\''+c.key+'\')">'+(locked?'Era locked':'Research')+'</button></div>';
+    } else { html+='<div class="act"><span class="cost">✓ Maxed out</span></div>'; }
+    html+='</div>';
+  });
+  html+='</div>';
+  p.innerHTML=html;
+}
+
+function renderDesign(){
+  const p=$('#pg-design');
+  const avail=DEVICES.filter(t=>t.era<=G.era);
+  let html='<div class="panel"><h2>🎨 Design Studio</h2><div class="sub">Choose a device type, pick your component tiers, set a price and marketing budget, then launch.</div>';
+  html+='<div class="field"><label style="font-size:.72rem;color:var(--dim);text-transform:uppercase;font-weight:700;">Device type</label><div class="pickrow">';
+  avail.forEach(t=>{
+    const on=G.designDraft&&G.designDraft.type===t.key;
+    html+='<div class="pill '+(on?'on':'')+'" onclick="newDraft(\''+t.key+'\');renderDesign();"><div class="pn">'+t.emoji+' '+t.name+'</div><div class="pd">market '+Math.round(t.market*100)+'%</div></div>';
+  });
+  const lockedTypes=DEVICES.filter(t=>t.era>G.era);
+  html+='</div>';
+  if(lockedTypes.length) html+='<div style="font-size:.72rem;color:var(--muted);margin-top:.5rem;">🔒 Unlock later: '+lockedTypes.map(t=>t.emoji+' '+t.name).join(', ')+'</div>';
+  html+='</div>';
+
+  if(G.designDraft){
+    const dr=G.designDraft; const t=DEVICES.find(x=>x.key===dr.type);
+    html+='<div class="panel"><h2>'+t.emoji+' Configure '+t.name+'</h2>';
+    html+='<div class="field"><label style="font-size:.72rem;color:var(--dim);text-transform:uppercase;font-weight:700;">Device name</label><input id="dName" value="'+esc(dr.name)+'" oninput="teSet(\'name\',this.value)" maxlength="24"></div>';
+    COMPONENTS.forEach(c=>{
+      const maxT=compTier(c.key);
+      let opts='';
+      for(let i=0;i<=maxT;i++){ opts+='<option value="'+i+'" '+(dr.comps[c.key]===i?'selected':'')+'>'+c.tiers[i]+' (T'+i+')</option>'; }
+      const weight=Math.round((t.w[c.key]||0)*100);
+      html+='<div class="slot"><span class="ic">'+c.emoji+'</span><span class="nm">'+c.name+'<span style="color:var(--muted);font-weight:400;"> · '+weight+'% weight</span></span>'+
+        '<select onchange="teSetComp(this.value,\''+c.key+'\')">'+opts+'</select></div>';
+    });
+    const q=draftQuality(), uc=draftUnitCost();
+    html+='<div class="grid2" style="margin-top:.8rem;">'+
+      '<div class="field"><label style="font-size:.72rem;color:var(--dim);text-transform:uppercase;font-weight:700;">Sale price</label><input type="number" id="dPrice" value="'+dr.price+'" oninput="teSet(\'price\',this.value)"></div>'+
+      '<div class="field"><label style="font-size:.72rem;color:var(--dim);text-transform:uppercase;font-weight:700;">Marketing budget</label><input type="number" id="dMk" value="'+dr.marketing+'" step="5000" oninput="teSet(\'marketing\',this.value)"></div>'+
+    '</div>';
+    const margin=dr.price-uc;
+    html+='<div class="grid3">'+
+      '<div class="comp"><div class="top"><span class="nm">Quality</span></div><div class="mono" style="font-size:1.3rem;color:var(--cyan);">'+q+'</div></div>'+
+      '<div class="comp"><div class="top"><span class="nm">Unit cost</span></div><div class="mono" style="font-size:1.3rem;">'+money(uc)+'</div></div>'+
+      '<div class="comp"><div class="top"><span class="nm">Margin</span></div><div class="mono" style="font-size:1.3rem;color:'+(margin>0?'var(--green)':'var(--red)')+';">'+money(margin)+'</div></div>'+
+    '</div>';
+    html+='<div class="sub" style="margin-top:.6rem;">Era expectation is <b>'+ERAS[G.era].expect+'</b> — aim above it. Cheaper prices sell more units; higher prices earn more per sale.</div>';
+    html+='<button class="btn green big" onclick="launchDevice()">🚀 Launch '+esc(dr.name||t.name)+'</button></div>';
+  }
+  p.innerHTML=html;
+}
+
+function renderDevices(){
+  const p=$('#pg-devices');
+  if(!G.devices.length){ p.innerHTML='<div class="panel"><div class="empty">No devices yet. Go to <b>Design</b> to build your first product.</div></div>'; return; }
+  let html='<div class="panel"><h2>📱 Product Lineup</h2><div class="sub">Your devices, newest first. Retire old products to free up a slot ('+liveDevices().length+'/'+maxDevices()+' on sale).</div>';
+  G.devices.forEach(d=>{
+    html+='<div class="device"><div class="top"><span class="ic">'+d.emoji+'</span>'+
+      '<div><div class="nm">'+esc(d.name)+' '+recTag(d)+'</div><div class="ty">'+d.typeName+' · Q'+d.quality+' · '+money(d.price)+' · launched Y'+(Math.floor((d.launchedQ-1)/4)+1)+'</div></div>'+
+      '<div class="q"><div class="qv mono">'+d.units.toLocaleString()+'</div><div class="ty">units</div></div></div>'+
+      '<div class="metrics"><span>Last qtr: <b>'+d.sales.toLocaleString()+'</b></span><span>Revenue: <b>'+money(d.revenue)+'</b></span><span>Unit cost: <b>'+money(d.unitCost)+'</b></span>'+
+      (d.status==='live'?'<button class="btn sm" style="margin-left:auto;" onclick="retireDevice(\''+d.id+'\')">Retire</button>':'')+'</div></div>';
+  });
+  html+='</div>';
+  p.innerHTML=html;
+}
+
+function renderCompany(){
+  const p=$('#pg-company');
+  let html='<div class="panel"><h2>🏢 Company Upgrades</h2><div class="sub">Invest profits into your company to research faster, cut costs, market better, and sell more products at once.</div>';
+  UPGRADES.forEach(u=>{
+    const lv=G.upgrades[u.key]; const cost=upgradeCost(u.key); const afford=G.cash>=cost;
+    html+='<div class="upg"><span class="ic">'+u.emoji+'</span><div class="info"><div class="nm">'+u.name+' <span style="color:var(--cyan);font-size:.75rem;">Lv '+lv+'</span></div>'+
+      '<div class="ds">'+u.desc+'</div><div class="lv">'+u.effect+'</div></div>'+
+      '<button class="btn sm '+(afford?'pri':'')+'" '+(afford?'':'disabled')+' onclick="buyUpgrade(\''+u.key+'\')">'+money(cost)+'</button></div>';
+  });
+  html+='</div>';
+  p.innerHTML=html;
+}
+
+function renderMarket(){
+  const p=$('#pg-market');
+  const yourShare=clamp(100-G.rivals.reduce((a,r)=>a+r.share,0),1,90);
+  let html='<div class="panel"><h2>🌐 Market Share</h2><div class="sub">'+ERAS[G.era].name+'. Beat rivals by shipping better devices at the right price.</div>';
+  html+='<div class="rival"><span class="ic">⭐</span><span class="nm" style="color:var(--cyan);">'+esc(G.name)+' (you)</span><span class="share">'+yourShare.toFixed(1)+'%</span></div>';
+  G.rivals.slice().sort((a,b)=>b.share-a.share).forEach(r=>{
+    html+='<div class="rival"><span class="ic">'+r.emoji+'</span><span class="nm">'+esc(r.name)+'</span><span class="share">'+r.share.toFixed(1)+'%</span></div>';
+  });
+  html+='</div>';
+  html+='<div class="panel"><h2>🔭 Tech Eras</h2><div class="sub">Expectations rise each era — keep researching to stay ahead.</div>';
+  ERAS.forEach((e,i)=>{
+    html+='<div class="kv"><span class="k">'+(i<G.era?'✓ ':i===G.era?'▶ ':'🔒 ')+e.name+'</span><b class="mono">expect '+e.expect+'</b></div>';
+  });
+  html+='</div>';
+  p.innerHTML=html;
+}
+
+function renderAll(){
+  if(isCareer()){ computeCareer(); renderCareerHeader(); renderCareerDash(); renderCareerWork(); renderCareerOffers(); renderCareerIndustry(); $('#advBtn').textContent='▶ End Quarter (Y'+G.year+' Q'+G.quarter+')'; return; }
+  computeValuation(); renderHeader(); renderDash(); renderRD(); renderDesign(); renderDevices(); renderCompany(); renderMarket(); $('#advBtn').textContent='▶ Next Quarter (Y'+G.year+' Q'+G.quarter+')';
+}
+/* ===================== CAREER MODE — rendering ===================== */
+function renderCareerHeader(){
+  $('#hCo').textContent=G.playerName;
+  const r=role();
+  $('#hStats').innerHTML=
+    '<div class="stat"><span class="l">Role</span><span class="v" style="color:var(--gold);">'+r.title+'</span></div>'+
+    '<div class="stat"><span class="l">Savings</span><span class="v cash">'+money(G.cash)+'</span></div>'+
+    '<div class="stat"><span class="l">Perf</span><span class="v rep">'+Math.round(G.perf)+'</span></div>'+
+    '<div class="stat"><span class="l">Age</span><span class="v">'+G.age+'</span></div>';
+}
+function renderCareerDash(){
+  const p=$('#pg-dash'); if(!p) return; const r=role(); const next=LADDER[G.roleIdx+1];
+  const xpPct=Math.min(100,Math.round(G.xp/r.xp*100));
+  p.innerHTML=
+    '<div class="panel"><h2>🧑‍💻 '+esc(G.playerName)+'</h2><div class="sub">'+r.title+' at '+esc(G.company)+' · Age '+G.age+' · retires at '+G.retireAge+'</div>'+
+      '<div class="grid3">'+
+        '<div class="comp"><div class="top"><span class="ic">🏆</span><span class="nm">Level</span></div><div style="font-size:1rem;margin-top:.3rem;font-weight:700;color:var(--gold);">'+r.title+'</div></div>'+
+        '<div class="comp"><div class="top"><span class="ic">💰</span><span class="nm">Savings</span></div><div class="mono" style="font-size:1.1rem;margin-top:.3rem;color:var(--green);">'+money(G.cash)+'</div></div>'+
+        '<div class="comp"><div class="top"><span class="ic">🌟</span><span class="nm">Industry Rep</span></div><div class="bar" style="margin-top:.6rem;"><div class="fill" style="width:'+G.reputation+'%;background:linear-gradient(120deg,#a78bfa,#7c3aed);"></div></div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="panel"><h2>📈 Progress to '+(next?esc(next.title):'the top')+'</h2>'+
+      (next?'<div class="sub">Earn XP by taking on projects. Promotions also need a strong performance review.</div>'+
+      '<div class="bar"><div class="fill" style="width:'+xpPct+'%;background:linear-gradient(120deg,#22c55e,#16a34a);"></div></div>'+
+      '<div class="sub" style="margin-top:.3rem;">'+G.xp+' / '+r.xp+' XP · Performance '+Math.round(G.perf)+'/100</div>'
+      :'<div class="sub" style="color:var(--gold);">You\'ve reached the top of the ladder — you\'re the CEO!</div>')+'</div>'+
+    '<div class="panel"><h2>🏢 '+esc(G.company)+'</h2><div class="sub">Your employer\'s health affects layoff risk and opportunities.</div>'+
+      '<div class="bar"><div class="fill" style="width:'+G.companyStanding+'%;background:linear-gradient(120deg,'+(G.companyStanding<25?'#ef4444,#b91c1c':'#38bdf8,#0284c7')+');"></div></div>'+
+      '<div class="sub" style="margin-top:.3rem;">Morale '+Math.round(G.morale)+'/100 · Boss: '+esc(G.boss)+'</div></div>'+
+    renderLog();
+}
+function renderCareerWork(){
+  const p=$('#pg-work'); if(!p) return;
+  const projs=careerProjects();
+  p.innerHTML='<div class="panel"><h2>💼 Choose This Quarter\'s Focus</h2>'+
+    '<div class="sub">Pick what to work on. Riskier work pays more XP and performance — but can backfire.</div>'+
+    '<div class="grid" style="display:grid;gap:.6rem;margin-top:.6rem;">'+
+    projs.map(pr=>{ const sel=G.projectDraft===pr.key;
+      return '<div class="comp" style="cursor:pointer;'+(sel?'border-color:var(--blue);background:rgba(56,189,248,.08);':'')+'" onclick="takeProject(\''+pr.key+'\')">'+
+        '<div class="top"><span class="ic">'+pr.emoji+'</span><span class="nm">'+pr.name+'</span>'+(sel?'<span style="margin-left:auto;color:var(--blue);">✓</span>':'')+'</div>'+
+        '<div class="sub" style="margin-top:.3rem;">'+pr.desc+'</div>'+
+        '<div class="sub" style="margin-top:.2rem;font-family:monospace;">+'+pr.xp+' XP · +'+pr.perf+' perf · risk '+Math.round(pr.risk*100)+'%</div></div>'; }).join('')+
+    '</div>'+
+    '<div class="sub" style="margin-top:.8rem;">Selected: <b>'+(G.projectDraft?PROJECTS.find(x=>x.key===G.projectDraft).name:'(none — pick one, then End Quarter)')+'</b></div>'+
+    '</div>'+renderLog();
+}
+function renderCareerOffers(){
+  const p=$('#pg-offers'); if(!p) return;
+  p.innerHTML='<div class="panel"><h2>📬 Job Offers</h2>'+
+    (G.offers.length? G.offers.map((o,i)=>
+      '<div class="comp" style="margin-bottom:.6rem;"><div class="top"><span class="ic">🏢</span><span class="nm">'+esc(o.company)+'</span></div>'+
+      '<div class="sub" style="margin-top:.3rem;">'+LADDER[o.role].title+' · '+money(o.salary)+'/yr · signing bonus '+money(o.signing)+'</div>'+
+      '<div style="display:flex;gap:.5rem;margin-top:.6rem;"><button class="btn pri" onclick="acceptOffer('+i+')">Accept</button><button class="btn ghost" onclick="declineOffer('+i+')">Decline</button></div></div>'
+    ).join('') : '<div class="empty">No offers right now. Keep your performance and reputation high to attract recruiters.</div>')+
+    '</div>';
+}
+function renderCareerIndustry(){
+  const p=$('#pg-market'); if(!p) return;
+  // reuse rival names as "the industry"
+  const cos=RIVAL_NAMES.map(n=>({n, health: n===G.company?G.companyStanding:rnd(30,90)}));
+  p.innerHTML='<div class="panel"><h2>🌐 The Industry</h2><div class="sub">Where the big tech companies stand this quarter.</div>'+
+    cos.map(c=>'<div class="kv"><span class="k">'+(c.n===G.company?'⭐ ':'')+esc(c.n)+'</span><b class="mono" style="color:'+(c.health>60?'var(--green)':c.health<30?'#ef4444':'var(--gold)')+';">'+Math.round(c.health)+'/100</b></div>').join('')+
+    '</div>';
+}
+function renderLog(){
+  return '<div class="panel"><h2>📰 Recent</h2>'+(G.log.length?G.log.slice(0,8).map(l=>'<div class="logline '+(l.cls||'')+'">'+l.html+'</div>').join(''):'<div class="empty">Your story starts now.</div>')+'</div>';
+}
+window.renderCareerWork=renderCareerWork;
+/* ===================== TECHNOLOGY EMPIRE — lifecycle ===================== */
+function renderStart(){
+  const pl=prestigeLevel();
+  if(pl>0 && $('#startBlurb')){ const b=$('#startBlurb'); if(!document.getElementById('prestigeBadge')){ const badge=document.createElement('div'); badge.id='prestigeBadge'; badge.style.cssText='text-align:center;color:var(--gold);font-weight:700;font-size:.85rem;margin-bottom:.6rem;'; badge.innerHTML='⭐ Legacy Level '+pl+' — every new run starts stronger'; b.parentElement.insertBefore(badge,b.parentElement.firstChild); } }
+  const mp=$('#modePick'); if(mp){ mp.innerHTML=Object.keys(MODES).map(k=>{const m=MODES[k];
+    return '<div class="pill '+(SETUP.mode===k?'on':'')+'" onclick="SETUP.mode=\''+k+'\';renderStart()"><div class="pn">'+m.emoji+' '+m.name+'</div><div class="pd">'+m.desc+'</div></div>';}).join(''); }
+  const career=SETUP.mode==='career';
+  if($('#ceoSetup')) $('#ceoSetup').style.display=career?'none':'';
+  if($('#careerSetup')) $('#careerSetup').style.display=career?'':'none';
+  if($('#startBtn')) $('#startBtn').textContent=career?'🧑‍💻 Start Career':'🚀 Found Company';
+  if($('#startBlurb')) $('#startBlurb').textContent=career?'Climb from intern to CEO before you retire. Your best career goes on the arcade leaderboard.':'Reach the highest company valuation. Your best run goes on the arcade leaderboard.';
+  if($('#focusPick')) $('#focusPick').innerHTML=Object.keys(FOCUS).map(k=>{const f=FOCUS[k];
+    return '<div class="pill '+(SETUP.focus===k?'on':'')+'" onclick="SETUP.focus=\''+k+'\';renderStart()"><div class="pn">'+f.emoji+' '+f.name+'</div><div class="pd">'+f.desc+'</div></div>';}).join('');
+  if($('#diffPick')) $('#diffPick').innerHTML=Object.keys(DIFF).map(k=>{const d=DIFF[k];
+    return '<div class="pill '+(SETUP.diff===k?'on':'')+'" onclick="SETUP.diff=\''+k+'\';renderStart()"><div class="pn">'+d.name+'</div><div class="pd">'+d.years+' yrs · '+money(d.cash)+'</div></div>';}).join('');
+  if($('#scenarioPick')) $('#scenarioPick').innerHTML=Object.keys(SCENARIOS).map(k=>{const s=SCENARIOS[k];
+    return '<div class="pill '+(SETUP.scenario===k?'on':'')+'" onclick="SETUP.scenario=\''+k+'\';renderStart()"><div class="pn">'+s.emoji+' '+s.name+'</div><div class="pd">'+s.desc+'</div></div>';}).join('');
+  if($('#specPick')) $('#specPick').innerHTML=Object.keys(SPECIALTIES).map(k=>{const s=SPECIALTIES[k];
+    return '<div class="pill '+(SETUP.spec===k?'on':'')+'" onclick="SETUP.spec=\''+k+'\';renderStart()"><div class="pn">'+s.emoji+' '+s.name+'</div><div class="pd">'+s.desc+'</div></div>';}).join('');
+}
+function startGame(){
+  if(SETUP.mode==='career'){ newCareer(); }
+  else { newGame(); }
+  $('#scr-start').classList.remove('active'); $('#scr-game').classList.add('active');
+  setupTabsForMode();
+  renderAll();
+  toast(SETUP.mode==='career'?("Welcome, "+G.playerName+"! Take on projects to earn XP and climb."):("Welcome to "+G.name+"! Research components, then design your first device."));
+}
+window.startGame=startGame;
+function isCareer(){ return G && G.mode==='career'; }
+function setupTabsForMode(){
+  const tabs=$('#tabs'); if(!tabs) return;
+  if(isCareer()){
+    tabs.innerHTML=
+      '<button class="tab on" data-tab="dash">📊 Career</button>'+
+      '<button class="tab" data-tab="work">💼 Work</button>'+
+      '<button class="tab" data-tab="offers">📬 Offers</button>'+
+      '<button class="tab" data-tab="market">🌐 Industry</button>';
+    $('#advBtn').textContent='▶ End Quarter';
+  } else {
+    tabs.innerHTML=
+      '<button class="tab on" data-tab="dash">📊 Dashboard</button>'+
+      '<button class="tab" data-tab="rd">🔬 R&amp;D Lab</button>'+
+      '<button class="tab" data-tab="design">🎨 Design</button>'+
+      '<button class="tab" data-tab="devices">📱 Devices</button>'+
+      '<button class="tab" data-tab="company">🏢 Company</button>'+
+      '<button class="tab" data-tab="market">🌐 Market</button>';
+    $('#advBtn').textContent='▶ Next Quarter';
+  }
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+}
+
+function showTab(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id==='pg-'+id));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===id));
+  window.scrollTo(0,0);
+}
+window.showTab=showTab;
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+
+function showModal(html){ $('#modalBox').innerHTML=html; $('#modal').classList.add('show'); }
+function closeModal(){ if(window._allowClose===false)return; $('#modal').classList.remove('show'); }
+window.closeModal=closeModal;
+function toast(msg){ const m=$('#toastMount'); m.innerHTML='<div class="toast">'+esc(msg)+'</div>'; clearTimeout(window._tt); window._tt=setTimeout(()=>m.innerHTML='',2600); }
+window.openLeaderboard=function(){
+  window._allowClose=true;
+  showModal('<h2>🏆 Top Empires</h2><div id="lbList"><p class="empty pulse">Loading…</p></div><button class="btn ghost big" style="margin-top:1rem;" onclick="closeModal()">Close</button>');
+  if(window.gxyLoadLeaderboard) window.gxyLoadLeaderboard();
+};
+window.openAchievements=function(){
+  window._allowClose=true;
+  const body=window.gxyAch?gxyAch.viewerHtml('techempire'):'<p class="empty">Achievements loading…</p>';
+  showModal('<h2>🏅 Achievements</h2>'+body+'<button class="btn ghost big" style="margin-top:1rem;" onclick="closeModal()">Close</button>');
+};
+// expose selected internals for inline handlers
+window.doResearch=doResearch; window.newDraft=newDraft; window.launchDevice=launchDevice;
+window.retireDevice=retireDevice; window.buyUpgrade=buyUpgrade; window.advanceQuarter=advanceQuarter;
+window.renderDesign=renderDesign;
+// global helpers for inline design inputs (run in global scope)
+window.teSet=function(field,val){ if(!G||!G.designDraft)return;
+  if(field==='name'){ G.designDraft.name=val; }
+  else if(field==='price'){ G.designDraft.price=Math.max(0,+val||0); renderDesign(); }
+  else if(field==='marketing'){ G.designDraft.marketing=Math.max(0,+val||0); }
+};
+/* ---------- cloud save / resume ---------- */
+const TE_SAVE_ID='techempire';
+function teAutosave(){ if(window.gxySave && G && !G.over){ window.gxySave.save(TE_SAVE_ID, G); } }
+window.teAutosave=teAutosave;
+function teClearSave(){ if(window.gxySave) window.gxySave.remove(TE_SAVE_ID); }
+function resumeGame(saved){
+  G=saved;
+  $('#scr-start').classList.remove('active'); $('#scr-game').classList.add('active');
+  setupTabsForMode();
+  renderAll();
+  toast(isCareer()?("Welcome back, "+G.playerName+"! Y"+G.year+" Q"+G.quarter+"."):("Welcome back to "+G.name+"! Y"+G.year+" Q"+G.quarter+"."));
+}
+window.resumeGame=function(){
+  window._allowClose=true; closeModal();
+  if(window.gxySave) window.gxySave.load(TE_SAVE_ID).then(s=>{ if(s) resumeGame(s); else toast("No saved company found."); });
+};
+/* show a Continue button on the start screen if a save exists */
+function checkForSave(){
+  if(!window.gxySave) return setTimeout(checkForSave,200);
+  window.gxySave.load(TE_SAVE_ID).then(s=>{
+    if(!s || (s.over)) return;
+    const host=$('#focusPick'); if(!host) return;
+    const card=host.closest('.card')||host.parentElement.parentElement;
+    if(document.getElementById('continueWrap')) return;
+    const wrap=document.createElement('div'); wrap.id='continueWrap'; wrap.style.marginBottom='1rem';
+    wrap.innerHTML='<button class="btn pri big" onclick="resumeGame()">▶ Continue '+esc(s.name||'Company')+' (Y'+s.year+' Q'+s.quarter+')</button>'+
+      '<div style="text-align:center;color:var(--muted);font-size:.75rem;margin-top:.4rem;">or start a new company below</div>';
+    card.parentElement.insertBefore(wrap, card);
+  });
+}
+renderStart();
+checkForSave();
+
+</script>
+<script type="module">
+import { gxyAccount } from '../assets/gxyaccount.js';
+import { gxyMeta } from '../assets/gxymeta.js';
+import '../assets/gxysave.js';
+import '../assets/gxyachievements.js';
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCN4mEtGMjSxdgsTlthhzX6FXIjxltJKHQ",authDomain:"gxyhockey.firebaseapp.com",projectId:"gxyhockey",storageBucket:"gxyhockey.firebasestorage.app",messagingSenderId:"474584991663",appId:"1:474584991663:web:b8986544418d6b85fa115a"};
+const app=getApps().length?getApps()[0]:initializeApp(cfg); let db=null; try{db=getFirestore(app);}catch(e){}
+let bestReported=0;
+window.gxyReportScore=async function(score){
+  if(score<=bestReported) return; bestReported=score;
+  await gxyAccount.ready(); const d=gxyAccount.data||{};
+  if(!d.mcUsername||!d.verified||!db) return;
+  try{ await addDoc(collection(db,'scores_techempire'),{uid:gxyAccount.user.uid,name:d.mcUsername,score:Math.round(score),ts:serverTimestamp()});}catch(e){}
+  try{ await gxyMeta.recordGame('techempire',{score:Math.round(score)}); }catch(e){}
+};
+window.gxyLoadLeaderboard=async function(){
+  const list=document.getElementById('lbList'); if(!list)return;
+  if(!db){ list.innerHTML='<p class="empty">Leaderboard needs Firestore configured.</p>'; return; }
+  try{
+    const q=query(collection(db,'scores_techempire'),orderBy('score','desc'),limit(10));
+    const snap=await getDocs(q); const rows=[]; snap.forEach(dd=>rows.push(dd.data()));
+    if(!rows.length){ list.innerHTML='<p class="empty">No empires ranked yet. Be the first!</p>'; return; }
+    function money(n){n=Math.round(n);const a=Math.abs(n);if(a>=1e9)return '$'+(n/1e9).toFixed(2)+'B';if(a>=1e6)return '$'+(n/1e6).toFixed(2)+'M';if(a>=1e3)return '$'+(n/1e3).toFixed(1)+'K';return '$'+n;}
+    list.innerHTML=rows.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+      return '<div class="lb-row"><span style="width:26px;font-weight:800;">'+medal+'</span><img src="https://mc-heads.net/avatar/'+encodeURIComponent(r.name)+'/24" style="width:24px;height:24px;border-radius:5px;" onerror="this.style.visibility=\'hidden\'"><span style="font-weight:700;flex:1;">'+r.name+'</span><span class="mono" style="color:var(--purple);">'+money(r.score||0)+'</span></div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<p class="empty">Leaderboard unavailable right now.</p>'; }
+};
+</script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>

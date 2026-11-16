@@ -1,0 +1,10 @@
+/* Frutiger Aero newspaper skin — keeps the masthead/columns identity, aqua-glass surfaces */
+[data-theme="aero"] .masthead h1{
+  font-family:"Segoe UI",system-ui,sans-serif !important;font-weight:900 !important;letter-spacing:-1px !important;
+  background:linear-gradient(120deg,#0a84d6,#34e89e) !important;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent !important;
+}
+[data-theme="aero"] .top-bar{ background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(180,230,255,.5)) !important;color:#0b3a5b !important; }
+[data-theme="aero"] .headline-strip h2,[data-theme="aero"] .article-headline{ color:#065a9e !important; }
+[data-theme="aero"] .section-label,[data-theme="aero"] .article-section-tag{ background:linear-gradient(180deg,#a6e86a,#5bbf37) !important;color:#08351a !important; }
+[data-theme="aero"] .pull-list{ background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(220,245,255,.6)) !important;border-radius:14px !important; }
+[data-theme="aero"] .archive-cta{ background:linear-gradient(180deg,#5cc4ff,#0a84d6) !important; }

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Daily Word · GXY Arcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0b1020; --panel:#121a2e; --panel2:#18233c; --line:#243352; --line2:#33456b;
+  --ink:#eaf1fb; --dim:#93a8c6; --muted:#5d7093;
+  --green:#22c55e; --yellow:#eab308; --gray:#3a4763; --absent:#1c2740;
+  --grad:linear-gradient(120deg,#22c55e,#16a34a);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;}
+.wrap{max-width:500px;margin:0 auto;padding:1rem 1rem 3rem;}
+.top{display:flex;align-items:center;justify-content:space-between;padding:.4rem 0 1rem;border-bottom:1px solid var(--line);margin-bottom:1.2rem;}
+.top .back{color:var(--dim);font-size:.85rem;}
+.top .back:hover{color:#fff;}
+.top h1{font-family:'Barlow Condensed';font-weight:700;font-size:1.5rem;letter-spacing:.03em;text-transform:uppercase;display:flex;align-items:center;gap:.4rem;}
+.top .btns{display:flex;gap:.4rem;}
+.ibtn{background:var(--panel2);border:1px solid var(--line);color:var(--dim);width:36px;height:36px;border-radius:9px;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.ibtn:hover{border-color:var(--green);color:#fff;}
+.sub{text-align:center;color:var(--dim);font-size:.85rem;margin-bottom:1rem;}
+.sub b{color:var(--ink);}
+
+/* board */
+.board{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;max-width:330px;margin:0 auto 1.3rem;}
+.brow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.7rem;text-transform:uppercase;border:2px solid var(--line);border-radius:8px;background:var(--panel);transition:transform .15s,background .2s,border-color .2s;user-select:none;}
+.cell.filled{border-color:var(--line2);animation:pop .12s var(--ease);}
+@keyframes pop{0%{transform:scale(.9);}100%{transform:scale(1);}}
+.cell.correct{background:var(--green);border-color:var(--green);color:#04210f;}
+.cell.present{background:var(--yellow);border-color:var(--yellow);color:#241c00;}
+.cell.absent{background:var(--absent);border-color:var(--absent);color:var(--dim);}
+.cell.flip{animation:flip .5s var(--ease);}
+@keyframes flip{0%{transform:rotateX(0);}50%{transform:rotateX(90deg);}100%{transform:rotateX(0);}}
+.brow.shake{animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+.brow.win .cell{animation:bounce .5s var(--ease);}
+@keyframes bounce{0%,100%{transform:translateY(0);}40%{transform:translateY(-14px);}60%{transform:translateY(-4px);}}
+
+/* keyboard */
+.kb{display:flex;flex-direction:column;gap:6px;max-width:480px;margin:0 auto;}
+.krow{display:flex;gap:5px;justify-content:center;}
+.key{flex:1;min-width:0;height:52px;border-radius:7px;background:var(--panel2);color:var(--ink);font-weight:700;font-size:.92rem;text-transform:uppercase;display:flex;align-items:center;justify-content:center;transition:.12s;border:1px solid var(--line);}
+.key:hover{background:var(--panel);}
+.key.wide{flex:1.5;font-size:.72rem;}
+.key.correct{background:var(--green);border-color:var(--green);color:#04210f;}
+.key.present{background:var(--yellow);border-color:var(--yellow);color:#241c00;}
+.key.absent{background:var(--absent);border-color:var(--absent);color:var(--muted);}
+
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal.show{display:flex;}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:18px;max-width:420px;width:100%;padding:1.6rem;max-height:90vh;overflow-y:auto;text-align:center;}
+.modal h2{font-family:'Barlow Condensed';font-weight:700;font-size:1.8rem;margin-bottom:.4rem;}
+@media(max-width:520px){.modal{align-items:flex-end;padding:0;}.modal .box{max-width:100%;border-radius:18px 18px 0 0;}}
+.toast{position:fixed;left:50%;top:80px;transform:translateX(-50%);background:#fff;color:#0b1020;padding:.7rem 1.2rem;border-radius:10px;font-weight:700;z-index:200;font-size:.88rem;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.btn{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-weight:700;padding:.7rem 1.1rem;border-radius:10px;font-size:.9rem;}
+.btn.green{background:var(--grad);border:none;color:#04210f;}
+.btn.big{width:100%;padding:.9rem;font-size:1rem;}
+.btn.ghost{background:transparent;}
+.stat-row{display:flex;gap:.5rem;margin:1rem 0;}
+.stat-b{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:.6rem;}
+.stat-b .v{font-family:'Space Mono';font-weight:700;font-size:1.4rem;}
+.stat-b .l{font-size:.62rem;color:var(--muted);text-transform:uppercase;font-weight:700;}
+.share-grid{font-family:'Space Mono';font-size:1.1rem;line-height:1.15;letter-spacing:2px;margin:1rem 0;}
+.lb-row{display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--line);text-align:left;}
+.lb-row:last-child{border:none;}
+.empty{color:var(--muted);font-size:.85rem;padding:1.2rem;}
+.pulse{animation:pulse 1.5s infinite;}@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.countdown{font-family:'Space Mono';color:var(--green);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <a class="back" href="index.html">← Arcade</a>
+    <h1>🟩 Daily Word</h1>
+    <div class="btns">
+      <button class="ibtn" onclick="openHowTo()" title="How to play">?</button>
+      <button class="ibtn" onclick="openLeaderboard()" title="Leaderboard">🏆</button>
+    </div>
+  </div>
+  <div class="sub">Puzzle <b id="puzzleNo">#—</b> · Everyone gets the same word each day. One try, <b id="triesLeft">6</b> guesses.</div>
+  <div class="board" id="board"></div>
+  <div class="kb" id="keyboard"></div>
+</div>
+<div class="modal" id="modal" onclick="if(event.target===this&&window._allowClose!==false)closeModal()"><div class="box" id="modalBox"></div></div>
+<div id="toastMount"></div>
+<script>
+/* ===== Daily Word — themed 5-letter answers (Minecraft / Biking People World) =====
+   ANSWERS rotate as daily solutions (deterministic by date). All 5 letters, A-Z.
+   Add/edit freely — keep them 5 letters and uppercase. ===== */
+const ANSWERS=[
+ "BLOCK","CRAFT","MINER","STONE","WATER","EMBER","TORCH","CHEST","SWORD","CREEP",
+ "ENDER","BIOME","SPAWN","BUILD","MOUNT","RIVER","BEACH","CLOUD","COACH","TRACK",
+ "TRAIN","POWER","LEVER","PLANK","BRICK","GLASS","FENCE","GATES","LIGHT","NIGHT",
+ "GHAST","SLIME","MAGMA","PEARL","BOATS","WHEAT","BREAD","APPLE","MELON","BERRY",
+ "SUGAR","HONEY","FLAME","BLAZE","BONES","FLESH","STICK","RAILS","MINES","HOUSE",
+ "TOWER","ROADS","PLAZA","ARENA","STAGE","MEDIA","RADIO","SCORE","GOALS","PUCKS",
+ "RINKS","SKATE","CROPS","FARMS","SHEEP","HORSE","DIRTS","SANDS","SNOWY","FROST",
+ "STORM","WINDS","LAKES","HILLS","CAVES"
+].filter(w=>/^[A-Z]{5}$/.test(w));
+/* Extra accepted guesses (answers are always valid too). */
+const EXTRA_VALID=[
+ "ABOUT","OTHER","THERE","THEIR","WOULD","THINK","WHICH","WORLD","GREAT","PLACE",
+ "GAMES","PLAYS","HELLO","QUICK","BROWN","JUMPS","HAPPY","LUCKY","MONEY","TIMES",
+ "YEARS","PARTY","MUSIC","VIDEO","PHONE","EMAIL","LINKS","CLICK","MOUSE","BOARD",
+ "CARDS","DEALS","PRICE","STORE","SHOPS","TRADE","BUYER","SELLS","GOODS","STOCK",
+ "CROWD","MATCH","ROUND","POINT","WINGS","SHOTS","SAVES","TEAMS","PIZZA","DANCE",
+ "SMILE","DREAM","BEAST","CHARM","GLORY","SPEED","SHARP","SOLID","VITAL","EAGER"
+].filter(w=>/^[A-Z]{5}$/.test(w));
+const VALID_SET=new Set(ANSWERS.concat(EXTRA_VALID));
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------- daily puzzle selection (deterministic by date) ---------- */
+const EPOCH=Date.UTC(2026,0,1); // puzzle #1 = Jan 1 2026
+function todayKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function puzzleNumber(){
+  const d=new Date(); const utc=Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
+  return Math.floor((utc-EPOCH)/86400000)+1;
+}
+function answerForToday(){ const n=puzzleNumber(); return ANSWERS[((n-1)%ANSWERS.length+ANSWERS.length)%ANSWERS.length]; }
+
+const MAXROWS=6, WORDLEN=5;
+let G=null;
+const LS='gxy_daily';
+
+function loadState(){
+  try{ const raw=JSON.parse(localStorage.getItem(LS)||'{}'); if(raw.day===todayKey()) return raw; }catch(e){}
+  return null;
+}
+function saveState(){
+  try{ localStorage.setItem(LS, JSON.stringify({day:todayKey(), guesses:G.guesses, done:G.done, won:G.won})); }catch(e){}
+}
+function newGame(){
+  const saved=loadState();
+  G={ answer:answerForToday(), guesses:[], row:0, cur:'', done:false, won:false,
+      keys:{}, num:puzzleNumber() };
+  if(saved){ G.guesses=saved.guesses||[]; G.row=G.guesses.length; G.done=saved.done; G.won=saved.won;
+    // rebuild key states
+    G.guesses.forEach(g=>scoreGuess(g).forEach((s,i)=>updateKey(g[i],s.state))); }
+}
+
+/* ---------- guess scoring (correct/present/absent with dup handling) ---------- */
+function scoreGuess(guess){
+  const ans=G.answer.split(''); const res=new Array(WORDLEN).fill(null);
+  const counts={}; ans.forEach(c=>counts[c]=(counts[c]||0)+1);
+  // pass 1: correct
+  for(let i=0;i<WORDLEN;i++){ if(guess[i]===ans[i]){ res[i]={letter:guess[i],state:'correct'}; counts[guess[i]]--; } }
+  // pass 2: present / absent
+  for(let i=0;i<WORDLEN;i++){ if(res[i])continue;
+    const c=guess[i];
+    if(counts[c]>0){ res[i]={letter:c,state:'present'}; counts[c]--; }
+    else res[i]={letter:c,state:'absent'};
+  }
+  return res;
+}
+function updateKey(letter,state){
+  const rank={absent:0,present:1,correct:2};
+  const cur=G.keys[letter];
+  if(cur===undefined || rank[state]>rank[cur]) G.keys[letter]=state;
+}
+
+/* ---------- rendering ---------- */
+function renderBoard(){
+  const b=$('#board'); b.innerHTML='';
+  for(let r=0;r<MAXROWS;r++){
+    const row=document.createElement('div'); row.className='brow'; row.id='row-'+r;
+    const guess=G.guesses[r];
+    for(let c=0;c<WORDLEN;c++){
+      const cell=document.createElement('div'); cell.className='cell'; cell.id='cell-'+r+'-'+c;
+      if(guess){ const s=scoreGuess(guess)[c]; cell.textContent=s.letter; cell.classList.add('filled',s.state); }
+      else if(r===G.row){ const ch=G.cur[c]; if(ch){ cell.textContent=ch; cell.classList.add('filled'); } }
+      row.appendChild(cell);
+    }
+    b.appendChild(row);
+  }
+  $('#puzzleNo').textContent='#'+G.num;
+  $('#triesLeft').textContent=Math.max(0,MAXROWS-G.row);
+}
+const KB_ROWS=["QWERTYUIOP","ASDFGHJKL","<ZXCVBNM>"];
+function renderKeyboard(){
+  const kb=$('#keyboard'); kb.innerHTML='';
+  KB_ROWS.forEach(rowStr=>{
+    const row=document.createElement('div'); row.className='krow';
+    rowStr.split('').forEach(k=>{
+      const key=document.createElement('button'); key.className='key';
+      if(k==='<'){ key.classList.add('wide'); key.textContent='⌫'; key.onclick=()=>onKey('BACK'); }
+      else if(k==='>'){ key.classList.add('wide'); key.textContent='ENTER'; key.onclick=()=>onKey('ENTER'); }
+      else { key.textContent=k; key.onclick=()=>onKey(k); if(G.keys[k]) key.classList.add(G.keys[k]); }
+      row.appendChild(key);
+    });
+    kb.appendChild(row);
+  });
+}
+function refreshKeyboard(){
+  $$('.key').forEach(()=>{}); // no-op guard
+  $('#keyboard').querySelectorAll('.key').forEach(key=>{
+    const t=key.textContent;
+    if(t.length===1 && G.keys[t]){ key.classList.remove('correct','present','absent'); key.classList.add(G.keys[t]); }
+  });
+}
+function $$(s){return document.querySelectorAll(s);}
+
+/* ---------- input ---------- */
+function onKey(k){
+  if(G.done) return;
+  if(k==='BACK'){ G.cur=G.cur.slice(0,-1); renderBoard(); return; }
+  if(k==='ENTER'){ submitGuess(); return; }
+  if(/^[A-Z]$/.test(k) && G.cur.length<WORDLEN){ G.cur+=k; renderBoard(); }
+}
+function submitGuess(){
+  if(G.cur.length<WORDLEN){ shake(); toast('Not enough letters'); return; }
+  const guess=G.cur;
+  if(!VALID_SET.has(guess) && !ANSWERS.includes(guess)){ shake(); toast('Not in word list'); return; }
+  G.guesses.push(guess);
+  const scored=scoreGuess(guess);
+  scored.forEach((s,i)=>{ updateKey(guess[i],s.state); });
+  // flip animation
+  const row=G.row;
+  scored.forEach((s,i)=>{ const cell=$('#cell-'+row+'-'+i); if(cell){ setTimeout(()=>cell.classList.add('flip'),i*90); } });
+  G.row++; G.cur='';
+  const won = guess===G.answer;
+  setTimeout(()=>{
+    renderBoard(); refreshKeyboard();
+    if(won){ G.done=true; G.won=true; $('#row-'+(row)).classList.add('win'); saveState(); finish(true); }
+    else if(G.row>=MAXROWS){ G.done=true; G.won=false; saveState(); finish(false); }
+    else saveState();
+  }, 5*90+250);
+}
+function shake(){ const r=$('#row-'+G.row); if(r){ r.classList.add('shake'); setTimeout(()=>r.classList.remove('shake'),450); } }
+
+/* ---------- keyboard input ---------- */
+document.addEventListener('keydown',e=>{
+  if(G && !G.done){
+    if(e.key==='Enter') onKey('ENTER');
+    else if(e.key==='Backspace') onKey('BACK');
+    else { const k=e.key.toUpperCase(); if(/^[A-Z]$/.test(k)) onKey(k); }
+  }
+});
+
+/* ---------- finish + share + score ---------- */
+function dailyScore(won, tries){
+  if(!won) return 100; // participation
+  // fewer guesses = more points; solving in 1 is legendary
+  const table={1:1000,2:800,3:650,4:500,5:380,6:280};
+  return table[tries]||280;
+}
+function shareGrid(){
+  let out='';
+  G.guesses.forEach(g=>{
+    scoreGuess(g).forEach(s=>{ out+= s.state==='correct'?'🟩':s.state==='present'?'🟨':'⬛'; });
+    out+='\n';
+  });
+  return out.trim();
+}
+function finish(won){
+  window._allowClose=true;
+  const tries=G.guesses.length;
+  const score=dailyScore(won,tries);
+  G.finalScore=score;
+  // report to leaderboard + meta (only counts once/day thanks to guard)
+  if(window.gxyReportDaily) window.gxyReportDaily(score, won, tries);
+  const grid=shareGrid();
+  const shareText='GXY Daily Word #'+G.num+' '+(won?tries+'/6':'X/6')+'\n\n'+grid;
+  const msg = won
+    ? ['Nice! 🎉','Great solve!','Well played!','Clutch!','Phew!','Right at the buzzer!'][Math.min(tries-1,5)]
+    : 'So close!';
+  showModal(
+    '<h2>'+(won?'🟩 '+esc(msg):'😔 Out of guesses')+'</h2>'+
+    '<p style="color:var(--dim);margin:.2rem 0 .3rem;">Puzzle #'+G.num+(won?' solved in '+tries+'/6':'')+'</p>'+
+    (won?'':'<p style="margin:.4rem 0;">The word was <b style="color:var(--green);letter-spacing:2px;">'+esc(G.answer)+'</b></p>')+
+    '<div class="share-grid">'+grid.replace(/\n/g,'<br>')+'</div>'+
+    '<div class="stat-row">'+
+      '<div class="stat-b"><div class="v" style="color:var(--green);">'+(won?tries+'/6':'X')+'</div><div class="l">Result</div></div>'+
+      '<div class="stat-b"><div class="v" style="color:var(--yellow);">+'+score+'</div><div class="l">Score</div></div>'+
+    '</div>'+
+    '<button class="btn green big" onclick="doShare()">📋 Share result</button>'+
+    '<div style="display:flex;gap:.5rem;margin-top:.5rem;">'+
+      '<button class="btn big" onclick="openLeaderboard()">🏆 Leaderboard</button>'+
+      '<button class="btn ghost big" onclick="closeModal()">Close</button>'+
+    '</div>'+
+    '<p style="color:var(--muted);font-size:.78rem;margin-top:1rem;">Next puzzle in <span class="countdown" id="cd">…</span></p>'
+  );
+  startCountdown();
+  window._shareText=shareText;
+}
+function doShare(){
+  const txt=window._shareText||'';
+  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>toast('Copied to clipboard!')).catch(()=>toast('Copy failed')); }
+  else toast('Sharing not supported');
+}
+window.doShare=doShare;
+function startCountdown(){
+  function tick(){
+    const el=$('#cd'); if(!el) return;
+    const now=new Date(); const tmr=new Date(now); tmr.setHours(24,0,0,0);
+    let s=Math.floor((tmr-now)/1000); const h=Math.floor(s/3600); s%=3600; const m=Math.floor(s/60); s%=60;
+    el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    setTimeout(tick,1000);
+  }
+  tick();
+}
+
+/* ---------- how to play ---------- */
+function openHowTo(){
+  window._allowClose=true;
+  showModal('<h2>How to Play</h2>'+
+    '<p style="color:var(--dim);line-height:1.6;font-size:.9rem;text-align:left;">Guess the <b>GXY Daily Word</b> in 6 tries. Each guess must be a valid 5-letter word.<br><br>'+
+    '<span style="display:inline-block;width:22px;height:22px;background:var(--green);border-radius:4px;vertical-align:middle;"></span> Right letter, right spot.<br>'+
+    '<span style="display:inline-block;width:22px;height:22px;background:var(--yellow);border-radius:4px;vertical-align:middle;"></span> Right letter, wrong spot.<br>'+
+    '<span style="display:inline-block;width:22px;height:22px;background:var(--absent);border-radius:4px;vertical-align:middle;"></span> Not in the word.<br><br>'+
+    'A new word drops every day, and everyone gets the same one. Words are themed around Biking People World and Minecraft. Solve fast, keep your streak alive, and climb the leaderboard!</p>'+
+    '<button class="btn green big" style="margin-top:1rem;" onclick="closeModal()">Got it</button>');
+}
+window.openHowTo=openHowTo;
+
+/* ---------- lifecycle ---------- */
+function startDaily(){
+  newGame();
+  renderBoard(); renderKeyboard();
+  if(G.done){ setTimeout(()=>finish(G.won),300); }
+  else if(loadState() && !localStorage.getItem('gxy_daily_seen_'+todayKey())){ /* returning mid-game */ }
+  if(!localStorage.getItem('gxy_daily_howto')){ localStorage.setItem('gxy_daily_howto','1'); setTimeout(openHowTo,400); }
+}
+function showModal(html){ $('#modalBox').innerHTML=html; $('#modal').classList.add('show'); }
+function closeModal(){ if(window._allowClose===false)return; $('#modal').classList.remove('show'); }
+window.closeModal=closeModal;
+function toast(msg){ const m=$('#toastMount'); m.innerHTML='<div class="toast">'+esc(msg)+'</div>'; clearTimeout(window._tt); window._tt=setTimeout(()=>m.innerHTML='',1800); }
+window.openLeaderboard=function(){
+  window._allowClose=true;
+  showModal('<h2>🏆 Today\'s Scores</h2><p style="color:var(--dim);font-size:.84rem;margin-bottom:1rem;">Puzzle #'+G.num+'</p><div id="lbList"><p class="empty pulse">Loading…</p></div><button class="btn ghost big" style="margin-top:1rem;" onclick="closeModal()">Close</button>');
+  if(window.gxyLoadDaily) window.gxyLoadDaily();
+};
+startDaily();
+</script>
+<script type="module">
+import { gxyAccount } from '../assets/gxyaccount.js';
+import { gxyMeta } from '../assets/gxymeta.js';
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyCN4mEtGMjSxdgsTlthhzX6FXIjxltJKHQ",authDomain:"gxyhockey.firebaseapp.com",projectId:"gxyhockey",storageBucket:"gxyhockey.firebasestorage.app",messagingSenderId:"474584991663",appId:"1:474584991663:web:b8986544418d6b85fa115a"};
+const app=getApps().length?getApps()[0]:initializeApp(cfg); let db=null; try{db=getFirestore(app);}catch(e){}
+function dayKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+let reported=false;
+window.gxyReportDaily=async function(score, won, tries){
+  if(reported) return; reported=true;
+  await gxyAccount.ready(); const d=gxyAccount.data||{};
+  if(!d.mcUsername||!d.verified||!db){ return; }
+  const day=dayKey();
+  // one score per player per day: deterministic doc id
+  try{
+    await setDoc(doc(db,'scores_daily', gxyAccount.user.uid+'_'+day), {
+      uid:gxyAccount.user.uid, name:d.mcUsername, score, won:!!won, tries:tries||0, day, ts:serverTimestamp()
+    });
+  }catch(e){}
+  // feed the meta-layer (streak, xp, badges)
+  try{ await gxyMeta.recordGame('daily',{score, dailySolved:!!won}); }catch(e){}
+};
+window.gxyLoadDaily=async function(){
+  const list=document.getElementById('lbList'); if(!list)return;
+  if(!db){ list.innerHTML='<p class="empty">Leaderboard needs Firestore configured.</p>'; return; }
+  const day=dayKey();
+  try{
+    // today's board: filter client-side by day to avoid a composite index
+    const snap=await getDocs(query(collection(db,'scores_daily'),orderBy('score','desc'),limit(50)));
+    const rows=[]; snap.forEach(dd=>{ const v=dd.data(); if(v.day===day) rows.push(v); });
+    rows.sort((a,b)=>b.score-a.score);
+    const top=rows.slice(0,10);
+    if(!top.length){ list.innerHTML='<p class="empty">No scores yet today. Be the first!</p>'; return; }
+    list.innerHTML=top.map((r,i)=>{const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+      return '<div class="lb-row"><span style="width:26px;font-weight:800;">'+medal+'</span><img src="https://mc-heads.net/avatar/'+encodeURIComponent(r.name)+'/24" style="width:24px;height:24px;border-radius:5px;" onerror="this.style.visibility=\'hidden\'"><span style="font-weight:700;flex:1;">'+r.name+'</span><span style="color:var(--dim);font-size:.78rem;margin-right:.5rem;">'+(r.won?r.tries+'/6':'X')+'</span><span class="mono" style="color:var(--yellow);">'+(r.score||0).toLocaleString()+'</span></div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<p class="empty">Leaderboard unavailable right now.</p>'; }
+};
+</script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>

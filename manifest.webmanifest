@@ -1,0 +1,21 @@
+{
+  "name": "GXY Arcade",
+  "short_name": "GXY Arcade",
+  "description": "Every Biking People World minigame, boxed up and ready to play.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07080f",
+  "theme_color": "#07080f",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Supermarket Wars", "url": "./games/supermarket-wars.html" },
+    { "name": "Daily Word", "url": "./games/gxy-daily.html" },
+    { "name": "Neon Siege", "url": "./games/neon-siege.html" }
+  ]
+}

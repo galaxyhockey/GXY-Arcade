@@ -1,0 +1,146 @@
+/* ============================================================
+   GXY MODERN — sitewide design system (v1)
+   Dark & sleek. Gradient-driven identity.
+   Scoped under html:not([data-theme="retro"]) so Retro mode is
+   never affected (retro.css still fully overrides in retro).
+   Injected on every page by theme.js.
+   ============================================================ */
+
+:root{
+  /* --- the four brand gradients --- */
+  --grad-brand: linear-gradient(120deg,#1D2671,#C33764);   /* #3 primary */
+  --grad-teal:  linear-gradient(120deg,#0f3443,#34e89e);   /* #4 success/live */
+  --grad-cyan:  linear-gradient(120deg,#0ED2F7,#B2FEFA);   /* #2 highlight */
+  --grad-nether:linear-gradient(120deg,#000000,#EB5757);   /* #1 nether/alert */
+
+  --brand-1:#1D2671; --brand-2:#C33764;
+  --teal-1:#0f3443;  --teal-2:#34e89e;
+  --cyan-1:#0ED2F7;  --cyan-2:#B2FEFA;
+
+  /* dark surface palette */
+  --bg-0:#080b16;    /* page base */
+  --bg-1:#0e1322;    /* panels */
+  --bg-2:#141a2e;    /* raised */
+  --line:#1f2740;
+  --line-2:#2b3556;
+  --ink:#e9edf8;
+  --ink-dim:#93a0bd;
+  --accent:#C33764;
+  --accent-cyan:#0ED2F7;
+
+  --radius:16px; --radius-sm:11px; --radius-lg:24px;
+  --shadow-1:0 2px 10px rgba(0,0,0,.28);
+  --shadow-2:0 12px 40px rgba(0,0,0,.45);
+  --shadow-glow:0 8px 40px rgba(195,55,100,.28);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+/* ---------- global smoothness (safe, additive) ---------- */
+html:not([data-theme="retro"]){ scroll-behavior:smooth; }
+html:not([data-theme="retro"]) body{
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+html:not([data-theme="retro"]) *{ }
+html:not([data-theme="retro"]) a,
+html:not([data-theme="retro"]) button,
+html:not([data-theme="retro"]) .card,
+html:not([data-theme="retro"]) .biz-card,
+html:not([data-theme="retro"]) .widget,
+html:not([data-theme="retro"]) input,
+html:not([data-theme="retro"]) .q-tile,
+html:not([data-theme="retro"]) .pcard{
+  transition:transform .28s var(--ease), box-shadow .28s var(--ease),
+             border-color .28s var(--ease), background-color .28s var(--ease),
+             color .2s var(--ease), opacity .2s var(--ease) !important;
+}
+
+/* custom scrollbar */
+html:not([data-theme="retro"]) ::-webkit-scrollbar{width:12px;height:12px;}
+html:not([data-theme="retro"]) ::-webkit-scrollbar-track{background:var(--bg-0);}
+html:not([data-theme="retro"]) ::-webkit-scrollbar-thumb{
+  background:linear-gradient(var(--brand-1),var(--brand-2));border-radius:20px;border:3px solid var(--bg-0);}
+html:not([data-theme="retro"]) ::-webkit-scrollbar-thumb:hover{background:linear-gradient(#26307f,#d1416f);}
+
+/* text selection */
+html:not([data-theme="retro"]) ::selection{ background:rgba(195,55,100,.35); color:#fff; }
+
+/* ---------- reusable helpers (opt-in classes) ---------- */
+.gxy-grad-text{
+  background:var(--grad-brand);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+}
+.gxy-grad-text.teal{ background:var(--grad-teal);-webkit-background-clip:text;background-clip:text; }
+.gxy-grad-text.cyan{ background:var(--grad-cyan);-webkit-background-clip:text;background-clip:text; }
+
+.gxy-surface{
+  background:var(--bg-1);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow-1);
+}
+.gxy-glass{
+  background:rgba(20,26,46,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);
+}
+
+/* hover-lift for cards */
+html:not([data-theme="retro"]) .lift:hover,
+html:not([data-theme="retro"]) .biz-card:hover,
+html:not([data-theme="retro"]) .pcard:hover,
+html:not([data-theme="retro"]) .city-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-2);
+}
+
+/* gradient buttons (opt-in) */
+.gxy-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--grad-brand);color:#fff;border:none;border-radius:12px;
+  padding:.75rem 1.5rem;font-weight:700;cursor:pointer;font-size:.92rem;
+  box-shadow:var(--shadow-glow);text-decoration:none;
+  background-size:160% 160%;background-position:0% 50%;
+}
+html:not([data-theme="retro"]) .gxy-btn:hover{ background-position:100% 50%; transform:translateY(-2px); }
+.gxy-btn.teal{ background:var(--grad-teal);box-shadow:0 8px 40px rgba(52,232,158,.25);background-size:160% 160%; }
+.gxy-btn.ghost{ background:transparent;border:1px solid var(--line-2);color:var(--ink);box-shadow:none; }
+
+/* animated aurora background (opt-in on heroes) */
+.gxy-aurora{ position:relative;overflow:hidden; }
+.gxy-aurora::before{
+  content:"";position:absolute;inset:-40%;z-index:0;
+  background:
+    radial-gradient(40% 50% at 20% 30%, rgba(195,55,100,.35), transparent 60%),
+    radial-gradient(45% 55% at 80% 20%, rgba(29,38,113,.5), transparent 60%),
+    radial-gradient(40% 50% at 70% 80%, rgba(14,210,247,.18), transparent 60%);
+  filter:blur(30px);animation:gxyFloat 18s var(--ease) infinite alternate;
+}
+.gxy-aurora > *{ position:relative;z-index:1; }
+@keyframes gxyFloat{
+  0%{transform:translate(0,0) scale(1);}
+  50%{transform:translate(2%,-3%) scale(1.06);}
+  100%{transform:translate(-2%,2%) scale(1.03);}
+}
+
+/* fade/slide in on scroll (theme.js adds .gxy-in when visible) */
+html:not([data-theme="retro"]) .gxy-reveal{
+  opacity:0;transform:translateY(18px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease);
+}
+html:not([data-theme="retro"]) .gxy-reveal.gxy-in{ opacity:1;transform:none; }
+@media (prefers-reduced-motion: reduce){
+  html:not([data-theme="retro"]) .gxy-reveal{opacity:1;transform:none;}
+  html:not([data-theme="retro"]) .gxy-aurora::before{animation:none;}
+  html:not([data-theme="retro"]){scroll-behavior:auto;}
+}
+
+/* nicer default focus ring */
+html:not([data-theme="retro"]) :focus-visible{
+  outline:2px solid var(--accent-cyan);outline-offset:2px;border-radius:6px;
+}
+
+/* the retro toggle button gets a subtle modern look in modern mode */
+html:not([data-theme="retro"]) #gxy-theme-toggle{
+  background:var(--grad-brand) !important;color:#fff !important;border:none !important;
+  box-shadow:var(--shadow-glow) !important;background-size:160% 160% !important;background-position:0 50% !important;
+}
+html:not([data-theme="retro"]) #gxy-theme-toggle:hover{ background-position:100% 50% !important; }

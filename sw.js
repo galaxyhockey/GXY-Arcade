@@ -1,0 +1,72 @@
+// GXY Arcade service worker: precache the arcade so it installs and plays offline.
+// Bump VERSION whenever you change files so players get the update.
+const VERSION='arcade-v1';
+const CORE=[
+'./','index.html','manifest.webmanifest',
+'assets/aero-news.css',
+'assets/aero.css',
+'assets/authguard.js',
+'assets/breaking.js',
+'assets/gxy-modern.css',
+'assets/gxyaccount.js',
+'assets/gxyachievements.js',
+'assets/gxycareer.js',
+'assets/gxychat.js',
+'assets/gxymeta.js',
+'assets/gxyroster.js',
+'assets/gxysave.js',
+'assets/gxystats.js',
+'assets/lang.js',
+'assets/liquid.css',
+'assets/news-modern.css',
+'assets/region-rules.js',
+'assets/region.js',
+'assets/retro-news.css',
+'assets/retro-weather.css',
+'assets/retro.css',
+'assets/serverstatus.js',
+'assets/theme.js',
+'covers/gxy-daily.svg',
+'covers/gxy-football.svg',
+'covers/gxy-hockey.svg',
+'covers/gxy-tech-empire.svg',
+'covers/neon-siege.svg',
+'covers/supermarket-wars.svg',
+'covers/tv-battles.svg',
+'games/empire-engine.js',
+'games/empire-geo.js',
+'games/empire-intl.js',
+'games/empire-regions.js',
+'games/empire-rivals.js',
+'games/empire-towns.js',
+'games/gxy-daily.html',
+'games/gxy-football.html',
+'games/gxy-hockey.html',
+'games/gxy-tech-empire.html',
+'games/index.html',
+'games/markets-data.js',
+'games/neon-siege.html',
+'games/quickplay.html',
+'games/smw-updates.js',
+'games/supermarket-wars.html',
+'games/tv-battles.html',
+'games/tv-shows.js',
+'icons/apple-touch-icon.png',
+'icons/icon-192-maskable.png',
+'icons/icon-192.png',
+'icons/icon-512-maskable.png',
+'icons/icon-512.png',
+];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+// same-origin: serve from cache, refresh in background. Fonts/cloud saves: network, cache as fallback.
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET') return;
+  const url=new URL(e.request.url);
+  if(url.origin!==location.origin && !url.hostname.includes('fonts.g')) return;
+  e.respondWith(caches.open(VERSION).then(async c=>{
+    const hit=await c.match(e.request,{ignoreSearch:true});
+    const net=fetch(e.request).then(r=>{ if(r.ok) c.put(e.request,r.clone()); return r; }).catch(()=>hit);
+    return hit||net;
+  }));
+});

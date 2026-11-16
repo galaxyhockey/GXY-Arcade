@@ -1,0 +1,134 @@
+/* ============================================================
+   LIQUID GLASS MODE  (Dark + Light variants)
+   visionOS / iOS-style frosted glass: translucent panes, heavy
+   blur, specular edge highlights, depth, living background.
+   [data-theme="liquid"]        = dark
+   [data-theme="liquid-light"]  = light
+   ============================================================ */
+
+/* shared tokens */
+[data-theme="liquid"],[data-theme="liquid-light"]{
+  --lg-radius:22px;
+  --lg-blur:24px;
+  --lg-ease:cubic-bezier(.22,.61,.36,1);
+}
+
+/* ---------- living animated background ---------- */
+[data-theme="liquid"] body,[data-theme="liquid-light"] body{
+  font-family:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif !important;
+  min-height:100vh;position:relative;
+  display:flex;flex-direction:column;
+}
+[data-theme="liquid"] body{
+  background:#05060c !important;color:#eef2fb !important;
+}
+[data-theme="liquid-light"] body{
+  background:#eef1f8 !important;color:#0d1220 !important;
+}
+/* animated aurora blobs behind the glass */
+[data-theme="liquid"] body::before,[data-theme="liquid-light"] body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(38% 44% at 18% 22%, rgba(195,55,100,.55), transparent 60%),
+    radial-gradient(42% 50% at 82% 16%, rgba(29,38,113,.6), transparent 60%),
+    radial-gradient(46% 52% at 68% 88%, rgba(14,210,247,.4), transparent 60%),
+    radial-gradient(40% 44% at 25% 82%, rgba(52,232,158,.32), transparent 60%);
+  filter:blur(50px) saturate(1.2);
+  animation:lgFloat 24s var(--lg-ease) infinite alternate;
+}
+[data-theme="liquid-light"] body::before{ opacity:.5;filter:blur(60px) saturate(1.3); }
+@keyframes lgFloat{
+  0%{transform:translate(0,0) scale(1);}
+  33%{transform:translate(3%,-2%) scale(1.08);}
+  66%{transform:translate(-2%,3%) scale(1.04);}
+  100%{transform:translate(2%,1%) scale(1.1);}
+}
+[data-theme="liquid"] body > *,[data-theme="liquid-light"] body > *{ position:relative;z-index:1; }
+[data-theme="liquid"] body > footer,[data-theme="liquid-light"] body > footer{ margin-top:auto; }
+[data-theme="liquid"] body > .container,[data-theme="liquid"] body > .wrap,[data-theme="liquid"] body > main,
+[data-theme="liquid-light"] body > .container,[data-theme="liquid-light"] body > .wrap,[data-theme="liquid-light"] body > main{ flex:1 0 auto; }
+
+/* ---------- the glass surface (applied to every panel type) ---------- */
+[data-theme="liquid"] .card,[data-theme="liquid"] .widget,[data-theme="liquid"] .biz-card,
+[data-theme="liquid"] .city-card,[data-theme="liquid"] .game-card,[data-theme="liquid"] .train,
+[data-theme="liquid"] .panel,[data-theme="liquid"] .tile,[data-theme="liquid"] .info-card,
+[data-theme="liquid"] .leaderboard,[data-theme="liquid"] .event-card,[data-theme="liquid"] .pcard,
+[data-theme="liquid"] .article-lead,[data-theme="liquid"] .col-article,[data-theme="liquid"] .sidebar-section,
+[data-theme="liquid"] .ribbon-inner,[data-theme="liquid"] .feature-visual,[data-theme="liquid"] .hero-cabinet,
+[data-theme="liquid"] .stat,[data-theme="liquid"] .hstat,[data-theme="liquid"] .net-stat,[data-theme="liquid"] .container{
+  background:rgba(255,255,255,.07) !important;
+  backdrop-filter:blur(var(--lg-blur)) saturate(1.6) !important;
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(1.6) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  border-radius:var(--lg-radius) !important;
+  box-shadow:0 8px 32px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.25), inset 0 -1px 0 rgba(255,255,255,.05) !important;
+}
+[data-theme="liquid-light"] .card,[data-theme="liquid-light"] .widget,[data-theme="liquid-light"] .biz-card,
+[data-theme="liquid-light"] .city-card,[data-theme="liquid-light"] .game-card,[data-theme="liquid-light"] .train,
+[data-theme="liquid-light"] .panel,[data-theme="liquid-light"] .tile,[data-theme="liquid-light"] .info-card,
+[data-theme="liquid-light"] .leaderboard,[data-theme="liquid-light"] .event-card,[data-theme="liquid-light"] .pcard,
+[data-theme="liquid-light"] .article-lead,[data-theme="liquid-light"] .col-article,[data-theme="liquid-light"] .sidebar-section,
+[data-theme="liquid-light"] .ribbon-inner,[data-theme="liquid-light"] .feature-visual,[data-theme="liquid-light"] .hero-cabinet,
+[data-theme="liquid-light"] .stat,[data-theme="liquid-light"] .hstat,[data-theme="liquid-light"] .net-stat,[data-theme="liquid-light"] .container{
+  background:rgba(255,255,255,.55) !important;
+  backdrop-filter:blur(var(--lg-blur)) saturate(1.8) !important;
+  -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(1.8) !important;
+  border:1px solid rgba(255,255,255,.7) !important;
+  border-radius:var(--lg-radius) !important;
+  box-shadow:0 8px 32px rgba(31,45,90,.16), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+/* specular sheen on hover-able cards */
+[data-theme="liquid"] .card,[data-theme="liquid"] .tile,[data-theme="liquid"] .game-card,
+[data-theme="liquid"] .biz-card,[data-theme="liquid"] .pcard,[data-theme="liquid-light"] .card,
+[data-theme="liquid-light"] .tile,[data-theme="liquid-light"] .game-card,[data-theme="liquid-light"] .biz-card,[data-theme="liquid-light"] .pcard{
+  position:relative;overflow:hidden;transition:transform .35s var(--lg-ease),box-shadow .35s !important;
+}
+[data-theme="liquid"] .card:hover,[data-theme="liquid"] .tile:hover,[data-theme="liquid"] .game-card:hover,
+[data-theme="liquid"] .biz-card:hover,[data-theme="liquid"] .pcard:hover,[data-theme="liquid-light"] .card:hover,
+[data-theme="liquid-light"] .tile:hover,[data-theme="liquid-light"] .game-card:hover,[data-theme="liquid-light"] .biz-card:hover,[data-theme="liquid-light"] .pcard:hover{
+  transform:translateY(-5px) scale(1.01);
+}
+
+/* ---------- headers / nav become glass bars ---------- */
+[data-theme="liquid"] header,[data-theme="liquid"] nav,[data-theme="liquid"] .topnav,
+[data-theme="liquid-light"] header,[data-theme="liquid-light"] nav,[data-theme="liquid-light"] .topnav{
+  background:rgba(255,255,255,.06) !important;
+  backdrop-filter:blur(20px) saturate(1.5) !important;-webkit-backdrop-filter:blur(20px) saturate(1.5) !important;
+  border-bottom:1px solid rgba(255,255,255,.12) !important;
+}
+[data-theme="liquid-light"] header,[data-theme="liquid-light"] nav,[data-theme="liquid-light"] .topnav{
+  background:rgba(255,255,255,.5) !important;border-bottom:1px solid rgba(255,255,255,.7) !important;
+}
+
+/* ---------- text readability ---------- */
+[data-theme="liquid"] h1,[data-theme="liquid"] h2,[data-theme="liquid"] h3,[data-theme="liquid"] h4,
+[data-theme="liquid"] p,[data-theme="liquid"] a,[data-theme="liquid"] span,[data-theme="liquid"] li{ color:#eef2fb; }
+[data-theme="liquid"] .muted,[data-theme="liquid"] .dim,[data-theme="liquid"] .section-sub{ color:#a9b4cc !important; }
+[data-theme="liquid-light"] h1,[data-theme="liquid-light"] h2,[data-theme="liquid-light"] h3,[data-theme="liquid-light"] h4,
+[data-theme="liquid-light"] p,[data-theme="liquid-light"] a,[data-theme="liquid-light"] span,[data-theme="liquid-light"] li{ color:#0d1220; }
+[data-theme="liquid-light"] .muted,[data-theme="liquid-light"] .dim,[data-theme="liquid-light"] .section-sub{ color:#4a5578 !important; }
+
+/* ---------- buttons: pill glass with gradient tint ---------- */
+[data-theme="liquid"] .gxy-btn,[data-theme="liquid"] .btn-primary,[data-theme="liquid"] .btn,[data-theme="liquid"] .hbtn,
+[data-theme="liquid-light"] .gxy-btn,[data-theme="liquid-light"] .btn-primary,[data-theme="liquid-light"] .btn,[data-theme="liquid-light"] .hbtn{
+  border-radius:30px !important;
+  background:linear-gradient(120deg,rgba(29,38,113,.85),rgba(195,55,100,.85)) !important;
+  backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.3) !important;color:#fff !important;
+  box-shadow:0 6px 20px rgba(195,55,100,.35), inset 0 1px 0 rgba(255,255,255,.4) !important;
+}
+[data-theme="liquid"] .btn-ghost,[data-theme="liquid-light"] .btn-ghost{
+  border-radius:30px !important;background:rgba(255,255,255,.12) !important;border:1px solid rgba(255,255,255,.3) !important;
+}
+
+/* keep gradient wordmarks intact */
+[data-theme="liquid"] .hero h1 .g,[data-theme="liquid-light"] .hero h1 .g{ -webkit-text-fill-color:transparent; }
+
+/* scrollbar */
+[data-theme="liquid"] ::-webkit-scrollbar,[data-theme="liquid-light"] ::-webkit-scrollbar{width:12px;}
+[data-theme="liquid"] ::-webkit-scrollbar-thumb,[data-theme="liquid-light"] ::-webkit-scrollbar-thumb{
+  background:linear-gradient(rgba(29,38,113,.7),rgba(195,55,100,.7));border-radius:20px;border:3px solid transparent;background-clip:padding-box;}
+
+@media (prefers-reduced-motion:reduce){
+  [data-theme="liquid"] body::before,[data-theme="liquid-light"] body::before{animation:none;}
+}
