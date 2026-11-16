@@ -253,3 +253,31 @@ function boot(){
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
+
+/* UI redesign helpers: tab icons (styles live in smw-ui.css) */
+(function(){
+  const ICONS = {overview:'🏠', map:'🏙️', stores:'🏪', competition:'⚔️', ranking:'🏆', stats:'📊', rnd:'🔬', ads:'📣', geomap:'🗺️', expand:'🚀'};
+  function addIcons(){
+    document.querySelectorAll('#gameTabs .tab').forEach(t=>{
+      if(t.querySelector('.ti')) return;
+      const label = t.textContent.replace('🏆','').trim();
+      t.innerHTML = `<span class="ti">${ICONS[t.dataset.tab]||'•'}</span><span>${label}</span>`;
+    });
+  }
+  // keep the chosen tab visible in the scrolling phone nav bar
+  const _st = window.switchTab;
+  window.switchTab = function(n){ _st(n); const t=document.querySelector('#gameTabs .tab.on'); if(t && innerWidth<=700) t.scrollIntoView({inline:'center',block:'nearest'}); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', addIcons); else addIcons();
+})();
+
+/* group the week badge + HUD buttons so the phone layout can give them their own swipeable row */
+(function(){
+  function wrapTools(){
+    const hud = document.querySelector('#scr-game .hud'); if(!hud || hud.querySelector('.hud-tools')) return;
+    const box = document.createElement('div'); box.className = 'hud-tools';
+    [...hud.children].filter(el => !el.classList.contains('stat') && !el.classList.contains('spacer')).forEach(el => box.appendChild(el));
+    hud.appendChild(box);
+  }
+  // runs after boot() adds the flyer/sound/help buttons
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>setTimeout(wrapTools)); else setTimeout(wrapTools);
+})();

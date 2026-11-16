@@ -1,0 +1,151 @@
+/* Supermarket Wars — UI redesign. Loaded after the game's built-in styles and overrides them.
+   Look: night-shift supermarket. Charcoal aisles, fresh-green brand, price-tag yellow highlights. */
+:root{
+  --bg:#0c0f0d; --panel:#151a17; --panel2:#1c231f; --line:#26302a; --line2:#34413a;
+  --ink:#f1f5ef; --dim:#a3b0a6; --muted:#6f7d73;
+  --brand:#22c55e; --brand2:#facc15; --good:#4ade80; --warn:#fbbf24; --bad:#f87171;
+  --tag:#facc15;
+  --gradBrand:linear-gradient(120deg,#14532d,#15803d 55%,#22c55e);
+  --gradMoney:linear-gradient(120deg,#15803d,#4ade80);
+  --gradCity:linear-gradient(120deg,#4ade80,#facc15);
+  --r:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
+}
+body{background:
+  radial-gradient(900px 500px at 85% -10%,rgba(34,197,94,.12),transparent 60%),
+  radial-gradient(700px 400px at -10% 10%,rgba(250,204,21,.06),transparent 60%),var(--bg);
+  background-attachment:fixed;}
+
+/* top bar */
+.gxy-gamebar{background:rgba(12,15,13,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:.6rem 1.2rem;}
+.gxy-gamebar .gt{font-size:1.25rem;background:var(--gradCity);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.gxy-gamebar a{font-size:.8rem;padding:6px 12px;border-radius:999px;background:var(--panel2);border:1px solid var(--line2);}
+.gxy-gamebar a:hover{text-decoration:none;border-color:var(--brand);}
+
+/* buttons */
+.btn{background:var(--brand);color:#052e16;border-radius:12px;box-shadow:0 4px 0 #15803d;transition:transform .12s,box-shadow .12s,filter .15s;}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #15803d;}
+.btn.money{background:var(--good);}
+.btn.pink{background:var(--tag);color:#422006;box-shadow:0 4px 0 #a16207;}
+.btn.ghost{background:var(--panel2);color:var(--ink);box-shadow:none;border:1px solid var(--line2);}
+.btn.ghost:hover{border-color:var(--brand);background:#202a24;}
+.btn:disabled{box-shadow:none;}
+.btn.sm{border-radius:10px;}
+
+/* mode select */
+.hero h1{font-size:64px;}
+.hero h1 .g{background:var(--gradCity);-webkit-background-clip:text;background-clip:text;}
+.hero::before{background:radial-gradient(40% 50% at 30% 20%,rgba(34,197,94,.28),transparent 60%),radial-gradient(40% 50% at 75% 25%,rgba(250,204,21,.18),transparent 60%);}
+.mode-card{border-radius:20px;background:linear-gradient(180deg,var(--panel2),var(--panel));}
+.mode-card::before{background:var(--gradCity);height:4px;}
+.mode-card:hover{border-color:var(--brand);box-shadow:0 20px 44px rgba(34,197,94,.18);}
+.saveslot{border-radius:var(--r);background:var(--panel2);}
+.pillpick{border-radius:14px;}
+.pillpick.on{border-color:var(--brand);box-shadow:0 0 0 3px rgba(34,197,94,.2);}
+
+/* HUD: stat chips */
+.hud{top:50px;gap:10px;padding:10px 18px;background:rgba(12,15,13,.9);}
+.hud .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:6px 12px;min-width:92px;}
+.hud .stat .v{font-size:16px;}
+.hud .wk{background:var(--tag);color:#422006;padding:5px 12px;border-radius:999px;font-size:14px;}
+.hud .btn.ghost.sm{width:40px;height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:17px;border-radius:12px;}
+
+/* tabs: icon + label */
+.tab{display:flex;align-items:center;gap:8px;border-radius:10px 10px 0 0;}
+.tab .ti{font-size:17px;}
+.tab.on{border-bottom-color:var(--brand);background:linear-gradient(180deg,transparent,rgba(34,197,94,.08));}
+
+/* cards */
+.store,.town{border-radius:var(--r);background:linear-gradient(180deg,var(--panel2),var(--panel));box-shadow:var(--shadow);}
+.store .section-title{color:var(--muted);}
+.town:hover{border-color:var(--brand);}
+.town.owned{border-color:var(--brand);}
+.town.owned::after{color:var(--brand);}
+.section-title{color:var(--dim);display:flex;align-items:center;gap:8px;}
+.section-title::before{content:"";width:4px;height:12px;border-radius:2px;background:var(--brand);}
+.store .section-title::before{display:none;}
+.price-val{background:var(--tag);color:#422006;border-radius:8px;padding:4px 8px;}
+.price-row .step{width:40px;height:40px;border-radius:12px;font-size:20px;}
+
+/* modal */
+.modal{background:rgba(0,0,0,.6);backdrop-filter:blur(4px);}
+.modal .box{border-radius:22px;background:var(--panel);box-shadow:0 30px 80px rgba(0,0,0,.6);}
+
+/* advance week: floating pill instead of a full-width bar */
+.big-cta{left:50%;right:auto;transform:translateX(-50%);bottom:24px;border-radius:999px;padding:16px 34px;background:var(--gradMoney);color:#052e16;box-shadow:0 10px 30px rgba(34,197,94,.35),0 4px 0 #14532d;}
+.big-cta:active{transform:translate(-50%,3px);}
+.toast{border-radius:999px;background:#1f2a23;border-color:var(--brand);bottom:100px;}
+
+/* ---------- desktop: sidebar navigation ---------- */
+@media (min-width:1000px){
+  #scr-game .wrap{display:grid;grid-template-columns:210px 1fr;gap:26px;align-items:start;max-width:1320px;}
+  #gameTabs{flex-direction:column;border:none;position:sticky;top:130px;margin:0;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px;}
+  #gameTabs .tab{border:none;border-radius:10px;padding:11px 14px;}
+  #gameTabs .tab.on{background:rgba(34,197,94,.14);color:var(--good);box-shadow:inset 3px 0 0 var(--brand);}
+  #scr-game .tabpane{grid-column:2;}
+}
+
+/* ---------- phone layout ---------- */
+@media (max-width:700px){
+  body{font-size:14px;}
+  .gxy-gamebar{position:static;padding:.5rem .8rem;gap:.4rem;}
+  .gxy-gamebar .gt{font-size:1.05rem;width:100%;}
+  .gxy-gamebar > span:last-child{gap:.4rem !important;overflow-x:auto;width:100%;}
+  .gxy-gamebar a{white-space:nowrap;}
+  .hero{padding:1.6rem 1rem .8rem;}
+  .hero h1{font-size:40px;}
+  .mode-grid{grid-template-columns:1fr;gap:10px;margin-top:16px;}
+  .mode-card{padding:16px;display:grid;grid-template-columns:48px 1fr;column-gap:12px;}
+  .mode-card .mi{font-size:32px;margin:0;grid-row:span 2;}
+  .mode-card .mn{font-size:22px;}
+  .wrap{padding:14px 12px 160px;}
+
+  /* HUD: one swipeable row of stats, one row of tools */
+  .hud{top:0;padding:8px 10px;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+  .hud::-webkit-scrollbar{display:none;}
+  .hud .stat{min-width:auto;flex:none;padding:5px 10px;}
+  .hud .stat .v{font-size:14px;}
+  .hud .spacer{display:none;}
+  .hud .wk,.hud .btn{flex:none;}
+
+  /* tabs become a bottom navigation bar */
+  #gameTabs{position:fixed;left:0;right:0;bottom:0;z-index:36;margin:0;border:none;border-top:1px solid var(--line);
+    background:rgba(12,15,13,.96);backdrop-filter:blur(14px);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+    padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px));gap:0;}
+  #gameTabs::-webkit-scrollbar{display:none;}
+  #gameTabs .tab{flex:1 0 64px;flex-direction:column;gap:2px;padding:6px 4px;font-size:10px;letter-spacing:.3px;border:none;border-radius:12px;text-align:center;}
+  #gameTabs .tab .ti{font-size:20px;}
+  #gameTabs .tab.on{background:rgba(34,197,94,.14);color:var(--good);}
+
+  /* advance week floats above the nav */
+  .big-cta{right:12px;left:12px;transform:none;bottom:calc(70px + env(safe-area-inset-bottom,0px));padding:14px;font-size:19px;}
+  .toast{bottom:calc(140px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 24px);text-align:center;}
+
+  /* content */
+  .store-list,.town-grid{grid-template-columns:1fr;gap:10px;}
+  .store{padding:14px;}
+  .town .tbars{gap:6px;}
+  #pane-overview > div[style*="grid"]{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  #pane-overview .store .cond[style*="34px"]{font-size:24px !important;}
+  #pane-overview .store .cond[style*="22px"],#pane-overview .store .cond[style*="24px"]{font-size:17px !important;}
+  .modal .box{border-radius:22px 22px 0 0;}
+  .modal .box::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line2);margin:-8px auto 12px;}
+  table{display:block;overflow-x:auto;}
+}
+
+/* language/region chips stay on the menu screen, out of the way during play */
+body:has(#scr-game.active) #gxy-region-float, body:has(#scr-game.active) #gxy-lang-float{display:none !important;}
+
+/* phone HUD: 4 key stats in a grid, then a swipeable tool row (built by smw-updates.js) */
+@media (max-width:700px){
+  .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;overflow:visible;}
+  .hud .stat{padding:4px 6px;}
+  .hud .stat .l{font-size:8px;letter-spacing:.6px;}
+  .hud .stat .v{font-size:12.5px;}
+  .hud .stat:nth-of-type(n+5){display:none;}
+  .hud-tools{grid-column:1/-1;display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;}
+  .hud-tools::-webkit-scrollbar{display:none;}
+  .hud-tools > *{flex:none;}
+  #pane-overview div[style*="grid-template-columns"]{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  #pane-overview .store{padding:12px;}
+}
+@media (min-width:701px){ .hud-tools{display:contents;} }
