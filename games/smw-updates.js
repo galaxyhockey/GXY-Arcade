@@ -190,6 +190,7 @@ function tone(f, t0, dur, type='square', vol=0.08){
   o.connect(g).connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+dur+0.02);
 }
 function sfx(kind){
+  try{ const p={cash:15,loss:[40,40,40],open:[20,30,60],click:8}[kind]; if(p && navigator.vibrate) navigator.vibrate(p); }catch(e){}   // haptics on phones
   if(!sfxOn) return;
   if(kind==='cash'){ tone(1568,0,0.08); tone(2093,0.07,0.25,'triangle',0.1); }          // cha-ching
   else if(kind==='loss'){ tone(220,0,0.15,'sawtooth',0.06); tone(165,0.12,0.25,'sawtooth',0.06); }
@@ -235,7 +236,7 @@ window.showTutorial = function(i=0){
 };
 window.endTutorial = function(){ closeModal('modal'); if(G){ U().tutorialDone = true; saveGame(false); } };
 const _fc = window.foundChain;
-window.foundChain = function(){ _fc(); if(G && !U().tutorialDone) setTimeout(()=>showTutorial(0), 600); sfx('open'); };
+window.foundChain = function(){ _fc(); if(G && !U().tutorialDone && !window._smwNoTutorial) setTimeout(()=>showTutorial(0), 600); sfx('open'); };
 
 /* ---------- HUD buttons + mode screen ---------- */
 function boot(){
