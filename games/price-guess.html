@@ -34,6 +34,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .res{margin-top:.9rem;padding:.8rem;border-radius:12px;background:var(--panel2);}
 .res .big{font-size:1.7rem;font-weight:800;}
 .res .pts{color:var(--yellow);font-weight:800;}
+.res .tag{display:block;max-width:100%;max-height:260px;margin:.6rem auto 0;border-radius:10px;}
 .res a{color:var(--green);font-size:.8rem;text-decoration:underline;}
 .sum{text-align:left;margin:.8rem 0;font-size:.88rem;}
 .sum div{display:flex;justify-content:space-between;gap:8px;padding:.35rem 0;border-bottom:1px solid var(--line);}
@@ -59,7 +60,7 @@ let mode,items=[],i=0,total=0,log=[];
 
 function rng(seed){let s=0;for(const c of seed)s=(s*31+c.charCodeAt(0))>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function usable(p){const pr=p.product;return pr&&!(pr.categories_tags||[]).some(t=>/alcohol|wine|beer|spirit|liquor|tobacco|cigar/.test(t))&&!/smirnoff|beer|wine|vodka|whisk|hard seltzer/i.test(pr.product_name+(pr.brands||""))&&pr.product_name&&pr.image_url&&p.price>=0.5&&p.price<=80&&!p.price_per;}
-function slim(p){const l=p.location||{};return{n:p.product.product_name,q:p.product.quantity||'',b:p.product.brands||'',img:p.product.image_url,price:+p.price,sale:p.price_is_discounted,store:l.osm_name||l.osm_brand||'a US store',city:[l.osm_address_city,l.osm_address_country_code==='US'?'':l.osm_address_country].filter(Boolean).join(', '),date:p.date,proof:p.proof&&p.proof.file_path?'https://prices.openfoodfacts.org/img/'+p.proof.file_path:''};}
+function slim(p){const l=p.location||{};return{n:p.product.product_name,q:p.product.quantity||'',b:p.product.brands||'',img:p.product.image_url,price:+p.price,sale:p.price_is_discounted,store:l.osm_name||l.osm_brand||'a US store',city:[l.osm_address_city,l.osm_address_country_code==='US'?'':l.osm_address_country].filter(Boolean).join(', '),date:p.date,tag:p.proof&&p.proof.image_thumb_path?"https://prices.openfoodfacts.org/img/"+p.proof.image_thumb_path:"",proof:p.proof&&p.proof.file_path?'https://prices.openfoodfacts.org/img/'+p.proof.file_path:''};}
 async function fetchPage(n){
   const key='pg_cache_'+n;
   try{const r=await fetch(API+n);if(!r.ok)throw 0;const j=await r.json();const out=j.items.filter(usable).map(slim);store.set(key,out);return out;}
@@ -87,7 +88,7 @@ function hud(){$('sc').textContent=mode==='daily'?`${total} pts`:`${total} pts �
 function show(){
   hud();const it=items[i];
   $('app').innerHTML=`<div class="prog">${mode==='daily'?`Item ${i+1} of ${items.length}`:`Item ${i+1}`}</div>
-    <div class="img"><img src="${esc(it.img)}" alt="" onerror="this.style.display='none'"></div>
+    <div class="img"><img src="${esc(it.img)}" alt="" onerror="if(this.dataset.f){this.style.display='none'}else{this.dataset.f=1;this.src='${esc(it.tag)}'}"></div>
     <div class="name">${esc(it.n)}</div>
     <div class="meta">${esc([it.b,it.q].filter(Boolean).join(' · '))}<br>at <b>${esc(it.store)}</b>${it.city?' in '+esc(it.city):''}</div>
     <form class="guess" onsubmit="guess(event)"><span>$</span><input id="g" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required autofocus></form>
@@ -102,7 +103,7 @@ function guess(e){
   const last=mode==='daily'&&i>=items.length-1;
   $('res').innerHTML=`<div class="res"><div>${v}</div><div class="big mono">$${it.price.toFixed(2)}</div>
     <div>You said $${g.toFixed(2)} · <span class="pts">+${pts}</span></div>
-    <div class="meta" style="margin:.4rem 0 0">${it.sale?'🏷️ Sale price · ':''}Seen ${esc(it.date)}${it.proof?` · <a href="${esc(it.proof)}" target="_blank" rel="noopener">see the price tag</a>`:''}</div></div>
+    ${it.tag?`<img class="tag" src="${esc(it.tag)}" alt="Price tag photo" onerror="this.remove()">`:''}<div class="meta" style="margin:.4rem 0 0">${it.sale?'🏷️ Sale price · ':''}Seen ${esc(it.date)}${it.proof?` · <a href="${esc(it.proof)}" target="_blank" rel="noopener">full-size photo</a>`:''}</div></div>
     <button class="btn" onclick="next()">${last?'See results':'Next item →'}</button>${mode==='free'?'<button class="btn ghost" onclick="summary()">End run</button>':''}`;
   document.querySelector('.guess input').disabled=true;document.querySelector('.card > .btn').style.display='none';
   if(navigator.vibrate)navigator.vibrate(off<=.15?[30,40,30]:20);
