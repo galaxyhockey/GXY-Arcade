@@ -64,6 +64,10 @@ const GAMES = {
     art: () => { const rows = ['BIKES', 'CRAFT', 'BLOCK', 'WORLD']; const col = ['#3f3f46', '#f59e0b', '#22c55e'];
       return `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
       <g transform="translate(270 400) rotate(-6)">${rows.map((w, j) => [...w].map((ch, i) => { const c = j === 3 ? 2 : (i * 7 + j * 3) % 3; return `<g transform="translate(${(i - 2) * 86} ${(j - 1.5) * 86})"><rect x="-38" y="-38" width="76" height="76" rx="8" fill="${col[c]}" stroke="#fff" stroke-width="3"/><text y="18" font-family="Arial Black" font-size="48" fill="#fff" text-anchor="middle">${ch}</text></g>`; }).join('')).join('')}</g>`; } },
+  "price-guess": { title: ["PRICE", "GUESS"], sub: "REAL STORE PRICES", tag: "Real shelves. Real tags. How close can you get?", rating: "E", c: ["#05230f", "#22c55e", "#facc15"],
+    art: () => `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
+      ${rep(4, j => `<rect x="40" y="${190 + j * 120}" width="460" height="12" fill="#14532d"/>` + rep(6, i => `<rect x="${60 + i * 72}" y="${120 + j * 120 + (i % 2) * 14}" width="56" height="${70 - (i % 2) * 14}" rx="6" fill="${["#ef4444","#3b82f6","#f59e0b","#a855f7","#22c55e","#ec4899"][(i + j) % 6]}" opacity=".85"/>`))}
+      <g transform="translate(270 430) rotate(-8)"><path d="M-150 -70 H120 L170 0 L120 70 H-150Z" fill="#facc15" stroke="#fff" stroke-width="6"/><circle cx="125" cy="0" r="14" fill="#05230f"/><text x="-20" y="30" font-family="Arial Black" font-size="86" fill="#05230f" text-anchor="middle">$?.??</text></g>` },
 };
 
 const svg = (id, g) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">

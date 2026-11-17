@@ -1,6 +1,6 @@
 // GXY Arcade service worker: precache the arcade so it installs and plays offline.
 // Bump VERSION whenever you change files so players get the update.
-const VERSION='arcade-v6';
+const VERSION='arcade-v7';
 const CORE=[
 './','index.html','manifest.webmanifest',
 'assets/aero-news.css',
@@ -31,6 +31,7 @@ const CORE=[
 'covers/gxy-hockey.svg',
 'covers/gxy-tech-empire.svg',
 'covers/neon-siege.svg',
+'covers/price-guess.svg',
 'covers/supermarket-wars.svg',
 'covers/tv-battles.svg',
 'games/empire-engine.js',
@@ -46,6 +47,7 @@ const CORE=[
 'games/index.html',
 'games/markets-data.js',
 'games/neon-siege.html',
+'games/price-guess.html',
 'games/quickplay.html',
 'games/smw-updates.js',
 'games/smw-ui.css',

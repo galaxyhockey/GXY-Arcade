@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Price Guess · GXY Arcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#18233c;--line:#243352;--ink:#eaf1fb;--dim:#93a8c6;--green:#22c55e;--yellow:#eab308;--red:#ef4444;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;}
+.wrap{max-width:480px;margin:0 auto;padding:1rem 1rem 3rem;}
+.top{display:flex;align-items:center;justify-content:space-between;padding:.4rem 0 1rem;border-bottom:1px solid var(--line);margin-bottom:1rem;}
+.top .back{color:var(--dim);font-size:.9rem;padding:.4rem 0;}
+.top h1{font-family:'Barlow Condensed';font-size:1.5rem;letter-spacing:.03em;text-transform:uppercase;}
+.top .sc{font-size:.9rem;color:var(--yellow);}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:1rem;}
+.tabs button{background:var(--panel2);color:var(--dim);border:1px solid var(--line);padding:.6rem;border-radius:10px;font-weight:700;}
+.tabs button.on{border-color:var(--green);color:#fff;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1rem;text-align:center;}
+.prog{color:var(--dim);font-size:.8rem;margin-bottom:.6rem;}
+.img{height:200px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:12px;margin-bottom:.8rem;overflow:hidden;}
+.img img{max-height:190px;max-width:100%;object-fit:contain;}
+.name{font-weight:800;font-size:1.1rem;}
+.meta{color:var(--dim);font-size:.82rem;margin:.3rem 0 .9rem;}
+.guess{display:flex;gap:8px;align-items:center;justify-content:center;}
+.guess span{font-size:1.6rem;font-weight:800;}
+.guess input{width:130px;font-size:1.6rem;font-weight:800;padding:.4rem .6rem;border-radius:10px;border:2px solid var(--line);background:var(--panel2);color:#fff;text-align:center;}
+.btn{display:block;width:100%;margin-top:.9rem;padding:.85rem;border-radius:12px;background:linear-gradient(120deg,#22c55e,#16a34a);color:#04210f;font-weight:800;font-size:1rem;}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);}
+.res{margin-top:.9rem;padding:.8rem;border-radius:12px;background:var(--panel2);}
+.res .big{font-size:1.7rem;font-weight:800;}
+.res .pts{color:var(--yellow);font-weight:800;}
+.res a{color:var(--green);font-size:.8rem;text-decoration:underline;}
+.sum{text-align:left;margin:.8rem 0;font-size:.88rem;}
+.sum div{display:flex;justify-content:space-between;gap:8px;padding:.35rem 0;border-bottom:1px solid var(--line);}
+.sum div span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.note{color:var(--dim);font-size:.72rem;margin-top:1.2rem;text-align:center;}
+.err{color:var(--red);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="../index.html">← Arcade</a><h1>🛒 Price Guess</h1><span class="sc mono" id="sc"></span></div>
+  <div class="tabs"><button id="tDaily" onclick="start('daily')">📅 Daily 5</button><button id="tFree" onclick="start('free')">♾️ Free Play</button></div>
+  <div id="app" class="card">Loading real prices…</div>
+  <p class="note">Real prices photographed on shelf tags and receipts at US stores, from the open <a href="https://prices.openfoodfacts.org" target="_blank" rel="noopener" style="text-decoration:underline">Open Prices</a> database.</p>
+</div>
+<script>
+const API='https://prices.openfoodfacts.org/api/v1/prices?currency=USD&size=100&order_by=-date&product_id__isnull=false&page=';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const today=new Date().toISOString().slice(0,10);
+let mode,items=[],i=0,total=0,log=[];
+
+function rng(seed){let s=0;for(const c of seed)s=(s*31+c.charCodeAt(0))>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function usable(p){const pr=p.product;return pr&&!(pr.categories_tags||[]).some(t=>/alcohol|wine|beer|spirit|liquor|tobacco|cigar/.test(t))&&!/smirnoff|beer|wine|vodka|whisk|hard seltzer/i.test(pr.product_name+(pr.brands||""))&&pr.product_name&&pr.image_url&&p.price>=0.5&&p.price<=80&&!p.price_per;}
+function slim(p){const l=p.location||{};return{n:p.product.product_name,q:p.product.quantity||'',b:p.product.brands||'',img:p.product.image_url,price:+p.price,sale:p.price_is_discounted,store:l.osm_name||l.osm_brand||'a US store',city:[l.osm_address_city,l.osm_address_country_code==='US'?'':l.osm_address_country].filter(Boolean).join(', '),date:p.date,proof:p.proof&&p.proof.file_path?'https://prices.openfoodfacts.org/img/'+p.proof.file_path:''};}
+async function fetchPage(n){
+  const key='pg_cache_'+n;
+  try{const r=await fetch(API+n);if(!r.ok)throw 0;const j=await r.json();const out=j.items.filter(usable).map(slim);store.set(key,out);return out;}
+  catch(e){return store.get(key)||store.get('pg_cache_any')||[];}
+}
+function dedupe(a){const seen=new Set();return a.filter(x=>!seen.has(x.n)&&seen.add(x.n));}
+
+async function start(m){
+  mode=m;$('tDaily').classList.toggle('on',m==='daily');$('tFree').classList.toggle('on',m==='free');
+  $('app').innerHTML='Loading real prices…';i=0;total=0;log=[];
+  if(m==='daily'){
+    const done=store.get('pg_daily');
+    if(done&&done.date===today){log=done.log;total=done.total;return summary();}
+    const R=rng(today);const page=1+Math.floor(R()*10);         // ponytail: daily set drifts slightly as new prices are added to that page
+    const pool=dedupe(await fetchPage(page));
+    items=pool.map(x=>[R(),x]).sort((a,b)=>a[0]-b[0]).slice(0,5).map(x=>x[1]);
+  }else{
+    const pool=dedupe((await Promise.all([1,2,3].map(()=>fetchPage(1+Math.floor(Math.random()*30))))).flat());
+    items=pool.sort(()=>Math.random()-.5);
+  }
+  if(items.length){store.set('pg_cache_any',items.slice(0,40));show();}
+  else $('app').innerHTML='<p class="err">Couldn\'t load prices. Check your connection and try again.</p><button class="btn" onclick="start(mode)">Retry</button>';
+}
+function hud(){$('sc').textContent=mode==='daily'?`${total} pts`:`${total} pts · best ${store.get('pg_best')||0}`;}
+function show(){
+  hud();const it=items[i];
+  $('app').innerHTML=`<div class="prog">${mode==='daily'?`Item ${i+1} of ${items.length}`:`Item ${i+1}`}</div>
+    <div class="img"><img src="${esc(it.img)}" alt="" onerror="this.style.display='none'"></div>
+    <div class="name">${esc(it.n)}</div>
+    <div class="meta">${esc([it.b,it.q].filter(Boolean).join(' · '))}<br>at <b>${esc(it.store)}</b>${it.city?' in '+esc(it.city):''}</div>
+    <form class="guess" onsubmit="guess(event)"><span>$</span><input id="g" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required autofocus></form>
+    <button class="btn" onclick="guess(event)">Lock it in</button><div id="res"></div>`;
+  setTimeout(()=>$('g')&&$('g').focus(),50);
+}
+function guess(e){
+  e.preventDefault();const g=parseFloat($('g').value);if(!(g>=0)||$('res').innerHTML)return;
+  const it=items[i],off=Math.abs(g-it.price)/it.price,pts=Math.max(0,Math.round(1000*(1-off*1.5)));
+  total+=pts;log.push({n:it.n,g,p:it.price,pts});hud();
+  const v=off<=.05?'🎯 Bullseye!':off<=.15?'🔥 So close!':off<=.35?'👍 Not bad':off<=.7?'😬 Way off':'💸 Not even close';
+  const last=mode==='daily'&&i>=items.length-1;
+  $('res').innerHTML=`<div class="res"><div>${v}</div><div class="big mono">$${it.price.toFixed(2)}</div>
+    <div>You said $${g.toFixed(2)} · <span class="pts">+${pts}</span></div>
+    <div class="meta" style="margin:.4rem 0 0">${it.sale?'🏷️ Sale price · ':''}Seen ${esc(it.date)}${it.proof?` · <a href="${esc(it.proof)}" target="_blank" rel="noopener">see the price tag</a>`:''}</div></div>
+    <button class="btn" onclick="next()">${last?'See results':'Next item →'}</button>${mode==='free'?'<button class="btn ghost" onclick="summary()">End run</button>':''}`;
+  document.querySelector('.guess input').disabled=true;document.querySelector('.card > .btn').style.display='none';
+  if(navigator.vibrate)navigator.vibrate(off<=.15?[30,40,30]:20);
+}
+async function next(){
+  i++;
+  if(mode==='daily'&&i>=items.length){store.set('pg_daily',{date:today,log,total});return summary();}
+  if(i>=items.length-3&&mode==='free'){items=items.concat(dedupe(await fetchPage(1+Math.floor(Math.random()*30))).filter(x=>!items.some(y=>y.n===x.n)));}
+  if(i>=items.length)return summary();
+  show();
+}
+function summary(){
+  if(mode==='free'&&total>(store.get('pg_best')||0))store.set('pg_best',total);
+  hud();
+  const max=log.length*1000,stars=log.map(l=>l.pts>=900?'🟩':l.pts>=600?'🟨':'🟥').join('');
+  $('app').innerHTML=`<h2>${mode==='daily'?'📅 Daily 5 · '+today:'♾️ Run over'}</h2>
+    <div class="big mono" style="font-size:2rem;margin:.5rem 0;color:var(--yellow)">${total} / ${max}</div><div style="font-size:1.4rem">${stars}</div>
+    <div class="sum">${log.map(l=>`<div><span>${esc(l.n)}</span><span class="mono">$${l.p.toFixed(2)} <small style="color:var(--dim)">(you $${l.g.toFixed(2)})</small></span></div>`).join('')}</div>
+    ${mode==='daily'?'<button class="btn" onclick="share()">Share result</button><p class="meta" style="margin-top:.6rem">New items tomorrow.</p>':''}
+    <button class="btn ${mode==='daily'?'ghost':''}" onclick="start('free')">${mode==='daily'?'Play Free Play':'Play again'}</button>`;
+}
+function share(){
+  const t=`🛒 Price Guess ${today}\n${log.map(l=>l.pts>=900?'🟩':l.pts>=600?'🟨':'🟥').join('')} ${total}/${log.length*1000}\nhttps://galaxyhockey.github.io/GXY-Arcade/`;
+  if(navigator.share)navigator.share({text:t}).catch(()=>{});else{navigator.clipboard&&navigator.clipboard.writeText(t);alert('Copied to clipboard!');}
+}
+start('daily');
+</script>
+<script src="../assets/theme.js"></script>
+</body>
+</html>
