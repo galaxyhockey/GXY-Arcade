@@ -86,8 +86,17 @@
     A('airport-empire','ae-10k','🛫','Hub Status','Handle 10,000 flights',200,'airport-empire.flights',10000,'title-captain'),
     A('airport-empire','ae-terms','🏢','Concourse King','Run 4 terminals at once',150,'airport-empire.terminals',4,'av-11'),
     A('airport-empire','ae-top','🏆','Busiest in the Region','Out-fly every rival airport in a month',250,'airport-empire.top',1,'frame-fire'),
+    A('gxy-hockey','hk-cup','🏆','Cup Champion','Win the GXY Hockey Playoffs',200,'gxy-hockey.cup',1,'title-champ'),
+    A('gxy-hockey','hk-ch','⚔️','Called Out',"Beat a friend's Shootout Challenge",75,'gxy-hockey.challengewin',1),
+    A('gxy-daily','dw-battle','⚔️','Word Warrior','Win a Word Battle round',50,'gxy-daily.battle',1),
+    A('trivia','tv-tourney','🏆','Tournament Champion','Finish a trivia tournament',75,'trivia.tourney',1),
+    A('price-guess','pg-hist','📜','Time Traveler','Score 7,000+ in a Time Machine run',100,'price-guess.history',7000),
+    A('gxy-tech-empire','te-review','📰',"Critics' Darling",'Launch a device that reviews 9.0+',150,'gxy-tech-empire.review',90),
+    A('tv-battles','tvb-plus','🚀','Streaming Mogul','Reach 3 million GXY+ subscribers',150,'tv-battles.plus',3000000),
+    A('supermarket-wars','smw-recess','📉','Recession Proof','Make it through a recession',100,'supermarket-wars.survived',1),
+    A('gxy-football','fb-league','🛠️','Commissioner','Create a custom YOUFL league',50,'gxy-football.leagues',1),
   ];
-  const MAX_STATS = /\.(streak|wave|daily|level|unique|terminals|cities)$/;
+  const MAX_STATS = /\.(streak|wave|daily|level|unique|terminals|cities|history|review|plus|teams|leagues|free)$/;
 
   /* ---------------- weekly challenges ---------------- */
   // Three per week, from different games, chosen the same way for everyone by the week number.

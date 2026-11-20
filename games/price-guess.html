@@ -17,7 +17,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .top .back{color:var(--dim);font-size:.9rem;padding:.4rem 0;}
 .top h1{font-family:'Barlow Condensed';font-size:1.5rem;letter-spacing:.03em;text-transform:uppercase;}
 .top .sc{font-size:.9rem;color:var(--yellow);}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:1rem;}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:1rem;}
 .tabs button{background:var(--panel2);color:var(--dim);border:1px solid var(--line);padding:.6rem;border-radius:10px;font-weight:700;}
 .tabs button.on{border-color:var(--green);color:#fff;}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1rem;text-align:center;}
@@ -41,15 +41,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .sum div span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .note{color:var(--dim);font-size:.72rem;margin-top:1.2rem;text-align:center;}
 .err{color:var(--red);}
+.img.hist{flex-direction:column;background:linear-gradient(#fef3c7,#fde68a);}
+.year{font:700 1.6rem 'Space Mono',monospace;color:#78350f;margin-top:.4rem}
+.decs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:.6rem}.decs .btn{margin-top:0}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top"><a class="back" href="../index.html">← Arcade</a><h1>🛒 Price Guess</h1><span class="sc mono" id="sc"></span></div>
-  <div class="tabs"><button id="tDaily" onclick="start('daily')">📅 Daily 5</button><button id="tFree" onclick="start('free')">♾️ Free Play</button></div>
+  <div class="tabs"><button id="tDaily" onclick="start('daily')">📅 Daily 5</button><button id="tFree" onclick="start('free')">♾️ Free Play</button><button id="tHist" onclick="start('history')">📜 Time Machine</button></div>
   <div id="app" class="card">Loading real prices…</div>
   <p class="note">Real prices photographed on shelf tags and receipts at US stores, from the open <a href="https://prices.openfoodfacts.org" target="_blank" rel="noopener" style="text-decoration:underline">Open Prices</a> database.</p>
 </div>
+<script src="price-history.js"></script>
 <script>
 const API='https://prices.openfoodfacts.org/api/v1/prices?currency=USD&size=100&order_by=-date&product_id__isnull=false&page=';
 const $=id=>document.getElementById(id);
@@ -69,7 +73,8 @@ async function fetchPage(n){
 function dedupe(a){const seen=new Set();return a.filter(x=>!seen.has(x.n)&&seen.add(x.n));}
 
 async function start(m){
-  mode=m;$('tDaily').classList.toggle('on',m==='daily');$('tFree').classList.toggle('on',m==='free');
+  mode=m;$('tDaily').classList.toggle('on',m==='daily');$('tFree').classList.toggle('on',m==='free');$('tHist').classList.toggle('on',m==='history');
+  if(m==='history')return histMenu();
   $('app').innerHTML='Loading real prices…';i=0;total=0;log=[];
   if(m==='daily'){
     const done=store.get('pg_daily');
@@ -84,13 +89,13 @@ async function start(m){
   if(items.length){store.set('pg_cache_any',items.slice(0,40));show();}
   else $('app').innerHTML='<p class="err">Couldn\'t load prices. Check your connection and try again.</p><button class="btn" onclick="start(mode)">Retry</button>';
 }
-function hud(){$('sc').textContent=mode==='daily'?`${total} pts`:`${total} pts · best ${store.get('pg_best')||0}`;}
+function hud(){$('sc').textContent=mode==='history'?`${total} pts · best ${store.get('pg_hbest')||0}`:mode==='daily'?`${total} pts`:`${total} pts · best ${store.get('pg_best')||0}`;}
 function show(){
   hud();const it=items[i];
-  $('app').innerHTML=`<div class="prog">${mode==='daily'?`Item ${i+1} of ${items.length}`:`Item ${i+1}`}</div>
-    <div class="img"><img src="${esc(it.img)}" alt="" onerror="if(this.dataset.f){this.style.display='none'}else{this.dataset.f=1;this.src='${esc(it.tag)}'}"></div>
+  $('app').innerHTML=`<div class="prog">${mode!=='free'?`Item ${i+1} of ${items.length}`:`Item ${i+1}`}</div>
+    ${it.icon?`<div class="img hist"><div style="font-size:5rem;line-height:1">${it.icon}</div><div class="year">${it.year}</div></div>`:`<div class="img"><img src="${esc(it.img)}" alt="" onerror="if(this.dataset.f){this.style.display='none'}else{this.dataset.f=1;this.src='${esc(it.tag)}'}"></div>`}
     <div class="name">${esc(it.n)}</div>
-    <div class="meta">${esc([it.b,it.q].filter(Boolean).join(' · '))}<br>at <b>${esc(it.store)}</b>${it.city?' in '+esc(it.city):''}</div>
+    <div class="meta">${esc([it.b,it.q].filter(Boolean).join(' · '))}<br>${it.icon?`US average price in <b>${it.year}</b>`:`at <b>${esc(it.store)}</b>${it.city?' in '+esc(it.city):''}`}</div>
     <form class="guess" onsubmit="guess(event)"><span>$</span><input id="g" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required autofocus></form>
     <button class="btn" onclick="guess(event)">Lock it in</button><div id="res"></div>`;
   setTimeout(()=>$('g')&&$('g').focus(),50);
@@ -101,10 +106,10 @@ function guess(e){
   total+=pts;log.push({n:it.n,g,p:it.price,pts});hud();
   if(window.GXY&&off<=.05)GXY.event('price-guess','bullseye');
   const v=off<=.05?'🎯 Bullseye!':off<=.15?'🔥 So close!':off<=.35?'👍 Not bad':off<=.7?'😬 Way off':'💸 Not even close';
-  const last=mode==='daily'&&i>=items.length-1;
+  const last=mode!=='free'&&i>=items.length-1;
   $('res').innerHTML=`<div class="res"><div>${v}</div><div class="big mono">$${it.price.toFixed(2)}</div>
     <div>You said $${g.toFixed(2)} · <span class="pts">+${pts}</span></div>
-    ${it.tag?`<img class="tag" src="${esc(it.tag)}" alt="Price tag photo" onerror="this.remove()">`:''}<div class="meta" style="margin:.4rem 0 0">${it.sale?'🏷️ Sale price · ':''}Seen ${esc(it.date)}${it.proof?` · <a href="${esc(it.proof)}" target="_blank" rel="noopener">full-size photo</a>`:''}</div></div>
+    ${it.tag?`<img class="tag" src="${esc(it.tag)}" alt="Price tag photo" onerror="this.remove()">`:''}${it.icon?`<div class="meta" style="margin:.4rem 0 0">📈 In ${it.nowYear} the same ${esc(it.n.toLowerCase())} averaged <b>$${it.now.toFixed(2)}</b> (${it.now>=it.price?'+':''}${Math.round((it.now/it.price-1)*100)}%)</div>`:''}${it.icon?'':`<div class="meta" style="margin:.4rem 0 0">${it.sale?'🏷️ Sale price · ':''}Seen ${esc(it.date)}${it.proof?` · <a href="${esc(it.proof)}" target="_blank" rel="noopener">full-size photo</a>`:''}</div>`}</div>
     <button class="btn" onclick="next()">${last?'See results':'Next item →'}</button>${mode==='free'?'<button class="btn ghost" onclick="summary()">End run</button>':''}`;
   document.querySelector('.guess input').disabled=true;document.querySelector('.card > .btn').style.display='none';
   if(navigator.vibrate)navigator.vibrate(off<=.15?[30,40,30]:20);
@@ -113,6 +118,7 @@ async function next(){
   i++;
   if(mode==='daily'&&i>=items.length){store.set('pg_daily',{date:today,log,total});if(window.GXY)GXY.event('price-guess','daily',total);return summary();}
   if(i>=items.length-3&&mode==='free'){items=items.concat(dedupe(await fetchPage(1+Math.floor(Math.random()*30))).filter(x=>!items.some(y=>y.n===x.n)));}
+  if(mode==='history'&&i>=items.length){if(total>(store.get('pg_hbest')||0))store.set('pg_hbest',total);if(window.GXY)GXY.event('price-guess','history',total);return summary();}
   if(i>=items.length)return summary();
   show();
 }
@@ -121,15 +127,28 @@ function summary(){
   if(mode==='free'&&window.GXY)GXY.event('price-guess','free',total);
   hud();
   const max=log.length*1000,stars=log.map(l=>l.pts>=900?'🟩':l.pts>=600?'🟨':'🟥').join('');
-  $('app').innerHTML=`<h2>${mode==='daily'?'📅 Daily 5 · '+today:'♾️ Run over'}</h2>
+  $('app').innerHTML=`<h2>${mode==='daily'?'📅 Daily 5 · '+today:mode==='history'?'📜 Time Machine · '+histLabel:'♾️ Run over'}</h2>
     <div class="big mono" style="font-size:2rem;margin:.5rem 0;color:var(--yellow)">${total} / ${max}</div><div style="font-size:1.4rem">${stars}</div>
     <div class="sum">${log.map(l=>`<div><span>${esc(l.n)}</span><span class="mono">$${l.p.toFixed(2)} <small style="color:var(--dim)">(you $${l.g.toFixed(2)})</small></span></div>`).join('')}</div>
     ${mode==='daily'?'<button class="btn" onclick="share()">Share result</button><p class="meta" style="margin-top:.6rem">New items tomorrow.</p>':''}
-    <button class="btn ${mode==='daily'?'ghost':''}" onclick="start('free')">${mode==='daily'?'Play Free Play':'Play again'}</button>`;
+    <button class="btn ${mode==='daily'?'ghost':''}" onclick="start(mode==='history'?'history':'free')">${mode==='daily'?'Play Free Play':'Play again'}</button>`;
 }
 function share(){
   const t=`🛒 Price Guess ${today}\n${log.map(l=>l.pts>=900?'🟩':l.pts>=600?'🟨':'🟥').join('')} ${total}/${log.length*1000}\nhttps://galaxyhockey.github.io/GXY-Arcade/`;
   if(navigator.share)navigator.share({text:t}).catch(()=>{});else{navigator.clipboard&&navigator.clipboard.writeText(t);alert('Copied to clipboard!');}
+}
+/* ---------- Time Machine: real US average prices from past decades (BLS) ---------- */
+let histLabel='';
+function histMenu(){
+  const H=window.PRICE_HISTORY||[],ys=H.map(r=>r[3]),decs=[...new Set(ys.map(y=>Math.floor(y/10)*10))].sort();
+  $('app').innerHTML=`<h2>📜 Time Machine</h2><p class="meta">Guess what everyday things really cost in the past. Real US average prices from the Bureau of Labor Statistics, ${Math.min(...ys)}–${Math.max(...ys)}.</p>
+    <div class="decs">${decs.map(d=>`<button class="btn ghost" onclick="histStart(${d})">${d}s</button>`).join('')}<button class="btn" onclick="histStart(0)">🎲 Any year</button></div>`;
+}
+function histStart(dec){
+  const H=window.PRICE_HISTORY||[],latest={};H.forEach(r=>{if(!latest[r[0]]||r[3]>latest[r[0]][3])latest[r[0]]=r;});
+  const pool=H.filter(r=>(dec?Math.floor(r[3]/10)*10===dec:true)&&r[3]<latest[r[0]][3]).sort(()=>Math.random()-.5),used=new Set();
+  items=[];for(const r of pool){if(used.has(r[0]))continue;used.add(r[0]);items.push({n:r[0],q:r[1],b:'',icon:r[2],year:r[3],price:r[4],now:latest[r[0]][4],nowYear:latest[r[0]][3]});if(items.length===10)break;}
+  histLabel=dec?dec+'s':'Any year';i=0;total=0;log=[];show();
 }
 start('daily');
 </script>
