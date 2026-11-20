@@ -102,6 +102,7 @@ function home(){
     <div class="grid">
       <button class="tile ${cfg.mode==='versus'?'on':''}" onclick="setMode('versus')"><div class="ic">⚔️</div><b>Versus</b><span>2–4 players · 10–20 rounds</span></button>
       <button class="tile ${cfg.mode==='unlimited'?'on':''}" onclick="setMode('unlimited')"><div class="ic">♾️</div><b>Unlimited</b><span>1–4 players · endless</span></button>
+      <button class="tile ${cfg.mode==='party'?'on':''}" onclick="setMode('party')" style="grid-column:1/-1"><div class="ic">👥</div><b>Same Time</b><span>2–4 players · everyone answers at once on one phone · 10–20 rounds</span></button>
       <button class="tile" onclick="daily()"><div class="ic">📅</div><b>Daily Challenge</b><span>${played?`Done today · ${ds.score} pts`:'10 questions, same for everyone'}</span></button>
       <button class="tile" onclick="leaders()"><div class="ic">🏆</div><b>Leaderboard</b><span>Top scores and streaks</span></button>
     </div></div>
@@ -109,15 +110,15 @@ function home(){
   setup();
 }
 function toggleSet(id){ const s = cfg.sets.includes(id) ? cfg.sets.filter(x=>x!==id) : cfg.sets.concat(id); if(s.length){ cfg.sets = s; save(); home(); } }
-function setMode(m){ cfg.mode = m; const min = m==='versus'?2:1; while(cfg.players.length<min) cfg.players.push('Player '+(cfg.players.length+1)); save(); home(); }
+function setMode(m){ cfg.mode = m; const min = m==='unlimited'?1:2; while(cfg.players.length<min) cfg.players.push('Player '+(cfg.players.length+1)); save(); home(); }
 function save(){ store.set('tv_cfg', cfg); }
 function setup(){
-  const min = cfg.mode==='versus'?2:1;
-  $('setup').innerHTML = `<h2>${cfg.mode==='versus'?'⚔️ Versus':'♾️ Unlimited'} setup</h2>
-    <label class="f">Players (pass the phone each turn)</label>
+  const min = cfg.mode==='unlimited'?1:2, party = cfg.mode==='party';
+  $('setup').innerHTML = `<h2>${{versus:'⚔️ Versus',unlimited:'♾️ Unlimited',party:'👥 Same Time'}[cfg.mode]} setup</h2>
+    <label class="f">${party?'Players (everyone answers at once, each on their own row of buttons)':'Players (pass the phone each turn)'}</label>
     <div class="seg">${[1,2,3,4].filter(n=>n>=min).map(n=>`<button class="${cfg.players.length===n?'on':''}" onclick="setPlayers(${n})">${n}</button>`).join('')}</div>
     ${cfg.players.map((p,i)=>`<label class="f">Player ${i+1}</label><input type="text" maxlength="14" value="${esc(p)}" onchange="cfg.players[${i}]=this.value.trim()||'Player ${i+1}';save()">`).join('')}
-    ${cfg.mode==='versus'?`<label class="f">Rounds: <b id="rv">${cfg.rounds}</b> (each player gets one question per round)</label><input type="range" min="10" max="20" value="${cfg.rounds}" oninput="cfg.rounds=+this.value;$('rv').textContent=this.value;save()">`:`<p class="dim" style="margin-top:.7rem">Questions keep coming until you tap End game.</p>`}
+    ${cfg.mode!=='unlimited'?`<label class="f">Rounds: <b id="rv">${cfg.rounds}</b> (${party?'one question per round, everyone answers':'each player gets one question per round'})</label><input type="range" min="10" max="20" value="${cfg.rounds}" oninput="cfg.rounds=+this.value;$('rv').textContent=this.value;save()">`:`<p class="dim" style="margin-top:.7rem">Questions keep coming until you tap End game.</p>`}
     <p class="dim" style="margin-top:.7rem">⏱️ Easy 30s · Medium 60s · Hard 90s. Answer fast for bonus points. 3 in a row = 1.5×, 5 in a row = 2×.</p>
     <button class="btn" onclick="startGame()">Start</button>`;
 }
@@ -126,7 +127,7 @@ function setPlayers(n){ while(cfg.players.length<n) cfg.players.push('Player '+(
 /* ---------- game ---------- */
 function startGame(){
   G = { mode:cfg.mode, players:cfg.players.map(n=>({ name:n, score:0, streak:0, best:0, right:0, asked:0 })), turn:0, round:1,
-        rounds:cfg.mode==='versus'?cfg.rounds:Infinity, deck:deck(cfg.sets), sets:cfg.sets.slice() };
+        rounds:cfg.mode==='unlimited'?Infinity:cfg.rounds, deck:deck(cfg.sets), sets:cfg.sets.slice() };
   nextTurn();
 }
 function daily(){
@@ -140,6 +141,7 @@ function daily(){
 function cur(){ return G.players[G.turn]; }
 function nextTurn(){
   if(G.round > G.rounds) return finish();
+  if(G.mode==='party') return askParty();
   if(G.players.length > 1){
     app().innerHTML = `<div class="card pass"><div class="dim">${G.mode==='versus'?`Round ${G.round} of ${G.rounds}`:`Question ${G.round}`}</div>
       <div class="dim" style="margin-top:1rem">Pass the phone to</div><div class="who">${esc(cur().name)}</div>
@@ -179,7 +181,52 @@ function answer(i){
   $('after').innerHTML = `<div class="fb" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?`✅ Correct! +${pts}${mult>1?` <span class="streak">(${mult}× streak)</span>`:''}`:i<0?`⏰ Time's up! It was ${esc(Q.a)}`:`❌ Nope, it was ${esc(Q.a)}`}</div>
     <button class="btn" onclick="advance()">${last?'See results':'Next'}</button>${G.mode==='unlimited'?'<button class="btn ghost" onclick="finish()">End game</button>':''}`;
 }
+/* ---------- Same Time: everyone answers the same question on one phone ---------- */
+const PCOL = ['#ef4444','#3b82f6','#22c55e','#eab308'];
+function askParty(){
+  if(!G.deck.length) G.deck = deck(G.sets);
+  const x = G.deck.pop(); markSeen(x.key);
+  const Q = G.Q = build(x.s, x.r); G.t0 = Date.now(); G.picks = G.players.map(()=>null);
+  app().innerHTML = `<div class="card">
+    <div class="hud"><span>Round ${G.round}/${G.rounds}</span><span><span class="diff d${Q.d}">${['','EASY','MEDIUM','HARD'][Q.d]}</span> · <span class="mono" id="tl">${TIME[Q.d]}s</span></span></div>
+    <div class="timer"><i id="tb" style="width:100%"></i></div>
+    <div class="q">${esc(Q.q)}</div>
+    <div id="opts">${Q.opts.map((o,i)=>`<div class="opt" style="cursor:default"><b>${'ABCD'[i]}.</b> ${esc(o)}</div>`).join('')}</div>
+    <div id="pads">${G.players.map((p,k)=>`<div class="pad" id="pad${k}" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px;border-radius:12px;border:2px solid ${PCOL[k]};background:var(--panel2)">
+      <b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${PCOL[k]}">${esc(p.name)} <span class="mono dim" style="font-size:.75rem">${p.score}</span></b>
+      <span id="pk${k}" style="display:flex;gap:6px">${[0,1,2,3].map(i=>`<button style="width:46px;height:46px;border-radius:10px;background:${PCOL[k]};color:#fff;font-weight:800;font-size:1.1rem" onclick="partyPick(${k},${i})">${'ABCD'[i]}</button>`).join('')}</span></div>`).join('')}</div>
+    <div id="after"></div></div>`;
+  clearInterval(tick);
+  tick = setInterval(()=>{
+    const left = Math.max(0, TIME[Q.d] - (Date.now()-G.t0)/1000), pct = left / TIME[Q.d] * 100;
+    $('tl').textContent = Math.ceil(left)+'s'; $('tb').style.width = pct+'%'; $('tb').style.background = pct<25?'var(--bad)':pct<50?'var(--gold)':'var(--good)';
+    if(left <= 0) partyReveal();
+  }, 250);
+}
+function partyPick(k, i){
+  if(!G.Q || G.Q.done || G.picks[k]) return;
+  G.picks[k] = { i, t: (Date.now()-G.t0)/1000 }; buzz(15);
+  $('pk'+k).innerHTML = '<span style="font-weight:800;padding:0 .4rem">🔒 Locked in</span>';
+  if(G.picks.every(Boolean)) partyReveal();
+}
+function partyReveal(){
+  if(G.Q.done) return; clearInterval(tick);
+  const Q = G.Q; Q.done = true; const ai = Q.opts.indexOf(Q.a);
+  document.querySelectorAll('#opts .opt')[ai].classList.add('right');
+  G.players.forEach((p,k)=>{
+    const pk = G.picks[k], ok = pk && pk.i === ai; p.asked++;
+    let pts = 0, mult = 1;
+    if(ok){ p.streak++; p.best = Math.max(p.best, p.streak); p.right++; mult = p.streak>=5?2:p.streak>=3?1.5:1;
+      pts = Math.round((100*Q.d + 100*Q.d*Math.max(0, 1 - pk.t/TIME[Q.d])) * mult); p.score += pts; }
+    else p.streak = 0;
+    $('pk'+k).innerHTML = `<span style="font-weight:800;padding:0 .4rem;color:${ok?'var(--good)':'var(--bad)'}">${pk?'ABCD'[pk.i]:'—'} ${ok?`✅ +${pts}${mult>1?` (${mult}×)`:''}`:pk?'❌':'⏰'}</span>`;
+  });
+  buzz([30,40,30]);
+  const last = G.round >= G.rounds;
+  $('after').innerHTML = `<div class="fb">Answer: ${esc(Q.a)}</div><button class="btn" onclick="advance()">${last?'See results':'Next question'}</button>`;
+}
 function advance(){
+  if(G.mode==='party'){ G.round++; return nextTurn(); }
   G.turn++; if(G.turn >= G.players.length){ G.turn = 0; G.round++; }
   if(G.mode==='daily'){ if(G.round > G.rounds) return finish(); return ask(); }
   nextTurn();
@@ -221,7 +268,7 @@ function shareDaily(){
 function leaders(tab='versus'){
   const lb = store.get('tv_lb_'+tab, []);
   app().innerHTML = `<div class="card"><h2>🏆 Leaderboard</h2>
-    <div class="seg" style="margin-bottom:.8rem">${[['versus','⚔️ Versus'],['unlimited','♾️ Unlimited'],['daily','📅 Daily']].map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="leaders('${k}')">${l}</button>`).join('')}</div>
+    <div class="seg" style="margin-bottom:.8rem">${[['versus','⚔️ Versus'],['party','👥 Same Time'],['unlimited','♾️ Unlimited'],['daily','📅 Daily']].map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="leaders('${k}')">${l}</button>`).join('')}</div>
     <div class="board">${lb.length ? lb.map((e,i)=>`<div><span>${i+1}. <b>${esc(e.n)}</b> <span class="dim">· ${e.r}/${e.a} · 🔥${e.b} · ${esc(e.d)}</span></span><span class="mono">${e.s}</span></div>`).join('') : '<p class="dim">No scores yet. Go play!</p>'}</div>
     <p style="margin-top:.8rem"><span class="pill">🔥 Best answer streak: ${store.get('tv_best_streak',0)}</span><span class="pill">📅 Daily streak: ${store.get('tv_daily',{}).streak||0}</span></p>
     <label class="f">Your name for the Daily Challenge</label><input type="text" maxlength="14" value="${esc(store.get('tv_name','You'))}" onchange="store.set('tv_name',this.value.trim()||'You')">
