@@ -11,7 +11,8 @@ const row = q => {
   // Hint with the episode title, unless the question is about the episode/season itself
   // or the answer is sitting in the title (e.g. "Uh-Oh Canada" -> "Canada"); then just name the season.
   const leaks = [q.answer, ...q.accepted_answers].some(x => n(x).length > 3 && n(q.episode).includes(n(x)));
-  const hint = type !== 'lore' ? '' : leaks ? `Season ${q.season}` : `"${q.episode}" (Season ${q.season})`;
+  const named = n(q.question).includes(n(q.episode)); // question already says which episode
+  const hint = type !== 'lore' ? '' : (leaks || named) ? `Season ${q.season}` : `"${q.episode}" (Season ${q.season})`;
   return [q.question, String(q.answer), [...new Set(acc)], /expert/i.test(q.difficulty) ? 3 : 2, q.shared_fact_id || q.id, hint];
 };
 const early = bank.filter(q => q.season <= 6).map(row), late = bank.filter(q => q.season >= 7).map(row);
