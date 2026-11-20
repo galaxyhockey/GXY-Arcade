@@ -151,8 +151,10 @@ function lev(a, b){ const m = a.length, n = b.length; if(!m) return n; if(!n) re
   for(let i=1;i<=m;i++){ const c = [i]; for(let j=1;j<=n;j++) c[j] = Math.min(p[j]+1, c[j-1]+1, p[j-1]+(a[i-1]===b[j-1]?0:1)); p = c; } return p[n]; }
 // Right if it matches the answer or an accepted answer, allowing a typo or two on longer words.
 // For two-word names (e.g. "Cotton Hill") the first name alone counts unless the question asks for the full name.
-function isRight(guess, Q){
+// check: 'strict' = exact (after ignoring case/punctuation), 'normal' = small typos OK, 'lenient' = bigger typos OK
+function isRight(guess, Q, check = 'normal'){
   const g = norm(guess); if(!g) return false;
+  const tol = c => check === 'strict' ? 0 : c.length < (check === 'lenient' ? 4 : 5) ? 0 : Math.floor(c.length / (check === 'lenient' ? 4 : 6));
   const cands = [Q.a, ...Q.acc];
   [Q.a, ...Q.acc].forEach(ans => {
     const words = String(ans).trim().split(/\s+/);
@@ -160,7 +162,7 @@ function isRight(guess, Q){
     if(/surname|last name/i.test(Q.q) && words.length > 1) cands.push(words[words.length-1]);
     if(/first name/i.test(Q.q) && words.length > 1) cands.push(words[0]);
   });
-  return cands.map(norm).filter(Boolean).some(c => c === g || (c.length >= 5 && lev(c, g) <= Math.floor(c.length / 6)));
+  return cands.map(norm).filter(Boolean).some(c => c === g || lev(c, g) <= tol(c));
 }
 function draw(){
   if(G.fixed) return G.fixed[G.round-1];
