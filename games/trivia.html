@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GXY Trivia · GXY Arcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0b1020;--panel:#121a2e;--panel2:#18233c;--line:#243352;--ink:#eaf1fb;--dim:#93a8c6;--brand:#f97316;--good:#22c55e;--bad:#ef4444;--gold:#facc15;}
+body{font-family:'Inter',system-ui,sans-serif;background:radial-gradient(circle at 50% -10%,#2a1606,var(--bg) 55%);color:var(--ink);min-height:100vh;}
+.mono{font-family:'Space Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;border:none;color:inherit;}
+.wrap{max-width:520px;margin:0 auto;padding:1rem 1rem 3rem;}
+.top{display:flex;align-items:center;justify-content:space-between;padding:.4rem 0 1rem;border-bottom:1px solid var(--line);margin-bottom:1rem;gap:8px;}
+.top .back{color:var(--dim);font-size:.9rem;padding:.4rem 0;}
+.top h1{font-family:'Barlow Condensed';font-size:1.5rem;letter-spacing:.03em;text-transform:uppercase;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1rem;margin-bottom:.8rem;}
+h2{font-family:'Barlow Condensed';font-size:1.35rem;text-transform:uppercase;letter-spacing:.03em;margin-bottom:.5rem;}
+.dim{color:var(--dim);font-size:.85rem;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tile{background:var(--panel2);border:2px solid var(--line);border-radius:14px;padding:.9rem .7rem;text-align:left;}
+.tile.on{border-color:var(--brand);}
+.tile b{display:block;font-size:1rem;margin:.2rem 0;}
+.tile span{color:var(--dim);font-size:.78rem;}
+.tile .ic{font-size:1.5rem;}
+.btn{display:block;width:100%;margin-top:.8rem;padding:.9rem;border-radius:12px;background:linear-gradient(120deg,#f97316,#ea580c);color:#1c0a00;font-weight:800;font-size:1rem;}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line);}
+.btn:disabled{opacity:.5;}
+label.f{display:block;font-size:.8rem;color:var(--dim);margin:.7rem 0 .3rem;}
+input[type=text]{width:100%;font-size:16px;padding:.6rem .7rem;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:#fff;}
+input[type=range]{width:100%;accent-color:var(--brand);}
+.seg{display:flex;gap:6px;}.seg button{flex:1;padding:.55rem;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-weight:700;}
+.seg button.on{border-color:var(--brand);color:#fff;background:#3a1d07;}
+.hud{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--dim);margin-bottom:.6rem;}
+.timer{height:8px;border-radius:6px;background:var(--panel2);overflow:hidden;margin-bottom:.9rem;}
+.timer i{display:block;height:100%;background:var(--good);transition:width .25s linear,background .3s;}
+.q{font-size:1.15rem;font-weight:800;line-height:1.35;margin-bottom:1rem;}
+.diff{font-size:.72rem;font-weight:800;padding:.15rem .5rem;border-radius:20px;}
+.d1{background:#14532d;color:#86efac;}.d2{background:#713f12;color:#fde68a;}.d3{background:#7f1d1d;color:#fca5a5;}
+.opt{display:block;width:100%;text-align:left;padding:.85rem 1rem;margin-bottom:.5rem;border-radius:12px;background:var(--panel2);border:2px solid var(--line);font-weight:600;font-size:.98rem;}
+.opt.right{border-color:var(--good);background:#0f2f1c;}
+.opt.wrong{border-color:var(--bad);background:#3a1010;}
+.opt:disabled{cursor:default;}
+.fb{text-align:center;font-weight:800;margin:.4rem 0;}
+.board div{display:flex;justify-content:space-between;padding:.5rem .2rem;border-bottom:1px solid var(--line);font-size:.92rem;}
+.board div:last-child{border:0;}
+.pass{text-align:center;padding:2.5rem 1rem;}
+.pass .who{font-family:'Barlow Condensed';font-size:2.4rem;text-transform:uppercase;color:var(--brand);margin:.4rem 0 1rem;}
+.streak{color:var(--gold);font-weight:800;}
+.pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:.25rem .7rem;font-size:.8rem;margin:.15rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a class="back" href="../index.html">← Arcade</a><h1>🧠 GXY Trivia</h1><span class="dim mono" id="dstreak"></span></div>
+  <div id="app"></div>
+</div>
+<script src="trivia-koth.js"></script>
+<script>
+const SETS = window.TRIVIA_SETS || [];
+const CATS = [{ id:'tv', name:'TV Trivia', icon:'📺', sets: SETS.map(s=>s.id) }];
+const TIME = {1:30, 2:60, 3:90};
+const $ = id => document.getElementById(id), app = () => $('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = { get:(k,d)=>{ try{ const v=JSON.parse(localStorage.getItem(k)); return v ?? d; }catch(e){ return d; } }, set:(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} } };
+const today = new Date().toISOString().slice(0,10);
+const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} };
+
+/* ---------- question building ---------- */
+function rngFrom(seed){ let s=0; for(const c of String(seed)) s=(s*31+c.charCodeAt(0))>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+function shuffle(a, R=Math.random){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function build(set, row, R=Math.random){
+  const [q, a, w, d] = row;
+  const wrongs = typeof w === 'string' ? shuffle(set.pools[w].filter(x => x !== a), R).slice(0,3) : w;
+  return { q, a, d, set:set.id, opts: shuffle([a, ...wrongs], R) };
+}
+function bank(setIds){ const out=[]; SETS.filter(s=>setIds.includes(s.id)).forEach(s=>s.qs.forEach((r,i)=>out.push({ s, r, key:s.id+':'+i }))); return out; }
+// Prefer questions this device hasn't seen; reset the memory once a set runs dry.
+function deck(setIds){
+  const all = bank(setIds), seen = new Set(store.get('tv_seen', []));
+  let fresh = all.filter(x => !seen.has(x.key));
+  if(fresh.length < 20){ store.set('tv_seen', []); fresh = all; }
+  return shuffle(fresh);
+}
+function markSeen(key){ const s = store.get('tv_seen', []); s.push(key); store.set('tv_seen', s.slice(-2000)); }
+
+/* ---------- state ---------- */
+let cfg = store.get('tv_cfg', { mode:'versus', sets:SETS.map(s=>s.id), players:['Player 1','Player 2'], rounds:10 });
+let G = null, tick = null;
+
+/* ---------- home ---------- */
+function home(){
+  clearInterval(tick); G = null;
+  const ds = store.get('tv_daily', {}), played = ds.date === today;
+  $('dstreak').textContent = ds.streak ? `🔥 ${ds.streak}-day` : '';
+  app().innerHTML = `
+  <div class="card"><h2>📺 TV Trivia</h2><p class="dim" style="margin-bottom:.6rem">Pick your quiz sets.</p>
+    <div class="grid">${SETS.map(s=>`<button class="tile ${cfg.sets.includes(s.id)?'on':''}" onclick="toggleSet('${s.id}')"><span>${esc(s.show)}</span><b>${esc(s.name.split(': ')[1]||s.name)}</b><span>${s.qs.length} questions</span></button>`).join('')}</div></div>
+  <div class="card"><h2>Game mode</h2>
+    <div class="grid">
+      <button class="tile ${cfg.mode==='versus'?'on':''}" onclick="setMode('versus')"><div class="ic">⚔️</div><b>Versus</b><span>2–4 players · 10–20 rounds</span></button>
+      <button class="tile ${cfg.mode==='unlimited'?'on':''}" onclick="setMode('unlimited')"><div class="ic">♾️</div><b>Unlimited</b><span>1–4 players · endless</span></button>
+      <button class="tile" onclick="daily()"><div class="ic">📅</div><b>Daily Challenge</b><span>${played?`Done today · ${ds.score} pts`:'10 questions, same for everyone'}</span></button>
+      <button class="tile" onclick="leaders()"><div class="ic">🏆</div><b>Leaderboard</b><span>Top scores and streaks</span></button>
+    </div></div>
+  <div class="card" id="setup"></div>`;
+  setup();
+}
+function toggleSet(id){ const s = cfg.sets.includes(id) ? cfg.sets.filter(x=>x!==id) : cfg.sets.concat(id); if(s.length){ cfg.sets = s; save(); home(); } }
+function setMode(m){ cfg.mode = m; const min = m==='versus'?2:1; while(cfg.players.length<min) cfg.players.push('Player '+(cfg.players.length+1)); save(); home(); }
+function save(){ store.set('tv_cfg', cfg); }
+function setup(){
+  const min = cfg.mode==='versus'?2:1;
+  $('setup').innerHTML = `<h2>${cfg.mode==='versus'?'⚔️ Versus':'♾️ Unlimited'} setup</h2>
+    <label class="f">Players (pass the phone each turn)</label>
+    <div class="seg">${[1,2,3,4].filter(n=>n>=min).map(n=>`<button class="${cfg.players.length===n?'on':''}" onclick="setPlayers(${n})">${n}</button>`).join('')}</div>
+    ${cfg.players.map((p,i)=>`<label class="f">Player ${i+1}</label><input type="text" maxlength="14" value="${esc(p)}" onchange="cfg.players[${i}]=this.value.trim()||'Player ${i+1}';save()">`).join('')}
+    ${cfg.mode==='versus'?`<label class="f">Rounds: <b id="rv">${cfg.rounds}</b> (each player gets one question per round)</label><input type="range" min="10" max="20" value="${cfg.rounds}" oninput="cfg.rounds=+this.value;$('rv').textContent=this.value;save()">`:`<p class="dim" style="margin-top:.7rem">Questions keep coming until you tap End game.</p>`}
+    <p class="dim" style="margin-top:.7rem">⏱️ Easy 30s · Medium 60s · Hard 90s. Answer fast for bonus points. 3 in a row = 1.5×, 5 in a row = 2×.</p>
+    <button class="btn" onclick="startGame()">Start</button>`;
+}
+function setPlayers(n){ while(cfg.players.length<n) cfg.players.push('Player '+(cfg.players.length+1)); cfg.players.length = n; save(); setup(); }
+
+/* ---------- game ---------- */
+function startGame(){
+  G = { mode:cfg.mode, players:cfg.players.map(n=>({ name:n, score:0, streak:0, best:0, right:0, asked:0 })), turn:0, round:1,
+        rounds:cfg.mode==='versus'?cfg.rounds:Infinity, deck:deck(cfg.sets), sets:cfg.sets.slice() };
+  nextTurn();
+}
+function daily(){
+  const ds = store.get('tv_daily', {});
+  if(ds.date === today) return dailyDone(ds);
+  const R = rngFrom('tv'+today), all = bank(SETS.map(s=>s.id));
+  const picks = shuffle(all, R).slice(0, 10).map(x => build(x.s, x.r, R));
+  G = { mode:'daily', players:[{ name:store.get('tv_name','You'), score:0, streak:0, best:0, right:0, asked:0 }], turn:0, round:1, rounds:10, fixed:picks, sets:SETS.map(s=>s.id), log:[] };
+  ask();
+}
+function cur(){ return G.players[G.turn]; }
+function nextTurn(){
+  if(G.round > G.rounds) return finish();
+  if(G.players.length > 1){
+    app().innerHTML = `<div class="card pass"><div class="dim">${G.mode==='versus'?`Round ${G.round} of ${G.rounds}`:`Question ${G.round}`}</div>
+      <div class="dim" style="margin-top:1rem">Pass the phone to</div><div class="who">${esc(cur().name)}</div>
+      <button class="btn" onclick="ask()">I'm ready</button>${scoreboard()}${G.mode==='unlimited'?'<button class="btn ghost" onclick="finish()">End game</button>':''}</div>`;
+  } else ask();
+}
+function ask(){
+  let Q;
+  if(G.fixed) Q = G.fixed[G.round-1];
+  else { if(!G.deck.length) G.deck = deck(G.sets); const x = G.deck.pop(); markSeen(x.key); Q = build(x.s, x.r); }
+  G.Q = Q; G.left = TIME[Q.d]; G.t0 = Date.now(); const p = cur();
+  app().innerHTML = `<div class="card">
+    <div class="hud"><span><b style="color:var(--ink)">${esc(p.name)}</b> · ${p.score} pts ${p.streak>=2?`<span class="streak">🔥${p.streak}</span>`:''}</span>
+      <span>${G.mode==='unlimited'?`Q${G.round}`:`${G.round}/${G.rounds}`} · <span class="diff d${Q.d}">${['','EASY','MEDIUM','HARD'][Q.d]}</span> · <span class="mono" id="tl">${G.left}s</span></span></div>
+    <div class="timer"><i id="tb" style="width:100%"></i></div>
+    <div class="q">${esc(Q.q)}</div>
+    <div id="opts">${Q.opts.map((o,i)=>`<button class="opt" onclick="answer(${i})">${esc(o)}</button>`).join('')}</div>
+    <div id="after"></div></div>`;
+  clearInterval(tick);
+  tick = setInterval(()=>{
+    const left = Math.max(0, TIME[Q.d] - (Date.now()-G.t0)/1000), pct = left / TIME[Q.d] * 100;
+    $('tl').textContent = Math.ceil(left)+'s'; $('tb').style.width = pct+'%'; $('tb').style.background = pct<25?'var(--bad)':pct<50?'var(--gold)':'var(--good)';
+    if(left <= 0) answer(-1);
+  }, 250);
+}
+function answer(i){
+  if(!G.Q || G.Q.done) return; clearInterval(tick);
+  const Q = G.Q, p = cur(), ok = i >= 0 && Q.opts[i] === Q.a; Q.done = true;
+  const frac = Math.max(0, 1 - (Date.now()-G.t0)/1000/TIME[Q.d]);
+  p.asked++;
+  let pts = 0, mult = 1;
+  if(ok){ p.streak++; p.best = Math.max(p.best, p.streak); p.right++; mult = p.streak>=5?2:p.streak>=3?1.5:1; pts = Math.round((100*Q.d + 100*Q.d*frac) * mult); p.score += pts; buzz([30,40,30]); }
+  else { p.streak = 0; buzz(120); }
+  if(G.log) G.log.push(ok);
+  [...document.querySelectorAll('.opt')].forEach((b,j)=>{ b.disabled = true; if(Q.opts[j]===Q.a) b.classList.add('right'); else if(j===i) b.classList.add('wrong'); });
+  const last = G.mode!=='unlimited' && G.round>=G.rounds && G.turn>=G.players.length-1;
+  $('after').innerHTML = `<div class="fb" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?`✅ Correct! +${pts}${mult>1?` <span class="streak">(${mult}× streak)</span>`:''}`:i<0?`⏰ Time's up! It was ${esc(Q.a)}`:`❌ Nope, it was ${esc(Q.a)}`}</div>
+    <button class="btn" onclick="advance()">${last?'See results':'Next'}</button>${G.mode==='unlimited'?'<button class="btn ghost" onclick="finish()">End game</button>':''}`;
+}
+function advance(){
+  G.turn++; if(G.turn >= G.players.length){ G.turn = 0; G.round++; }
+  if(G.mode==='daily'){ if(G.round > G.rounds) return finish(); return ask(); }
+  nextTurn();
+}
+function scoreboard(){
+  return `<div class="board" style="margin-top:1rem;text-align:left">${G.players.slice().sort((a,b)=>b.score-a.score).map((p,i)=>`<div><span>${['🥇','🥈','🥉','4️⃣'][i]} ${esc(p.name)}</span><span class="mono">${p.score}</span></div>`).join('')}</div>`;
+}
+function finish(){
+  clearInterval(tick);
+  const ranked = G.players.slice().sort((a,b)=>b.score-a.score);
+  const setName = G.sets.length===SETS.length ? 'All sets' : SETS.filter(s=>G.sets.includes(s.id)).map(s=>s.name.split(': ')[1]).join(', ');
+  // leaderboard: every player with at least one answer goes in
+  const lb = store.get('tv_lb_'+G.mode, []);
+  ranked.filter(p=>p.asked).forEach(p=>lb.push({ n:p.name, s:p.score, b:p.best, r:p.right, a:p.asked, set:setName, d:today }));
+  lb.sort((a,b)=>b.s-a.s); store.set('tv_lb_'+G.mode, lb.slice(0,15));
+  const st = store.get('tv_best_streak', 0), top = Math.max(...G.players.map(p=>p.best)); if(top > st) store.set('tv_best_streak', top);
+  if(G.mode==='daily'){
+    const ds = store.get('tv_daily', {}), y = new Date(Date.now()-864e5).toISOString().slice(0,10);
+    const rec = { date:today, score:G.players[0].score, log:G.log, streak: ds.date===y ? (ds.streak||0)+1 : 1 };
+    store.set('tv_daily', rec); return dailyDone(rec);
+  }
+  app().innerHTML = `<div class="card" style="text-align:center"><h2>${G.players.length>1?`🏆 ${esc(ranked[0].name)} wins!`:'Game over'}</h2>
+    ${ranked.map((p,i)=>`<div class="board"><div><span>${['🥇','🥈','🥉','4️⃣'][i]} <b>${esc(p.name)}</b></span><span class="mono">${p.score} pts</span></div></div>
+      <div class="dim" style="margin-bottom:.6rem">${p.right}/${p.asked} right · best streak 🔥${p.best}</div>`).join('')}
+    <button class="btn" onclick="startGame()">Play again</button><button class="btn ghost" onclick="home()">Menu</button></div>`;
+}
+function dailyDone(ds){
+  const grid = (ds.log||[]).map(x=>x?'🟩':'🟥').join('');
+  app().innerHTML = `<div class="card" style="text-align:center"><h2>📅 Daily Challenge · ${today}</h2>
+    <div class="mono" style="font-size:2rem;color:var(--gold);margin:.4rem 0">${ds.score} pts</div><div style="font-size:1.3rem">${grid}</div>
+    <p class="dim" style="margin:.6rem 0">🔥 ${ds.streak}-day streak. New questions tomorrow.</p>
+    <button class="btn" onclick="shareDaily()">Share result</button><button class="btn ghost" onclick="home()">Menu</button></div>`;
+}
+function shareDaily(){
+  const ds = store.get('tv_daily', {});
+  const t = `🧠 GXY Trivia Daily ${today}\n${(ds.log||[]).map(x=>x?'🟩':'🟥').join('')} ${ds.score} pts · 🔥${ds.streak}\nhttps://galaxyhockey.github.io/GXY-Arcade/`;
+  if(navigator.share) navigator.share({ text:t }).catch(()=>{}); else { navigator.clipboard && navigator.clipboard.writeText(t); alert('Copied to clipboard!'); }
+}
+function leaders(tab='versus'){
+  const lb = store.get('tv_lb_'+tab, []);
+  app().innerHTML = `<div class="card"><h2>🏆 Leaderboard</h2>
+    <div class="seg" style="margin-bottom:.8rem">${[['versus','⚔️ Versus'],['unlimited','♾️ Unlimited'],['daily','📅 Daily']].map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="leaders('${k}')">${l}</button>`).join('')}</div>
+    <div class="board">${lb.length ? lb.map((e,i)=>`<div><span>${i+1}. <b>${esc(e.n)}</b> <span class="dim">· ${e.r}/${e.a} · 🔥${e.b} · ${esc(e.d)}</span></span><span class="mono">${e.s}</span></div>`).join('') : '<p class="dim">No scores yet. Go play!</p>'}</div>
+    <p style="margin-top:.8rem"><span class="pill">🔥 Best answer streak: ${store.get('tv_best_streak',0)}</span><span class="pill">📅 Daily streak: ${store.get('tv_daily',{}).streak||0}</span></p>
+    <label class="f">Your name for the Daily Challenge</label><input type="text" maxlength="14" value="${esc(store.get('tv_name','You'))}" onchange="store.set('tv_name',this.value.trim()||'You')">
+    <button class="btn ghost" onclick="home()">Back</button></div>`;
+}
+document.addEventListener('keydown', e => { if(G && G.Q && !G.Q.done && e.key>='1' && e.key<='4') answer(+e.key-1); });
+home();
+</script>
+<script src="../assets/theme.js"></script>
+</body>
+</html>

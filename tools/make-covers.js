@@ -68,6 +68,15 @@ const GAMES = {
     art: () => `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
       ${rep(4, j => `<rect x="40" y="${190 + j * 120}" width="460" height="12" fill="#14532d"/>` + rep(6, i => `<rect x="${60 + i * 72}" y="${120 + j * 120 + (i % 2) * 14}" width="56" height="${70 - (i % 2) * 14}" rx="6" fill="${["#ef4444","#3b82f6","#f59e0b","#a855f7","#22c55e","#ec4899"][(i + j) % 6]}" opacity=".85"/>`))}
       <g transform="translate(270 430) rotate(-8)"><path d="M-150 -70 H120 L170 0 L120 70 H-150Z" fill="#facc15" stroke="#fff" stroke-width="6"/><circle cx="125" cy="0" r="14" fill="#05230f"/><text x="-20" y="30" font-family="Arial Black" font-size="86" fill="#05230f" text-anchor="middle">$?.??</text></g>` },
+  'trivia': { title: ['GXY', 'TRIVIA'], sub: 'TV TRIVIA', tag: 'Pass the phone. Prove you know your shows.', rating: 'T', c: ['#1c0b02', '#f97316', '#facc15'],
+    art: () => `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
+      ${rep(14, i => `<line x1="270" y1="380" x2="${-200 + i * 70}" y2="${i % 2 ? 680 : 70}" stroke="#facc15" stroke-width="3" opacity=".18"/>`)}
+      <g transform="translate(270 430) scale(.72)"><rect x="-190" y="-150" width="380" height="270" rx="34" fill="#111827" stroke="#f97316" stroke-width="10"/>
+        <rect x="-160" y="-120" width="320" height="210" rx="18" fill="#1e3a8a"/>
+        <text y="40" font-family="Arial Black" font-size="170" fill="#facc15" text-anchor="middle">?</text>
+        <line x1="-70" y1="-150" x2="-130" y2="-230" stroke="#f97316" stroke-width="8"/><line x1="70" y1="-150" x2="130" y2="-230" stroke="#f97316" stroke-width="8"/>
+        <rect x="-120" y="120" width="30" height="40" fill="#111827"/><rect x="90" y="120" width="30" height="40" fill="#111827"/></g>
+      ${['A', 'B', 'C', 'D'].map((l, i) => `<g transform="translate(${105 + i * 110} 590) scale(.8)"><circle r="38" fill="${['#ef4444', '#3b82f6', '#22c55e', '#eab308'][i]}" stroke="#fff" stroke-width="4"/><text y="17" font-family="Arial Black" font-size="46" fill="#fff" text-anchor="middle">${l}</text></g>`).join('')}` },
 };
 
 const svg = (id, g) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
