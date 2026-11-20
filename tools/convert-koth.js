@@ -1,15 +1,18 @@
-// Turns the King of the Hill 500-question bank (JSON) into games/trivia-koth.js.
+// Turns a King of the Hill question bank (JSON, open-ended) into games/trivia-koth.js.
 // Usage: node tools/convert-koth.js <bank.json>
-// Row: [question, answer, accepted answers, difficulty (2 = hard/60s, 3 = expert/90s), shared fact id, episode hint or '']
+// Row: [question, answer, accepted answers, difficulty (2 = Hard/60s, 3 = Expert/90s), fact id, hint]
+// Works with v1 banks (shared_fact_id, question_type) and v2 banks (no fact ids; every question is about an episode).
 const fs = require('fs'), path = require('path');
 const bank = JSON.parse(fs.readFileSync(process.argv[2], 'utf8')).questions;
+const n = s => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 const row = q => {
-  const acc = q.accepted_answers.slice();
-  if (q.question_type === 'season') acc.push('Season ' + q.answer, 'S' + q.answer);
-  // Lore questions like "What is the leader's name?" only make sense with their episode, so show it.
-  // Episode/season questions are about the episode itself, so no hint there.
-  const hint = q.question_type === 'lore' ? q.episode : '';
-  return [q.question, String(q.answer), [...new Set(acc)], q.difficulty === 'expert' ? 3 : 2, q.shared_fact_id, hint];
+  const acc = q.accepted_answers.slice(), type = q.question_type || 'lore';
+  if (type === 'season') acc.push('Season ' + q.answer, 'S' + q.answer);
+  // Hint with the episode title, unless the question is about the episode/season itself
+  // or the answer is sitting in the title (e.g. "Uh-Oh Canada" -> "Canada"); then just name the season.
+  const leaks = [q.answer, ...q.accepted_answers].some(x => n(x).length > 3 && n(q.episode).includes(n(x)));
+  const hint = type !== 'lore' ? '' : leaks ? `Season ${q.season}` : `"${q.episode}" (Season ${q.season})`;
+  return [q.question, String(q.answer), [...new Set(acc)], /expert/i.test(q.difficulty) ? 3 : 2, q.shared_fact_id || q.id, hint];
 };
 const early = bank.filter(q => q.season <= 6).map(row), late = bank.filter(q => q.season >= 7).map(row);
 fs.writeFileSync(path.join(__dirname, '..', 'games', 'trivia-koth.js'),
