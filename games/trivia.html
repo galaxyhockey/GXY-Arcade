@@ -61,7 +61,7 @@ input[type=range]{width:100%;accent-color:var(--brand);}
 <script>
 const SETS = window.TRIVIA_SETS || [];
 const CATS = [{ id:'tv', name:'TV Trivia', icon:'📺', sets: SETS.map(s=>s.id) }];
-const TIME = {1:30, 2:60, 3:90};
+const TIME = {1:30, 2:60, 3:90}; // easy / hard / expert
 const $ = id => document.getElementById(id), app = () => $('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const store = { get:(k,d)=>{ try{ const v=JSON.parse(localStorage.getItem(k)); return v ?? d; }catch(e){ return d; } }, set:(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} } };
@@ -71,11 +71,7 @@ const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} 
 /* ---------- question building ---------- */
 function rngFrom(seed){ let s=0; for(const c of String(seed)) s=(s*31+c.charCodeAt(0))>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 function shuffle(a, R=Math.random){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function build(set, row, R=Math.random){
-  const [q, a, w, d] = row;
-  const wrongs = typeof w === 'string' ? shuffle(set.pools[w].filter(x => x !== a), R).slice(0,3) : w;
-  return { q, a, d, set:set.id, opts: shuffle([a, ...wrongs], R) };
-}
+function build(set, row){ const [q, a, acc, d, fact, hint] = row; return { q, a, acc, d, fact, hint, set:set.id }; }
 function bank(setIds){ const out=[]; SETS.filter(s=>setIds.includes(s.id)).forEach(s=>s.qs.forEach((r,i)=>out.push({ s, r, key:s.id+':'+i }))); return out; }
 // Prefer questions this device hasn't seen; reset the memory once a set runs dry.
 function deck(setIds){
@@ -102,7 +98,7 @@ function home(){
     <div class="grid">
       <button class="tile ${cfg.mode==='versus'?'on':''}" onclick="setMode('versus')"><div class="ic">⚔️</div><b>Versus</b><span>2–4 players · 10–20 rounds</span></button>
       <button class="tile ${cfg.mode==='unlimited'?'on':''}" onclick="setMode('unlimited')"><div class="ic">♾️</div><b>Unlimited</b><span>1–4 players · endless</span></button>
-      <button class="tile ${cfg.mode==='party'?'on':''}" onclick="setMode('party')" style="grid-column:1/-1"><div class="ic">👥</div><b>Same Time</b><span>2–4 players · everyone answers at once on one phone · 10–20 rounds</span></button>
+      <button class="tile ${cfg.mode==='party'?'on':''}" onclick="setMode('party')" style="grid-column:1/-1"><div class="ic">👥</div><b>Same Time</b><span>2–4 players · everyone types at once on one phone · 10–20 rounds</span></button>
       <button class="tile" onclick="daily()"><div class="ic">📅</div><b>Daily Challenge</b><span>${played?`Done today · ${ds.score} pts`:'10 questions, same for everyone'}</span></button>
       <button class="tile" onclick="leaders()"><div class="ic">🏆</div><b>Leaderboard</b><span>Top scores and streaks</span></button>
     </div></div>
@@ -119,7 +115,7 @@ function setup(){
     <div class="seg">${[1,2,3,4].filter(n=>n>=min).map(n=>`<button class="${cfg.players.length===n?'on':''}" onclick="setPlayers(${n})">${n}</button>`).join('')}</div>
     ${cfg.players.map((p,i)=>`<label class="f">Player ${i+1}</label><input type="text" maxlength="14" value="${esc(p)}" onchange="cfg.players[${i}]=this.value.trim()||'Player ${i+1}';save()">`).join('')}
     ${cfg.mode!=='unlimited'?`<label class="f">Rounds: <b id="rv">${cfg.rounds}</b> (${party?'one question per round, everyone answers':'each player gets one question per round'})</label><input type="range" min="10" max="20" value="${cfg.rounds}" oninput="cfg.rounds=+this.value;$('rv').textContent=this.value;save()">`:`<p class="dim" style="margin-top:.7rem">Questions keep coming until you tap End game.</p>`}
-    <p class="dim" style="margin-top:.7rem">⏱️ Easy 30s · Medium 60s · Hard 90s. Answer fast for bonus points. 3 in a row = 1.5×, 5 in a row = 2×.</p>
+    <p class="dim" style="margin-top:.7rem">✍️ Type your answers (small typos are OK). ⏱️ Hard 60s · Expert 90s. Answer fast for bonus points. 3 in a row = 1.5×, 5 in a row = 2×.</p>
     <button class="btn" onclick="startGame()">Start</button>`;
 }
 function setPlayers(n){ while(cfg.players.length<n) cfg.players.push('Player '+(cfg.players.length+1)); cfg.players.length = n; save(); setup(); }
@@ -127,14 +123,14 @@ function setPlayers(n){ while(cfg.players.length<n) cfg.players.push('Player '+(
 /* ---------- game ---------- */
 function startGame(){
   G = { mode:cfg.mode, players:cfg.players.map(n=>({ name:n, score:0, streak:0, best:0, right:0, asked:0 })), turn:0, round:1,
-        rounds:cfg.mode==='unlimited'?Infinity:cfg.rounds, deck:deck(cfg.sets), sets:cfg.sets.slice() };
+        rounds:cfg.mode==='unlimited'?Infinity:cfg.rounds, deck:deck(cfg.sets), sets:cfg.sets.slice(), facts:new Set() };
   nextTurn();
 }
 function daily(){
   const ds = store.get('tv_daily', {});
   if(ds.date === today) return dailyDone(ds);
   const R = rngFrom('tv'+today), all = bank(SETS.map(s=>s.id));
-  const picks = shuffle(all, R).slice(0, 10).map(x => build(x.s, x.r, R));
+  const used = new Set(), picks = shuffle(all, R).filter(x => !used.has(x.r[4]) && used.add(x.r[4])).slice(0, 10).map(x => build(x.s, x.r));
   G = { mode:'daily', players:[{ name:store.get('tv_name','You'), score:0, streak:0, best:0, right:0, asked:0 }], turn:0, round:1, rounds:10, fixed:picks, sets:SETS.map(s=>s.id), log:[] };
   ask();
 }
@@ -148,82 +144,129 @@ function nextTurn(){
       <button class="btn" onclick="ask()">I'm ready</button>${scoreboard()}${G.mode==='unlimited'?'<button class="btn ghost" onclick="finish()">End game</button>':''}</div>`;
   } else ask();
 }
+/* ---------- typed answers ---------- */
+const norm = s => String(s||'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/\biii\b/g,'3').replace(/\bii\b/g,'2').replace(/&/g,'and').replace(/[^a-z0-9 ]/g,'').replace(/\b(the|a|an)\b/g,' ').replace(/\s+/g,'');
+function lev(a, b){ const m = a.length, n = b.length; if(!m) return n; if(!n) return m; let p = Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){ const c = [i]; for(let j=1;j<=n;j++) c[j] = Math.min(p[j]+1, c[j-1]+1, p[j-1]+(a[i-1]===b[j-1]?0:1)); p = c; } return p[n]; }
+// Right if it matches the answer or an accepted answer, allowing a typo or two on longer words.
+// For two-word names (e.g. "Buck Strickland") either name alone counts unless the question asks for the full name.
+function isRight(guess, Q){
+  const g = norm(guess); if(!g) return false;
+  const cands = [Q.a, ...Q.acc];
+  const words = String(Q.a).trim().split(/\s+/);
+  if(words.length === 2 && /^[A-Z]/.test(words[0]) && /^[A-Z]/.test(words[1]) && !/full name|first and last|surname|last name/i.test(Q.q)) cands.push(...words);
+  if(/surname|last name/i.test(Q.q) && words.length > 1) cands.push(words[words.length-1]);
+  if(/first name/i.test(Q.q) && words.length > 1) cands.push(words[0]);
+  return cands.map(norm).filter(Boolean).some(c => c === g || (c.length >= 5 && lev(c, g) <= Math.floor(c.length / 6)));
+}
+function draw(){
+  if(G.fixed) return G.fixed[G.round-1];
+  for(let tries = 0; tries < 2; tries++){
+    if(!G.deck.length) G.deck = deck(G.sets);
+    // the bank asks about each fact up to four ways; never use the same fact twice in one game
+    const i = G.deck.findIndex(x => !G.facts.has(x.r[4]));
+    if(i >= 0){ const x = G.deck.splice(i,1)[0]; G.facts.add(x.r[4]); markSeen(x.key); return build(x.s, x.r); }
+    G.deck = []; G.facts.clear();
+  }
+}
+function timerHTML(Q){ return `<span class="diff d${Q.d}">${['','EASY','HARD','EXPERT'][Q.d]}</span> · <span class="mono" id="tl">${TIME[Q.d]}s</span>`; }
+function qHTML(Q){ return `<div class="timer"><i id="tb" style="width:100%"></i></div>
+  ${Q.hint?`<div class="dim" style="margin-bottom:.4rem">📺 From the episode <b style="color:var(--ink)">"${esc(Q.hint)}"</b></div>`:''}
+  <div class="q">${esc(Q.q)}</div>`; }
+function runTimer(Q, onEnd){
+  clearInterval(tick);
+  tick = setInterval(()=>{
+    const left = Math.max(0, TIME[Q.d] - (Date.now()-G.t0)/1000), pct = left / TIME[Q.d] * 100;
+    if(!$('tl')) return clearInterval(tick);
+    $('tl').textContent = Math.ceil(left)+'s'; $('tb').style.width = pct+'%'; $('tb').style.background = pct<25?'var(--bad)':pct<50?'var(--gold)':'var(--good)';
+    if(left <= 0) onEnd();
+  }, 250);
+}
+function award(p, Q, secs){
+  p.streak++; p.best = Math.max(p.best, p.streak); p.right++;
+  const mult = p.streak>=5?2:p.streak>=3?1.5:1, pts = Math.round((100*Q.d + 100*Q.d*Math.max(0, 1 - secs/TIME[Q.d])) * mult);
+  p.score += pts; return { pts, mult };
+}
 function ask(){
-  let Q;
-  if(G.fixed) Q = G.fixed[G.round-1];
-  else { if(!G.deck.length) G.deck = deck(G.sets); const x = G.deck.pop(); markSeen(x.key); Q = build(x.s, x.r); }
-  G.Q = Q; G.left = TIME[Q.d]; G.t0 = Date.now(); const p = cur();
+  const Q = G.Q = draw(); G.t0 = Date.now(); const p = cur();
   app().innerHTML = `<div class="card">
     <div class="hud"><span><b style="color:var(--ink)">${esc(p.name)}</b> · ${p.score} pts ${p.streak>=2?`<span class="streak">🔥${p.streak}</span>`:''}</span>
-      <span>${G.mode==='unlimited'?`Q${G.round}`:`${G.round}/${G.rounds}`} · <span class="diff d${Q.d}">${['','EASY','MEDIUM','HARD'][Q.d]}</span> · <span class="mono" id="tl">${G.left}s</span></span></div>
-    <div class="timer"><i id="tb" style="width:100%"></i></div>
-    <div class="q">${esc(Q.q)}</div>
-    <div id="opts">${Q.opts.map((o,i)=>`<button class="opt" onclick="answer(${i})">${esc(o)}</button>`).join('')}</div>
+      <span>${G.mode==='unlimited'?`Q${G.round}`:`${G.round}/${G.rounds}`} · ${timerHTML(Q)}</span></div>
+    ${qHTML(Q)}
+    <form id="af" onsubmit="event.preventDefault();answer($('guess').value)">
+      <input type="text" id="guess" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer" enterkeyhint="go">
+      <button class="btn" type="submit">Lock it in</button></form>
     <div id="after"></div></div>`;
-  clearInterval(tick);
-  tick = setInterval(()=>{
-    const left = Math.max(0, TIME[Q.d] - (Date.now()-G.t0)/1000), pct = left / TIME[Q.d] * 100;
-    $('tl').textContent = Math.ceil(left)+'s'; $('tb').style.width = pct+'%'; $('tb').style.background = pct<25?'var(--bad)':pct<50?'var(--gold)':'var(--good)';
-    if(left <= 0) answer(-1);
-  }, 250);
+  setTimeout(()=>$('guess') && $('guess').focus(), 50);
+  runTimer(Q, ()=>answer(null));
 }
-function answer(i){
+function answer(guess){
   if(!G.Q || G.Q.done) return; clearInterval(tick);
-  const Q = G.Q, p = cur(), ok = i >= 0 && Q.opts[i] === Q.a; Q.done = true;
-  const frac = Math.max(0, 1 - (Date.now()-G.t0)/1000/TIME[Q.d]);
-  p.asked++;
-  let pts = 0, mult = 1;
-  if(ok){ p.streak++; p.best = Math.max(p.best, p.streak); p.right++; mult = p.streak>=5?2:p.streak>=3?1.5:1; pts = Math.round((100*Q.d + 100*Q.d*frac) * mult); p.score += pts; buzz([30,40,30]); }
-  else { p.streak = 0; buzz(120); }
+  const Q = G.Q, p = cur(), secs = (Date.now()-G.t0)/1000, ok = guess != null && isRight(guess, Q); Q.done = true;
+  p.asked++; let r = { pts:0, mult:1 };
+  if(ok){ r = award(p, Q, secs); buzz([30,40,30]); } else { p.streak = 0; buzz(120); }
   if(G.log) G.log.push(ok);
-  [...document.querySelectorAll('.opt')].forEach((b,j)=>{ b.disabled = true; if(Q.opts[j]===Q.a) b.classList.add('right'); else if(j===i) b.classList.add('wrong'); });
+  G.undo = ok ? null : { p, secs };
+  $('af').style.display = 'none';
   const last = G.mode!=='unlimited' && G.round>=G.rounds && G.turn>=G.players.length-1;
-  $('after').innerHTML = `<div class="fb" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?`✅ Correct! +${pts}${mult>1?` <span class="streak">(${mult}× streak)</span>`:''}`:i<0?`⏰ Time's up! It was ${esc(Q.a)}`:`❌ Nope, it was ${esc(Q.a)}`}</div>
+  $('after').innerHTML = `<div id="verdict">${verdict(ok, guess, Q, r)}</div>
+    ${ok?'':`<button class="btn ghost" id="countIt" onclick="countIt()">✔ I was right, count it</button>`}
     <button class="btn" onclick="advance()">${last?'See results':'Next'}</button>${G.mode==='unlimited'?'<button class="btn ghost" onclick="finish()">End game</button>':''}`;
 }
-/* ---------- Same Time: everyone answers the same question on one phone ---------- */
+function verdict(ok, guess, Q, r){
+  const said = guess != null && String(guess).trim() ? `<div class="dim">You said: "${esc(guess)}"</div>` : '';
+  return `<div class="fb" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?`✅ Correct! +${r.pts}${r.mult>1?` <span class="streak">(${r.mult}× streak)</span>`:''}`:guess==null?'⏰ Time\'s up!':'❌ Not quite'}</div>
+    ${said}<div class="opt right" style="margin-top:.5rem;cursor:default">Answer: <b>${esc(Q.a)}</b>${Q.acc.length?`<div class="dim" style="font-size:.78rem;margin-top:.2rem">Also accepted: ${Q.acc.map(esc).join(', ')}</div>`:''}</div>`;
+}
+// Honor system for open-ended answers: if the group agrees it was right, give the points.
+function countIt(){
+  if(!G.undo) return; const { p, secs } = G.undo; G.undo = null;
+  const r = award(p, G.Q, secs); if(G.log) G.log[G.log.length-1] = true;
+  $('verdict').innerHTML = `<div class="fb" style="color:var(--good)">✅ Counted! +${r.pts}</div>`; $('countIt').remove();
+}
+/* ---------- Same Time: everyone types at once on one phone (answers hidden until reveal) ---------- */
 const PCOL = ['#ef4444','#3b82f6','#22c55e','#eab308'];
 function askParty(){
-  if(!G.deck.length) G.deck = deck(G.sets);
-  const x = G.deck.pop(); markSeen(x.key);
-  const Q = G.Q = build(x.s, x.r); G.t0 = Date.now(); G.picks = G.players.map(()=>null);
+  const Q = G.Q = draw(); G.t0 = Date.now(); G.picks = G.players.map(()=>null);
   app().innerHTML = `<div class="card">
-    <div class="hud"><span>Round ${G.round}/${G.rounds}</span><span><span class="diff d${Q.d}">${['','EASY','MEDIUM','HARD'][Q.d]}</span> · <span class="mono" id="tl">${TIME[Q.d]}s</span></span></div>
-    <div class="timer"><i id="tb" style="width:100%"></i></div>
-    <div class="q">${esc(Q.q)}</div>
-    <div id="opts">${Q.opts.map((o,i)=>`<div class="opt" style="cursor:default"><b>${'ABCD'[i]}.</b> ${esc(o)}</div>`).join('')}</div>
-    <div id="pads">${G.players.map((p,k)=>`<div class="pad" id="pad${k}" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px;border-radius:12px;border:2px solid ${PCOL[k]};background:var(--panel2)">
-      <b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${PCOL[k]}">${esc(p.name)} <span class="mono dim" style="font-size:.75rem">${p.score}</span></b>
-      <span id="pk${k}" style="display:flex;gap:6px">${[0,1,2,3].map(i=>`<button style="width:46px;height:46px;border-radius:10px;background:${PCOL[k]};color:#fff;font-weight:800;font-size:1.1rem" onclick="partyPick(${k},${i})">${'ABCD'[i]}</button>`).join('')}</span></div>`).join('')}</div>
+    <div class="hud"><span>Round ${G.round}/${G.rounds}</span><span>${timerHTML(Q)}</span></div>
+    ${qHTML(Q)}
+    <p class="dim" style="font-size:.78rem;margin-bottom:.2rem">Tap your box, type, and lock in. Answers stay hidden until everyone's done.</p>
+    <div id="pads">${G.players.map((p,k)=>`<form class="pad" id="pad${k}" onsubmit="event.preventDefault();partyPick(${k})" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px;border-radius:12px;border:2px solid ${PCOL[k]};background:var(--panel2)">
+      <b style="width:74px;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${PCOL[k]}">${esc(p.name)}<br><span class="mono dim" style="font-size:.72rem">${p.score}</span></b>
+      <span id="pk${k}" style="flex:1;display:flex;gap:6px;min-width:0"><input type="password" id="pg${k}" autocomplete="off" placeholder="Answer" style="flex:1;min-width:0;font-size:16px;padding:.55rem;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:#fff">
+      <button type="submit" style="flex:none;padding:0 .8rem;border-radius:10px;background:${PCOL[k]};color:#fff;font-weight:800">Lock</button></span></form>`).join('')}</div>
     <div id="after"></div></div>`;
-  clearInterval(tick);
-  tick = setInterval(()=>{
-    const left = Math.max(0, TIME[Q.d] - (Date.now()-G.t0)/1000), pct = left / TIME[Q.d] * 100;
-    $('tl').textContent = Math.ceil(left)+'s'; $('tb').style.width = pct+'%'; $('tb').style.background = pct<25?'var(--bad)':pct<50?'var(--gold)':'var(--good)';
-    if(left <= 0) partyReveal();
-  }, 250);
+  runTimer(Q, partyReveal);
 }
-function partyPick(k, i){
+function partyPick(k){
   if(!G.Q || G.Q.done || G.picks[k]) return;
-  G.picks[k] = { i, t: (Date.now()-G.t0)/1000 }; buzz(15);
-  $('pk'+k).innerHTML = '<span style="font-weight:800;padding:0 .4rem">🔒 Locked in</span>';
+  G.picks[k] = { g: $('pg'+k).value, t: (Date.now()-G.t0)/1000 }; buzz(15);
+  $('pk'+k).innerHTML = '<span style="font-weight:800;padding:.55rem .2rem">🔒 Locked in</span>';
   if(G.picks.every(Boolean)) partyReveal();
 }
 function partyReveal(){
   if(G.Q.done) return; clearInterval(tick);
-  const Q = G.Q; Q.done = true; const ai = Q.opts.indexOf(Q.a);
-  document.querySelectorAll('#opts .opt')[ai].classList.add('right');
+  const Q = G.Q; Q.done = true; G.res = [];
   G.players.forEach((p,k)=>{
-    const pk = G.picks[k], ok = pk && pk.i === ai; p.asked++;
-    let pts = 0, mult = 1;
-    if(ok){ p.streak++; p.best = Math.max(p.best, p.streak); p.right++; mult = p.streak>=5?2:p.streak>=3?1.5:1;
-      pts = Math.round((100*Q.d + 100*Q.d*Math.max(0, 1 - pk.t/TIME[Q.d])) * mult); p.score += pts; }
-    else p.streak = 0;
-    $('pk'+k).innerHTML = `<span style="font-weight:800;padding:0 .4rem;color:${ok?'var(--good)':'var(--bad)'}">${pk?'ABCD'[pk.i]:'—'} ${ok?`✅ +${pts}${mult>1?` (${mult}×)`:''}`:pk?'❌':'⏰'}</span>`;
+    const pk = G.picks[k], ok = !!pk && isRight(pk.g, Q); p.asked++;
+    let r = null; if(ok) r = award(p, Q, pk.t); else p.streak = 0;
+    G.res[k] = { ok, pk };
+    $('pk'+k).innerHTML = partyLine(k, ok, pk, r);
   });
   buzz([30,40,30]);
   const last = G.round >= G.rounds;
-  $('after').innerHTML = `<div class="fb">Answer: ${esc(Q.a)}</div><button class="btn" onclick="advance()">${last?'See results':'Next question'}</button>`;
+  $('after').innerHTML = `<div class="opt right" style="margin-top:.8rem;cursor:default">Answer: <b>${esc(Q.a)}</b>${Q.acc.length?`<div class="dim" style="font-size:.78rem;margin-top:.2rem">Also accepted: ${Q.acc.map(esc).join(', ')}</div>`:''}</div>
+    <button class="btn" onclick="advance()">${last?'See results':'Next question'}</button>`;
+}
+function partyLine(k, ok, pk, r){
+  const said = pk ? (pk.g.trim() ? `"${esc(pk.g)}"` : '(blank)') : '⏰';
+  return `<span style="flex:1;min-width:0;padding:.3rem .2rem;font-weight:700;overflow-wrap:anywhere">${said} <span style="color:${ok?'var(--good)':'var(--bad)'}">${ok?`✅ +${r.pts}${r.mult>1?` (${r.mult}×)`:''}`:'❌'}</span></span>
+    ${!ok && pk && pk.g.trim() ? `<button type="button" onclick="partyCount(${k})" style="flex:none;padding:.3rem .5rem;border-radius:8px;background:var(--panel);border:1px solid var(--line);font-size:.75rem">✔ Count it</button>` : ''}`;
+}
+function partyCount(k){
+  const res = G.res[k]; if(!res || res.ok) return; res.ok = true;
+  const r = award(G.players[k], G.Q, res.pk.t); $('pk'+k).innerHTML = partyLine(k, true, res.pk, r);
 }
 function advance(){
   if(G.mode==='party'){ G.round++; return nextTurn(); }
@@ -274,7 +317,6 @@ function leaders(tab='versus'){
     <label class="f">Your name for the Daily Challenge</label><input type="text" maxlength="14" value="${esc(store.get('tv_name','You'))}" onchange="store.set('tv_name',this.value.trim()||'You')">
     <button class="btn ghost" onclick="home()">Back</button></div>`;
 }
-document.addEventListener('keydown', e => { if(G && G.Q && !G.Q.done && e.key>='1' && e.key<='4') answer(+e.key-1); });
 home();
 </script>
 <script src="../assets/theme.js"></script>
