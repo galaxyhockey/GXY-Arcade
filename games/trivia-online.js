@@ -111,7 +111,7 @@ window.onlineHost = async function(){
       });
       if(H.state === 'lobby') hostLobbyPlayers(); else if(H.state === 'question') hostQuestionUpdate();
     }, oops));
-    hostLobby();
+    hostLobby(); if(window.GXY) GXY.event('trivia', 'online');
   }catch(e){ oops(e); }
 };
 const joinLink = () => location.origin + location.pathname + '?room=' + H.code;
@@ -222,7 +222,7 @@ function grade(){
     if(p.out){ results[id] = { out:true }; return; }
     const a = H.answers[id], ok = order.includes(id); p.asked++;
     results[id] = { g: a ? a.g : null, ok, pts:0, t: a ? a.t : Q.secs };
-    if(ok) results[id].pts = score(p, id, a.t, order.indexOf(id));
+    if(ok){ results[id].pts = score(p, id, a.t, order.indexOf(id)); if(id === H.uid) gxyRight(p, Q); }
     else { p.streak = 0;
       if(S.penalty && a && a.g.trim()) { const lose = Math.min(p.score, Math.round(base / 2)); p.score -= lose; results[id].pts = -lose; }
       if(S.format === 'survival'){ p.lives--; results[id].life = true; if(p.lives <= 0){ p.out = true; results[id].elim = true; } } }
@@ -313,6 +313,7 @@ window.onlineJoin = async function(){
     await setDoc(PL(code, u.uid), { name, joined:Date.now() }, { merge:true });
     P = { code, uid:u.uid, name, round:-1, answered:-1, shown:'' };
     unsub.push(onSnapshot(ROOM(code), s => playerRender(s.data()), oops));
+    if(window.GXY) GXY.event('trivia', 'online');
   }catch(e){ oops(e); }
 };
 function playerRender(r){
@@ -357,6 +358,7 @@ function playerRender(r){
       <div class="opt right" style="margin-top:.5rem;cursor:default">Answer: <b>${esc(r.reveal.a)}</b></div>${others}${board}
       <p class="dim" style="text-align:center">Waiting for the host…</p></div>`;
     if(res && !res.out) buzz(res.ok ? [30,40,30] : 120);
+    if(res && res.ok && window.GXY && P.counted !== r.round){ P.counted = r.round; GXY.event('trivia', 'right'); if(r.q && r.q.img) GXY.event('trivia', 'logo'); }
     return;
   }
   if(r.state === 'done'){

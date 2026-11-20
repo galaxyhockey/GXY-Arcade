@@ -99,6 +99,7 @@ function guess(e){
   e.preventDefault();const g=parseFloat($('g').value);if(!(g>=0)||$('res').innerHTML)return;
   const it=items[i],off=Math.abs(g-it.price)/it.price,pts=Math.max(0,Math.round(1000*(1-off*1.5)));
   total+=pts;log.push({n:it.n,g,p:it.price,pts});hud();
+  if(window.GXY&&off<=.05)GXY.event('price-guess','bullseye');
   const v=off<=.05?'🎯 Bullseye!':off<=.15?'🔥 So close!':off<=.35?'👍 Not bad':off<=.7?'😬 Way off':'💸 Not even close';
   const last=mode==='daily'&&i>=items.length-1;
   $('res').innerHTML=`<div class="res"><div>${v}</div><div class="big mono">$${it.price.toFixed(2)}</div>
@@ -110,13 +111,14 @@ function guess(e){
 }
 async function next(){
   i++;
-  if(mode==='daily'&&i>=items.length){store.set('pg_daily',{date:today,log,total});return summary();}
+  if(mode==='daily'&&i>=items.length){store.set('pg_daily',{date:today,log,total});if(window.GXY)GXY.event('price-guess','daily',total);return summary();}
   if(i>=items.length-3&&mode==='free'){items=items.concat(dedupe(await fetchPage(1+Math.floor(Math.random()*30))).filter(x=>!items.some(y=>y.n===x.n)));}
   if(i>=items.length)return summary();
   show();
 }
 function summary(){
   if(mode==='free'&&total>(store.get('pg_best')||0))store.set('pg_best',total);
+  if(mode==='free'&&window.GXY)GXY.event('price-guess','free',total);
   hud();
   const max=log.length*1000,stars=log.map(l=>l.pts>=900?'🟩':l.pts>=600?'🟨':'🟥').join('');
   $('app').innerHTML=`<h2>${mode==='daily'?'📅 Daily 5 · '+today:'♾️ Run over'}</h2>
@@ -131,6 +133,8 @@ function share(){
 }
 start('daily');
 </script>
-<script src="../assets/theme.js"></script>
+<script src="../assets/gxy.js"></script>
+<script src="../assets/gxy-hooks.js"></script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
 </body>
 </html>

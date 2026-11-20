@@ -5,110 +5,267 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GXY Arcade</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#07080f">
+<meta name="theme-color" content="#120c08">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#07080f;--card:#141829;--text:#eef0ff;--dim:#9aa0c3;--accent:#3b82f6;--hot:#ff3d81}
+:root{--wall:#1a120c;--ink:#f6efe6;--dim:#b9a998;--brass:#d9a441;--accent:#f59e0b;--card:#24180f;--wood:#8b5a2b}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#1d2a5a,transparent),var(--bg);color:var(--text);font-family:system-ui,Segoe UI,sans-serif;min-height:100vh}
-header{padding:36px 16px 8px;text-align:center}
-h1{margin:0;font:italic 900 clamp(2.2rem,7vw,4rem) 'Arial Black',sans-serif;letter-spacing:2px}
-h1 span{color:var(--accent)}
-header p{color:var(--dim);margin:6px 0 18px}
-.bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;max-width:900px;margin:auto}
-input,button{font:inherit;padding:8px 14px;border-radius:999px;border:1px solid #2c3252;background:var(--card);color:var(--text);cursor:pointer}
-input{cursor:text;min-width:200px}
-button[aria-pressed=true],.primary{background:var(--accent);border-color:var(--accent)}
-section{max-width:1200px;margin:auto;padding:12px 16px}
-h3{margin:18px 0 0;font-size:.85rem;letter-spacing:3px;text-transform:uppercase;color:var(--dim)}
-.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:34px 24px;padding:24px 4px 30px;border-bottom:14px solid #1a1f36;box-shadow:0 18px 20px -14px #000;perspective:900px}
-.case{all:unset;cursor:pointer;display:block;position:relative;aspect-ratio:540/760;border-radius:4px 8px 8px 4px;transform:rotateY(-14deg);transform-origin:left center;transition:transform .25s,box-shadow .25s;box-shadow:-8px 10px 18px #000a}
-.case::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:linear-gradient(90deg,#000,#2a2f45 60%,#000);border-radius:4px 0 0 4px;z-index:1}
-.case img{width:100%;height:100%;display:block;border-radius:4px 8px 8px 4px}
-.case:hover,.case:focus-visible{transform:rotateY(0) translateY(-10px) scale(1.04);box-shadow:0 20px 40px #000c,0 0 0 3px var(--accent)}
-.case .new{position:absolute;top:-10px;right:-10px;background:var(--hot);font:800 .7rem system-ui;padding:4px 8px;border-radius:999px;z-index:2}
-.label{margin-top:10px;font-size:.85rem;color:var(--dim);text-align:center}
-#recent:empty,#recentH:has(+#recent:empty){display:none}
-#recent{display:flex;gap:12px;overflow-x:auto;padding:12px 0}
-#recent a{flex:none;display:flex;gap:10px;align-items:center;background:var(--card);padding:8px 14px 8px 8px;border-radius:10px;color:inherit;text-decoration:none}
-#recent img{width:36px;border-radius:3px}
-dialog{border:0;padding:0;background:var(--card);color:var(--text);border-radius:16px;max-width:820px;width:calc(100% - 32px);box-shadow:0 30px 80px #000}
-dialog::backdrop{background:#000b;backdrop-filter:blur(4px)}
-.detail{display:grid;grid-template-columns:260px 1fr;gap:24px;padding:24px}
-.detail img{width:100%;border-radius:6px;box-shadow:0 10px 30px #000a}
-.detail h2{margin:0 0 4px;font-size:1.6rem}
-.meta{color:var(--dim);font-size:.85rem;margin-bottom:12px}
-.detail ul{padding-left:18px;line-height:1.7;color:#cfd3f0}
-.actions{display:flex;gap:10px;margin-top:16px}
-.actions a{padding:10px 22px;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700}
-@media (max-width:640px){.detail{grid-template-columns:1fr}.detail img{max-width:220px;margin:auto}.shelf{grid-template-columns:repeat(2,1fr)}}
+body{margin:0;color:var(--ink);font-family:Inter,system-ui,sans-serif;min-height:100vh;
+  background:radial-gradient(900px 500px at 50% -120px,#4a2f17aa,transparent),repeating-linear-gradient(90deg,#1b130d 0 2px,#1d140e 2px 120px),var(--wall)}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;padding:10px 16px;background:#120c08ee;backdrop-filter:blur(8px);border-bottom:1px solid #3a2716;flex-wrap:wrap}
+.logo{font:italic 900 1.6rem 'Arial Black',sans-serif;letter-spacing:1px;margin-right:auto}.logo span{color:var(--accent)}
+.search{background:#24180f;border:1px solid #4a3220;border-radius:999px;padding:8px 14px;min-width:160px;flex:1;max-width:280px}
+.ibtn{background:#24180f;border:1px solid #4a3220;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:700;font-size:.85rem;white-space:nowrap}
+.ibtn:hover,.ibtn:focus-visible{border-color:var(--accent)}
+.me{display:flex;align-items:center;gap:10px;cursor:pointer;background:#24180f;border:1px solid #4a3220;border-radius:999px;padding:4px 14px 4px 4px}
+.av{width:40px;height:40px;border-radius:50%;padding:3px;display:grid;place-items:center;flex:none}
+.av i{width:100%;height:100%;border-radius:50%;background:#120c08;display:grid;place-items:center;font-style:normal;font-size:1.25rem}
+.me b{display:block;font-size:.9rem;line-height:1.1}.me small{color:var(--dim);font-size:.72rem}
+.xpbar{height:5px;border-radius:4px;background:#3a2716;margin-top:3px;width:110px;overflow:hidden}.xpbar i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#fde68a)}
+/* ---------- hero ---------- */
+.room{max-width:1220px;margin:auto;padding:18px 16px 40px}
+.hero{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:22px;margin-bottom:26px}
+.stand{position:relative;background:radial-gradient(240px 200px at 50% 20%,#fde68a33,transparent 70%),#1f150d;border:1px solid #3a2716;border-radius:18px;padding:20px;display:flex;gap:18px;align-items:center;overflow:hidden}
+.stand .lamp{position:absolute;top:-60px;left:50%;width:300px;height:220px;transform:translateX(-50%);background:radial-gradient(closest-side,#fff6d655,transparent);pointer-events:none}
+.stand img{width:140px;border-radius:4px 7px 7px 4px;box-shadow:-6px 14px 24px #000c,inset 0 0 0 1px #0004;transform:perspective(600px) rotateY(12deg)}
+.stand h2{margin:2px 0 8px;font:800 1.5rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.03em}
+.kicker{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);font-weight:800}
+.play{display:inline-block;background:linear-gradient(120deg,#f59e0b,#d97706);color:#1b1006;font-weight:800;padding:10px 18px;border-radius:999px;text-decoration:none;margin:3px 4px 0 0;border:0;cursor:pointer}
+.ghostb{display:inline-block;background:#2b1d12;border:1px solid #4a3220;color:var(--ink);font-weight:700;padding:9px 16px;border-radius:999px;text-decoration:none;margin:3px 4px 0 0;cursor:pointer}
+/* corkboard */
+.board{background:repeating-radial-gradient(circle at 20% 30%,#a37446 0 2px,#9a6b3e 2px 5px),#9a6b3e;border:10px solid #5a3a1e;border-radius:12px;padding:14px;box-shadow:inset 0 0 30px #0007}
+.board h3{margin:0 0 10px;font:800 1.2rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.05em;color:#2a1a0c;display:flex;justify-content:space-between;align-items:baseline}
+.board h3 small{font:600 .75rem Inter;color:#3b2512}
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.note{position:relative;background:#fffbea;color:#2a1a0c;border-radius:3px;padding:14px 12px 12px;box-shadow:2px 6px 10px #0005;transform:rotate(var(--r));font-size:.82rem;cursor:pointer;border:0;text-align:left}
+.note::before{content:"";position:absolute;top:-6px;left:50%;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fca5a5,#b91c1c);transform:translateX(-50%);box-shadow:0 2px 3px #0006}
+.note b{display:block;font-size:.9rem;margin-bottom:4px}
+.note .pb{height:7px;border-radius:4px;background:#e5dcc0;margin:8px 0 6px;overflow:hidden}.note .pb i{display:block;height:100%;background:#16a34a}
+.note .rw{font-size:.72rem;color:#6b4a2a}
+.note.done{background:#dcfce7}.note.done::after{content:"✔ DONE";position:absolute;right:8px;top:8px;font:800 .7rem Inter;color:#15803d}
+/* ---------- bookcase ---------- */
+.libhead{display:flex;align-items:center;gap:10px;margin:8px 0 12px;flex-wrap:wrap}
+.libhead h2{margin:0 auto 0 0;font:800 1.6rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em}
+.seg{display:flex;gap:4px;background:#24180f;border:1px solid #4a3220;border-radius:999px;padding:3px}
+.seg button{background:none;border:0;border-radius:999px;padding:6px 12px;cursor:pointer;font-weight:700;font-size:.82rem;color:var(--dim)}
+.seg button.on{background:var(--accent);color:#1b1006}
+.case-shell{padding:16px 18px 6px;border-radius:12px;background:linear-gradient(180deg,color-mix(in srgb,var(--wood) 70%,#000),color-mix(in srgb,var(--wood) 55%,#000));box-shadow:inset 0 0 0 6px color-mix(in srgb,var(--wood) 85%,#000),0 30px 50px #000a}
+.shelf{position:relative;margin-bottom:18px}
+.shelf .plate{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);z-index:3;background:linear-gradient(#f3d27a,#b07c22);color:#3a2408;font:800 .7rem Inter;letter-spacing:.18em;text-transform:uppercase;padding:3px 12px;border-radius:3px;box-shadow:0 2px 3px #0008}
+.row{display:flex;align-items:flex-end;gap:5px;min-height:250px;padding:14px 12px 0;overflow-x:auto;overflow-y:visible;background:linear-gradient(180deg,#0005,#0002 70%,#0000),color-mix(in srgb,var(--wood) 35%,#120c08);border-radius:6px 6px 0 0;scrollbar-width:thin}
+.ledge{height:18px;border-radius:0 0 4px 4px;background:linear-gradient(180deg,color-mix(in srgb,var(--wood) 115%,#fff 0%),color-mix(in srgb,var(--wood) 70%,#000));box-shadow:0 8px 12px #0009}
+.spine{all:unset;cursor:pointer;flex:none;position:relative;width:46px;height:232px;border-radius:3px 3px 2px 2px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;
+  background:linear-gradient(90deg,#0005,#fff2 18%,#0000 40%,#0004),linear-gradient(180deg,var(--c1),var(--c2));box-shadow:inset 0 0 0 1px #0006,2px 0 3px #0007;transition:transform .2s,box-shadow .2s;color:#fff}
+.spine:hover,.spine:focus-visible{transform:translateY(-16px);box-shadow:inset 0 0 0 1px #0006,0 0 0 3px var(--accent),0 12px 20px #000a}
+.spine .ic{font-size:1.15rem}
+.spine .tt{writing-mode:vertical-rl;transform:rotate(180deg);font:800 1rem 'Barlow Condensed';letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;max-height:150px;text-shadow:0 1px 2px #0008}
+.spine .gx{font:900 .55rem 'Arial Black';background:#000a;padding:2px 3px;border-radius:2px}
+.spine .new{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#ef4444;font:800 .55rem Inter;padding:2px 5px;border-radius:999px}
+.spine.dim{opacity:.25;filter:grayscale(1)}
+.face{all:unset;cursor:pointer;flex:none;width:162px;aspect-ratio:540/760;margin:0 6px;position:relative;transition:transform .2s;border-radius:3px 6px 6px 3px;box-shadow:-5px 8px 14px #000b}
+.face img{width:100%;height:100%;border-radius:3px 6px 6px 3px;display:block}
+.face:hover,.face:focus-visible{transform:translateY(-10px) rotate(-1deg);box-shadow:0 0 0 3px var(--accent),0 16px 26px #000c}
+.face .new{position:absolute;top:-8px;right:-8px;background:#ef4444;font:800 .65rem Inter;padding:3px 7px;border-radius:999px;z-index:2}
+.bookend{flex:none;width:30px;height:120px;background:linear-gradient(135deg,#d9a441,#7a5216);clip-path:polygon(0 100%,0 30%,60% 0,100% 0,100% 100%);opacity:.9;margin-left:auto}
+.peek{position:fixed;z-index:30;pointer-events:none;width:120px;border-radius:4px;box-shadow:0 14px 30px #000c;opacity:0;transition:opacity .15s}
+/* ---------- dialogs ---------- */
+dialog{border:0;padding:0;background:#1f150d;color:var(--ink);border-radius:18px;max-width:860px;width:calc(100% - 24px);box-shadow:0 30px 80px #000;max-height:90vh}
+dialog::backdrop{background:#000c;backdrop-filter:blur(4px)}
+.dhead{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #3a2716}
+.dhead h2{margin:0;font:800 1.4rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em}
+.dbody{padding:16px 18px;overflow:auto;max-height:calc(90vh - 64px)}
+.x{background:none;border:0;font-size:1.4rem;cursor:pointer;color:var(--dim)}
+.box{display:grid;grid-template-columns:250px 1fr;gap:22px}
+.box .front{width:100%;border-radius:4px 8px 8px 4px;box-shadow:-8px 14px 28px #000c;animation:pull .45s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pull{from{transform:translateX(-40px) rotateY(60deg);opacity:0}to{transform:none;opacity:1}}
+.back{background:#120c08;border:1px solid #3a2716;border-radius:10px;padding:14px}
+.back h3{margin:0;font:800 1.7rem 'Barlow Condensed';text-transform:uppercase}
+.meta{color:var(--dim);font-size:.82rem;margin:2px 0 10px}
+.back ul{padding-left:18px;line-height:1.65;color:#e4d6c6;margin:8px 0}
+.rating{display:inline-block;border:2px solid #fff;font:900 .75rem 'Arial Black';padding:2px 5px;margin-right:6px}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.ach{display:flex;gap:10px;align-items:center;background:#24180f;border:1px solid #3a2716;border-radius:10px;padding:8px}
+.ach .i{font-size:1.5rem;width:40px;height:40px;display:grid;place-items:center;border-radius:10px;background:#120c08;flex:none}
+.ach.lock{opacity:.45}.ach.lock .i{filter:grayscale(1)}
+.ach b{font-size:.86rem;display:block}.ach small{color:var(--dim);font-size:.74rem}
+.gtitle{margin:14px 0 8px;font:800 1rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.06em;color:var(--brass)}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button{background:#24180f;border:2px solid #3a2716;border-radius:12px;padding:8px 10px;cursor:pointer;font-weight:700;font-size:.85rem;min-width:46px}
+.pick button.on{border-color:var(--accent)}
+.pick button:disabled{opacity:.35;cursor:not-allowed}
+.swatch{display:inline-block;width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:6px}
+.field{display:block;width:100%;background:#120c08;border:1px solid #4a3220;border-radius:10px;padding:10px;margin:4px 0 10px;font-size:16px}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.stats span{background:#24180f;border:1px solid #3a2716;border-radius:999px;padding:4px 10px;font-size:.8rem}
+.recent{display:flex;gap:10px;overflow-x:auto;padding:4px 0}
+@media (max-width:820px){.hero{grid-template-columns:1fr}.notes{grid-template-columns:1fr}.box{grid-template-columns:1fr}.box .front{max-width:220px;margin:auto}.me .xpbar{width:70px}.search{max-width:none;order:9;flex-basis:100%}}
 </style>
 </head>
 <body>
-<header>
-  <h1>GXY<span>ARCADE</span></h1>
-  <p>Every Biking People World minigame, boxed up and ready to play.</p>
-  <div class="bar">
-    <input id="q" type="search" placeholder="Search games…" aria-label="Search games">
-    <span id="cats"></span>
-    <button id="rand">🎲 Surprise me</button>
-    <button id="install" class="primary" hidden>⬇ Install app</button>
+<div class="topbar">
+  <div class="logo">GXY<span>ARCADE</span></div>
+  <input id="q" class="search" type="search" placeholder="Search the library…" aria-label="Search games">
+  <button class="ibtn" id="trophyBtn">🏆 <span id="achCount"></span></button>
+  <button class="ibtn" id="cloudBtn">☁️ Cloud</button>
+  <span class="ibtn" id="padIcon" hidden title="Controller connected">🎮</span>
+  <button class="ibtn" id="install" hidden>⬇ Install</button>
+  <div class="me" id="meBtn" tabindex="0" role="button" aria-label="Your profile"></div>
+</div>
+<div class="room">
+  <div class="hero">
+    <div class="stand" id="stand"></div>
+    <div class="board"><h3>📌 Weekly Arcade Challenges <small id="wkEnds"></small></h3><div class="notes" id="notes"></div></div>
   </div>
-</header>
-<section>
-  <h3 id="recentH">Recently played</h3>
-  <div id="recent"></div>
-  <h3>The collection</h3>
-  <div class="shelf" id="grid"></div>
-</section>
-<dialog id="dlg"><div class="detail">
-  <img id="dImg" alt="">
-  <div>
-    <h2 id="dTitle"></h2>
-    <div class="meta" id="dMeta"></div>
-    <p id="dDesc"></p>
-    <ul id="dFeat"></ul>
-    <div class="actions"><span id="dPlay" style="display:contents"></span><button onclick="dlg.close()">Close</button></div>
-  </div>
-</div></dialog>
+  <div class="libhead"><h2>📚 The Library</h2>
+    <div class="seg" id="cats"></div>
+    <div class="seg" id="viewSeg"><button data-v="spines">Spines</button><button data-v="covers">Covers</button></div>
+    <button class="ibtn" id="rand">🎲 Surprise me</button></div>
+  <div class="case-shell" id="library"></div>
+</div>
+<img class="peek" id="peek" alt="">
+
+<dialog id="dlg"><div class="dhead"><h2 id="dTitle"></h2><button class="x" onclick="this.closest('dialog').close()" aria-label="Close">✕</button></div><div class="dbody" id="dBody"></div></dialog>
+
+<script src="assets/gxy.js"></script>
 <script>
 const GAMES=[
- {id:'supermarket-wars',t:'Supermarket Wars',c:'Tycoon',age:'10+',d:'Start with one store and build a nationwide grocery empire, or jump into a fast single-store round.',f:['Empire: campaign across 55+ towns in real metros','Empire: open, expand and remodel aging stores, battle rival chains','Quick Play: one store, short rounds, big decisions'],modes:[['▶ Empire','supermarket-wars'],['⚡ Quick Play','quickplay']]},
- {id:'tv-battles',t:'TV Battles: Station Tycoon',c:'Tycoon',age:'10+',d:'Own stations across a nation of cities and program every time slot.',f:['Morning news to late-night talk','License hits, gamble on pilots, or produce your own','Fight rivals for ratings']},
- {id:'gxy-tech-empire',t:'Technology Empire',c:'Tycoon',age:'10+',d:'Found a tech company in a garage and build a global empire.',f:['Research components across five eras','Design phones, laptops, watches and consoles','Out-market rival companies']},
- {id:'neon-siege',t:'Neon Siege',c:'Action',age:'12+',d:'A neon tower-defense gauntlet along a winding grid.',f:['Five turret types: blasters, cannons, frost, railguns, tesla','Upgrade paths for every tower','Escalating waves and bosses']},
- {id:'gxy-hockey',t:'GXY Hockey',c:'Sports',age:'E',d:'Hit the ice three ways.',f:['Fast-paced shootout','Full Career: franchise GM and player','Ice Legends card collecting']},
- {id:'gxy-football',t:'YOUFL Football',c:'Sports',age:'E',d:'Take the field with the YOUFL league teams.',f:['Play Now: call every down','Franchise: GM and coach across seasons','Player Career mode']},
- {id:'trivia',t:'GXY Trivia',c:'Puzzle',age:'T',d:'TV trivia and a Logo Quiz with 3,400+ brand logos. Type your answers, solo, pass the phone, or online with friends.',f:['Versus: 2–4 players pass the phone, 10–20 rounds','Same Time: everyone answers at once on one phone','Unlimited: 1–4 players, endless questions','Daily Challenge, streaks and a leaderboard']},
- {id:'price-guess',t:'Price Guess',c:'Puzzle',age:'E',d:'Guess the real price of grocery items photographed at real US stores.',f:['Real prices from shelf tags and receipts','Daily 5 with shareable results','Endless Free Play with a best score']},
- {id:'gxy-daily',t:'Daily Word',c:'Puzzle',age:'E',d:'A new Biking People World themed 5-letter word every day.',f:['Same puzzle for everyone','Six guesses','Streaks and daily leaderboard']}
+ {id:'transit-tycoon',t:'Transit Tycoon',c:'Tycoon',age:'E',ic:'🚇',c1:'#14b8a6',c2:'#064e3b',isNew:true,d:'Design subway and bus networks, set schedules, handle rush-hour traffic and grow a transit company across cities.',f:['Place stops and draw bus and subway lines on a living city','Set rush-hour and off-peak schedules, fares and bus lanes','Watch riders surge at rush hour; snowstorms, concerts and breakdowns','Expand to four cities']},
+ {id:'airport-empire',t:'Airport Empire',c:'Tycoon',age:'E',ic:'✈️',c1:'#38bdf8',c2:'#0c4a6e',isNew:true,d:'Build airports, add terminals, schedule airlines, expand routes, manage weather disruptions and compete against nearby airports.',f:['Runways, terminals, gates, customs and upgrades','Sign airlines and schedule their daily flights','Fog, storms, snow and crosswinds disrupt your day','Out-fly two rival airports in the monthly rankings']},
+ {id:'supermarket-wars',t:'Supermarket Wars',c:'Tycoon',age:'10+',ic:'🛒',c1:'#22c55e',c2:'#14532d',d:'Start with one store and build a nationwide grocery empire, or jump into a fast single-store round.',f:['Empire: campaign across 55+ towns in real metros','Empire: open, expand and remodel aging stores, battle rival chains','Quick Play: one store, short rounds, big decisions'],modes:[['▶ Empire','supermarket-wars'],['⚡ Quick Play','quickplay']]},
+ {id:'tv-battles',t:'TV Battles: Station Tycoon',c:'Tycoon',age:'10+',ic:'📺',c1:'#a855f7',c2:'#3b0764',d:'Own stations across a nation of cities and program every time slot.',f:['Morning news to late-night talk','License hits, gamble on pilots, or produce your own','Fight rivals for ratings']},
+ {id:'gxy-tech-empire',t:'Technology Empire',c:'Tycoon',age:'10+',ic:'💻',c1:'#0ea5e9',c2:'#0f172a',d:'Found a tech company in a garage and build a global empire.',f:['Research components across five eras','Design phones, laptops, watches and consoles','Out-market rival companies']},
+ {id:'neon-siege',t:'Neon Siege',c:'Action',age:'12+',ic:'👾',c1:'#ec4899',c2:'#1e1b4b',d:'A neon tower-defense gauntlet along a winding grid.',f:['Five turret types: blasters, cannons, frost, railguns, tesla','Upgrade paths for every tower','Escalating waves and bosses']},
+ {id:'gxy-hockey',t:'GXY Hockey',c:'Sports',age:'E',ic:'🏒',c1:'#0ea5e9',c2:'#7f1d1d',d:'Hit the ice three ways.',f:['Fast-paced shootout','Full Career: franchise GM and player','Ice Legends card collecting']},
+ {id:'gxy-football',t:'YOUFL Football',c:'Sports',age:'E',ic:'🏈',c1:'#b91c1c',c2:'#1c0606',d:'Take the field with the YOUFL league teams.',f:['Play Now: call every down','Franchise: GM and coach across seasons','Player Career mode']},
+ {id:'trivia',t:'GXY Trivia',c:'Puzzle',age:'T',ic:'🧠',c1:'#f97316',c2:'#431407',d:'TV trivia and a Logo Quiz with 3,400+ brand logos. Type your answers, solo, pass the phone, or online with friends.',f:['Online Room: everyone on their own phone, Classic/Race/Survival','Versus, Same Time, Unlimited and a Daily Challenge','King of the Hill trivia and the Logo Quiz']},
+ {id:'price-guess',t:'Price Guess',c:'Puzzle',age:'E',ic:'🏷️',c1:'#16a34a',c2:'#052e16',d:'Guess the real price of grocery items photographed at real US stores.',f:['Real prices from shelf tags and receipts','Daily 5 with shareable results','Endless Free Play with a best score']},
+ {id:'gxy-daily',t:'Daily Word',c:'Puzzle',age:'E',ic:'🔤',c1:'#f59e0b',c2:'#422006',d:'A new Biking People World themed 5-letter word every day.',f:['Same puzzle for everyone','Six guesses','Streaks and daily leaderboard']}
 ];
 const $=id=>document.getElementById(id);
-const store={get(){try{return JSON.parse(localStorage.getItem('arcadeRecent'))||[]}catch{return[]}},set(v){try{localStorage.setItem('arcadeRecent',JSON.stringify(v))}catch{}}};
-let cat='All';
-['All',...new Set(GAMES.map(g=>g.c))].forEach(c=>{const b=document.createElement('button');b.textContent=c;b.onclick=()=>{cat=c;render()};$('cats').append(b,' ')});
-function played(id){store.set([id,...store.get().filter(x=>x!==id)].slice(0,5))}
-function render(){
-  const s=$('q').value.toLowerCase(),seen=store.get();
-  [...$('cats').children].forEach(b=>b.setAttribute('aria-pressed',b.textContent===cat));
-  $('grid').innerHTML=GAMES.filter(g=>(cat==='All'||g.c===cat)&&(g.t+g.d+g.c).toLowerCase().includes(s))
-    .map(g=>`<div><button class="case" data-id="${g.id}" aria-label="${g.t}"><img src="covers/${g.id}.svg" alt="" loading="lazy" decoding="async">${seen.includes(g.id)?'':'<span class="new">NEW</span>'}</button><div class="label">${g.t}</div></div>`).join('')||'<p>No games match.</p>';
-  $('recent').innerHTML=seen.map(id=>GAMES.find(g=>g.id===id)).filter(Boolean)
-    .map(g=>`<a href="games/${g.id}.html" data-play="${g.id}"><img src="covers/${g.id}.svg" alt="" loading="lazy">${g.t}</a>`).join('');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+const recent=()=>ls.get('arcadeRecent',[]);
+function played(id){ls.set('arcadeRecent',[id,...recent().filter(x=>x!==id)].slice(0,6))}
+let cat='All', view=ls.get('arcadeView','spines');
+const C=id=>GXY.COSMETICS.find(c=>c.id===id)||{};
+
+/* ---------- profile chip ---------- */
+function avatarHTML(p,size=40){const fr=C(p.frame).css||'#3b82f6';return `<span class="av" style="width:${size}px;height:${size}px;background:${fr}"><i style="font-size:${size*.5}px">${C(p.avatar).emoji||'🎮'}</i></span>`;}
+function renderMe(){
+  const p=GXY.profile(),L=GXY.levelOf(p.xp),a=GXY.xpFor(L),b=GXY.xpFor(L+1);
+  $('meBtn').innerHTML=`${avatarHTML(p)}<div><b>${esc(p.name)}</b><small>Lv ${L} · ${esc(C(p.title).name||'')}</small><div class="xpbar"><i style="width:${(p.xp-a)/(b-a)*100}%"></i></div></div>`;
+  const got=Object.keys(GXY.achievements()).length; $('achCount').textContent=`${got}/${GXY.ACH.length}`;
+  document.documentElement.style.setProperty('--wood',C(p.shelf).css||'#8b5a2b');
+  $('padIcon').hidden=!GXY.padConnected();
 }
-function open(id){
-  const g=GAMES.find(x=>x.id===id);
-  $('dImg').src=`covers/${g.id}.svg`;$('dTitle').textContent=g.t;$('dMeta').textContent=`${g.c} · Ages ${g.age} · Web`;
-  $('dDesc').textContent=g.d;$('dFeat').innerHTML=g.f.map(x=>`<li>${x}</li>`).join('');
-  $('dPlay').innerHTML=(g.modes||[['▶ Play now',g.id]]).map(([l,f])=>`<a href="games/${f}.html" data-play="${g.id}">${l}</a>`).join('');$('dlg').showModal();
+/* ---------- now playing stand ---------- */
+function renderStand(){
+  const r=recent(), g=GAMES.find(x=>x.id===r[0])||GAMES[0], resume=!!r[0];
+  $('stand').innerHTML=`<div class="lamp"></div><img src="covers/${g.id}.svg" alt="">
+    <div><div class="kicker">${resume?'Now playing':'New on the shelf'}</div><h2>${esc(g.t)}</h2>
+    <a class="play" href="games/${(g.modes||[[0,g.id]])[0][1]}.html" data-play="${g.id}">${resume?'▶ Continue':'▶ Play'}</a><button class="ghostb" data-open="${g.id}">Details</button>
+    ${r.length>1?`<div class="kicker" style="margin-top:12px">Recent</div><div class="recent">${r.slice(1,5).map(id=>`<button class="face" style="width:46px" data-open="${id}" aria-label="${esc(GAMES.find(x=>x.id===id)?.t)}"><img src="covers/${id}.svg" alt=""></button>`).join('')}</div>`:''}</div>`;
 }
+/* ---------- weekly board ---------- */
+function renderBoard(){
+  const w=GXY.weekly(),ms=w.ends-Date.now(),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);
+  $('wkEnds').textContent=`Week ${w.week.split('-W')[1]} · resets in ${d}d ${h}h`;
+  $('notes').innerHTML=w.list.map((c,i)=>{const g=GAMES.find(x=>x.id===c.game)||{},rw=C(c.reward),pct=Math.min(100,c.prog/c.target*100);
+    return `<button class="note ${c.done?'done':''}" style="--r:${[-2,1.5,-1][i]}deg" data-open="${c.game}"><span style="font-size:1.4rem">${g.ic||'🎮'}</span><b>${esc(c.text)}</b>
+      <div class="pb"><i style="width:${pct}%"></i></div><div>${Math.min(c.prog,c.target).toLocaleString()} / ${c.target.toLocaleString()}</div>
+      <div class="rw">🎁 +${c.xp} XP · ${rw.type==='avatar'?rw.emoji+' avatar':esc(rw.name)+' '+rw.type}</div></button>`}).join('');
+}
+/* ---------- library ---------- */
+function renderLib(){
+  const s=$('q').value.toLowerCase(),seen=recent(),cats=['Tycoon','Action','Sports','Puzzle'];
+  $('cats').innerHTML=['All',...cats].map(c=>`<button class="${c===cat?'on':''}" data-cat="${c}">${c}</button>`).join('');
+  [...$('viewSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.v===view));
+  const match=g=>(g.t+g.d+g.c).toLowerCase().includes(s);
+  $('library').innerHTML=cats.filter(c=>cat==='All'||c===cat).map(c=>{
+    const gs=GAMES.filter(g=>g.c===c);
+    const items=gs.map(g=>{const nw=g.isNew&&!seen.includes(g.id)?'<span class="new">NEW</span>':'';
+      return view==='covers'
+        ?`<button class="face ${match(g)?'':'dim'}" data-open="${g.id}" aria-label="${esc(g.t)}" style="${match(g)?'':'opacity:.25'}"><img src="covers/${g.id}.svg" alt="" loading="lazy">${nw}</button>`
+        :`<button class="spine ${match(g)?'':'dim'}" data-open="${g.id}" data-peek="${g.id}" aria-label="${esc(g.t)}" style="--c1:${g.c1};--c2:${g.c2};height:${200+(g.t.length%4)*12}px">${nw}<span class="ic">${g.ic}</span><span class="tt">${esc(g.t)}</span><span class="gx">GXY</span></button>`}).join('');
+    return `<div class="shelf"><div class="row">${items}<div class="bookend"></div></div><div class="ledge"></div><div class="plate">${c}</div></div>`}).join('');
+}
+function renderAll(){renderMe();renderStand();renderBoard();renderLib();}
+
+/* ---------- dialogs ---------- */
+function dialog(title,html){$('dTitle').textContent=title;$('dBody').innerHTML=html;if(!$('dlg').open)$('dlg').showModal();}
+function openGame(id){
+  const g=GAMES.find(x=>x.id===id); if(!g) return;
+  const got=GXY.achievements(),achs=GXY.ACH.filter(a=>a.game===g.id),wk=GXY.weekly().list.find(c=>c.game===g.id);
+  dialog(g.t,`<div class="box"><img class="front" src="covers/${g.id}.svg" alt="${esc(g.t)} cover"><div class="back">
+    <h3>${esc(g.t)}</h3><div class="meta"><span class="rating">${g.age}</span>${g.c} · ${g.ic} · Web &amp; Android</div>
+    <p>${esc(g.d)}</p><ul>${g.f.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    ${wk?`<p class="kicker">📌 This week: ${esc(wk.text)} (${Math.min(wk.prog,wk.target).toLocaleString()}/${wk.target.toLocaleString()})</p>`:''}
+    <div>${(g.modes||[['▶ Play now',g.id]]).map(([l,f])=>`<a class="play" href="games/${f}.html" data-play="${g.id}">${l}</a>`).join('')}</div>
+    ${achs.length?`<div class="gtitle">🏆 Achievements ${achs.filter(a=>got[a.id]).length}/${achs.length}</div><div class="achs">${achs.map(achHTML).join('')}</div>`:''}
+  </div></div>`);
+}
+function achHTML(a){const got=GXY.achievements()[a.id],r=a.reward?C(a.reward):null;
+  return `<div class="ach ${got?'':'lock'}"><span class="i">${a.icon}</span><div><b>${esc(a.name)}</b><small>${esc(a.desc)}${a.xp?` · +${a.xp} XP`:''}${r?` · 🎁 ${r.type==='avatar'?r.emoji:esc(r.name)}`:''}${got?` · ✔ ${new Date(got).toLocaleDateString()}`:''}</small></div></div>`;}
+function openTrophies(){
+  const got=GXY.achievements(),xp=GXY.ACH.filter(a=>got[a.id]).reduce((s,a)=>s+a.xp,0);
+  const groups=['arcade',...GAMES.map(g=>g.id)];
+  dialog('🏆 Trophy Cabinet',`<div class="stats"><span>🏆 ${Object.keys(got).length}/${GXY.ACH.length} unlocked</span><span>✨ ${xp} XP from trophies</span></div>
+    ${groups.map(gid=>{const as=GXY.ACH.filter(a=>a.game===gid);if(!as.length)return'';const g=GAMES.find(x=>x.id===gid);
+      return `<div class="gtitle">${g?g.ic+' '+esc(g.t):'🕹️ GXY Arcade'} · ${as.filter(a=>got[a.id]).length}/${as.length}</div><div class="achs">${as.map(achHTML).join('')}</div>`}).join('')}`);
+}
+function openProfile(){
+  const p=GXY.profile(),L=GXY.levelOf(p.xp),st=GXY.stats();
+  const pick=(type,key)=>`<div class="pick">${GXY.COSMETICS.filter(c=>c.type===type).map(c=>{const own=GXY.owns(p,c.id);
+    return `<button class="${p[key]===c.id?'on':''}" ${own?'':'disabled title="Locked: earn it from achievements or weekly challenges"'} onclick="equip('${key}','${c.id}')">${type==='avatar'?c.emoji:type==='frame'||type==='shelf'?`<span class="swatch" style="background:${c.css}"></span>${esc(c.name)}`:esc(c.name)}${own?'':' 🔒'}</button>`}).join('')}</div>`;
+  dialog('👤 Player Profile',`<div style="display:flex;gap:14px;align-items:center">${avatarHTML(p,72)}<div><b style="font-size:1.3rem">${esc(p.name)}</b><div class="meta">Level ${L} · ${p.xp.toLocaleString()} XP · ${GXY.xpFor(L+1)-p.xp} XP to level ${L+1}</div></div></div>
+    <div class="stats"><span>🎮 ${(ls.get('gxy_played',[])).length} games played</span><span>🕹️ ${st['arcade.plays']||0} sessions</span><span>🏆 ${Object.keys(GXY.achievements()).length} trophies</span><span>📅 ${st['arcade.weekly']||0} weekly challenges</span></div>
+    <label class="kicker">Player name</label><input class="field" id="pName" maxlength="16" value="${esc(p.name)}" onchange="const q=GXY.profile();q.name=this.value.trim()||'Player';GXY.saveProfile(q)">
+    <div class="gtitle">Avatar</div>${pick('avatar','avatar')}
+    <div class="gtitle">Frame</div>${pick('frame','frame')}
+    <div class="gtitle">Title</div>${pick('title','title')}
+    <div class="gtitle">Bookshelf finish</div>${pick('shelf','shelf')}
+    <p class="meta" style="margin-top:12px">🔒 Locked items are rewards from achievements and weekly challenges.</p>`);
+}
+function equip(key,id){const p=GXY.profile();if(!GXY.owns(p,id))return;p[key]=id;GXY.saveProfile(p);openProfile();}
+async function openCloud(){
+  dialog('☁️ GXY Cloud','<p class="meta">Connecting…</p>');
+  let m,s; try{m=await GXY.cloud();s=await m.status();}catch(e){return dialog('☁️ GXY Cloud','<p>Couldn\'t load GXY Cloud. Check your internet.</p>');}
+  if(s.user) dialog('☁️ GXY Cloud',`<p>Signed in as <b>${esc(s.user)}</b>. Every game's saves, your profile, XP and trophies sync between all your devices. The newest copy wins.</p>
+    <div class="stats"><span>Last sync: ${s.last?new Date(s.last).toLocaleString():'never'}</span>${s.big.length?`<span>⚠️ ${s.big.length} save too big for the cloud</span>`:''}</div>
+    <button class="play" id="cSync">🔄 Sync now</button><button class="ghostb" id="cOut">Sign out</button>`);
+  else dialog('☁️ GXY Cloud',`<p>Sign in with your GXY / Biking People World account to keep your saves, profile, XP and trophies on every device: phone app, website and computer.</p>
+    <label class="kicker">Email</label><input class="field" id="cE" type="email" autocomplete="email">
+    <label class="kicker">Password</label><input class="field" id="cP" type="password" autocomplete="current-password">
+    <p id="cErr" style="color:#f87171;min-height:1.2em;margin:0 0 8px"></p>
+    <button class="play" id="cIn">Sign in</button><button class="ghostb" id="cUp">Create account</button><button class="ghostb" id="cRe">Forgot password?</button>`);
+  const go=async(fn,msg)=>{try{const r=await fn();if(msg)GXY.toast('☁️',msg,typeof r==='number'?`${r} save${r===1?'':'s'} downloaded`:'');renderAll();openCloud();}catch(e){const t=$('cErr');if(t)t.textContent=m.errText(e);else GXY.toast('⚠️','Cloud error',m.errText(e));}};
+  $('cIn')&&($('cIn').onclick=()=>go(()=>m.signIn($('cE').value.trim(),$('cP').value),'Signed in to GXY Cloud'));
+  $('cUp')&&($('cUp').onclick=()=>go(()=>m.signIn($('cE').value.trim(),$('cP').value,true),'Account created'));
+  $('cRe')&&($('cRe').onclick=async()=>{try{await m.reset($('cE').value.trim());$('cErr').style.color='#4ade80';$('cErr').textContent='Reset email sent.';}catch(e){$('cErr').textContent=m.errText(e);}});
+  $('cSync')&&($('cSync').onclick=()=>go(async()=>{const n=await m.pull();await m.push();return n;},'Synced'));
+  $('cOut')&&($('cOut').onclick=()=>go(()=>m.out(),'Signed out. Saves stay on this device.'));
+}
+
+/* ---------- events ---------- */
 document.addEventListener('click',e=>{
-  const c=e.target.closest('.case');if(c)return open(c.dataset.id);
+  const o=e.target.closest('[data-open]');if(o){e.preventDefault();return openGame(o.dataset.open);}
+  const c=e.target.closest('[data-cat]');if(c){cat=c.dataset.cat;return renderLib();}
+  const v=e.target.closest('[data-v]');if(v){view=v.dataset.v;ls.set('arcadeView',view);return renderLib();}
   const p=e.target.closest('[data-play]');if(p)played(p.dataset.play);
 });
+// hovering a spine shows its front cover
+document.addEventListener('pointerover',e=>{const s=e.target.closest('[data-peek]'),pk=$('peek');if(!s){pk.style.opacity=0;return;}
+  const r=s.getBoundingClientRect();pk.src=`covers/${s.dataset.peek}.svg`;pk.style.left=Math.min(innerWidth-130,Math.max(10,r.left+r.width/2-60))+'px';pk.style.top=Math.max(64,r.top-180)+'px';pk.style.opacity=1;});
 $('dlg').onclick=e=>{if(e.target===$('dlg'))$('dlg').close()};
-$('rand').onclick=()=>open(GAMES[Math.floor(Math.random()*GAMES.length)].id);
-$('q').oninput=render;render();
+$('trophyBtn').onclick=openTrophies;$('cloudBtn').onclick=openCloud;$('meBtn').onclick=openProfile;$('meBtn').onkeydown=e=>{if(e.key==='Enter')openProfile()};
+$('rand').onclick=()=>openGame(GAMES[Math.floor(Math.random()*GAMES.length)].id);
+$('q').oninput=renderLib;
+GXY.onChange(()=>{renderMe();renderBoard();});
+setInterval(()=>$('padIcon').hidden=!GXY.padConnected(),2000);
+renderAll();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 let deferred;
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('install').hidden=false});

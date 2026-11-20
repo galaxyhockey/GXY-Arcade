@@ -202,8 +202,10 @@ function runTimer(Q, onEnd){
 function award(p, Q, secs){
   p.streak++; p.best = Math.max(p.best, p.streak); p.right++;
   const mult = p.streak>=5?2:p.streak>=3?1.5:1, pts = Math.round((100*Q.d + 100*Q.d*Math.max(0, 1 - secs/TIME[Q.d])) * mult);
-  p.score += pts; return { pts, mult };
+  p.score += pts; gxyRight(p, Q); return { pts, mult };
 }
+// report correct answers to GXY (achievements + weekly challenges)
+function gxyRight(p, Q){ if(!window.GXY) return; GXY.event('trivia', 'right'); GXY.event('trivia', 'streak', p.streak); if(Q.img) GXY.event('trivia', 'logo'); }
 function ask(){
   const Q = G.Q = draw(); G.t0 = Date.now(); const p = cur();
   app().innerHTML = `<div class="card">
@@ -337,6 +339,8 @@ function leaders(tab='versus'){
 home();
 </script>
 <script type="module" src="trivia-online.js"></script>
-<script src="../assets/theme.js"></script>
+<script src="../assets/gxy.js"></script>
+<script src="../assets/gxy-hooks.js"></script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
 </body>
 </html>

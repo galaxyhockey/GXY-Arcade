@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Airport Empire · GXY Arcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#070d1c;--panel:#0f1830;--panel2:#15213f;--line:#243560;--ink:#eaf0ff;--dim:#8fa2cc;--brand:#38bdf8;--good:#22c55e;--bad:#ef4444;--gold:#facc15}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+.mono{font-family:'Space Mono',monospace}
+.top{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0b1428;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.top a{color:var(--dim);text-decoration:none;font-size:.9rem}
+.top h1{font:700 1.4rem 'Barlow Condensed';letter-spacing:.04em;text-transform:uppercase}
+.stats{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:4px 10px;font-size:.78rem;color:var(--dim)}
+.stat b{color:var(--ink);font-family:'Space Mono',monospace;margin-left:4px}
+.wrap{display:grid;grid-template-columns:1fr 360px;gap:12px;padding:12px;max-width:1300px;margin:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+h2{font:700 1.15rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+h3{font-size:.85rem;margin:10px 0 6px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.dim{color:var(--dim);font-size:.82rem}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tabs button,.tool{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:.85rem;font-weight:600}
+.tabs button.on,.tool.on{border-color:var(--brand);background:#0c2f48}
+#view{width:100%;height:auto;display:block;border-radius:12px}
+.btn{display:block;width:100%;padding:11px;border-radius:12px;background:linear-gradient(120deg,#38bdf8,#0284c7);color:#021626;font-weight:800;margin-top:8px}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}
+.item{border:1px solid var(--line);border-radius:12px;padding:9px;margin-bottom:8px;background:var(--panel2)}
+.item b{font-size:.92rem}
+.step{display:inline-flex;align-items:center;gap:6px;font-size:.8rem}
+.step button{width:28px;height:28px;border-radius:8px;background:var(--panel);border:1px solid var(--line);font-weight:800}
+.buy{background:#0c2f48;border:1px solid var(--brand);border-radius:9px;padding:6px 10px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.buy:disabled{opacity:.45;border-color:var(--line);background:var(--panel)}
+.pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:2px 8px;font-size:.72rem;margin:2px}
+.log{max-height:160px;overflow:auto;font-size:.8rem;color:var(--dim)}
+.log div{padding:3px 0;border-bottom:1px solid #1b2a4c}
+.wx{font-size:2rem}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--dim);font-weight:600}
+.bar{height:8px;border-radius:5px;background:#1d2b50;overflow:hidden}.bar i{display:block;height:100%;background:var(--brand)}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}.stats{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="top"><a href="../index.html">← Arcade</a><h1>✈️ Airport Empire</h1>
+  <div class="stats"><span class="stat">💰<b id="sCash"></b></span><span class="stat">📅<b id="sDate"></b></span><span class="stat">🛫 Flights<b id="sFl"></b></span><span class="stat">⏱ On-time<b id="sOT"></b></span><span class="stat">⭐<b id="sRep"></b></span></div></div>
+<div class="wrap">
+  <div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 id="apName" style="margin:0"></h2><div class="row"><span class="wx" id="wxIcon"></span><div><b id="wxName"></b><div class="dim" id="wxSub"></div></div></div></div>
+      <svg id="view" viewBox="0 0 640 380"></svg>
+      <div class="row" style="gap:8px"><button class="btn" id="runBtn" onclick="runDay()">▶ Run day</button><button class="btn ghost" onclick="simDays(30)">⏩ Sim a month</button><button class="btn ghost" id="autoBtn" onclick="toggleAuto()">🔁 Auto</button></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h2>📊 Yesterday</h2><div id="report"><p class="dim">Run a day to see how your airport did.</p></div></div>
+  </div>
+  <div>
+    <div class="card">
+      <div class="tabs" id="tabs"></div>
+      <div id="panel"></div>
+    </div>
+    <div class="card" style="margin-top:12px"><h2>📰 Tower log</h2><div class="log" id="log"></div></div>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => (n < 0 ? '-' : '') + '$' + (Math.abs(n) >= 1e6 ? (Math.abs(n)/1e6).toFixed(2) + 'M' : Math.abs(n) >= 1e3 ? Math.round(Math.abs(n)/1e3) + 'k' : Math.round(Math.abs(n)));
+const num = n => n >= 1e6 ? (n/1e6).toFixed(2) + 'M' : n >= 1e3 ? (n/1e3).toFixed(1) + 'k' : String(Math.round(n));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+/* ---------------- data ---------------- */
+const DEST = [
+  { id:'AUS', city:'Austin', km:300, demand:900 }, { id:'DEN', city:'Denver', km:1100, demand:1300 }, { id:'ORD', city:'Chicago', km:1300, demand:1700 },
+  { id:'ATL', city:'Atlanta', km:1200, demand:1600 }, { id:'PHX', city:'Phoenix', km:900, demand:1000 }, { id:'LAS', city:'Las Vegas', km:1200, demand:1200 },
+  { id:'MIA', city:'Miami', km:1800, demand:1300 }, { id:'SEA', city:'Seattle', km:2700, demand:1000 }, { id:'JFK', city:'New York', km:2200, demand:2200 },
+  { id:'LAX', city:'Los Angeles', km:2000, demand:2100 }, { id:'YYZ', city:'Toronto', km:2000, demand:800, intl:true }, { id:'MEX', city:'Mexico City', km:1500, demand:1000, intl:true },
+  { id:'LHR', city:'London', km:7600, demand:1500, intl:true, long:true }, { id:'CDG', city:'Paris', km:7900, demand:1200, intl:true, long:true },
+  { id:'NRT', city:'Tokyo', km:10400, demand:1100, intl:true, long:true }, { id:'DXB', city:'Dubai', km:13000, demand:900, intl:true, long:true },
+];
+const AIRLINES = [
+  { id:'sky', name:'SkyLark Air', code:'SL', color:'#38bdf8', size:3, style:'Big domestic carrier' },
+  { id:'blu', name:'Bluewing', code:'BW', color:'#6366f1', size:2, style:'Low-cost, hates high fees' },
+  { id:'sun', name:'Sunbird Airways', code:'SB', color:'#f59e0b', size:2, style:'Leisure routes' },
+  { id:'atl', name:'Atlas Global', code:'AG', color:'#ef4444', size:3, style:'Long-haul international' },
+  { id:'prr', name:'Prairie Hopper', code:'PH', color:'#22c55e', size:1, style:'Short regional hops' },
+  { id:'nor', name:'Northstar', code:'NS', color:'#a855f7', size:2, style:'Business travelers, loves lounges' },
+  { id:'cor', name:'Coral Jet', code:'CJ', color:'#ec4899', size:1, style:'Beach destinations' },
+  { id:'aur', name:'Aurora Intl', code:'AU', color:'#14b8a6', size:2, style:'International, needs a customs terminal' },
+];
+const PREF = { sky:['ORD','ATL','JFK','LAX','DEN','LAS'], blu:['AUS','PHX','LAS','DEN','MIA'], sun:['MIA','LAS','MEX','PHX','LAX'], atl:['LHR','CDG','NRT','DXB','JFK'],
+  prr:['AUS','PHX','DEN'], nor:['JFK','ORD','YYZ','SEA','LHR'], cor:['MIA','MEX','LAX'], aur:['YYZ','MEX','LHR','NRT','CDG'] };
+const WX = {
+  clear:{ icon:'☀️', name:'Clear', cap:1 }, cloudy:{ icon:'⛅', name:'Cloudy', cap:1 }, rain:{ icon:'🌧️', name:'Rain', cap:.85 },
+  fog:{ icon:'🌫️', name:'Fog', cap:.5, fix:'ils', fixCap:.92 }, storm:{ icon:'⛈️', name:'Thunderstorms', cap:.35, fix:'radar', fixCap:.65 },
+  snow:{ icon:'🌨️', name:'Snow', cap:.4, fix:'deice', fixCap:.8 }, wind:{ icon:'💨', name:'Crosswinds', cap:.7, fix:'runway2', fixCap:.95 },
+};
+const SEASON_WX = [ // by quarter: winter, spring, summer, fall
+  { clear:40, cloudy:20, rain:10, fog:12, snow:15, wind:3 }, { clear:40, cloudy:20, rain:18, fog:6, storm:10, wind:6 },
+  { clear:50, cloudy:12, rain:8, storm:25, wind:5 }, { clear:42, cloudy:22, rain:14, fog:12, storm:5, wind:5 } ];
+const UPGRADES = [
+  { id:'ils', name:'ILS landing system', icon:'📡', cost:1200000, desc:'Planes land in fog almost normally.' },
+  { id:'radar', name:'Weather radar', icon:'🛰️', cost:1500000, desc:'Route planes around storms instead of grounding them.' },
+  { id:'deice', name:'De-icing fleet', icon:'🧊', cost:900000, desc:'Keep flying in snow.' },
+  { id:'lounge', name:'Premium lounges', icon:'🛋️', cost:800000, desc:'Business airlines love it. +passenger spending.' },
+  { id:'shops', name:'Shops & dining', icon:'🛍️', cost:600000, desc:'+$6 spent per passenger.' },
+  { id:'parking', name:'Parking garage', icon:'🅿️', cost:1000000, desc:'+$4 per passenger.' },
+  { id:'rail', name:'Airport rail link', icon:'🚆', cost:4000000, desc:'Big boost to how many travelers choose you.' },
+  { id:'hotel', name:'Airport hotel', icon:'🏨', cost:2500000, desc:'+$5 per passenger, more connecting traffic.' },
+];
+
+/* ---------------- state ---------------- */
+let S, tab = 'build', anim = null, auto = false;
+function newGame(){
+  S = { name:'GXY International', cash:6000000, day:1, rep:55, runways:[{ long:false }], terms:[{ name:'Terminal 1', gates:4, intl:false }], up:{},
+    fees:{ land:900, pax:12 }, routes:['AUS','DEN','PHX'], contracts:{}, offers:[], ot:[], log:[], flightsAll:0, rivals:[
+      { name:'Lakeside Regional', code:'LKR', cap:45, ot:.9, fees:800, q:1.0 }, { name:'Capital Metro Airport', code:'CMA', cap:95, ot:.86, fees:1100, q:1.15 } ],
+    wx:'clear', month:{ flights:0, pax:0 }, last:null };
+  S.contracts.prr = { flights:{ AUS:4, DEN:2 }, happy:70 };
+  S.contracts.blu = { flights:{ PHX:4, AUS:2 }, happy:70 };
+  newOffers();
+  log('🎉 Welcome to GXY International! Two airlines signed on. Grow routes, build terminals and beat the rival airports.');
+}
+function save(){ try{ localStorage.setItem('ae_save', JSON.stringify(S)); }catch(e){} }
+function load(){ try{ S = JSON.parse(localStorage.getItem('ae_save')); }catch(e){ S = null; } if(!S) newGame(); }
+function log(t){ S.log.unshift(`<b>${dateStr()}</b> · ${t}`); S.log = S.log.slice(0, 50); }
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const monthIdx = () => Math.floor((S.day - 1) / 30) % 12, year = () => 1 + Math.floor((S.day - 1) / 360);
+const dateStr = () => `${MONTHS[monthIdx()]} ${((S.day - 1) % 30) + 1}, Yr ${year()}`;
+const season = () => [0,0,1,1,1,2,2,2,3,3,3,0][monthIdx()];
+
+/* ---------------- capacity ---------------- */
+const gates = () => S.terms.reduce((s, t) => s + t.gates, 0);
+const hasIntl = () => S.terms.some(t => t.intl), hasLong = () => S.runways.some(r => r.long);
+const runwayCap = () => S.runways.length * 260;
+const gateCap = () => gates() * 10;
+function wxCap(w = S.wx){ const x = WX[w]; if(x.fix && (x.fix === 'runway2' ? S.runways.length >= 2 : S.up[x.fix])) return x.fixCap; return x.cap; }
+const capacity = () => Math.floor(Math.min(runwayCap() * wxCap(), gateCap() * (wxCap() < .6 ? .9 : 1)));
+const scheduled = () => Object.values(S.contracts).reduce((s, c) => s + Object.values(c.flights).reduce((a, b) => a + b, 0), 0);
+const routeOK = id => { const d = DEST.find(x => x.id === id); return (!d.intl || hasIntl()) && (!d.long || hasLong()); };
+const onTime = () => S.ot.length ? S.ot.reduce((a, b) => a + b, 0) / S.ot.length : .9;
+
+/* ---------------- airlines ---------------- */
+function newOffers(){
+  const free = AIRLINES.filter(a => !S.contracts[a.id] && !S.offers.some(o => o.id === a.id));
+  while(S.offers.length < 2 && free.length){
+    const a = free.splice(Math.floor(Math.random() * free.length), 1)[0], want = {};
+    PREF[a.id].filter(r => S.routes.includes(r) || Math.random() < .5).slice(0, 2 + a.size).forEach(r => want[r] = 2 + Math.floor(Math.random() * 2 * a.size));
+    S.offers.push({ id:a.id, want, sign:Math.round(150000 * a.size * (0.7 + Math.random() * .6)) });
+  }
+}
+function happiness(id){
+  const c = S.contracts[id], a = AIRLINES.find(x => x.id === id);
+  let h = 50 + (onTime() - .85) * 150 + (900 - S.fees.land) / 25 + (12 - S.fees.pax) * 1.5;
+  if(id === 'blu') h += (700 - S.fees.land) / 20;
+  if(id === 'nor' && S.up.lounge) h += 12;
+  if(c && c.load != null) h += (c.load - .7) * 60;
+  return Math.max(0, Math.min(100, h));
+}
+
+/* ---------------- day simulation ---------------- */
+function rollWeather(){
+  const t = SEASON_WX[season()], tot = Object.values(t).reduce((a, b) => a + b, 0); let r = Math.random() * tot;
+  for(const [k, v] of Object.entries(t)){ if((r -= v) < 0) return k; } return 'clear';
+}
+function simDay(){
+  const sched = scheduled(), cap = capacity(), flown = Math.min(sched, cap), lost = sched - flown;
+  const cancelled = Math.round(lost * (S.wx === 'storm' || S.wx === 'snow' ? .7 : .4)), delayed = lost - cancelled + Math.round(flown * (1 - wxCap()) * .3);
+  const ot = sched ? Math.max(0, 1 - (delayed + cancelled) / sched) : 1;
+  S.ot.push(ot); S.ot = S.ot.slice(-30);
+  // passengers per route, shared with the rival airports by flights and quality
+  const quality = (0.6 + onTime() * .6) * (1 + (S.up.rail ? .25 : 0) + (S.up.lounge ? .05 : 0) + (S.up.hotel ? .05 : 0)) * (1 - (S.fees.pax - 12) / 80);
+  let pax = 0, seats = 0; const ratio = sched ? flown / sched : 0;
+  const routeFl = {}; Object.values(S.contracts).forEach(c => Object.entries(c.flights).forEach(([r, f]) => routeFl[r] = (routeFl[r] || 0) + f));
+  Object.entries(routeFl).forEach(([r, f]) => {
+    const d = DEST.find(x => x.id === r), fly = f * ratio, sz = d.long ? 280 : d.km > 1500 ? 170 : 130;
+    const rivalF = S.rivals.reduce((s, rv) => s + rv.cap / 40 * rv.q * (rv.ot), 0) * (d.long ? .3 : 1);
+    const share = (fly * quality) / (fly * quality + rivalF + 0.001);
+    const want = d.demand * (season() === 2 ? 1.15 : 1) * share * 2.2, cap = fly * sz;
+    const p = Math.min(want, cap); pax += p; seats += cap;
+    Object.values(S.contracts).forEach(c => { if(c.flights[r]) c.loadAcc = (c.loadAcc || 0) + p * (c.flights[r] / f), c.seatAcc = (c.seatAcc || 0) + cap * (c.flights[r] / f); });
+  });
+  Object.values(S.contracts).forEach(c => { c.load = c.seatAcc ? c.loadAcc / c.seatAcc : .5; c.loadAcc = 0; c.seatAcc = 0; });
+  const spend = 3 + (S.up.shops ? 6 : 0) + (S.up.parking ? 4 : 0) + (S.up.hotel ? 5 : 0) + (S.up.lounge ? 2 : 0);
+  const revenue = flown * S.fees.land + pax * (S.fees.pax + spend);
+  const cost = S.terms.reduce((s, t) => s + 9000 + t.gates * 1400 + (t.intl ? 6000 : 0), 0) + S.runways.length * 7000 + Object.keys(S.up).length * 1500 + cancelled * 400;
+  S.cash += revenue - cost; S.flightsAll += flown; S.month.flights += flown; S.month.pax += pax;
+  S.rep = Math.max(5, Math.min(100, S.rep * .9 + (40 + ot * 40 + (S.up.shops ? 5 : 0) + (S.up.lounge ? 5 : 0) + (S.up.rail ? 8 : 0) - Math.max(0, S.fees.pax - 15)) * .1));
+  S.last = { sched, flown, cancelled, delayed, ot, pax:Math.round(pax), seats:Math.round(seats), revenue:Math.round(revenue), cost:Math.round(cost), wx:S.wx, cap };
+  if(window.GXY){ if(flown) GXY.event('airport-empire', 'flights', flown); if((S.wx === 'storm' || S.wx === 'snow') && sched && flown / sched >= .6) GXY.event('airport-empire', 'storms'); }
+  return S.last;
+}
+function dayEvents(){
+  const r = Math.random();
+  if(r < .04){ const loss = 150000 + Math.round(Math.random() * 200000); S.cash -= loss; log(`🔧 Runway resurfacing needed overnight. Cost ${fmt(loss)}.`); }
+  else if(r < .07){ S.rep = Math.min(100, S.rep + 4); log('🎤 A celebrity flew through and posted about your terminal. Reputation up!'); }
+  else if(r < .09){ S.ot.push(.6); log('🗼 Air traffic control staffing shortage caused regional delays.'); }
+  else if(r < .11){ const c = Object.keys(S.contracts); if(c.length){ const a = AIRLINES.find(x => x.id === pick(c)); log(`📣 ${a.name} is running a fare sale. Their flights should fill up.`); S.contracts[a.id].happy += 5; } }
+}
+function monthEnd(){
+  // airline mood: unhappy carriers cut flights or leave for a rival; happy ones add flights
+  Object.keys(S.contracts).forEach(id => {
+    const c = S.contracts[id], a = AIRLINES.find(x => x.id === id), h = happiness(id); c.happy = h;
+    if(h < 25 && Math.random() < .6){ delete S.contracts[id]; const rv = pick(S.rivals); rv.cap += 30; log(`😠 ${a.name} pulled out and moved to ${rv.name}. Fees and delays drove them away.`); }
+    else if(h < 40){ const r = pick(Object.keys(c.flights)); c.flights[r] = Math.max(0, c.flights[r] - 1); log(`📉 ${a.name} trimmed a daily flight to ${r}. They're not happy.`); }
+    else if(h > 72 && Object.values(c.flights).reduce((x, y) => x + y, 0) < 30){ const r = pick(PREF[id].filter(routeOK).filter(x => S.routes.includes(x))) ; if(r){ c.flights[r] = (c.flights[r] || 0) + 1; log(`📈 ${a.name} added a daily flight to ${r}.`); } }
+  });
+  // rivals grow
+  S.rivals.forEach(rv => { rv.cap = Math.round(rv.cap * (1.01 + Math.random() * .03)); rv.ot = Math.max(.7, Math.min(.97, rv.ot + (Math.random() - .5) * .05)); if(Math.random() < .15){ rv.q += .05; log(`🏗️ ${rv.name} opened a new concourse.`); } });
+  const ranks = [{ name:S.name, fl:S.month.flights / 30 }, ...S.rivals.map(r => ({ name:r.name, fl:r.cap * r.ot }))].sort((a, b) => b.fl - a.fl);
+  const place = ranks.findIndex(r => r.name === S.name) + 1;
+  log(`🗓️ Month over: ${num(S.month.flights)} flights, ${num(S.month.pax)} passengers. You ranked #${place} of ${ranks.length} airports in the region.`);
+  if(place === 1 && window.GXY) GXY.event('airport-empire', 'top');
+  S.month = { flights:0, pax:0 };
+  newOffers();
+}
+function endDay(silent){
+  dayEvents();
+  simDay();
+  S.day++;
+  if((S.day - 1) % 30 === 0) monthEnd();
+  S.wx = rollWeather();
+  if(!silent && WX[S.wx].cap < .6) log(`${WX[S.wx].icon} Forecast: ${WX[S.wx].name} tomorrow. ${WX[S.wx].fix && !(WX[S.wx].fix === 'runway2' ? S.runways.length >= 2 : S.up[WX[S.wx].fix]) ? 'Expect cancellations.' : 'Your upgrades should keep things moving.'}`);
+  if(S.cash < 0 && !silent) log('⚠️ You\'re in the red. Raise fees, cut costs or add flights.');
+  save();
+}
+
+/* ---------------- airport view ---------------- */
+function drawView(planes = ''){
+  const w = S.wx; let s = `<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${w === 'storm' ? '#1e293b' : w === 'fog' ? '#64748b' : w === 'snow' ? '#94a3b8' : '#1d4ed8'}"/><stop offset="1" stop-color="${w === 'clear' ? '#7dd3fc' : '#475569'}"/></linearGradient></defs>
+    <rect width="640" height="380" fill="#2f5d3a"/><rect width="640" height="90" fill="url(#sky)"/>`;
+  // runways
+  S.runways.forEach((r, i) => { const y = 120 + i * 58, x0 = r.long ? 30 : 90, x1 = r.long ? 610 : 520;
+    s += `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="30" fill="#374151"/><line x1="${x0 + 10}" y1="${y + 15}" x2="${x1 - 10}" y2="${y + 15}" stroke="#f8fafc" stroke-width="2" stroke-dasharray="16 12"/>
+      <text x="${x0 + 6}" y="${y + 20}" fill="#fff" font-size="11" font-weight="700">${String(9 + i * 9).padStart(2, '0')}${r.long ? 'L' : ''}</text>`; });
+  // terminals
+  const ty = 120 + S.runways.length * 58 + 20;
+  S.terms.forEach((t, i) => { const x = 40 + i * 150;
+    s += `<rect x="${x}" y="${ty}" width="130" height="44" rx="6" fill="${t.intl ? '#cbd5e1' : '#e2e8f0'}" stroke="#94a3b8"/><text x="${x + 65}" y="${ty + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f172a">${t.name}</text>
+      <text x="${x + 65}" y="${ty + 33}" text-anchor="middle" font-size="10" fill="#334155">${t.gates} gates${t.intl ? ' · intl' : ''}</text>`;
+    for(let g = 0; g < Math.min(t.gates, 12); g++) s += `<rect x="${x + 5 + g * 10.5}" y="${ty - 10}" width="6" height="10" fill="#64748b"/>`; });
+  // tower + upgrades
+  s += `<rect x="600" y="60" width="14" height="60" fill="#cbd5e1"/><rect x="592" y="48" width="30" height="16" rx="3" fill="#38bdf8"/>`;
+  const icons = UPGRADES.filter(u => S.up[u.id]).map(u => u.icon).join(' ');
+  s += `<text x="12" y="372" font-size="18">${icons}</text>`;
+  // weather overlays
+  if(w === 'rain' || w === 'storm') for(let i = 0; i < 60; i++) s += `<line x1="${(i * 53) % 640}" y1="${(i * 37) % 380}" x2="${(i * 53) % 640 - 6}" y2="${(i * 37) % 380 + 14}" stroke="#bfdbfe" stroke-opacity=".5"/>`;
+  if(w === 'snow') for(let i = 0; i < 80; i++) s += `<circle cx="${(i * 61) % 640}" cy="${(i * 43) % 380}" r="2" fill="#fff" opacity=".8"/>`;
+  if(w === 'fog') s += `<rect width="640" height="380" fill="#e2e8f0" opacity=".45"/>`;
+  if(w === 'storm') s += `<path d="M300 0 L285 40 L300 40 L280 85" stroke="#fde047" stroke-width="4" fill="none"/>`;
+  s += planes;
+  $('view').innerHTML = s;
+}
+const plane = (x, y, rot, col) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(1.7)"><path d="M-16 0 L14 0 L18 2 L14 4 L-16 4 Z" fill="#f8fafc"/><path d="M-2 2 L-10 -10 L-5 -10 L6 2 Z M-2 2 L-10 14 L-5 14 L6 2 Z" fill="${col}"/><path d="M-16 2 L-20 -5 L-16 -5 L-12 2Z" fill="${col}"/></g>`;
+
+/* ---------------- panels ---------------- */
+function render(){
+  $('sCash').textContent = fmt(S.cash); $('sCash').style.color = S.cash < 0 ? 'var(--bad)' : '';
+  $('sDate').textContent = dateStr(); $('sFl').textContent = scheduled() + '/' + capacity(); $('sOT').textContent = Math.round(onTime() * 100) + '%'; $('sRep').textContent = Math.round(S.rep);
+  $('apName').textContent = S.name;
+  const w = WX[S.wx]; $('wxIcon').textContent = w.icon; $('wxName').textContent = 'Today: ' + w.name;
+  $('wxSub').textContent = `Runway capacity ${Math.round(wxCap() * 100)}%` + (w.fix && wxCap() < 1 && w.cap === wxCap() ? ` · ${UPGRADES.find(u => u.id === w.fix)?.name || 'a second runway'} would help` : '');
+  $('tabs').innerHTML = [['build','🏗️ Build'],['airlines','🛫 Airlines'],['routes','🗺️ Routes'],['fees','💵 Fees'],['rivals','🏆 Rivals']].map(([id, l]) => `<button class="${tab === id ? 'on' : ''}" onclick="tab='${id}';render()">${l}</button>`).join('');
+  $('panel').innerHTML = PANELS[tab]();
+  if(S.last){ const l = S.last;
+    $('report').innerHTML = `<div class="row" style="flex-wrap:wrap"><span class="pill">${WX[l.wx].icon} ${WX[l.wx].name}</span><span class="pill">🛫 ${l.flown}/${l.sched} flown</span><span class="pill" style="color:var(--bad)">✖ ${l.cancelled} cancelled</span><span class="pill" style="color:var(--gold)">⏱ ${l.delayed} delayed</span><span class="pill">🧳 ${num(l.pax)} passengers</span><span class="pill">💺 ${l.seats ? Math.round(l.pax / l.seats * 100) : 0}% full</span></div>
+      <div class="row" style="flex-wrap:wrap;margin-top:6px"><span class="pill" style="color:var(--good)">+${fmt(l.revenue)}</span><span class="pill" style="color:var(--bad)">−${fmt(l.cost)}</span><span class="pill">${l.revenue >= l.cost ? '📈' : '📉'} ${fmt(l.revenue - l.cost)}</span></div>
+      ${l.sched > l.cap ? `<p class="dim" style="margin-top:6px">⚠️ ${l.sched} flights scheduled but only ${l.cap} slots today. Add runways/gates or weather upgrades.</p>` : ''}`; }
+  $('log').innerHTML = S.log.map(x => `<div>${x}</div>`).join('');
+  drawView();
+}
+const RUNWAY = { short:4000000, long:9000000 }, TERM = { dom:6000000, intl:11000000 }, GATE = 450000;
+const PANELS = {
+  build:() => `<h3>Runways (${S.runways.length})</h3>
+    <div class="item"><div class="row"><b style="flex:1">${S.runways.length} runway${S.runways.length > 1 ? 's' : ''} · ${runwayCap()} flights/day</b></div>
+      <div class="dim">Long runways are needed for London, Paris, Tokyo and Dubai. A second runway also helps in crosswinds.</div>
+      <div class="row" style="margin-top:6px;gap:6px;flex-wrap:wrap">${S.runways.length < 4 ? `<button class="buy" onclick="buy('runway')" ${S.cash < RUNWAY.short ? 'disabled' : ''}>+ Runway ${fmt(RUNWAY.short)}</button><button class="buy" onclick="buy('longrunway')" ${S.cash < RUNWAY.long ? 'disabled' : ''}>+ Long runway ${fmt(RUNWAY.long)}</button>` : '<span class="dim">Max runways</span>'}
+      ${S.runways.some(r => !r.long) ? `<button class="buy" onclick="buy('extend')" ${S.cash < RUNWAY.long - RUNWAY.short ? 'disabled' : ''}>Extend a runway ${fmt(RUNWAY.long - RUNWAY.short)}</button>` : ''}</div></div>
+    <h3>Terminals (${gates()} gates · ${gateCap()} flights/day)</h3>
+    ${S.terms.map((t, i) => `<div class="item"><div class="row"><b style="flex:1">🏢 ${t.name}${t.intl ? ' · 🛂 International' : ''}</b><span class="mono">${t.gates} gates</span></div>
+      <div class="row" style="margin-top:6px;gap:6px">${t.gates < 12 ? `<button class="buy" onclick="buy('gate',${i})" ${S.cash < GATE ? 'disabled' : ''}>+ Gate ${fmt(GATE)}</button>` : '<span class="dim">Full</span>'}${!t.intl ? `<button class="buy" onclick="buy('customs',${i})" ${S.cash < 3000000 ? 'disabled' : ''}>🛂 Add customs ${fmt(3000000)}</button>` : ''}</div></div>`).join('')}
+    ${S.terms.length < 4 ? `<div class="row" style="gap:6px"><button class="buy" onclick="buy('term')" ${S.cash < TERM.dom ? 'disabled' : ''}>+ Domestic terminal ${fmt(TERM.dom)}</button><button class="buy" onclick="buy('intl')" ${S.cash < TERM.intl ? 'disabled' : ''}>+ International terminal ${fmt(TERM.intl)}</button></div>` : ''}
+    <h3>Upgrades</h3>${UPGRADES.map(u => `<div class="item"><div class="row"><b style="flex:1">${u.icon} ${u.name}</b>${S.up[u.id] ? '<span style="color:var(--good)">✓ Built</span>' : `<button class="buy" onclick="buy('up','${u.id}')" ${S.cash < u.cost ? 'disabled' : ''}>${fmt(u.cost)}</button>`}</div><div class="dim">${u.desc}</div></div>`).join('')}`,
+  airlines:() => `<p class="dim" style="margin-bottom:8px">Schedule how many daily flights each airline runs on each route. ${scheduled()} scheduled · ${capacity()} slots today.</p>
+    ${Object.entries(S.contracts).map(([id, c]) => { const a = AIRLINES.find(x => x.id === id), h = Math.round(happiness(id));
+      return `<div class="item"><div class="row"><span style="width:12px;height:12px;border-radius:3px;background:${a.color}"></span><b style="flex:1">${a.name} <span class="dim">${a.code}</span></b><span title="Happiness">${h >= 70 ? '😀' : h >= 45 ? '🙂' : h >= 25 ? '😐' : '😠'} ${h}</span></div>
+        <div class="dim">${a.style}${c.load != null ? ` · ${Math.round(c.load * 100)}% full` : ''}</div>
+        ${Object.entries(c.flights).map(([r, f]) => `<div class="row" style="justify-content:space-between;margin-top:5px"><span>→ ${DEST.find(d => d.id === r).city} <span class="dim">${r}</span>${routeOK(r) ? '' : ' <span style="color:var(--bad)">needs ' + (DEST.find(d => d.id === r).long ? 'long runway' : 'customs') + '</span>'}</span>
+          <span class="step"><button onclick="fl('${id}','${r}',-1)">−</button><b class="mono">${f}</b><button onclick="fl('${id}','${r}',1)">+</button></span></div>`).join('')}
+        <div class="row" style="margin-top:6px;gap:6px;flex-wrap:wrap">${S.routes.filter(r => !c.flights[r] && routeOK(r)).slice(0, 6).map(r => `<button class="tool" style="padding:4px 8px;font-size:.75rem" onclick="fl('${id}','${r}',1)">+ ${r}</button>`).join('')}</div></div>`; }).join('') || '<p class="dim">No airlines yet.</p>'}
+    <h3>Offers</h3>${S.offers.map((o, i) => { const a = AIRLINES.find(x => x.id === o.id);
+      return `<div class="item"><div class="row"><span style="width:12px;height:12px;border-radius:3px;background:${a.color}"></span><b style="flex:1">${a.name}</b><span class="dim">signing bonus ${fmt(o.sign)}</span></div>
+        <div class="dim">${a.style}. Wants: ${Object.entries(o.want).map(([r, f]) => `${f}×/day to ${r}${S.routes.includes(r) ? '' : ' (new route)'}`).join(', ')}</div>
+        <div class="row" style="gap:6px;margin-top:6px"><button class="buy" onclick="sign(${i})">✍️ Sign</button><button class="tool" onclick="S.offers.splice(${i},1);newOffers();save();render()">Pass</button></div></div>`; }).join('') || '<p class="dim">New offers arrive every month.</p>'}`,
+  routes:() => `<p class="dim" style="margin-bottom:8px">Open a destination so airlines can fly it. Marketing a new route costs money up front.</p>
+    ${DEST.map(d => { const open = S.routes.includes(d.id), ok = routeOK(d.id), cost = Math.round(d.demand * 300 * (d.long ? 2 : 1));
+      return `<div class="item"><div class="row"><b style="flex:1">${d.intl ? '🌍' : '🇺🇸'} ${d.city} <span class="dim">${d.id} · ${num(d.km)} km</span></b>${open ? '<span style="color:var(--good)">✓ Open</span>' : `<button class="buy" onclick="openRoute('${d.id}')" ${!ok || S.cash < cost ? 'disabled' : ''}>${fmt(cost)}</button>`}</div>
+        <div class="dim">Demand ${'▮'.repeat(Math.ceil(d.demand / 450))}${!ok ? ' · needs ' + [d.long && !hasLong() ? 'a long runway' : '', d.intl && !hasIntl() ? 'customs' : ''].filter(Boolean).join(' and ') : ''}</div></div>`; }).join('')}`,
+  fees:() => `<div class="item"><div class="row" style="justify-content:space-between"><b>🛬 Landing fee</b><span class="step"><button onclick="fee('land',-50)">−</button><b class="mono">${fmt(S.fees.land)}</b><button onclick="fee('land',50)">+</button></span></div><div class="dim">Charged to airlines per flight. Low-cost airlines hate high landing fees.</div></div>
+    <div class="item"><div class="row" style="justify-content:space-between"><b>🧳 Passenger fee</b><span class="step"><button onclick="fee('pax',-1)">−</button><b class="mono">$${S.fees.pax}</b><button onclick="fee('pax',1)">+</button></span></div><div class="dim">Added to every ticket. Higher fees push travelers to rival airports.</div></div>
+    <div class="item"><b>✏️ Airport name</b><div class="row" style="margin-top:6px"><input id="apn" value="${S.name.replace(/"/g,'&quot;')}" maxlength="28" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:#fff;font-size:16px"><button class="buy" onclick="S.name=$('apn').value.trim()||S.name;save();render()">Save</button></div></div>
+    <button class="btn ghost" onclick="if(confirm('Start a brand new airport?')){localStorage.removeItem('ae_save');newGame();render()}">🆕 New airport</button>`,
+  rivals:() => { const me = { name:S.name + ' (you)', fl:scheduled(), ot:onTime(), fees:S.fees.land };
+    const all = [me, ...S.rivals.map(r => ({ name:r.name, fl:Math.round(r.cap * r.ot), ot:r.ot, fees:r.fees }))].sort((a, b) => b.fl - a.fl), mx = Math.max(...all.map(x => x.fl), 1);
+    return `<p class="dim" style="margin-bottom:8px">Travelers and airlines pick between you and the nearby airports. Be #1 in flights at month end.</p>
+      <table><tr><th>#</th><th>Airport</th><th>Flights/day</th><th>On-time</th><th>Landing fee</th></tr>${all.map((r, i) => `<tr style="${r.name.endsWith('(you)') ? 'color:var(--brand);font-weight:700' : ''}"><td>${i + 1}</td><td>${r.name}<div class="bar"><i style="width:${r.fl / mx * 100}%"></i></div></td><td class="mono">${r.fl}</td><td>${Math.round(r.ot * 100)}%</td><td>${fmt(r.fees)}</td></tr>`).join('')}</table>`; },
+};
+
+/* ---------------- actions ---------------- */
+function spend(n){ if(S.cash < n){ alert('Not enough money.'); return false; } S.cash -= n; return true; }
+function buy(what, arg){
+  if(what === 'runway' && spend(RUNWAY.short)){ S.runways.push({ long:false }); log('🛬 New runway opened.'); }
+  if(what === 'longrunway' && spend(RUNWAY.long)){ S.runways.push({ long:true }); log('🛬 New long runway opened. Long-haul jets welcome!'); }
+  if(what === 'extend' && spend(RUNWAY.long - RUNWAY.short)){ S.runways.find(r => !r.long).long = true; log('📏 Runway extended for long-haul jets.'); }
+  if(what === 'gate' && spend(GATE)) S.terms[arg].gates++;
+  if(what === 'customs' && spend(3000000)){ S.terms[arg].intl = true; log(`🛂 ${S.terms[arg].name} can now handle international flights.`); }
+  if((what === 'term' || what === 'intl') && spend(TERM[what === 'term' ? 'dom' : 'intl'])){ S.terms.push({ name:'Terminal ' + (S.terms.length + 1), gates:4, intl:what === 'intl' }); log(`🏢 ${S.terms[S.terms.length - 1].name} is open!`); if(window.GXY) GXY.event('airport-empire', 'terminals', S.terms.length); }
+  if(what === 'up'){ const u = UPGRADES.find(x => x.id === arg); if(spend(u.cost)){ S.up[arg] = true; log(`${u.icon} ${u.name} is ready.`); } }
+  save(); render();
+}
+function fl(id, r, d){
+  const c = S.contracts[id]; if(!routeOK(r) && d > 0) return alert('This route needs ' + (DEST.find(x => x.id === r).long ? 'a long runway.' : 'an international (customs) terminal.'));
+  c.flights[r] = Math.max(0, Math.min(20, (c.flights[r] || 0) + d)); if(!c.flights[r]) delete c.flights[r];
+  save(); render();
+}
+function sign(i){
+  const o = S.offers[i], a = AIRLINES.find(x => x.id === o.id);
+  const flights = {}; Object.entries(o.want).forEach(([r, f]) => { if(!S.routes.includes(r)) S.routes.push(r); if(routeOK(r)) flights[r] = f; });
+  S.contracts[o.id] = { flights, happy:65 }; S.cash += o.sign; S.offers.splice(i, 1);
+  log(`✍️ ${a.name} signed! ${Object.keys(flights).length} routes, ${fmt(o.sign)} signing bonus.`);
+  newOffers(); save(); render();
+}
+function openRoute(id){ const d = DEST.find(x => x.id === id), cost = Math.round(d.demand * 300 * (d.long ? 2 : 1)); if(!spend(cost)) return; S.routes.push(id); log(`🗺️ Route to ${d.city} opened. Assign flights in the Airlines tab.`); save(); render(); }
+function fee(k, d){ S.fees[k] = Math.max(k === 'land' ? 100 : 0, Math.min(k === 'land' ? 4000 : 60, S.fees[k] + d)); save(); render(); }
+
+/* ---------------- day animation ---------------- */
+function runDay(){
+  if(anim) return; $('runBtn').disabled = true;
+  const t0 = performance.now(), DUR = 5000, fl = Math.min(scheduled(), capacity()), n = Math.min(14, Math.ceil(fl / 12)), ry = 120 + 15;
+  const cols = Object.keys(S.contracts).map(id => AIRLINES.find(a => a.id === id).color);
+  const step = now => {
+    const f = Math.min(1, (now - t0) / DUR); let g = '';
+    for(let i = 0; i < n; i++){
+      const p = (f * 3 + i / n) % 1, rw = i % S.runways.length, y = ry + rw * 58, col = cols[i % cols.length] || '#38bdf8';
+      g += i % 2 ? plane(60 + p * 560, y - Math.max(0, p - .55) * 160, -Math.max(0, p - .55) * 30, col)       // takeoff
+                 : plane(620 - p * 560, y - Math.max(0, .45 - p) * 160, 180 + Math.max(0, .45 - p) * 30, col); // landing
+    }
+    drawView(g);
+    if(f < 1) anim = requestAnimationFrame(step);
+    else { anim = null; $('runBtn').disabled = false; endDay(); render(); if(auto) setTimeout(runDay, 500); }
+  };
+  anim = requestAnimationFrame(step);
+}
+function simDays(n){ for(let i = 0; i < n; i++) endDay(true); log(`⏩ Simulated ${n} days.`); save(); render(); }
+function toggleAuto(){ auto = !auto; $('autoBtn').textContent = auto ? '⏸ Stop' : '🔁 Auto'; if(auto && !anim) runDay(); }
+load(); render();
+</script>
+<script src="../assets/gxy.js"></script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>

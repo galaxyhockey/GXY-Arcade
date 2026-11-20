@@ -77,6 +77,23 @@ const GAMES = {
         <line x1="-70" y1="-150" x2="-130" y2="-230" stroke="#f97316" stroke-width="8"/><line x1="70" y1="-150" x2="130" y2="-230" stroke="#f97316" stroke-width="8"/>
         <rect x="-120" y="120" width="30" height="40" fill="#111827"/><rect x="90" y="120" width="30" height="40" fill="#111827"/></g>
       ${['A', 'B', 'C', 'D'].map((l, i) => `<g transform="translate(${105 + i * 110} 590) scale(.8)"><circle r="38" fill="${['#ef4444', '#3b82f6', '#22c55e', '#eab308'][i]}" stroke="#fff" stroke-width="4"/><text y="17" font-family="Arial Black" font-size="46" fill="#fff" text-anchor="middle">${l}</text></g>`).join('')}` },
+  'transit-tycoon': { title: ['TRANSIT', 'TYCOON'], sub: 'SUBWAYS AND BUSES', tag: 'Draw the lines. Beat the rush.', rating: 'E', c: ['#04201f', '#14b8a6', '#facc15'],
+    art: () => `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
+      ${rep(9, i => `<rect x="${20 + i * 58}" y="${300 - (i % 3) * 40 - (i % 2) * 30}" width="46" height="${380 + (i % 3) * 40}" fill="#0b2b2a" stroke="#14b8a6" stroke-opacity=".35"/>` + rep(6, j => `<rect x="${28 + i * 58}" y="${320 - (i % 3) * 40 - (i % 2) * 30 + j * 26}" width="30" height="10" fill="#facc15" opacity="${(i + j) % 3 ? .55 : .15}"/>`))}
+      <path d="M40 520 C160 440 260 600 400 470 S520 430 540 440" stroke="#ef4444" stroke-width="16" fill="none" stroke-linecap="round"/>
+      <path d="M0 600 C120 560 220 520 300 560 S460 640 540 560" stroke="#3b82f6" stroke-width="16" fill="none" stroke-linecap="round"/>
+      ${[[120,478],[300,515],[440,452],[90,580],[300,560],[470,610]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="14" fill="#fff" stroke="#111" stroke-width="5"/>`).join('')}
+      <g transform="translate(200 610)"><rect x="-90" y="-40" width="180" height="60" rx="16" fill="#e2e8f0"/><rect x="-80" y="-30" width="40" height="22" rx="4" fill="#0f172a"/><rect x="-30" y="-30" width="40" height="22" rx="4" fill="#0f172a"/><rect x="20" y="-30" width="40" height="22" rx="4" fill="#0f172a"/><rect x="-90" y="2" width="180" height="8" fill="#14b8a6"/><circle cx="-55" cy="22" r="10" fill="#111"/><circle cx="55" cy="22" r="10" fill="#111"/></g>` },
+
+  'airport-empire': { title: ['AIRPORT', 'EMPIRE'], sub: 'BUILD THE HUB', tag: 'Runways, gates, weather and rivals.', rating: 'E', c: ['#06142e', '#38bdf8', '#f8fafc'],
+    art: () => `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
+      <circle cx="420" cy="230" r="70" fill="#fde68a" opacity=".5"/>
+      <path d="M0 560 L540 470 L540 680 L0 680Z" fill="#1f2937"/>
+      ${rep(8, i => `<path d="M${20 + i * 66} ${555 - i * 11} l40 -7" stroke="#f8fafc" stroke-width="6"/>`)}
+      <rect x="40" y="590" width="300" height="70" rx="10" fill="#cbd5e1"/>${rep(7, i => `<rect x="${55 + i * 40}" y="605" width="24" height="30" fill="#0f172a" opacity=".75"/>`)}
+      <rect x="440" y="470" width="22" height="150" fill="#e2e8f0"/><rect x="420" y="440" width="62" height="36" rx="6" fill="#38bdf8"/>
+      <g transform="translate(250 320) rotate(-18) scale(5)"><path d="M-16 0 L14 0 L18 2 L14 4 L-16 4 Z" fill="#f8fafc"/><path d="M-2 2 L-10 -10 L-5 -10 L6 2 Z M-2 2 L-10 14 L-5 14 L6 2 Z" fill="#38bdf8"/><path d="M-16 2 L-20 -5 L-16 -5 L-12 2Z" fill="#ef4444"/></g>
+      ${rep(5, i => `<path d="M${40 + i * 30} ${380 + i * 8} l-60 18" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>`)}` },
 };
 
 const svg = (id, g) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">

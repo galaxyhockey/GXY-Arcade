@@ -1,6 +1,6 @@
 // GXY Arcade service worker: precache the arcade so it installs and plays offline.
 // Bump VERSION whenever you change files so players get the update.
-const VERSION='arcade-v18';
+const VERSION='arcade-v19';
 const CORE=[
 './','index.html','manifest.webmanifest',
 'assets/aero-news.css',
@@ -30,6 +30,13 @@ const CORE=[
 'covers/gxy-football.svg',
 'covers/gxy-hockey.svg',
 'covers/gxy-tech-empire.svg',
+'assets/gxy.js',
+'assets/gxy-hooks.js',
+'assets/gxy-cloud.js',
+'games/transit-tycoon.html',
+'games/airport-empire.html',
+'covers/transit-tycoon.svg',
+'covers/airport-empire.svg',
 'covers/neon-siege.svg',
 'covers/price-guess.svg',
 'covers/trivia.svg',

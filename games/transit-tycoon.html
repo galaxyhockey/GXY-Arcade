@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Transit Tycoon · GXY Arcade</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0f1a;--panel:#111a2b;--panel2:#16233a;--line:#24365a;--ink:#e8f0ff;--dim:#8ea3c7;--brand:#14b8a6;--good:#22c55e;--bad:#ef4444;--gold:#facc15}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+.mono{font-family:'Space Mono',monospace}
+.top{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0d1626;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.top a{color:var(--dim);text-decoration:none;font-size:.9rem}
+.top h1{font:700 1.4rem 'Barlow Condensed';letter-spacing:.04em;text-transform:uppercase}
+.stats{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:4px 10px;font-size:.78rem;color:var(--dim)}
+.stat b{color:var(--ink);font-family:'Space Mono',monospace;margin-left:4px}
+.wrap{display:grid;grid-template-columns:1fr 340px;gap:12px;padding:12px;max-width:1300px;margin:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+h2{font:700 1.15rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.dim{color:var(--dim);font-size:.82rem}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tabs button,.tool{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:.85rem;font-weight:600}
+.tabs button.on,.tool.on{border-color:var(--brand);background:#0f3a3a}
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+#map{width:100%;height:auto;display:block;border-radius:10px;touch-action:manipulation;background:#0b2233}
+.btn{display:block;width:100%;padding:11px;border-radius:12px;background:linear-gradient(120deg,#14b8a6,#0d9488);color:#04201d;font-weight:800;margin-top:8px}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}
+.line{border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px;background:var(--panel2)}
+.line .sw{width:14px;height:14px;border-radius:4px;flex:none}
+.step{display:flex;align-items:center;gap:6px;font-size:.8rem}
+.step button{width:28px;height:28px;border-radius:8px;background:var(--panel);border:1px solid var(--line);font-weight:800}
+.bars{display:flex;gap:4px;align-items:flex-end;height:90px;margin:8px 0}
+.bars div{flex:1;background:var(--brand);border-radius:4px 4px 0 0;position:relative;min-height:2px}
+.bars span{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:.62rem;color:var(--dim)}
+.log{max-height:150px;overflow:auto;font-size:.8rem;color:var(--dim)}
+.log div{padding:3px 0;border-bottom:1px solid #1c2a44}
+dialog{border:0;border-radius:16px;background:var(--panel);color:var(--ink);padding:16px;max-width:460px;width:calc(100% - 24px);margin:auto}
+dialog::backdrop{background:#000a}
+.clock{position:absolute;top:8px;left:8px;background:#000a;border-radius:8px;padding:4px 10px;font:700 .9rem 'Space Mono';pointer-events:none}
+.maphold{position:relative}
+.pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:2px 8px;font-size:.72rem;margin:2px}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}.stats{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="top"><a href="../index.html">← Arcade</a><h1>🚇 Transit Tycoon</h1>
+  <div class="stats"><span class="stat">💰<b id="sCash"></b></span><span class="stat">📅<b id="sDay"></b></span><span class="stat">🎫 Yesterday<b id="sRiders"></b></span><span class="stat">😊<b id="sSat"></b></span><span class="stat">🏢 Value<b id="sVal"></b></span></div></div>
+<div class="wrap">
+  <div>
+    <div class="card">
+      <div class="tabs" id="cityTabs"></div>
+      <div class="tools" id="tools"></div>
+      <div class="maphold"><svg id="map" viewBox="0 0 560 400"></svg><div class="clock" id="clock" hidden></div></div>
+      <p class="dim" id="hint" style="margin-top:6px"></p>
+      <div class="row" style="gap:8px"><button class="btn" id="runBtn" onclick="runDay()">▶ Run day</button><button class="btn ghost" onclick="simDays(7)">⏩ Sim 7 days</button><button class="btn ghost" id="autoBtn" onclick="toggleAuto()">🔁 Auto</button></div>
+    </div>
+  </div>
+  <div>
+    <div class="card"><h2>🚌 Lines</h2><div id="lines"></div></div>
+    <div class="card" style="margin-top:12px"><h2>🎟️ Fares & company</h2><div id="fares"></div></div>
+    <div class="card" style="margin-top:12px"><h2>📊 Yesterday</h2><div id="report"><p class="dim">Run a day to see ridership by hour.</p></div></div>
+    <div class="card" style="margin-top:12px"><h2>📰 News</h2><div class="log" id="log"></div></div>
+  </div>
+</div>
+<dialog id="dlg"></dialog>
+<script>
+/* ---------------- world ---------------- */
+const W = 14, H = 10, T = 40;
+const CITIES = [
+  { id:'harbor', name:'Harbor City', seed:11, unlock:0,        traffic:1.0, water:'south' },
+  { id:'pine',   name:'Pine Valley', seed:23, unlock:2500000,  traffic:0.8, water:'river' },
+  { id:'sun',    name:'Sun Ridge',   seed:37, unlock:7000000,  traffic:1.2, water:'east' },
+  { id:'metro',  name:'Metro Bay',   seed:51, unlock:16000000, traffic:1.5, water:'bay' },
+];
+const MODES = {
+  bus: { name:'Bus', icon:'🚌', stop:6000, line:20000, veh:60000, cap:70, speed:2.3, run:95, radius:1, maint:120 },
+  sub: { name:'Subway', icon:'🚇', stop:90000, line:0, tunnel:45000, veh:600000, cap:900, speed:1.1, run:420, radius:2, maint:900 },
+};
+// time bands across a service day: hours, demand mix and road traffic
+const BANDS = [
+  { id:'early', name:'Early', hrs:2, from:5,  commute:0.10, other:0.05, traffic:1.0 },
+  { id:'am',    name:'AM rush', hrs:3, from:7,  commute:0.40, other:0.05, traffic:1.9, rush:true },
+  { id:'mid',   name:'Midday', hrs:6, from:10, commute:0.05, other:0.35, traffic:1.25 },
+  { id:'pm',    name:'PM rush', hrs:3, from:16, commute:0.40, other:0.10, traffic:2.0, rush:true },
+  { id:'eve',   name:'Evening', hrs:4, from:19, commute:0.05, other:0.20, traffic:1.1 },
+];
+const COLORS = ['#ef4444','#3b82f6','#22c55e','#eab308','#a855f7','#ec4899','#14b8a6','#f97316','#84cc16','#06b6d4'];
+const $ = id => document.getElementById(id);
+const fmt = n => (n < 0 ? '-' : '') + '$' + (Math.abs(n) >= 1e6 ? (Math.abs(n)/1e6).toFixed(2) + 'M' : Math.abs(n) >= 1e3 ? Math.round(Math.abs(n)/1e3) + 'k' : Math.round(Math.abs(n)));
+const num = n => n >= 1e6 ? (n/1e6).toFixed(2) + 'M' : n >= 1e3 ? (n/1e3).toFixed(1) + 'k' : String(Math.round(n));
+const key = (x, y) => x + ',' + y, unkey = k => k.split(',').map(Number);
+function rng(seed){ let s = seed >>> 0; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+
+function genCity(c){
+  const R = rng(c.seed), t = [], cx = 5 + Math.floor(R()*4), cy = 3 + Math.floor(R()*3), indSide = R() < .5 ? 0 : W - 1;
+  for(let y = 0; y < H; y++){ const row = []; for(let x = 0; x < W; x++){
+    let z, d; const dc = Math.abs(x - cx) + Math.abs(y - cy);
+    const water = c.water === 'south' ? y >= H - 1 - (x % 5 === 0 ? 1 : 0) && x > 2
+      : c.water === 'river' ? Math.abs(x - (6 + Math.round(Math.sin(y / 1.6) * 1.5))) < 1
+      : c.water === 'east' ? x >= W - 1 - (y % 3 === 0 ? 1 : 0)
+      : (x - 10) ** 2 + (y - 8) ** 2 < 7;
+    if(water) { z = 'water'; d = 0; }
+    else if(dc <= 1) { z = 'com'; d = 3; }
+    else if(dc <= 3 && R() < .6) { z = 'com'; d = dc <= 2 ? 3 : 2; }
+    else if(Math.abs(x - indSide) <= 2 && R() < .55) { z = 'ind'; d = 1 + Math.floor(R()*2); }
+    else if(R() < .08) { z = 'park'; d = 0; }
+    else { z = 'res'; d = dc <= 5 ? 2 + (R() < .4 ? 1 : 0) : 1 + (R() < .35 ? 1 : 0); }
+    row.push({ z, d });
+  } t.push(row); }
+  return t;
+}
+const ZC = { res:['#1e3a2b','#245236','#2d6b43'], com:['#2a2f55','#353d73','#434d94'], ind:['#4a3a22','#5c4a2a','#6e5832'], park:['#1d5b2d'], water:['#0c3a5c'] };
+const popOf = (tile, g) => tile.z === 'res' ? tile.d * 1400 * g : tile.z === 'com' ? tile.d * 250 * g : 0;
+const jobsOf = (tile, g) => tile.z === 'com' ? tile.d * 1700 * g : tile.z === 'ind' ? tile.d * 900 * g : tile.z === 'park' ? 150 : 0;
+
+/* ---------------- state ---------------- */
+let S, tool = 'select', draft = null, sel = null, anim = null, auto = false, lastReport = null;
+function newGame(){
+  S = { cash:3000000, day:1, cur:'harbor', fare:{ bus:2, sub:3 }, riders:0, totalRiders:0, log:[], cities:{} };
+  openCity('harbor', true);
+  news('🎉 Welcome to Harbor City! Place stops, draw lines and keep the city moving.');
+}
+function openCity(id, free){
+  const c = CITIES.find(x => x.id === id);
+  S.cities[id] = { tiles:genCity(c), stations:{}, lines:[], growth:1, sat:70, hist:[], events:[] };
+  S.cur = id;
+  if(!free) news(`🏙️ Transit Tycoon now runs service in ${c.name}!`);
+  if(window.GXY) GXY.event('transit-tycoon', 'cities', Object.keys(S.cities).length);
+}
+const city = () => S.cities[S.cur], cityDef = () => CITIES.find(c => c.id === S.cur);
+function save(){ try{ localStorage.setItem('tt_save', JSON.stringify(S)); }catch(e){} }
+function load(){ try{ S = JSON.parse(localStorage.getItem('tt_save')); }catch(e){ S = null; } if(!S) newGame(); }
+function news(t){ S.log.unshift(`<b>Day ${S.day}</b> · ${t}`); S.log = S.log.slice(0, 40); }
+function companyValue(){
+  let v = S.cash;
+  Object.values(S.cities).forEach(c => { Object.values(c.stations).forEach(st => v += MODES[st.type].stop * .6);
+    c.lines.forEach(l => v += fleet(l) * MODES[l.type].veh * .5 + (l.type === 'sub' ? trackLen(l) * MODES.sub.tunnel * .7 : 0)); });
+  return v;
+}
+
+/* ---------------- network math ---------------- */
+const dist = (a, b) => { const [ax, ay] = unkey(a), [bx, by] = unkey(b); return Math.hypot(ax - bx, ay - by); };
+const trackLen = l => l.stops.slice(1).reduce((s, k, i) => s + dist(l.stops[i], k), 0);
+const fleet = l => Math.max(l.peak, l.off);
+function roundTrip(l, band, c){
+  const m = MODES[l.type]; let f = 1;
+  if(l.type === 'bus'){ const tr = 1 + (band.traffic * cityDef().traffic * (c.snow ? 1.4 : 1) - 1); f = l.lane ? 1 + (tr - 1) * 0.3 : tr; }
+  return Math.max(10, trackLen(l) * m.speed * f * 2 + l.stops.length * 1.5);   // minutes, both directions plus dwell
+}
+const vehIn = (l, band) => (band.rush ? l.peak : l.off) - (l.broken || 0);
+function headway(l, band, c){ const v = vehIn(l, band); return v > 0 ? roundTrip(l, band, c) / v : 999; }
+// catchment: each tile's people/jobs are shared among the stations that cover it
+function catchment(c){
+  const out = {}, cover = {};
+  Object.entries(c.stations).forEach(([k, st]) => { const [x, y] = unkey(k), r = MODES[st.type].radius;
+    for(let yy = y - r; yy <= y + r; yy++) for(let xx = x - r; xx <= x + r; xx++){
+      if(xx < 0 || yy < 0 || xx >= W || yy >= H || Math.abs(xx - x) + Math.abs(yy - y) > r) continue;
+      (cover[key(xx, yy)] = cover[key(xx, yy)] || []).push(k); } });
+  Object.keys(c.stations).forEach(k => out[k] = { pop:0, jobs:0 });
+  Object.entries(cover).forEach(([tk, list]) => { const [x, y] = unkey(tk), t = c.tiles[y][x];
+    list.forEach(k => { out[k].pop += popOf(t, c.growth) / list.length; out[k].jobs += jobsOf(t, c.growth) / list.length; }); });
+  return { out, cover };
+}
+// shortest in-vehicle + transfer time between stations (Floyd–Warshall on a small graph), remembering the first line used
+function paths(c, band){
+  const ks = Object.keys(c.stations), n = ks.length, idx = Object.fromEntries(ks.map((k, i) => [k, i]));
+  const D = Array.from({ length:n }, () => Array(n).fill(Infinity)), L = Array.from({ length:n }, () => Array(n).fill(null));
+  for(let i = 0; i < n; i++) D[i][i] = 0;
+  c.lines.forEach((l, li) => { if(vehIn(l, band) <= 0 || l.stops.length < 2) return;
+    const per = MODES[l.type].speed * (l.type === 'bus' ? roundTrip(l, band, c) / (trackLen(l) * MODES.bus.speed * 2 + l.stops.length * 1.5) : 1);
+    for(let a = 0; a < l.stops.length; a++) for(let b = 0; b < l.stops.length; b++){ if(a === b) continue;
+      let t = 0; for(let s = Math.min(a, b); s < Math.max(a, b); s++) t += dist(l.stops[s], l.stops[s + 1]) * per + 1.5;
+      t += headway(l, band, c) / 2;
+      const i = idx[l.stops[a]], j = idx[l.stops[b]]; if(t < D[i][j]){ D[i][j] = t; L[i][j] = li; } } });
+  for(let k = 0; k < n; k++) for(let i = 0; i < n; i++) for(let j = 0; j < n; j++){
+    const t = D[i][k] + D[k][j] + 4;   // transfer penalty
+    if(t < D[i][j]){ D[i][j] = t; L[i][j] = L[i][k]; } }
+  return { ks, D, L };
+}
+
+/* ---------------- simulate one day ---------------- */
+function simulate(c){
+  const def = cityDef(), { out:cat } = catchment(c), res = { bands:[], riders:0, revenue:0, cost:0, crowded:new Set(), waits:[] };
+  const totPop = Object.values(cat).reduce((s, x) => s + x.pop, 0) || 1, totJobs = Object.values(cat).reduce((s, x) => s + x.jobs, 0) || 1;
+  c.lines.forEach(l => l.load = {});
+  BANDS.forEach(band => {
+    const { ks, D, L } = paths(c, band), n = ks.length, flows = [];
+    for(let i = 0; i < n; i++) for(let j = 0; j < n; j++){
+      if(i === j || !isFinite(D[i][j])) continue;
+      const A = cat[ks[i]], B = cat[ks[j]];
+      let trips = band.commute * A.pop * (B.jobs / totJobs) * 0.9 + band.other * (A.pop + A.jobs) * ((B.jobs + B.pop) / (totJobs + totPop)) * 0.5;
+      if(band.id === 'pm') trips = band.commute * B.pop * (A.jobs / totJobs) * 0.9 + band.other * (A.pop + A.jobs) * ((B.jobs + B.pop) / (totJobs + totPop)) * 0.5;
+      const ev = c.events.find(e => e.station === ks[j] && e.band === band.id); if(ev) trips *= ev.mult;
+      const car = dist(ks[i], ks[j]) * 2.2 * band.traffic * def.traffic * (c.snow ? 1.5 : 1) + 6;
+      const fare = S.fare[c.lines[L[i][j]].type];
+      const share = Math.max(0.03, Math.min(0.85, 0.22 + 0.55 * (car - D[i][j]) / car - (fare - 2) * 0.05));
+      flows.push({ li:L[i][j], riders:trips * share, wait:D[i][j] });
+    }
+    // load each line and cut riders off when trains/buses are full
+    const want = {}; flows.forEach(f => want[f.li] = (want[f.li] || 0) + f.riders);
+    const capOf = l => Math.max(0, vehIn(l, band)) * MODES[l.type].cap * (band.hrs * 60 / roundTrip(l, band, c)) * 1.6;
+    let br = 0;
+    flows.forEach(f => { const l = c.lines[f.li], cap = capOf(l), ratio = want[f.li] > cap ? cap / want[f.li] : 1;
+      if(ratio < 0.95) res.crowded.add(l.name); const r = f.riders * ratio; br += r; l.load[band.id] = (l.load[band.id] || 0) + r; });
+    c.lines.forEach(l => { const v = Math.max(0, vehIn(l, band)); res.cost += v * band.hrs * MODES[l.type].run; });
+    res.bands.push({ name:band.name, riders:br });
+    res.riders += br;
+  });
+  // fares per line type
+  c.lines.forEach(l => { const r = Object.values(l.load).reduce((a, b) => a + b, 0); l.riders = r; res.revenue += r * S.fare[l.type]; });
+  Object.values(c.stations).forEach(st => res.cost += MODES[st.type].maint);
+  // satisfaction: crowding, fares and how much of the city you cover
+  const covered = Object.keys(catchment(c).cover).length, land = c.tiles.flat().filter(t => t.z !== 'water').length;
+  const crowdPen = res.crowded.size * 4, coverBonus = (covered / land) * 30, farePen = (S.fare.bus - 2) * 4 + (S.fare.sub - 3) * 3;
+  c.sat = Math.max(5, Math.min(100, c.sat * 0.8 + (55 + coverBonus - crowdPen - farePen) * 0.2));
+  c.growth = Math.max(0.6, Math.min(2.5, c.growth + (c.sat - 55) / 9000));
+  res.riders = Math.round(res.riders); res.revenue = Math.round(res.revenue); res.cost = Math.round(res.cost);
+  return res;
+}
+function dayEvents(c, name){
+  c.events = []; c.snow = false; c.lines.forEach(l => l.broken = 0);
+  const R = Math.random();
+  const sts = Object.keys(c.stations);
+  if(R < .07 && c.lines.length){ const l = c.lines[Math.floor(Math.random() * c.lines.length)]; l.broken = 1; news(`🔧 A vehicle on the ${l.name} broke down. One fewer in service today.`); }
+  else if(R < .13 && sts.length){ const st = sts[Math.floor(Math.random() * sts.length)]; c.events.push({ station:st, band:'eve', mult:4 }); news(`🎸 Big concert near ${c.stations[st].name} in ${name} tonight. Expect crowds.`); }
+  else if(R < .17){ c.snow = true; news(`❄️ Snowstorm in ${name}. Buses and cars crawl; the subway keeps moving.`); }
+  else if(R < .21 && sts.length){ const st = sts[Math.floor(Math.random() * sts.length)]; c.events.push({ station:st, band:'mid', mult:3 }); news(`🛍️ Street festival by ${c.stations[st].name}. Midday riders up.`); }
+}
+function endDay(silent){
+  let tot = { riders:0, revenue:0, cost:0, bands:BANDS.map(b => ({ name:b.name, riders:0 })), crowded:[] };
+  Object.entries(S.cities).forEach(([id, c]) => {
+    const prev = S.cur; S.cur = id; dayEvents(c, CITIES.find(x => x.id === id).name);
+    const r = simulate(c); S.cur = prev;
+    c.hist.push(r.riders); c.hist = c.hist.slice(-30);
+    tot.riders += r.riders; tot.revenue += r.revenue; tot.cost += r.cost; r.bands.forEach((b, i) => tot.bands[i].riders += b.riders);
+    tot.crowded.push(...[...r.crowded].map(n => n + ' (' + CITIES.find(x => x.id === id).name + ')'));
+    if(id === S.cur) lastReport = r;
+  });
+  S.cash += tot.revenue - tot.cost; S.riders = tot.riders; S.totalRiders += tot.riders; S.day++;
+  S.lastTot = tot;
+  if(window.GXY && tot.riders) GXY.event('transit-tycoon', 'riders', tot.riders);
+  if(tot.crowded.length && !silent) news(`🥵 Packed vehicles on: ${tot.crowded.slice(0, 3).join(', ')}. Add more at rush hour.`);
+  if(S.cash < 0 && !silent) news('⚠️ You\'re in the red. Trim service or raise fares.');
+  save();
+}
+
+/* ---------------- rendering ---------------- */
+const tileXY = k => { const [x, y] = unkey(k); return [x * T + T / 2, y * T + T / 2]; };
+function drawMap(){
+  const c = city(), { cover } = catchment(c); let s = '';
+  c.tiles.forEach((row, y) => row.forEach((t, x) => {
+    const col = (ZC[t.z][Math.max(0, t.d - 1)] || ZC[t.z][0]);
+    s += `<rect x="${x*T}" y="${y*T}" width="${T}" height="${T}" fill="${col}" stroke="#0a0f1a" stroke-width="1" data-k="${key(x,y)}"/>`;
+    if(t.z === 'res' || t.z === 'com' || t.z === 'ind') for(let i = 0; i < t.d; i++) s += `<rect x="${x*T + 6 + i*10}" y="${y*T + T - 12 - (t.z === 'com' ? i*4 + 8 : 4)}" width="7" height="${t.z === 'com' ? 10 + i*4 : 6}" fill="#ffffff22" pointer-events="none"/>`;
+    if(t.z === 'park') s += `<circle cx="${x*T+T/2}" cy="${y*T+T/2}" r="8" fill="#2f8a47" pointer-events="none"/>`;
+    if(tool === 'cover' && cover[key(x,y)]) s += `<rect x="${x*T}" y="${y*T}" width="${T}" height="${T}" fill="#14b8a655" pointer-events="none"/>`;
+  }));
+  c.lines.forEach((l, i) => {
+    const pts = l.stops.map(tileXY).map(p => p.join(',')).join(' ');
+    s += `<polyline points="${pts}" fill="none" stroke="${l.color}" stroke-width="${l.type === 'sub' ? 7 : 4}" stroke-linejoin="round" stroke-linecap="round" ${l.type === 'bus' ? 'stroke-dasharray="10 5"' : ''} opacity=".95" pointer-events="none"/>`;
+  });
+  if(draft && draft.stops.length){
+    s += `<polyline points="${draft.stops.map(tileXY).map(p => p.join(',')).join(' ')}" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="4 4" pointer-events="none"/>`;
+  }
+  Object.entries(c.stations).forEach(([k, st]) => { const [px, py] = tileXY(k);
+    s += st.type === 'sub' ? `<rect x="${px-9}" y="${py-9}" width="18" height="18" rx="4" fill="#fff" stroke="#111" stroke-width="2" pointer-events="none"/><text x="${px}" y="${py+4.5}" font-size="12" font-weight="800" text-anchor="middle" fill="#111" pointer-events="none">M</text>`
+      : `<circle cx="${px}" cy="${py}" r="7" fill="#fff" stroke="#111" stroke-width="2" pointer-events="none"/>`;
+    if(draft && draft.stops.includes(k)) s += `<circle cx="${px}" cy="${py}" r="12" fill="none" stroke="#facc15" stroke-width="3" pointer-events="none"/>`;
+  });
+  if(sel){ const [x, y] = unkey(sel); s += `<rect x="${x*T+1}" y="${y*T+1}" width="${T-2}" height="${T-2}" fill="none" stroke="#facc15" stroke-width="3" pointer-events="none"/>`; }
+  s += '<g id="veh"></g>';
+  $('map').innerHTML = s;
+}
+function tileInfo(k){
+  const c = city(), [x, y] = unkey(k), t = c.tiles[y][x], st = c.stations[k];
+  const names = { res:'Homes', com:'Downtown / shops', ind:'Industry', park:'Park', water:'Water' };
+  let h = `<b>${names[t.z]}</b>${t.d ? ` · density ${'▮'.repeat(t.d)}` : ''} · 👥 ${num(popOf(t, c.growth))} · 💼 ${num(jobsOf(t, c.growth))}`;
+  if(st){ const lines = c.lines.filter(l => l.stops.includes(k)).map(l => l.name); h += `<br>${MODES[st.type].icon} <b>${st.name}</b> · lines: ${lines.join(', ') || 'none'}`; }
+  return h;
+}
+function render(){
+  const c = city();
+  $('sCash').textContent = fmt(S.cash); $('sCash').style.color = S.cash < 0 ? 'var(--bad)' : '';
+  $('sDay').textContent = S.day; $('sRiders').textContent = num(S.riders); $('sSat').textContent = Math.round(c.sat) + '%'; $('sVal').textContent = fmt(companyValue());
+  $('cityTabs').innerHTML = CITIES.map(cd => S.cities[cd.id]
+    ? `<button class="${cd.id === S.cur ? 'on' : ''}" onclick="S.cur='${cd.id}';sel=null;draft=null;render()">🏙️ ${cd.name}</button>`
+    : `<button onclick="expand('${cd.id}')" ${companyValue() < cd.unlock ? 'disabled style="opacity:.5"' : ''}>🔒 ${cd.name} · ${fmt(cd.unlock * 0.25)}<br><span class="dim">value ${fmt(cd.unlock)}+</span></button>`).join('');
+  const TOOLS = [['select','👆 Inspect'],['bus','🚏 Bus stop ' + fmt(MODES.bus.stop)],['sub','🚇 Subway station ' + fmt(MODES.sub.stop)],['newbus','➕ Bus line'],['newsub','➕ Subway line'],['cover','🗺️ Coverage'],['bulldoze','🧨 Remove']];
+  $('tools').innerHTML = TOOLS.map(([id, l]) => `<button class="tool ${tool === id ? 'on' : ''}" onclick="setTool('${id}')">${l}</button>`).join('');
+  $('hint').innerHTML = draft ? `Tap ${draft.type === 'sub' ? 'subway stations' : 'bus stops'} in order (${draft.stops.length} so far). Cost so far: <b>${fmt(draftCost())}</b>. <button class="tool" onclick="finishLine()">✅ Open line</button> <button class="tool" onclick="draft=null;render()">✖ Cancel</button>`
+    : sel ? tileInfo(sel) : ({ select:'Tap a tile to inspect it.', bus:'Tap land to place a bus stop (it serves the tiles next to it).', sub:'Tap land to place a subway station (it serves 2 tiles around).', cover:'Teal tiles are within walking distance of a stop.', bulldoze:'Tap a stop to remove it.' })[tool] || '';
+  // lines panel
+  $('lines').innerHTML = c.lines.length ? c.lines.map((l, i) => `<div class="line">
+    <div class="row"><span class="sw" style="background:${l.color}"></span><b style="flex:1">${MODES[l.type].icon} ${l.name}</b><span class="dim">${num(l.riders || 0)}/day</span></div>
+    <div class="dim" style="margin:3px 0">${l.stops.length} stops · ${trackLen(l).toFixed(1)} km · rush headway ${headway(l, BANDS[1], c).toFixed(0)} min</div>
+    <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <span class="step">Rush hour <button onclick="setVeh(${i},'peak',-1)">−</button><b class="mono">${l.peak}</b><button onclick="setVeh(${i},'peak',1)">+</button></span>
+      <span class="step">Off-peak <button onclick="setVeh(${i},'off',-1)">−</button><b class="mono">${l.off}</b><button onclick="setVeh(${i},'off',1)">+</button></span></div>
+    <div class="row" style="margin-top:6px;gap:6px;flex-wrap:wrap">${l.type === 'bus' ? `<button class="tool ${l.lane ? 'on' : ''}" onclick="lane(${i})">${l.lane ? '🛣️ Bus lane ✓' : '🛣️ Bus lane ' + fmt(laneCost(l))}</button>` : ''}
+      <button class="tool" onclick="delLine(${i})">🗑️</button></div></div>`).join('')
+    : '<p class="dim">No lines yet. Place a few stops, then tap ➕ Bus line.</p>';
+  $('fares').innerHTML = `<div class="row" style="justify-content:space-between"><span>🚌 Bus fare</span><span class="step"><button onclick="fare('bus',-0.25)">−</button><b class="mono">$${S.fare.bus.toFixed(2)}</b><button onclick="fare('bus',0.25)">+</button></span></div>
+    <div class="row" style="justify-content:space-between;margin-top:6px"><span>🚇 Subway fare</span><span class="step"><button onclick="fare('sub',-0.25)">−</button><b class="mono">$${S.fare.sub.toFixed(2)}</b><button onclick="fare('sub',0.25)">+</button></span></div>
+    <p class="dim" style="margin-top:6px">Higher fares earn more per rider but lower ridership and satisfaction. ${Object.keys(S.cities).length} cit${Object.keys(S.cities).length > 1 ? 'ies' : 'y'} · ${num(S.totalRiders)} riders all-time.</p>
+    <button class="btn ghost" onclick="if(confirm('Start a brand new company?')){localStorage.removeItem('tt_save');newGame();render()}">🆕 New company</button>`;
+  if(S.lastTot){ const t = S.lastTot, mx = Math.max(...t.bands.map(b => b.riders), 1);
+    $('report').innerHTML = `<div class="bars">${t.bands.map(b => `<div style="height:${b.riders / mx * 100}%;${/rush/.test(b.name) ? 'background:var(--gold)' : ''}" title="${num(b.riders)}"><span>${b.name}</span></div>`).join('')}</div>
+      <div style="margin-top:22px" class="row"><span class="pill">🎫 ${num(t.riders)} riders</span><span class="pill" style="color:var(--good)">+${fmt(t.revenue)}</span><span class="pill" style="color:var(--bad)">−${fmt(t.cost)}</span><span class="pill">${t.revenue - t.cost >= 0 ? '📈' : '📉'} ${fmt(t.revenue - t.cost)}</span></div>`; }
+  $('log').innerHTML = S.log.map(l => `<div>${l}</div>`).join('');
+  drawMap();
+}
+
+/* ---------------- actions ---------------- */
+function setTool(t){
+  if(t === 'newbus' || t === 'newsub'){ draft = { type:t === 'newbus' ? 'bus' : 'sub', stops:[] }; tool = 'select'; }
+  else { tool = t; draft = null; }
+  render();
+}
+function spend(n, what){ if(S.cash - n < -500000){ alert('Not enough money for ' + what + '.'); return false; } S.cash -= n; return true; }
+const STNAMES = ['Main St','Oak Ave','Market','Union','Harbor','Elm','Central','Park Pl','Mill Rd','Lake','Ridge','Cedar','Bridge','Station Sq','Pine','Maple','River','Hill','Plaza','Garden','Grand','Civic','Depot','Summit','Canal','Willow','Kings','Queens','Delta','Ash'];
+function onTile(k){
+  const c = city(), [x, y] = unkey(k), t = c.tiles[y][x];
+  if(draft){
+    const st = c.stations[k];
+    if(!st || st.type !== draft.type) return flash(`Tap an existing ${draft.type === 'sub' ? 'subway station' : 'bus stop'}.`);
+    if(draft.stops[draft.stops.length - 1] === k) return finishLine();
+    if(draft.stops.includes(k)) return flash('That stop is already on this line.');
+    draft.stops.push(k); return render();
+  }
+  if(tool === 'bus' || tool === 'sub'){
+    if(t.z === 'water') return flash('Can\'t build on water.');
+    if(c.stations[k]) return flash('There\'s already a stop here.');
+    if(!spend(MODES[tool].stop, 'a stop')) return;
+    const used = new Set(Object.values(c.stations).map(s => s.name));
+    c.stations[k] = { type:tool, name:STNAMES.find(n => !used.has(n)) || ('Stop ' + (Object.keys(c.stations).length + 1)) };
+    save(); return render();
+  }
+  if(tool === 'bulldoze'){
+    if(!c.stations[k]) return;
+    delete c.stations[k]; S.cash += MODES.bus.stop * 0.3;
+    c.lines.forEach(l => l.stops = l.stops.filter(s => s !== k)); c.lines = c.lines.filter(l => l.stops.length >= 2);
+    save(); return render();
+  }
+  sel = sel === k ? null : k; render();
+}
+function draftCost(){ const m = MODES[draft.type], l = { stops:draft.stops };
+  return m.line + (draft.type === 'sub' ? trackLen(l) * m.tunnel : 0) + m.veh * 2; }
+function finishLine(){
+  if(!draft || draft.stops.length < 2) return flash('A line needs at least 2 stops.');
+  const cost = draftCost(); if(!spend(cost, 'this line')) return;
+  const c = city(), n = c.lines.length;
+  const l = { type:draft.type, stops:draft.stops, color:COLORS[n % COLORS.length], peak:2, off:2, lane:false,
+    name:draft.type === 'sub' ? ['Red','Blue','Green','Gold','Purple','Pink','Teal','Orange'][n % 8] + ' Line' : 'Route ' + (n + 1) };
+  c.lines.push(l); news(`${MODES[l.type].icon} The ${l.name} opens with ${l.stops.length} stops!`);
+  if(window.GXY){ GXY.event('transit-tycoon', 'lines'); if(l.type === 'sub') GXY.event('transit-tycoon', 'subway'); }
+  draft = null; save(); render();
+}
+function setVeh(i, which, d){
+  const l = city().lines[i], m = MODES[l.type], before = fleet(l);
+  const v = Math.max(0, Math.min(40, l[which] + d)); if(v === l[which]) return;
+  l[which] = v; const after = fleet(l);
+  if(after > before && !spend(m.veh * (after - before), 'a new ' + (l.type === 'sub' ? 'train' : 'bus'))){ l[which] -= d; return; }
+  if(after < before) S.cash += m.veh * 0.5 * (before - after);
+  save(); render();
+}
+const laneCost = l => Math.round(trackLen(l) * 35000 + 20000);
+function lane(i){ const l = city().lines[i]; if(l.lane) return; if(!spend(laneCost(l), 'bus lanes')) return; l.lane = true; news(`🛣️ Bus lanes painted along ${l.name}. Rush hour traffic hurts it less.`); save(); render(); }
+function delLine(i){ const l = city().lines[i]; if(!confirm(`Close the ${l.name}? You get half the vehicles' value back.`)) return; S.cash += fleet(l) * MODES[l.type].veh * 0.5; city().lines.splice(i, 1); save(); render(); }
+function fare(t, d){ S.fare[t] = Math.max(0.5, Math.min(8, +(S.fare[t] + d).toFixed(2))); save(); render(); }
+function expand(id){
+  const cd = CITIES.find(c => c.id === id), cost = cd.unlock * 0.25;
+  if(companyValue() < cd.unlock) return alert(`Grow your company to ${fmt(cd.unlock)} in value to expand to ${cd.name}.`);
+  if(!confirm(`Expand to ${cd.name} for ${fmt(cost)}?`) || !spend(cost, 'the expansion')) return;
+  openCity(id); save(); render();
+}
+let flashT; function flash(t){ $('hint').innerHTML = '⚠️ ' + t; clearTimeout(flashT); flashT = setTimeout(render, 1600); }
+
+/* ---------------- day animation ---------------- */
+function runDay(){
+  if(anim) return;
+  $('runBtn').disabled = true; $('clock').hidden = false;
+  const c = city(), t0 = performance.now(), DUR = 7000;
+  const routes = c.lines.map(l => ({ l, pts:l.stops.map(tileXY) }));
+  const step = now => {
+    const f = Math.min(1, (now - t0) / DUR), hour = 5 + f * 18, band = BANDS.find(b => hour >= b.from && hour < b.from + b.hrs) || BANDS[4];
+    $('clock').textContent = `${String(Math.floor(hour)).padStart(2,'0')}:${String(Math.floor(hour % 1 * 60)).padStart(2,'0')} ${band.rush ? '🚦 ' + band.name : band.name}`;
+    let g = '';
+    routes.forEach(({ l, pts }) => {
+      const v = Math.max(0, vehIn(l, band)), seg = pts.length - 1; if(!v || seg < 1) return;
+      const spd = 60 / roundTrip(l, band, c);
+      for(let i = 0; i < v; i++){
+        let p = ((hour * spd * 2) + i / v * 2) % 2; if(p > 1) p = 2 - p;          // shuttle back and forth
+        const s = Math.min(seg - 1, Math.floor(p * seg)), u = p * seg - s, a = pts[s], b = pts[s + 1];
+        g += l.type === 'sub' ? `<rect x="${a[0] + (b[0]-a[0])*u - 7}" y="${a[1] + (b[1]-a[1])*u - 4}" width="14" height="8" rx="3" fill="${l.color}" stroke="#fff" stroke-width="1.5"/>`
+          : `<circle cx="${a[0] + (b[0]-a[0])*u}" cy="${a[1] + (b[1]-a[1])*u}" r="4.5" fill="#fff" stroke="${l.color}" stroke-width="2.5"/>`;
+      }
+    });
+    const vg = document.getElementById('veh'); if(vg) vg.innerHTML = g;
+    if(f < 1) anim = requestAnimationFrame(step);
+    else { anim = null; $('clock').hidden = true; $('runBtn').disabled = false; endDay(); render(); if(auto) setTimeout(runDay, 600); }
+  };
+  anim = requestAnimationFrame(step);
+}
+function simDays(n){ for(let i = 0; i < n; i++) endDay(i < n - 1); news(`⏩ Simulated ${n} days.`); save(); render(); }
+function toggleAuto(){ auto = !auto; $('autoBtn').classList.toggle('on', auto); $('autoBtn').textContent = auto ? '⏸ Stop' : '🔁 Auto'; if(auto && !anim) runDay(); }
+
+$('map').addEventListener('click', e => { const r = e.target.closest('[data-k]'); if(r) onTile(r.dataset.k); });
+// keyboard / gamepad: arrows move a cursor over the map, Enter acts on it
+document.addEventListener('keydown', e => {
+  if(e.target.tagName === 'INPUT' || document.querySelector('dialog[open]')) return;
+  if(!/Arrow/.test(e.key) || !document.activeElement || document.activeElement.id !== 'map') return;
+  e.preventDefault(); const [x, y] = sel ? unkey(sel) : [7, 5];
+  const nx = Math.max(0, Math.min(W-1, x + (e.key === 'ArrowRight') - (e.key === 'ArrowLeft'))), ny = Math.max(0, Math.min(H-1, y + (e.key === 'ArrowDown') - (e.key === 'ArrowUp')));
+  sel = key(nx, ny); render(); $('map').focus();
+});
+$('map').setAttribute('tabindex', '0');
+$('map').addEventListener('keydown', e => { if(e.key === 'Enter' && sel){ const k = sel; sel = null; onTile(k); if(!draft && tool === 'select') sel = k; render(); $('map').focus(); } });
+load(); render();
+</script>
+<script src="../assets/gxy.js"></script>
+<script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
+</body>
+</html>
