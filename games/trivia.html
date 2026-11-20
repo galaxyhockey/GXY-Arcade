@@ -39,6 +39,8 @@ input[type=range]{width:100%;accent-color:var(--brand);}
 .q{font-size:1.15rem;font-weight:800;line-height:1.35;margin-bottom:1rem;}
 .diff{font-size:.72rem;font-weight:800;padding:.15rem .5rem;border-radius:20px;}
 .d1{background:#14532d;color:#86efac;}.d2{background:#713f12;color:#fde68a;}.d3{background:#7f1d1d;color:#fca5a5;}
+.logo-tile{border-radius:16px;padding:22px;margin:0 auto 1rem;width:min(220px,70%);aspect-ratio:1;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+.logo{width:100%;height:100%;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;}
 .opt{display:block;width:100%;text-align:left;padding:.85rem 1rem;margin-bottom:.5rem;border-radius:12px;background:var(--panel2);border:2px solid var(--line);font-weight:600;font-size:.98rem;}
 .opt.right{border-color:var(--good);background:#0f2f1c;}
 .opt.wrong{border-color:var(--bad);background:#3a1010;}
@@ -58,6 +60,7 @@ input[type=range]{width:100%;accent-color:var(--brand);}
   <div id="app"></div>
 </div>
 <script src="trivia-koth.js"></script>
+<script src="trivia-logos.js"></script>
 <script>
 const SETS = window.TRIVIA_SETS || [];
 const CATS = [{ id:'tv', name:'TV Trivia', icon:'📺', sets: SETS.map(s=>s.id) }];
@@ -71,7 +74,7 @@ const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} 
 /* ---------- question building ---------- */
 function rngFrom(seed){ let s=0; for(const c of String(seed)) s=(s*31+c.charCodeAt(0))>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
 function shuffle(a, R=Math.random){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(R()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function build(set, row){ const [q, a, acc, d, fact, hint] = row; return { q, a, acc, d, fact, hint, set:set.id }; }
+function build(set, row){ const [q, a, acc, d, fact, hint, img] = row; return { q, a, acc, d, fact, hint, img, set:set.id }; }
 function bank(setIds){ const out=[]; SETS.filter(s=>setIds.includes(s.id)).forEach(s=>s.qs.forEach((r,i)=>out.push({ s, r, key:s.id+':'+i }))); return out; }
 // Prefer questions this device hasn't seen; reset the memory once a set runs dry.
 function deck(setIds){
@@ -92,7 +95,7 @@ function home(){
   const ds = store.get('tv_daily', {}), played = ds.date === today;
   $('dstreak').textContent = ds.streak ? `🔥 ${ds.streak}-day` : '';
   app().innerHTML = `
-  <div class="card"><h2>📺 TV Trivia</h2><p class="dim" style="margin-bottom:.6rem">Pick your quiz sets.</p>
+  <div class="card"><h2>🧠 Quiz sets</h2><p class="dim" style="margin-bottom:.6rem">Pick one or more. 📺 TV Trivia and 🏷️ Logo Quiz can be mixed.</p>
     <div class="grid">${SETS.map(s=>`<button class="tile ${cfg.sets.includes(s.id)?'on':''}" onclick="toggleSet('${s.id}')"><span>${esc(s.show)}</span><b>${esc(s.name.split(': ')[1]||s.name)}</b><span>${s.qs.length} questions</span></button>`).join('')}</div></div>
   <div class="card"><h2>Game mode</h2>
     <div class="grid">
@@ -177,7 +180,16 @@ function draw(){
 function timerHTML(Q){ return `<span class="diff d${Q.d}">${['','EASY','HARD','EXPERT'][Q.d]}</span> · <span class="mono" id="tl">${TIME[Q.d]}s</span>`; }
 function qHTML(Q){ return `<div class="timer"><i id="tb" style="width:100%"></i></div>
   ${Q.hint?`<div class="dim" style="margin-bottom:.4rem">📺 <b style="color:var(--ink)">${esc(Q.hint)}</b></div>`:''}
-  <div class="q">${esc(Q.q)}</div>`; }
+  <div class="q">${esc(Q.q)}</div>${logoHTML(Q)}`; }
+// Logo questions carry "slug|hex": draw the Simple Icons SVG as a mask filled with the brand color.
+// Very light brand colors get a dark tile so white logos stay visible.
+const LOGO_CDN = 'https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/';
+function logoHTML(Q){
+  if(!Q.img) return '';
+  const [slug, hex] = Q.img.split('|'), n = parseInt(hex, 16), lum = (0.299*(n>>16) + 0.587*((n>>8)&255) + 0.114*(n&255)) / 255;
+  const url = LOGO_CDN + slug + '.svg';
+  return `<div class="logo-tile" style="background:${lum > 0.8 ? '#1f2937' : '#fff'}"><div class="logo" style="background:#${hex};-webkit-mask-image:url(${url});mask-image:url(${url})"></div></div>`;
+}
 function runTimer(Q, onEnd){
   clearInterval(tick);
   tick = setInterval(()=>{

@@ -166,10 +166,10 @@ function drawQ(){
   for(let tries = 0; tries < 2; tries++){
     if(!H.deck.length) H.deck = deck(H.S.sets);
     const i = H.deck.findIndex(ok);
-    if(i >= 0){ const x = H.deck.splice(i, 1)[0]; H.facts.add(x.r[4]); const [q, a, acc, d, fact, hint] = x.r; return { q, a, acc, d, fact, hint }; }
+    if(i >= 0){ const x = H.deck.splice(i, 1)[0]; H.facts.add(x.r[4]); const [q, a, acc, d, fact, hint, img] = x.r; return { q, a, acc, d, fact, hint, img }; }
     H.deck = []; H.facts.clear();
   }
-  const x = deck(H.S.sets)[0]; const [q, a, acc, d, fact, hint] = x.r; return { q, a, acc, d, fact, hint };   // filter matched nothing: fall back
+  const x = deck(H.S.sets)[0]; const [q, a, acc, d, fact, hint, img] = x.r; return { q, a, acc, d, fact, hint, img };   // filter matched nothing: fall back
 }
 const alive = () => Object.values(H.players).filter(p => !p.out);
 window.hostStart = function(){
@@ -182,7 +182,7 @@ window.hostNext = async function(){
   if(H.round >= H.S.rounds || (H.S.format === 'survival' && H.round > 0 && alive().length <= (Object.keys(H.players).length > 1 ? 1 : 0))) return hostFinish();
   H.round++; H.answers = {}; H.state = 'question';
   const Q = H.Q = drawQ(); Q.secs = secsFor(H.S, Q.d); Q.double = H.S.final && H.round === H.S.rounds && H.S.format !== 'survival'; H.t0 = Date.now();
-  try{ await updateDoc(ROOM(H.code), { state:'question', round:H.round, rounds:H.S.rounds, q:{ q:Q.q, hint:Q.hint || '', d:Q.d, secs:Q.secs, double:Q.double }, reveal:null }); }catch(e){ return oops(e); }
+  try{ await updateDoc(ROOM(H.code), { state:'question', round:H.round, rounds:H.S.rounds, q:{ q:Q.q, hint:Q.hint || '', img:Q.img || '', d:Q.d, secs:Q.secs, double:Q.double }, reveal:null }); }catch(e){ return oops(e); }
   hostQuestion();
 };
 function hostQuestion(){
@@ -262,7 +262,7 @@ function hostRevealScreen(){
   const last = H.round >= H.S.rounds || survEnd;
   app().innerHTML = `<div class="card">
     <div class="hud"><span>Room <b class="mono" style="color:var(--brand)">${H.code}</b> · Round ${H.round}/${H.S.rounds}</span>${+H.S.auto ? `<span class="dim">Next in ${H.S.auto}s</span>` : ''}</div>
-    <div class="q">${esc(H.Q.q)}</div>
+    <div class="q">${esc(H.Q.q)}</div>${logoHTML(H.Q)}
     <div class="opt right" style="cursor:default">Answer: <b>${esc(H.Q.a)}</b>${H.Q.acc.length ? `<div class="dim" style="font-size:.78rem;margin-top:.2rem">Also accepted: ${H.Q.acc.map(esc).join(', ')}</div>` : ''}</div>
     <div class="board">${Object.entries(H.results).map(([id, r]) => `<div style="align-items:center"><span style="min-width:0;overflow-wrap:anywhere">${resultLine(H.players[id].name, r)}</span>
       ${!r.ok && !r.out && r.g && r.g.trim() ? `<button onclick="hostCount('${id}')" style="flex:none;padding:.3rem .5rem;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:.75rem">✔ Count it</button>` : ''}</div>`).join('')}</div>

@@ -1,6 +1,6 @@
 // GXY Arcade service worker: precache the arcade so it installs and plays offline.
 // Bump VERSION whenever you change files so players get the update.
-const VERSION='arcade-v17';
+const VERSION='arcade-v18';
 const CORE=[
 './','index.html','manifest.webmanifest',
 'assets/aero-news.css',
@@ -51,6 +51,7 @@ const CORE=[
 'games/price-guess.html',
 'games/trivia.html',
 'games/trivia-koth.js',
+'games/trivia-logos.js',
 'games/trivia-online.js',
 'games/quickplay.html',
 'games/smw-updates.js',
