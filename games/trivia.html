@@ -98,6 +98,7 @@ function home(){
     <div class="grid">
       <button class="tile ${cfg.mode==='versus'?'on':''}" onclick="setMode('versus')"><div class="ic">⚔️</div><b>Versus</b><span>2–4 players · 10–20 rounds</span></button>
       <button class="tile ${cfg.mode==='unlimited'?'on':''}" onclick="setMode('unlimited')"><div class="ic">♾️</div><b>Unlimited</b><span>1–4 players · endless</span></button>
+      <button class="tile" onclick="onlineMenu()" style="grid-column:1/-1;border-color:var(--brand)"><div class="ic">📱</div><b>Online Room</b><span>Everyone on their own phone · join with a room code · up to 8 players</span></button>
       <button class="tile ${cfg.mode==='party'?'on':''}" onclick="setMode('party')" style="grid-column:1/-1"><div class="ic">👥</div><b>Same Time</b><span>2–4 players · everyone types at once on one phone · 10–20 rounds</span></button>
       <button class="tile" onclick="daily()"><div class="ic">📅</div><b>Daily Challenge</b><span>${played?`Done today · ${ds.score} pts`:'10 questions, same for everyone'}</span></button>
       <button class="tile" onclick="leaders()"><div class="ic">🏆</div><b>Leaderboard</b><span>Top scores and streaks</span></button>
@@ -313,7 +314,7 @@ function shareDaily(){
 function leaders(tab='versus'){
   const lb = store.get('tv_lb_'+tab, []);
   app().innerHTML = `<div class="card"><h2>🏆 Leaderboard</h2>
-    <div class="seg" style="margin-bottom:.8rem">${[['versus','⚔️ Versus'],['party','👥 Same Time'],['unlimited','♾️ Unlimited'],['daily','📅 Daily']].map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="leaders('${k}')">${l}</button>`).join('')}</div>
+    <div class="seg" style="margin-bottom:.8rem">${[['versus','⚔️ Versus'],['online','📱 Online'],['party','👥 Same Time'],['unlimited','♾️ Unlimited'],['daily','📅 Daily']].map(([k,l])=>`<button class="${k===tab?'on':''}" onclick="leaders('${k}')">${l}</button>`).join('')}</div>
     <div class="board">${lb.length ? lb.map((e,i)=>`<div><span>${i+1}. <b>${esc(e.n)}</b> <span class="dim">· ${e.r}/${e.a} · 🔥${e.b} · ${esc(e.d)}</span></span><span class="mono">${e.s}</span></div>`).join('') : '<p class="dim">No scores yet. Go play!</p>'}</div>
     <p style="margin-top:.8rem"><span class="pill">🔥 Best answer streak: ${store.get('tv_best_streak',0)}</span><span class="pill">📅 Daily streak: ${store.get('tv_daily',{}).streak||0}</span></p>
     <label class="f">Your name for the Daily Challenge</label><input type="text" maxlength="14" value="${esc(store.get('tv_name','You'))}" onchange="store.set('tv_name',this.value.trim()||'You')">
@@ -321,6 +322,7 @@ function leaders(tab='versus'){
 }
 home();
 </script>
+<script type="module" src="trivia-online.js"></script>
 <script src="../assets/theme.js"></script>
 </body>
 </html>
