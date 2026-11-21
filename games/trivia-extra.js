@@ -56,7 +56,7 @@
   window.packDel = function(i){ const ps = packs(), p = ps.find(x => x.id === editing); p.qs.splice(i, 1); savePacks(ps); packEdit(editing); };
   window.packShare = function(id){
     const p = packs().find(x => x.id === id), code = enc({ n:p.name, q:p.qs });
-    const link = location.origin + location.pathname + '#pack=' + code;
+    const link = 'https://galaxyhockey.github.io/GXY-Arcade' + location.pathname.slice(location.pathname.indexOf('/games/')) + '#pack=' + code;
     const t = `Try my GXY Trivia pack "${p.name}" (${p.qs.length} questions):\n${link}`;
     if(navigator.share) navigator.share({ text:t }).catch(()=>{}); else { navigator.clipboard && navigator.clipboard.writeText(link); alert('Pack link copied! Anyone who opens it can import your pack.'); }
   };

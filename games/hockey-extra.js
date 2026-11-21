@@ -102,7 +102,7 @@
   window.hkChGo = function(){ LS.set('hk_ch_name', (document.getElementById('hkN').value || '').trim() || 'A friend'); CH = { s:Math.floor(realRandom() * 1e9), d:SETUP.diff, mine:true }; MODE = 'challenge'; playPeriod(CH.d, CH.s); };
   function challengeResult(goals, score){
     MODE = null; const name = LS.get('hk_ch_name', 'A friend');
-    const link = o => location.origin + location.pathname + '#hkch=' + enc(o);
+    const link = o => 'https://galaxyhockey.github.io/GXY-Arcade' + location.pathname.slice(location.pathname.indexOf('/games/')) + '#hkch=' + enc(o);
     const share = (o, txt) => `<button class="btn red big" onclick='hkShare(${JSON.stringify(link(o))}, ${JSON.stringify(txt)})'>📤 Send challenge</button>`;
     showScreen2('modes');
     if(CH.mine){

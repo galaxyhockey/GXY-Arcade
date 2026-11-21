@@ -58,7 +58,7 @@
   };
   window.nsDelMap = k => { const m = myMaps(); delete m[k]; saveMaps(m); if(SETUP.map === k) SETUP.map = 'zigzag'; mapEditor(); };
   window.nsShareMap = function(k){
-    const m = myMaps()[k], link = location.origin + location.pathname + '#map=' + enc(m);
+    const m = myMaps()[k], link = 'https://galaxyhockey.github.io/GXY-Arcade' + location.pathname.slice(location.pathname.indexOf('/games/')) + '#map=' + enc(m);
     if(navigator.share) navigator.share({ text:`Can you survive my Neon Siege map "${m.name}"?\n${link}` }).catch(()=>{});
     else { navigator.clipboard && navigator.clipboard.writeText(link); toast('Map link copied!'); }
   };

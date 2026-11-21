@@ -116,7 +116,7 @@ window.onlineHost = async function(){
     hostLobby(); if(window.GXY) GXY.event('trivia', 'online');
   }catch(e){ oops(e); }
 };
-const joinLink = () => location.origin + location.pathname + '?room=' + H.code;
+const joinLink = () => 'https://galaxyhockey.github.io/GXY-Arcade' + location.pathname.slice(location.pathname.indexOf('/games/')) + '?room=' + H.code;
 function hostLobby(){
   app().innerHTML = `<div class="card" style="text-align:center"><h2>📱 Room code</h2>
     <div class="mono" style="font-size:3.4rem;letter-spacing:.25em;color:var(--brand);margin:.2rem 0">${H.code}</div>
