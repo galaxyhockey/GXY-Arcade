@@ -143,12 +143,42 @@
   const xpFor = L => 50 * L * (L - 1);
   const owns = (p, id) => { const c = COSMETICS.find(x => x.id === id); return !!c && (c.free || p.owned.includes(id)); };
   function grant(id){ const p = profile(); if(!id || owns(p, id)) return; p.owned.push(id); saveProfile(p); const c = COSMETICS.find(x => x.id === id); toast('🎁', 'Reward unlocked', `${c.type === 'avatar' ? c.emoji + ' avatar' : c.name + ' ' + c.type}`); }
-  function addXP(n, why){
-    if(!n) return; const p = profile(), before = levelOf(p.xp); p.xp += n; saveProfile(p);
+  // key: optional dedupe id. The same key never pays twice (e.g. 'ach:hk-cup', 'weekly:2026-W48:ns-wave').
+  function addXP(n, why, key){
+    if(!n) return; const w = wallet();
+    if(key && w.paid[key]) return; if(key) w.paid[key] = Date.now();
+    const p = profile(), before = levelOf(p.xp); p.xp += n; saveProfile(p);     // profile.xp = Lifetime XP (drives level, never goes down)
+    w.spendable += n; w.ledger.unshift({ t:Date.now(), type:'earn', amount:n, reason:why || '', key:key || null }); saveWallet(w);
     const after = levelOf(p.xp);
     toast('✨', `+${n} XP`, why || '');
     if(after > before){ toast('⬆️', `Level ${after}!`, 'You leveled up'); bump('arcade', 'level', after); }
   }
+
+  /* ---------------- XP wallet (store) ----------------
+     Lifetime XP = profile.xp (level). Spendable XP = wallet.spendable (store). Earning adds to both; buying only lowers spendable.
+     LOCAL PROTOTYPE: this lives in browser storage (synced by GXY Cloud), so it is NOT tamper-proof. The arcade has no
+     purchase server yet; nothing is purchasable until a store item is released. */
+  function wallet(){
+    let w = get('gxy_wallet', null);
+    if(!w){ w = { v:1, spendable:profile().xp, owned:{}, wishlist:[], ledger:[], paid:{}, purchases:{} };   // migration: v1.2 XP becomes spendable once
+      if(w.spendable) w.ledger.push({ t:Date.now(), type:'migrate', amount:w.spendable, reason:'XP earned before the store opened' }); set('gxy_wallet', w); }
+    w.ledger = w.ledger || []; w.paid = w.paid || {}; w.owned = w.owned || {}; w.wishlist = w.wishlist || []; w.purchases = w.purchases || {};
+    return w;
+  }
+  function saveWallet(w){ w.ledger = w.ledger.slice(0, 200); set('gxy_wallet', w); emit(); }
+  // one atomic local write: check → debit → entitle → ledger. requestId makes retries charge once.
+  function spend(itemId, price, requestId){
+    const w = wallet();
+    if(requestId && w.purchases[requestId]) return { ok:true, repeat:true, wallet:w };
+    if(w.owned[itemId]) return { ok:false, code:'owned' };
+    if(!(price > 0)) return { ok:false, code:'bad_price' };
+    if(w.spendable < price) return { ok:false, code:'not_enough_xp', short:price - w.spendable };
+    w.spendable -= price; w.owned[itemId] = Date.now();
+    w.ledger.unshift({ t:Date.now(), type:'spend', amount:-price, reason:itemId, key:requestId || null });
+    if(requestId) w.purchases[requestId] = itemId;
+    saveWallet(w); return { ok:true, wallet:w };
+  }
+  function toggleWish(itemId){ const w = wallet(), i = w.wishlist.indexOf(itemId); if(i >= 0) w.wishlist.splice(i, 1); else w.wishlist.push(itemId); saveWallet(w); return w.wishlist.includes(itemId); }
 
   /* ---------------- stats + events ---------------- */
   const stats = () => get('gxy_stats', {});
@@ -163,7 +193,7 @@
     ACH.filter(a => a.stat === k && !got[a.id] && v >= a.at).forEach(a => {
       got[a.id] = Date.now(); set('gxy_ach', got);
       toast(a.icon, 'Achievement unlocked', a.name);
-      if(a.xp) addXP(a.xp, a.name);
+      if(a.xp) addXP(a.xp, a.name, 'ach:' + a.id);
       if(a.reward) grant(a.reward);
     });
   }
@@ -174,7 +204,7 @@
       const w = weekly(), st = w.state;
       w.list.filter(c => c.game === game && c.stat === type && !c.done).forEach(c => {
         st.prog[c.id] = c.max ? Math.max(st.prog[c.id] || 0, val) : (st.prog[c.id] || 0) + val;
-        if(st.prog[c.id] >= c.target){ st.done[c.id] = Date.now(); toast('📅', 'Weekly challenge complete', c.text); addXP(c.xp, 'Weekly challenge'); grant(c.reward); bump('arcade', 'weekly'); }
+        if(st.prog[c.id] >= c.target){ st.done[c.id] = Date.now(); toast('📅', 'Weekly challenge complete', c.text); addXP(c.xp, 'Weekly challenge', 'weekly:' + w.week + ':' + c.id); grant(c.reward); bump('arcade', 'weekly'); }
       });
       set('gxy_weekly', st); emit();
     }catch(e){ console.warn('GXY.event', e); }
@@ -285,7 +315,7 @@
 
   /* ---------------- public API ---------------- */
   window.GXY = { ROOT, GAMES, COSMETICS, ACH, event, played, addXP, toast, profile, saveProfile, levelOf, xpFor, owns, grant, weekly, stats,
-    achievements:() => get('gxy_ach', {}), onChange:f => cbs.push(f), cloud, padConnected:() => padOn };
+    achievements:() => get('gxy_ach', {}), wallet, spend, toggleWish, onChange:f => cbs.push(f), cloud, padConnected:() => padOn };
 
   // Count a play for the current game page.
   const page = (location.pathname.match(/games\/([\w-]+)\.html/) || [])[1];

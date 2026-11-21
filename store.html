@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XP Store · GXY Arcade</title>
+<meta name="theme-color" content="#120c08">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f6efe6;--dim:#b9a998;--brass:#d9a441;--accent:#f59e0b;--card:#24180f;--line:#4a3220;--good:#4ade80;--bad:#f87171}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:Inter,system-ui,sans-serif;min-height:100vh;background:radial-gradient(900px 500px at 50% -120px,#4a2f17aa,transparent),#1a120c}
+a{color:inherit}button{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:#120c08ee;backdrop-filter:blur(8px);border-bottom:1px solid #3a2716}
+.top a.back{color:var(--dim);text-decoration:none}
+.top h1{margin:0 auto 0 4px;font:800 1.5rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700;font-size:.85rem;white-space:nowrap}
+.chip b{color:var(--accent)}
+.wrap{max-width:1100px;margin:auto;padding:16px 16px 50px}
+.note{background:#2b1d12;border:1px dashed #8b6a3e;border-radius:12px;padding:10px 12px;font-size:.82rem;color:var(--dim);margin-bottom:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:.85rem}
+.tabs button.on{background:var(--accent);color:#1b1006;border-color:var(--accent)}
+.sec{margin:18px 0 8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sec h2{margin:0;font:800 1.35rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.05em}
+.sec small{color:var(--dim)}
+.grid{display:grid;gap:12px}
+.g1{grid-template-columns:1fr}.g2{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{position:relative;display:flex;flex-direction:column;background:linear-gradient(180deg,#2b1d12,#1f150d);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:100%}
+.art{display:grid;place-items:center;font-size:3.2rem;height:120px;background:radial-gradient(circle at 50% 40%,#fde68a33,transparent 60%),linear-gradient(135deg,var(--c1,#3b2a1a),var(--c2,#120c08))}
+.g1 .card{flex-direction:row}.g1 .art{width:260px;height:auto;min-height:170px;font-size:5rem;flex:none}
+.body{padding:12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.kind{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--brass);font-weight:800}
+.title{font:800 1.15rem 'Barlow Condensed';letter-spacing:.02em;line-height:1.1}
+.g1 .title{font-size:1.7rem}
+.desc{font-size:.8rem;color:var(--dim);line-height:1.45}
+.price{font-weight:800;margin-top:auto}.price span{font-size:.72rem;color:var(--dim);font-weight:600}
+.state{display:inline-block;font-size:.7rem;font-weight:800;padding:3px 8px;border-radius:999px;background:#3a2716;color:var(--dim)}
+.state.owned{background:#14532d;color:#bbf7d0}.state.soon{background:#3b2f0b;color:#fde68a}.state.short{background:#4c1d1d;color:#fecaca}.state.avail{background:#1e3a8a;color:#bfdbfe}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;background:linear-gradient(120deg,#f59e0b,#d97706);color:#1b1006}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:#2b1d12;border:1px solid var(--line);color:var(--ink)}
+.card:focus-within,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ph .art{filter:grayscale(1) brightness(.6)}
+.list{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.list div{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid #3a2716;font-size:.88rem}
+.list div:last-child{border:0}
+.empty{color:var(--dim);padding:16px;text-align:center}
+@media(max-width:860px){.g4{grid-template-columns:repeat(2,1fr)}.g1 .card{flex-direction:column}.g1 .art{width:auto;height:140px}}
+@media(max-width:520px){.g2,.g4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><a class="back" href="index.html">← Library</a><h1>🛒 XP Store</h1>
+  <span class="chip">💰 <b id="spend">0</b> XP to spend</span><span class="chip" id="lvl"></span><span class="chip" id="clock">⏱ …</span></div>
+<div class="wrap">
+  <div class="note" id="proto"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="view"></div>
+</div>
+<script src="assets/gxy.js"></script>
+<script src="store/store-core.js"></script>
+<script>
+const S = GXYStore, $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const GAME = { 'supermarket-wars':'Supermarket Wars', 'tv-battles':'TV Battles', 'neon-siege':'Neon Siege', 'gxy-football':'YOUFL Football', 'trivia':'GXY Trivia',
+  'airport-empire':'Airport Empire', 'gxy-hockey':'GXY Hockey', 'transit-tycoon':'Transit Tycoon', 'gxy-tech-empire':'Technology Empire' };
+const KIND = { dlc:'DLC', cosmetic:'Cosmetic', cosmetic_bundle:'Cosmetic bundle', game:'Game', game_collection:'Game collection' };
+const COL = { weekly:['#7c2d12','#1c0a04'], featured:['#1e3a8a','#0b1230'], daily:['#3f2a14','#120c08'] };
+let tab = 'shop';
+const fmtCT = ms => new Intl.DateTimeFormat('en-US', { timeZone:'America/Chicago', weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit', timeZoneName:'short' }).format(ms);
+const fmtET = ms => new Intl.DateTimeFormat('en-US', { timeZone:'America/New_York', hour:'numeric', minute:'2-digit', timeZoneName:'short' }).format(ms);
+const left = ms => { const s = Math.max(0, Math.floor((ms - S.now()) / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  return (d ? d + 'd ' : '') + `${h}h ${String(m).padStart(2, '0')}m ${String(x).padStart(2, '0')}s`; };
+
+// the one place that decides what a card shows and whether it can be bought
+function stateOf(item, rot){
+  const w = GXY.wallet();
+  if(w.owned[item.id]) return { k:'owned', label:'✔ Owned' };
+  if(item.hidden || item.releaseState !== 'released') return { k:'soon', label:'Coming Soon' };
+  if(!rot.launched || !S.inRotation(item.id, S.now())) return { k:'unavail', label:'Not in the store today' };
+  if(w.spendable < item.priceXP) return { k:'short', label:`Need ${(item.priceXP - w.spendable).toLocaleString()} more XP` };
+  return { k:'avail', label:'Available' };
+}
+function card(id, rot, section){
+  const it = S.byId(id), st = stateOf(it, rot), wish = GXY.wallet().wishlist.includes(id), c = COL[section] || COL.daily;
+  if(it.hidden) return `<div class="card ph" style="--c1:#2a2a2a;--c2:#111"><div class="art">❔</div><div class="body"><div class="kind">${KIND[it.kind]}</div>
+    <div class="title">Something special</div><div class="desc">A surprise is in the works for this spot. Check back later.</div><div class="row"><span class="state soon">Coming Soon</span></div></div></div>`;
+  return `<div class="card" style="--c1:${c[0]};--c2:${c[1]}"><div class="art" aria-hidden="true">${it.icon}</div><div class="body">
+    <div class="kind">${KIND[it.kind]}${it.baseGameId ? ' · ' + esc(GAME[it.baseGameId] || it.baseGameId) : ''}</div>
+    <div class="title">${esc(it.title)}</div><div class="desc">${esc(it.description)}${it.note ? ` <i>(${esc(it.note)})</i>` : ''}</div>
+    <div class="price">✨ ${it.priceXP.toLocaleString()} XP <span>${it.priceIsProvisional ? '· provisional price' : ''}</span></div>
+    <div class="row"><span class="state ${st.k === 'owned' ? 'owned' : st.k === 'soon' ? 'soon' : st.k === 'short' ? 'short' : st.k === 'avail' ? 'avail' : ''}">${st.label}</span></div>
+    <div class="row">${st.k === 'avail' ? `<button class="btn" onclick="buy('${id}')">Buy for ${it.priceXP.toLocaleString()} XP</button>` : st.k === 'owned' ? `<button class="btn ghost" onclick="tab='collection';render()">View in collection</button>` : `<button class="btn" disabled>${st.k === 'soon' ? 'Coming Soon' : 'Unavailable'}</button>`}
+      <button class="btn ghost" onclick="GXY.toggleWish('${id}');render()" aria-pressed="${wish}">${wish ? '★ Wishlisted' : '☆ Wishlist'}</button></div></div></div>`;
+}
+
+async function buy(id){
+  const it = S.byId(id), rot = S.rotation(S.now());
+  // re-check everything at purchase time; nothing unreleased or out of rotation can be bought
+  if(!S.clockVerified()) await S.syncClock(location.href);
+  const st = stateOf(it, S.rotation(S.now()));
+  if(st.k !== 'avail') return GXY.toast('⚠️', 'Purchase failed', st.label + '. No XP was spent.');
+  if(!confirm(`Buy ${it.title} for ${it.priceXP.toLocaleString()} XP? You keep it forever.`)) return;
+  const r = GXY.spend(id, it.priceXP, id + ':' + rot.storeDate);
+  if(r.ok) GXY.toast('🎉', 'Unlocked!', it.title + ' is in your collection.');
+  else GXY.toast('⚠️', 'Purchase failed', r.code === 'not_enough_xp' ? `You need ${r.short.toLocaleString()} more XP.` : r.code === 'owned' ? 'You already own this.' : 'Try again.');
+  render();
+}
+
+function render(){
+  const w = GXY.wallet(), p = GXY.profile(), rot = S.rotation(S.now());
+  $('spend').textContent = w.spendable.toLocaleString();
+  $('lvl').textContent = `⭐ Level ${GXY.levelOf(p.xp)} · ${p.xp.toLocaleString()} lifetime XP`;
+  $('proto').innerHTML = `<b>Preview build.</b> Your XP wallet is stored on this device and synced with GXY Cloud. It's a local prototype, not a secure purchase server. Every item is <b>Coming Soon</b> until its content is finished; nothing can be bought before then. Prices are provisional. XP comes only from playing: achievements and weekly challenges.`;
+  $('tabs').innerHTML = [['shop','🛒 Store'],['collection','📦 My Collection'],['wish','★ Wishlist'],['history','🧾 XP History']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+  if(tab === 'shop'){
+    const pre = !rot.launched, show = pre ? S.rotation(S.chicagoToUtc(2026, 11, 23, 18)) : rot;
+    $('view').innerHTML = `${pre ? `<div class="note" style="border-color:var(--accent);color:var(--ink)">🗓️ The store opens <b>${fmtCT(show.nextRefreshAt - 864e5)}</b> (${fmtET(show.nextRefreshAt - 864e5)}). Here's the opening lineup.</div>` : ''}
+      <div class="sec"><h2>🔦 Weekly Spotlight</h2><small>New spotlight every Monday at 6:00 PM CT / 7:00 PM ET${pre ? '' : ' · changes in <b data-cd="' + rot.nextWeeklyAt + '"></b>'}</small></div>
+      <div class="grid g1">${show.weekly.map(id => card(id, rot, 'weekly')).join('')}</div>
+      ${show.featured.length ? `<div class="sec"><h2>⭐ Limited-Time Featured</h2><small>Featured through Jan 1, 2027 at 6:00 PM CT. If you buy it, you keep it forever.</small></div><div class="grid g2">${show.featured.map(id => card(id, rot, 'featured')).join('')}</div>` : ''}
+      <div class="sec"><h2>🧭 Daily Discoveries</h2><small>Group ${show.dailyGroup} · new items every day at 6:00 PM CT / 7:00 PM ET${pre ? '' : ' · refresh in <b data-cd="' + rot.nextRefreshAt + '"></b>'}</small></div>
+      <div class="grid g4">${show.daily.map(id => card(id, rot, 'daily')).join('')}</div>`;
+  }
+  if(tab === 'collection'){
+    const own = Object.keys(w.owned).map(S.byId).filter(Boolean);
+    $('view').innerHTML = own.length ? `<div class="grid g4">${own.map(it => card(it.id, rot, it.shopSection)).join('')}</div>` : '<div class="list"><p class="empty">Nothing here yet. Items you unlock stay in your collection forever, even after they leave the store.</p></div>';
+  }
+  if(tab === 'wish'){
+    const ids = w.wishlist.filter(id => S.byId(id) && !S.byId(id).hidden);
+    $('view').innerHTML = ids.length ? `<div class="grid g4">${ids.map(id => card(id, rot, S.byId(id).shopSection)).join('')}</div>` : '<div class="list"><p class="empty">Tap ☆ Wishlist on any item to keep an eye on it.</p></div>';
+  }
+  if(tab === 'history'){
+    $('view').innerHTML = `<div class="list">${w.ledger.map(e => `<div><span>${e.type === 'spend' ? '🛒 ' + esc((S.byId(e.reason) || {}).title || e.reason) : e.type === 'migrate' ? '📦 ' + esc(e.reason) : '✨ ' + esc(e.reason || 'XP earned')}<br><small style="color:var(--dim)">${new Date(e.t).toLocaleString()}</small></span><b style="color:${e.amount < 0 ? 'var(--bad)' : 'var(--good)'}">${e.amount > 0 ? '+' : ''}${e.amount.toLocaleString()}</b></div>`).join('') || '<p class="empty">No XP activity yet.</p>'}</div>`;
+  }
+  tick();
+}
+function tick(){
+  document.querySelectorAll('[data-cd]').forEach(e => e.textContent = left(+e.dataset.cd));
+  const rot = S.rotation(S.now());
+  $('clock').textContent = `⏱ ${S.clockVerified() ? '' : '~'}Next refresh ${left(rot.launched ? rot.nextRefreshAt : S.chicagoToUtc(2026, 11, 23, 18))}`;
+  $('clock').title = S.clockVerified() ? 'Store time comes from the server' : 'Using this device\'s clock until the server time loads';
+}
+let lastDay = null;
+setInterval(() => { const d = S.rotation(S.now()).storeDate; if(lastDay && d !== lastDay) render(); lastDay = d; tick(); }, 1000);
+GXY.onChange(render);
+render();
+S.syncClock(location.href).then(render);
+</script>
+<script src="assets/theme.js" data-no-css="true"></script>
+</body>
+</html>
