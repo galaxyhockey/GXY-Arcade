@@ -191,6 +191,7 @@ const UPG = [
   { k:'crit', name:'Viral Tap', ico:'🔥', max:5, cost:l => 800 * 1.9 ** l, desc:l => `${4 * (l + 1)}% chance a tap goes viral for ×10` },
   { k:'luck', name:'Lucky Logo', ico:'🍀', max:5, cost:l => 2500 * 2 ** l, desc:l => `Rare and better brands ${15 * (l + 1)}% more likely (now +${15 * l}%)` },
   { k:'disc', name:'Bulk Buyer', ico:'🏷️', max:6, cost:l => 1200 * 1.85 ** l, desc:l => `Boxes ${5 * (l + 1)}% cheaper (now −${5 * l}%)` },
+  { k:'nodupe', name:'Deny Duplicates', ico:'🚫', max:1, cost:() => 5000000, desc:() => 'Boxes never give a brand you already own (until you own the whole box)' },
   { k:'coll', name:'Brand Royalties', ico:'📈', max:10, cost:l => 3000 * 1.7 ** l, desc:l => `Owned brands pay their rarity bonus per second ×${1 + (l + 1) * .5}` }
 ];
 const lv = k => S.lv[k] || (k === 'auto1' ? +(S.up >= 1) : k === 'auto2' ? +(S.up >= 2) : 0);
@@ -249,7 +250,8 @@ setInterval(save, 2000); addEventListener('pagehide', save);
 
 // ---------- shop ----------
 function weights(b){ const L = 1 + .15 * lv('luck'), w = {};
-  for(const [id, x] of Object.entries(b.w)) w[id] = x * (['Rare', 'Epic', 'Legendary', 'Chroma'].includes(BR[id].rarity) ? L : 1); return w; }
+  const deny = lv('nodupe') && Object.keys(b.w).some(id => !S.owned.includes(+id));
+  for(const [id, x] of Object.entries(b.w)) if(!(deny && S.owned.includes(+id))) w[id] = x * (['Rare', 'Epic', 'Legendary', 'Chroma'].includes(BR[id].rarity) ? L : 1); return w; }
 function oddsList(b){ const w = weights(b), tot = Object.values(w).reduce((a, x) => a + x, 0);
   return Object.entries(w).sort((a, c) => c[1] - a[1]).map(([id, x]) => `${BR[id].name} ${(x / tot * 100).toFixed(1)}%`).join(' · '); }
 const openOdds = new Set();
