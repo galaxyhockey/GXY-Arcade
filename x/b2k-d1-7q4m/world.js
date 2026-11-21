@@ -35,15 +35,15 @@ function road(x0, z0, x1, z1, name){ plane(x1 - x0, z1 - z0, rep(M.asphalt, (x1 
   else { for(let z = z0 + 2; z < z1; z += 6) plane(.18, 3, dash, (x0 + x1) / 2, .03, z); plane(2.4, z1 - z0, rep(M.walk, 1, (z1 - z0) / 3), x0 - 1.2, .06, (z0 + z1) / 2); plane(2.4, z1 - z0, rep(M.walk, 1, (z1 - z0) / 3), x1 + 1.2, .06, (z0 + z1) / 2); }
   if(name) G.roads.push({ x0, z0, x1, z1, name }); }
 G.roads = [];
-road(-190, 20, 150, 28, 'N 17th Street');         // Chris's street (real: N 17th St, Belleville IL)
+road(-190, 20, 150, 28, 'Oakmont Drive');         // Chris's street (not named in the story bible — game original)
 road(96, 28, 104, 252, 'Maple Street');           // Maple Street (dog chase meet-up)
 road(-190, 252, 230, 260, 'N Illinois Street');   // real: Schnucks Swansea is on N Illinois St (IL-159)
-road(-112, 28, -104, 252, 'Frank Scott Pkwy');    // real: Belleville West is on Frank Scott Pkwy W
+road(-112, 28, -104, 252, 'Westhaven Road');    // school road (not named in the story bible — game original)
 [[96, 104, 17.6, 30.4], [96, 104, 249.6, 262.4], [-112, -104, 17.6, 30.4], [-112, -104, 249.6, 262.4]].forEach(([x0, x1, z0, z1]) => plane(x1 - x0, z1 - z0, rep(M.asphalt, 2, 3), (x0 + x1) / 2, .07, (z0 + z1) / 2));
 [[100, 19], [100, 29], [-108, 19], [-108, 29], [100, 251], [100, 261]].forEach(([x, z]) => plane(8, 2.2, txMat('xw2', (g, w, h) => { g.fillStyle = '#3b3d42'; g.fillRect(0, 0, w, h); g.fillStyle = '#eee'; for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 8, h); }, [1, 1]), x, .075, z));
 function streetSign(x, z, t, ry = 0){ cyl(.05, 3, mat('#777'), x, 0, z); const s = new THREE.Mesh(new THREE.BoxGeometry(1.8, .4, .05), new THREE.MeshBasicMaterial({ map:label(t, { bg:'#1d6b3a', fg:'#fff', size:52, w:512, h:110 }) }));
   s.position.set(x, 3, z); s.rotation.y = ry; S.add(s); }
-streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSign(-102.5, 30, 'FRANK SCOTT PKWY', Math.PI / 2); streetSign(-1.5, 18.5, 'N 17TH ST'); streetSign(94.5, 262.5, 'N ILLINOIS ST'); streetSign(-102.5, 249.5, 'N ILLINOIS ST');
+streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSign(-102.5, 30, 'WESTHAVEN RD', Math.PI / 2); streetSign(-1.5, 18.5, 'OAKMONT DR'); streetSign(94.5, 262.5, 'N ILLINOIS ST'); streetSign(-102.5, 249.5, 'N ILLINOIS ST');
 { const lim = (x, z, ry, t) => { cyl(.05, 2.6, mat('#777'), x, 0, z); const s = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1, .05), new THREE.MeshBasicMaterial({ map:label(t, { bg:'#1d6b3a', fg:'#fff', size:36, w:512, h:230 }) })); s.position.set(x, 2.6, z); s.rotation.y = ry; S.add(s); };
   lim(93.5, 205, Math.PI / 2, ['VILLAGE OF', 'SWANSEA', 'POP. 10,579']); lim(106.5, 75, -Math.PI / 2, ['CITY OF', 'BELLEVILLE', 'EST. 1814']); }
 
