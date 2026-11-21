@@ -3,7 +3,7 @@
 const { S, R, props, layer } = window.BC_RM_KIT;
 const LOGO = 'bc27/logos/schnucks.png';
 // Optional: YouTube video IDs of 2000s Schnucks commercials. If set, the TV plays them; otherwise it plays a built-in retro ad loop.
-const ADS = [];
+const ADS = ['dOLKv9-eAWo', '7V902aa-XBI', 'dxkVzwxTvFY', 'WCIxmy-Da-U']; // Schnucks TV spots on YouTube (2000 "Grocery Store Reporter", Super Soda ads, Jim Meskimen improv spots)
 const css = document.createElement('style');
 css.textContent = `@keyframes schSlide{0%,22%{transform:translateX(0)}25%,47%{transform:translateX(-100%)}50%,72%{transform:translateX(-200%)}75%,97%{transform:translateX(-300%)}100%{transform:translateX(-400%)}}
 @keyframes schStatic{0%{background-position:0 0}100%{background-position:40px 60px}}
@@ -15,8 +15,11 @@ function tv(el){ // a silver 2000s CRT on a stand, right of the logo
   t.style.cssText = 'right:18px;bottom:40px;width:150px;height:124px;border-radius:14px;background:linear-gradient(#e8e8ec,#9a9aa4);box-shadow:0 8px 20px #0008,inset 0 2px 0 #fff;padding:10px 10px 22px;pointer-events:auto';
   const scr = document.createElement('div');
   scr.style.cssText = 'position:relative;width:100%;height:100%;border-radius:12px/18px;overflow:hidden;background:#000;box-shadow:inset 0 0 18px #000';
-  if(ADS.length){ const id = ADS[Math.floor(Math.random() * ADS.length)];
-    scr.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0" style="width:100%;height:100%;border:0" allow="autoplay;encrypted-media"></iframe>`; }
+  if(ADS.length){ const list = ADS.slice().sort(() => Math.random() - .5);
+    const src = m => `https://www.youtube-nocookie.com/embed/${list[0]}?autoplay=1&mute=${m}&loop=1&playlist=${list.join(',')}&controls=0&modestbranding=1&playsinline=1`;
+    scr.innerHTML = `<iframe src="${src(1)}" style="width:100%;height:100%;border:0;pointer-events:none" allow="autoplay;encrypted-media"></iframe><div class="schSnd" style="position:absolute;right:4px;top:4px;font:bold 9px Arial;color:#fff;background:#0009;border-radius:4px;padding:2px 4px;cursor:pointer;z-index:2">🔇 tap for sound</div>`;
+    scr.querySelector('.schSnd').onclick = e => { e.stopPropagation(); const on = e.target.textContent.startsWith('🔇');
+      scr.querySelector('iframe').src = src(on ? 0 : 1); e.target.textContent = on ? '🔊 sound on' : '🔇 tap for sound'; }; }
   else { const slide = (bg, inner) => `<div style="flex:0 0 100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${bg};color:#fff;font:bold 11px Arial;text-align:center;gap:4px">${inner}</div>`;
     scr.innerHTML = `<div style="display:flex;width:100%;height:100%;animation:schSlide 12s steps(1,end) infinite">` +
       slide('#fff', `<img src="${LOGO}" style="width:86%">`) +
