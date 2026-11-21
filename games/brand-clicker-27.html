@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Brand Clicker '27 (Test v0.1)</title>
+<title>Brand Clicker '27 (Test v0.2)</title>
 <style>
 :root{--glass:rgba(16,18,28,.62);--line:rgba(255,255,255,.14);--txt:#f4f6ff;--mut:#a9b0c7;--acc:#ff8c1a;
   --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6}
@@ -9,15 +9,11 @@
 html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #wrap{position:fixed;inset:0;background:#05060a;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #stage{position:relative;width:480px;height:360px;overflow:hidden;flex:none}
-#stage img{position:absolute;-webkit-user-drag:none}
+#stage>img{position:absolute;-webkit-user-drag:none}
 #rm{position:absolute;inset:0;display:none;overflow:hidden}
-#rm .tile{position:absolute;inset:-60%;background-size:64px auto;background-repeat:space;opacity:.13;transform:rotate(-18deg);animation:drift 40s linear infinite}
-#rm .glow{position:absolute;width:320px;height:320px;left:80px;top:20px;border-radius:50%;filter:blur(40px);opacity:.55}
-#rm .pat{position:absolute;inset:0}
-@keyframes drift{to{background-position:640px 320px}}
-#logo{cursor:pointer;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));transition:transform .07s}
-#logo:active{transform:scale(.94)}
-/* modern HUD */
+#logoBox{position:absolute;left:150px;top:105px;width:180px;height:130px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5}
+#logoBox img{max-width:100%;max-height:100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));transition:transform .07s;-webkit-user-drag:none}
+#logoBox:active img{transform:scale(.92)}
 .glass{background:var(--glass);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid var(--line)}
 #hud{position:fixed;top:max(10px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:20;padding:6px;border-radius:16px;max-width:calc(100vw - 20px)}
 .pill{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:11px;background:rgba(255,255,255,.06);white-space:nowrap}
@@ -25,81 +21,101 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 #top{position:fixed;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;justify-content:space-between;pointer-events:none;z-index:21}
 #top>*{pointer-events:auto}
 .ib{border-radius:12px;padding:9px 12px;color:var(--txt);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-#dock{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:7px;border-radius:20px;z-index:20}
-.db{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:68px;padding:8px 10px;border-radius:14px;border:0;background:transparent;color:var(--txt);font-size:11px;font-weight:600;cursor:pointer}
+#dock{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:7px;border-radius:20px;z-index:20}
+.db{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;padding:8px 8px;border-radius:14px;border:0;background:transparent;color:var(--txt);font-size:11px;font-weight:600;cursor:pointer}
 .db span{font-size:21px}.db:hover{background:rgba(255,255,255,.08)}.db.hot{background:var(--acc);color:#fff}
-#hint{position:fixed;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 84px);transform:translateX(-50%);font-size:12px;color:#fff;opacity:.8;text-shadow:0 1px 4px #000;z-index:19;pointer-events:none}
+#hint{position:fixed;left:50%;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 84px);transform:translateX(-50%);font-size:12px;color:#fff;text-shadow:0 1px 4px #000;z-index:19;pointer-events:none;text-align:center;white-space:nowrap}
+#boost{color:#ffd54f;font-weight:700}
 .pop{position:fixed;color:#fff;font-weight:800;font-size:22px;text-shadow:0 2px 8px rgba(0,0,0,.6);pointer-events:none;z-index:30;animation:up .8s ease-out forwards}
+.pop.crit{color:#ffd54f;font-size:30px}
 @keyframes up{to{transform:translateY(-60px);opacity:0}}
 #toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;transition:.25s;z-index:60;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;pointer-events:none}
 #toast.on{opacity:1;transform:translateX(-50%)}
-/* sheets */
 .sheet{position:fixed;inset:0;z-index:40;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45)}
 .sheet.on{display:flex}
-.sheet>div{width:min(720px,100%);max-height:86vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));animation:rise .25s ease-out}
+.sheet>div{width:min(760px,100%);max-height:86vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));animation:rise .25s ease-out}
 @keyframes rise{from{transform:translateY(40px);opacity:0}}
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.sh h2{margin:0;font-size:20px}
 .x{border:0;background:rgba(255,255,255,.1);color:var(--txt);width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer}
-.tabs{display:flex;gap:6px;margin-bottom:12px}.tab{border:1px solid var(--line);background:transparent;color:var(--mut);padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer}.tab.on{background:#fff;color:#111}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
-.card{border-radius:16px;padding:12px;background:rgba(255,255,255,.06);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
-.card .art{height:110px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%)}
-.card .art img{max-height:100px;max-width:100%}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.card{border-radius:16px;padding:12px;background:rgba(255,255,255,.06);border:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.card .art{height:96px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%)}
+.card .art img{max-height:88px;max-width:100%}
+.bx{width:84px;height:76px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:30px;color:#fff;font-weight:800;box-shadow:inset 0 -8px 0 #0003,0 6px 14px #0006;position:relative}
+.bx::before{content:'';position:absolute;left:0;right:0;top:22px;height:8px;background:#fff6}
+.bx small{font-size:9px;letter-spacing:.05em}
 .card h3{margin:0;font-size:15px}.card p{margin:0;font-size:12px;color:var(--mut)}
+.lv{font-size:11px;color:var(--mut)}
 .btn{border:0;border-radius:11px;padding:10px 12px;font-weight:700;font-size:14px;cursor:pointer;background:var(--acc);color:#fff}
-.btn:disabled{background:#3a3f52;color:#8b91a7;cursor:not-allowed}.btn.alt{background:rgba(255,255,255,.1)}
+.btn:disabled{background:#3a3f52;color:#8b91a7;cursor:not-allowed}.btn.alt{background:rgba(255,255,255,.1)}.btn.eth{background:#6c5ce7}
 .lnk{background:none;border:0;color:var(--mut);font-size:12px;text-decoration:underline;cursor:pointer;padding:0;text-align:left}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
-.cell{border-radius:12px;background:rgba(255,255,255,.06);border:2px solid transparent;height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:11px;text-align:center;padding:6px}
-.cell img{max-width:80%;max-height:50px}.cell.no{opacity:.28;cursor:default;filter:grayscale(1)}.cell.on{border-color:var(--acc)}
+.cell{border-radius:12px;background:rgba(255,255,255,.06);border:2px solid transparent;height:108px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:11px;text-align:center;padding:6px;position:relative}
+.cell img{max-width:70%;max-height:44px}.cell.no{opacity:.28;cursor:default;filter:grayscale(1)}.cell.on{border-color:var(--acc)}
+.cell .n{position:absolute;top:4px;right:6px;font-size:10px;color:var(--mut)}
 .chip{font-size:10px;font-weight:800;padding:2px 7px;border-radius:99px;color:#111;text-transform:uppercase;letter-spacing:.04em}
 .bar{height:8px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin:4px 0 12px}.bar>i{display:block;height:100%;background:var(--acc)}
-.odds{font-size:12px;color:var(--mut);line-height:1.7}
-/* reveal */
+.odds{font-size:12px;color:var(--mut);line-height:1.6}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.f{border:1px solid var(--line);background:transparent;color:var(--mut);padding:5px 10px;border-radius:99px;font-size:12px;cursor:pointer}.f.on{background:#fff;color:#111}
 #reveal{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:45;display:none;width:min(420px,calc(100% - 24px));border-radius:20px;padding:16px;text-align:center}
 #reveal.on{display:block;animation:rise .3s ease-out}
 #reveal h2{margin:6px 0 2px;font-size:24px}#reveal p{margin:0 0 12px;color:var(--mut);font-size:13px}
 #reveal .btn{width:100%}
+#open{position:fixed;inset:0;z-index:43;display:none;align-items:center;justify-content:center;pointer-events:none}
+#open.on{display:flex}
+#open .bxw{animation:shake .36s ease-in-out 4,grow .3s 1.44s ease-in forwards}
+#open .bxw img,#open .bxw .bx{transform:scale(2.2)}
+#open .win{max-width:min(46vw,300px);max-height:30vh;filter:drop-shadow(0 10px 24px #000a);animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes shake{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-7deg) scale(1.08)}75%{transform:rotate(7deg) scale(1.08)}}
+@keyframes grow{to{transform:scale(1.8);opacity:0}}
+@keyframes pop{from{transform:scale(.2);opacity:0}}
 #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:44;transition:opacity .4s}
 #ask{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
 #ask>div{width:min(360px,90%);border-radius:18px;padding:18px}#ask h2{margin:0 0 10px;font-size:18px}
 #ask input{width:100%;padding:11px 12px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--txt);font-size:15px;margin-bottom:10px}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.note{font-size:12px;color:var(--mut);line-height:1.5}
-@media (max-width:520px){.db{min-width:56px;padding:7px 6px}.pill{padding:5px 9px}.pill b{font-size:13px}#hud{top:56px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 52px)}#hint{bottom:150px}}
+@media (max-width:560px){.db{min-width:50px;padding:7px 4px;font-size:10px}.pill{padding:5px 8px}.pill b{font-size:13px}#hud{top:56px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 52px)}#hint{bottom:150px}}
 </style></head><body>
-<div id="wrap"><div id="stage"><img id="bd" alt=""><div id="rm"></div></div></div>
+<div id="wrap"><div id="stage"><img id="bd" alt=""><div id="rm"></div><div id="logoBox"><img id="logo" alt=""></div></div></div>
 
 <div id="top"><a class="ib" href="../index.html">‹ Library</a><button class="ib" id="rmBtn"></button></div>
 <div id="hud" class="glass">
   <div class="pill"><i>🛍️</i><div><small>Brand Items</small><b id="mBI">0</b></div></div>
   <div class="pill"><i>Ξ</i><div><small>Ethereum</small><b id="mETH">0</b></div></div>
+  <div class="pill"><i>⏱️</i><div><small>per second</small><b id="mPS">0</b></div></div>
   <div class="pill"><i>👤</i><div><small>Player</small><b id="mName"></b></div></div>
 </div>
-<div id="hint">Tap the logo · +5 Brand Items</div>
+<div id="hint">Tap the logo · +<span id="mTap">5</span> Brand Items <span id="boost"></span></div>
 <div id="dock" class="glass">
-  <button class="db hot" data-open="shop"><span>🛒</span>Brand Shop</button>
+  <button class="db hot" data-open="shop"><span>🛒</span>Shop</button>
   <button class="db" data-open="pc"><span>🖥️</span>My PC</button>
   <button class="db" data-open="up"><span>⚡</span>Upgrades</button>
+  <button class="db" data-open="mkt"><span>Ξ</span>Market</button>
   <button class="db" data-open="trade"><span>🔄</span>Trade</button>
   <button class="db" data-open="set"><span>⚙️</span>Settings</button>
 </div>
 <div id="toast" class="glass"></div>
-<div id="flash"></div>
+<div id="flash"></div><div id="open"></div>
 
 <div class="sheet" id="shop"><div class="glass">
   <div class="sh"><h2>Brand Shop</h2><button class="x" data-close>✕</button></div>
-  <div class="tabs"><button class="tab on" data-page="1">Page 1</button><button class="tab" data-page="2">Page 2</button></div>
   <div class="cards" id="shopCards"></div>
-  <p class="note" style="margin-top:12px">Boxes cost in-game Brand Items only. They can't be bought with real money.</p>
+  <p class="note" style="margin-top:12px">Boxes cost in-game Brand Items or Ethereum only. They can't be bought with real money. Odds are listed on every box.</p>
 </div></div>
 <div class="sheet" id="pc"><div class="glass">
   <div class="sh"><h2>My PC · Collection</h2><button class="x" data-close>✕</button></div>
   <div id="pcInfo" class="note"></div><div class="bar"><i id="pcBar"></i></div>
+  <div class="filters" id="pcF"></div>
   <div class="grid" id="pcGrid"></div>
 </div></div>
 <div class="sheet" id="up"><div class="glass">
   <div class="sh"><h2>Upgrades</h2><button class="x" data-close>✕</button></div>
   <div class="cards" id="upCards"></div>
+</div></div>
+<div class="sheet" id="mkt"><div class="glass">
+  <div class="sh"><h2>Ethereum Market</h2><button class="x" data-close>✕</button></div>
+  <p class="note">Spend Ethereum from your brands. In-game currency only.</p>
+  <div class="cards" id="mktCards"></div>
 </div></div>
 <div class="sheet" id="trade"><div class="glass">
   <div class="sh"><h2>Trade</h2><button class="x" data-close>✕</button></div>
@@ -114,152 +130,209 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 <div id="ask"><div class="glass"><h2>What's your username?</h2><input id="askIn" maxlength="20" placeholder="Username"><button class="btn" id="askOk" style="width:100%">Let's go</button></div></div>
 
 <script>
-// Show any startup error on screen, and self-heal a stale offline cache once.
 addEventListener('error', e => { const d = document.createElement('div');
   d.style.cssText = 'position:fixed;left:10px;right:10px;top:80px;z-index:999;background:#b00020;color:#fff;padding:10px;border-radius:10px;font:13px monospace';
   d.textContent = 'Brand Clicker error: ' + e.message + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')'; document.body.appendChild(d); });
-async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return false; sessionStorage.setItem('bcHealed', 1);
+async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return; sessionStorage.setItem('bcHealed', 1);
   try{ for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); for(const k of await caches.keys()) await caches.delete(k); }catch(e){}
-  location.reload(); return true; }
+  location.reload(); }
 </script>
-<script src="bc27/orig.js?v=3"></script>
-<script src="bc27/remaster.js?v=3"></script>
-<script>if(!window.BC_ORIG || !window.BC_REMASTER) bcHeal();</script>
+<script src="bc27/orig.js?v=4"></script>
+<script src="bc27/v02.js?v=4"></script>
+<script src="bc27/remaster.js?v=4"></script>
+<script src="bc27/remaster2.js?v=4"></script>
+<script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT) bcHeal();</script>
 <script>
-const O = BC_ORIG, ST = document.getElementById('stage'), $ = id => document.getElementById(id);
-const BR = Object.fromEntries(O.brands.map(b => [b.id, b]));
+const O = BC_ORIG, V = BC_V02, $ = id => document.getElementById(id);
+const file = f => 'bc27/orig/' + f;
+const cosOf = (s, name) => s.costumes.find(c => c.name === name) || s.costumes[0];
+// ---------- brands: original 39 (HQ logos where available) + v0.2 brands ----------
+const HQ = {0:'png',1:'png',2:'png',4:'png',5:'svg',6:'svg',7:'svg',9:'png',11:'svg',15:'png',16:'svg',17:'svg',18:'png',19:'svg',20:'svg',21:'svg',22:'svg',23:'svg',24:'svg',25:'svg',26:'png',27:'svg',28:'svg',29:'png',31:'svg',33:'png',34:'svg'};
+const winKey = b => b.reveal.sprite === 'Brand Win' ? 'win' : b.reveal.sprite === 'Brand Win2' ? 'win2' : 'win3';
+const ALL = [{ id:0, name:'Linus Tech Tips', rarity:'Starter', eth:0, logo:'bc27/hq/0.png' }];
+for(const b of O.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b.eth, backdrop:b.backdrop,
+  logo:HQ[b.id] ? `bc27/hq/${b.id}.${HQ[b.id]}` : file(cosOf(O.sprites[winKey(b)], b.reveal.costume).file) });
+for(const b of V.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b.eth, logo:'bc27/' + b.logoFile });
+const BR = Object.fromEntries(ALL.map(b => [b.id, b])), COLLECT = ALL.filter(b => b.id);
+const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Chroma'];
+
+// ---------- boxes ----------
+const origW = k => Object.fromEntries(Object.values(O.boxes[k].weights).map(e => [e.id, e.weight]));
+const BOXES = [
+  { k:'standard', name:'Brand Box', desc:'The original box — 32 brands', price:125, art:file(O.sprites.boxStd.costumes[0].file), w:origW('standard') },
+  { k:'nhl', name:'NHL Box', desc:'St. Louis, Seattle, Anaheim, Carolina', price:55, art:file(O.sprites.boxNhl.costumes[0].file), w:origW('nhl') },
+  { k:'xmas', name:'Christmas Box', desc:'Holiday themes', price:0, art:file(O.sprites.boxXmas.costumes[0].file), w:origW('xmas') },
+  { k:'retro', name:"1980's Box", desc:'Atari, Commodore, SEGA, Coca-Cola, Walkman', price:300, art:file(O.sprites.box1980.costumes[0].file) },
+  { k:'food', name:'Fast Food Box', desc:'Taco Bell, KFC and the burger crew', price:400, emoji:'🍔', bg:'linear-gradient(135deg,#ff7a00,#d62300)' },
+  { k:'sport', name:'Sports Box', desc:'Nike, adidas, NBA, Red Bull and more', price:650, emoji:'🏀', bg:'linear-gradient(135deg,#1e88e5,#0d47a1)' },
+  { k:'tech', name:'Tech Box', desc:'Google, Tesla, YouTube, Apple, NVIDIA…', price:900, emoji:'💻', bg:'linear-gradient(135deg,#7c4dff,#311b92)' },
+  { k:'game', name:'Gaming Box', desc:'Roblox, Steam, Epic, Twitch, PlayStation…', price:1200, emoji:'🎮', bg:'linear-gradient(135deg,#00c853,#1b5e20)' },
+  { k:'car', name:'Car Box', desc:'Ford to Ferrari', price:3000, emoji:'🏎️', bg:'linear-gradient(135deg,#e53935,#212121)' },
+  { k:'money', name:'Money Box', desc:'PayPal, Amex, Mastercard, VISA… paid in Ethereum', price:2500, eth:true, emoji:'💳', bg:'linear-gradient(135deg,#ffd54f,#6c5ce7)' }
+];
+for(const b of BOXES) if(!b.w) b.w = V.boxes[b.k].weights;
+const boxArt = b => b.art ? `<img src="${b.art}" alt="">` : `<div class="bx" style="background:${b.bg}">${b.emoji}<small>${b.name.toUpperCase()}</small></div>`;
+
+// ---------- save ----------
 const KEY = 'bc27_save';
 let S; try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
 if(S && S.saveVersion) S = null; // v0.1 test save had a different format
-if(S && !Array.isArray(S.owned)) S.owned = [];
-S = Object.assign({ bi:0, eth:0, bg:0, owned:[], up:0, name:'', boxes:0, remaster:true }, S || {});
+S = Object.assign({ v:2, bi:0, eth:0, bg:0, owned:[], counts:{}, up:0, lv:{}, items:{}, keys:0, boostUntil:0, name:'', boxes:0, taps:0, remaster:true }, S || {});
+if(!Array.isArray(S.owned)) S.owned = [];
+for(const id of S.owned) S.counts[id] = S.counts[id] || 1;
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} };
-const file = f => 'bc27/orig/' + f;
-const cosOf = (s, name) => (typeof name === 'number' ? s.costumes[name] : s.costumes.find(c => c.name === name)) || s.costumes[0];
 
-const logoName = id => (BR[id] && BR[id].logo) || 'Linus Tech Tips';
+// ---------- upgrades (Brand Items) ----------
+const UPG = [
+  { k:'tap', name:'Stronger Tap', ico:'👆', max:25, cost:l => 60 * 1.55 ** l, desc:l => `+5 per tap per level (now +${5 + 5 * l})` },
+  { k:'auto1', name:'Upgrade One', ico:'⚙️', max:1, cost:() => 40, desc:() => 'Original upgrade: +5 every 3 seconds' },
+  { k:'auto2', name:'Upgrade Two', ico:'⚙️', max:1, cost:() => 550, req:'auto1', desc:() => 'Original upgrade: +25 every 2.5 seconds' },
+  { k:'factory', name:'Brand Factory', ico:'🏭', max:30, cost:l => 1500 * 1.5 ** l, desc:l => `+15 Brand Items per second per level (now ${15 * l}/s)` },
+  { k:'crit', name:'Viral Tap', ico:'🔥', max:5, cost:l => 800 * 1.9 ** l, desc:l => `${4 * (l + 1)}% chance a tap goes viral for ×10` },
+  { k:'luck', name:'Lucky Logo', ico:'🍀', max:5, cost:l => 2500 * 2 ** l, desc:l => `Rare and better brands ${15 * (l + 1)}% more likely (now +${15 * l}%)` },
+  { k:'disc', name:'Bulk Buyer', ico:'🏷️', max:6, cost:l => 1200 * 1.85 ** l, desc:l => `Boxes ${5 * (l + 1)}% cheaper (now −${5 * l}%)` },
+  { k:'coll', name:'Brand Royalties', ico:'📈', max:10, cost:l => 3000 * 1.7 ** l, desc:l => `Owned brands pay their rarity bonus per second ×${1 + (l + 1) * .5}` }
+];
+const lv = k => S.lv[k] || (k === 'auto1' ? +(S.up >= 1) : k === 'auto2' ? +(S.up >= 2) : 0);
+// ---------- Ethereum Market ----------
+const MKT = [
+  { k:'golden', name:'Golden Logo', ico:'🥇', price:5000, once:true, desc:'Taps earn ×2 forever' },
+  { k:'diamond', name:'Diamond Factory', ico:'💎', price:15000, once:true, desc:'All per-second income ×2 forever' },
+  { k:'dupe', name:'Duplicate Exchange', ico:'♻️', price:3000, once:true, desc:'Duplicate brands pay double Ethereum' },
+  { k:'key', name:'Box Key', ico:'🗝️', price:750, desc:'Open any box for free (keys stack)' },
+  { k:'boost', name:'Overclock', ico:'🚀', price:1500, desc:'×3 on everything for 3 minutes' },
+  { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade 100 Ethereum for 1,500 Brand Items' }
+];
+const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30 };
+const boosted = () => Date.now() < S.boostUntil ? 3 : 1;
+const tapValue = () => (5 + 5 * lv('tap')) * (S.items.golden ? 2 : 1) * boosted();
+function perSec(){
+  let s = (lv('auto1') ? 5 / 3 : 0) + (lv('auto2') ? 10 : 0) + 15 * lv('factory');
+  s += S.owned.reduce((a, id) => a + RBONUS[BR[id] ? BR[id].rarity : 'Common'], 0) * (1 + lv('coll') * .5);
+  return s * (S.items.diamond ? 2 : 1) * boosted();
+}
+const boxPrice = b => b.eth ? b.price : Math.round(b.price * (1 - .05 * lv('disc')));
+
+// ---------- stage ----------
+function place(img, c){ const k = 1 / c.res; img.onload = () => { img.style.width = img.naturalWidth * k + 'px';
+  img.style.left = 240 - c.rcx * k + 'px'; img.style.top = 180 - c.rcy * k + 'px'; }; img.src = file(c.file); }
 function remaster(id){ const acc = BC_REMASTER(id, $('rm'));
-  document.documentElement.style.setProperty('--acc', /^#(fff|e8f5e9|e5e7ff|a1a1a6|ffde00|ffd54f|c8e600|f7b600|fcb514|99d9d9|f5a623|ffc72c)/.test(acc) ? '#222' : acc); }
-
-// ---- stage art at the original Scratch geometry (480x360, origin centre, y up), scaled to cover the screen ----
-function place(img, c, x, y, size){
-  const k = size / 100 / c.res, go = () => { img.style.width = img.naturalWidth * k + 'px';
-    img.style.left = 240 + x - c.rcx * k + 'px'; img.style.top = 180 - y - c.rcy * k + 'px'; };
-  img._go = go; if(img.dataset.f !== c.file){ img.dataset.f = c.file; img.style.visibility = 'hidden'; img.onload = () => { img._go(); img.style.visibility = ''; }; img.src = file(c.file); } else if(img.complete) go();
-
-}
-const SP = {};
-for(const k of ['logo', 'boxStd', 'boxNhl', 'boxXmas', 'win', 'win2', 'win3']){
-  const s = O.sprites[k], im = document.createElement('img'); im.alt = ''; im.style.display = 'none'; if(k === 'logo') im.id = 'logo';
-  ST.appendChild(im); SP[k] = { s, im, x:s.x, y:s.y, size:s.size, cos:s.cur };
-}
-function show(k, o = {}){ const p = SP[k]; Object.assign(p, o); p.im.style.display = ''; place(p.im, cosOf(p.s, p.cos), p.x, p.y, p.size); }
-const hideAll = () => Object.values(SP).forEach(p => p.im.style.display = 'none');
-function backdrop(id){ const b = BR[id], c = O.backdrops.find(x => x.name === (b ? b.backdrop : 'LTT Menu (Starter)')) || O.backdrops[0];
-  place($('bd'), c, 0, 0, 100); $('wrap').style.background = S.remaster ? BC_REMASTER_BASE(id) : `url(${file(c.file)}) center/cover`; $('rm').style.display = S.remaster ? 'block' : 'none';
-  if(S.remaster) remaster(id); else document.documentElement.style.setProperty('--acc', '#ff8c1a'); }
-const wait = ms => new Promise(r => setTimeout(r, ms));
-const anim = (k, from, to, ms) => new Promise(r => { const t0 = performance.now();
-  (function f(t){ const a = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - a, 3), o = {};
-    for(const p in from) if(!(p in to)) o[p] = from[p];
-    for(const p in to) o[p] = from[p] + (to[p] - from[p]) * e; show(k, o); a < 1 ? requestAnimationFrame(f) : r(); })(t0); });
-
-const fmt = n => Math.round(n).toLocaleString();
-function mon(){ $('mBI').textContent = fmt(S.bi); $('mETH').textContent = fmt(S.eth); $('mName').textContent = S.name || '—'; }
+  document.documentElement.style.setProperty('--acc', /^#(fff|000|e8f5e9|e5e7ff|a1a1a6|ffde00|ffd54f|c8e600|f7b600|fcb514|99d9d9|f5a623|ffc72c|ffeb00|ffda1a|ffcc00|ffc220|d4af37|cd9834)/i.test(acc) ? '#2b2f3f' : acc); }
+function backdrop(id){
+  const b = BR[id], orig = b && (b.backdrop || id === 0), useRm = S.remaster || !orig;
+  const c = O.backdrops.find(x => x.name === (b && b.backdrop || 'LTT Menu (Starter)')) || O.backdrops[0];
+  $('bd').style.display = useRm ? 'none' : ''; if(!useRm) place($('bd'), c);
+  $('rm').style.display = useRm ? 'block' : 'none';
+  if(useRm){ remaster(id); $('wrap').style.background = BC_REMASTER_BASE(id); }
+  else { $('wrap').style.background = `url(${file(c.file)}) center/cover`; document.documentElement.style.setProperty('--acc', '#ff8c1a'); } }
+const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : Math.floor(n).toLocaleString();
+function mon(){ $('mBI').textContent = fmt(S.bi); $('mETH').textContent = fmt(S.eth); $('mName').textContent = S.name || '—';
+  $('mPS').textContent = fmt(perSec()); $('mTap').textContent = fmt(tapValue());
+  const t = S.boostUntil - Date.now(); $('boost').textContent = t > 0 ? `· 🚀 ×3 ${Math.ceil(t / 1000)}s` : ''; }
 function rmLabel(){ const t = S.remaster ? 'Remastered' : 'Original'; $('rmBtn').textContent = '🎨 ' + t; $('rmSet').textContent = 'Backgrounds: ' + t; }
 function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 1800); }
-const showUI = on => ['hud', 'dock', 'hint'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
+const showUI = on => ['hud', 'dock', 'hint', 'stage'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
 let busy = false, pending = 0;
+function home(){ busy = false; $('reveal').classList.remove('on'); $('open').classList.remove('on'); showUI(true); $('logoBox').style.visibility = '';
+  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; mon(); }
 
-function home(){ busy = false; hideAll(); $('reveal').classList.remove('on'); showUI(true);
-  backdrop(S.bg); show('logo', { cos:logoName(S.bg), size:150, x:O.sprites.logo.x, y:O.sprites.logo.y }); mon(); }
-
-// clicking: original gives +5 per click on the logo, or space
-function click(e){ if(busy || document.querySelector('.sheet.on')) return; S.bi += O.prices.perClick; mon(); save();
-  const p = document.createElement('div'); p.className = 'pop'; p.textContent = '+5';
+// ---------- tapping ----------
+function tap(e){ if(busy || document.querySelector('.sheet.on')) return;
+  const crit = Math.random() < .04 * lv('crit'), v = tapValue() * (crit ? 10 : 1);
+  S.bi += v; S.taps++; mon();
+  const p = document.createElement('div'); p.className = 'pop' + (crit ? ' crit' : ''); p.textContent = (crit ? 'VIRAL! +' : '+') + fmt(v);
   const x = e && e.clientX != null ? e.clientX : innerWidth / 2 + (Math.random() * 80 - 40), y = e && e.clientY != null ? e.clientY : innerHeight / 2;
-  p.style.left = x - 14 + 'px'; p.style.top = y - 30 + 'px'; document.body.appendChild(p); setTimeout(() => p.remove(), 800);
-  refreshOpen(); }
+  p.style.left = x - 20 + 'px'; p.style.top = y - 30 + 'px'; document.body.appendChild(p); setTimeout(() => p.remove(), 800); }
+let last = Date.now();
+setInterval(() => { const now = Date.now(), dt = (now - last) / 1000; last = now; S.bi += perSec() * Math.min(dt, 5); mon(); refreshOpen(); }, 250);
+setInterval(save, 2000); addEventListener('pagehide', save);
 
-// upgrades: original Sprite1/Sprite2 — 40 BI -> +5 every 3s, 550 BI -> +25 every 2.5s
-const UPS = [{ n:1, name:'Upgrade One', cost:40, desc:'+5 Brand Items every 3 seconds' }, { n:2, name:'Upgrade Two', cost:550, desc:'+25 Brand Items every 2.5 seconds' }];
-function renderUp(){ $('upCards').innerHTML = UPS.map(u => { const own = S.up >= u.n, locked = S.up < u.n - 1;
-  return `<div class="card"><h3>⚡ ${u.name}</h3><p>${u.desc}</p><button class="btn" data-up="${u.n}" ${own || locked || S.bi < u.cost ? 'disabled' : ''}>${own ? 'Owned' : locked ? 'Buy Upgrade One first' : fmt(u.cost) + ' Brand Items'}</button></div>`; }).join('');
-  $('upCards').querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const u = UPS[b.dataset.up - 1]; if(S.bi < u.cost) return;
-    S.bi -= u.cost; S.up = u.n; save(); mon(); renderUp(); toast(u.name + ' active!'); }); }
-setInterval(() => { if(S.up >= 1){ S.bi += 5; mon(); save(); refreshOpen(); } }, 3000);
-setInterval(() => { if(S.up >= 2){ S.bi += 25; mon(); save(); refreshOpen(); } }, 2500);
-
-// boxes: same prices and weights as the original Brand Win scripts
-const BOXES = [{ k:'boxStd', kind:'standard', name:'Brand Box', desc:'32 brands from every rarity' },
-  { k:'boxNhl', kind:'nhl', name:'NHL Box', desc:'St. Louis, Seattle, Anaheim, Carolina' },
-  { k:'boxXmas', kind:'xmas', name:'Christmas Box', desc:'Holiday themes — free' }];
-const PRICE = { standard:O.prices.standard, nhl:O.prices.nhl, xmas:O.prices.xmas };
-const winKey = b => b.reveal.sprite === 'Brand Win' ? 'win' : b.reveal.sprite === 'Brand Win2' ? 'win2' : 'win3';
-const winFile = b => file(cosOf(O.sprites[winKey(b)], b.reveal.costume).file);
-function oddsText(kind){ const w = Object.values(O.boxes[kind].weights), tot = w.reduce((a, b) => a + b.weight, 0);
-  return w.map(e => `${BR[e.id].name} ${(e.weight / tot * 100).toFixed(1)}%`).join(' · '); }
-let page = 1;
+// ---------- shop ----------
+function weights(b){ const L = 1 + .15 * lv('luck'), w = {};
+  for(const [id, x] of Object.entries(b.w)) w[id] = x * (['Rare', 'Epic', 'Legendary', 'Chroma'].includes(BR[id].rarity) ? L : 1); return w; }
+function oddsList(b){ const w = weights(b), tot = Object.values(w).reduce((a, x) => a + x, 0);
+  return Object.entries(w).sort((a, c) => c[1] - a[1]).map(([id, x]) => `${BR[id].name} ${(x / tot * 100).toFixed(1)}%`).join(' · '); }
+const openOdds = new Set();
 function renderShop(){
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', +t.dataset.page === page));
   const c = $('shopCards');
-  if(page === 2){ c.innerHTML = `<div class="card"><div class="art"><img src="${file(O.sprites.box1980.costumes[0].file)}" alt=""></div><h3>1980's Box</h3><p>Coming soon</p><button class="btn" disabled>Coming Soon</button></div>`; return; }
-  if(S.bi <= O.prices.shopUnlock){ c.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center"><h3>🔒 Shop locked</h3><p>Collect more than ${O.prices.shopUnlock} Brand Items to open the Brand Shop.</p></div>`; return; }
-  c.innerHTML = BOXES.map(b => { const p = PRICE[b.kind];
-    return `<div class="card"><div class="art"><img src="${file(O.sprites[b.k].costumes[0].file)}" alt=""></div><h3>${b.name}</h3><p>${b.desc}</p>
-      <button class="lnk" data-odds="${b.kind}">View odds</button><div class="odds" id="o-${b.kind}" hidden>${oddsText(b.kind)}</div>
-      <button class="btn" data-box="${b.k}" ${S.bi < p ? 'disabled' : ''}>${p ? 'Open · ' + fmt(p) + ' BI' : 'Open · Free'}</button></div>`; }).join('');
-  c.querySelectorAll('[data-odds]').forEach(b => b.onclick = () => { const o = $('o-' + b.dataset.odds); o.hidden = !o.hidden; });
-  c.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box));
+  if(S.bi <= O.prices.shopUnlock && !S.boxes){ c.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center"><h3>🔒 Shop locked</h3><p>Collect more than ${O.prices.shopUnlock} Brand Items to open the Brand Shop (just like the original).</p></div>`; return; }
+  c.innerHTML = BOXES.map(b => { const p = boxPrice(b), cur = b.eth ? S.eth : S.bi, have = Object.keys(b.w).filter(id => S.owned.includes(+id)).length;
+    return `<div class="card"><div class="art">${boxArt(b)}</div><h3>${b.name}</h3><p>${b.desc}</p><p>${have}/${Object.keys(b.w).length} collected</p>
+      <button class="lnk" data-odds="${b.k}">View odds</button><div class="odds" ${openOdds.has(b.k) ? '' : 'hidden'}>${oddsList(b)}</div>
+      <div class="row" style="margin:0"><button class="btn ${b.eth ? 'eth' : ''}" style="flex:1" data-box="${b.k}" ${cur < p ? 'disabled' : ''}>${p ? 'Open · ' + fmt(p) + (b.eth ? ' Ξ' : ' BI') : 'Open · Free'}</button>
+      ${S.keys ? `<button class="btn alt" data-key="${b.k}">🗝️ ${S.keys}</button>` : ''}</div></div>`; }).join('');
+  c.querySelectorAll('[data-odds]').forEach(b => b.onclick = () => { const k = b.dataset.odds; openOdds.has(k) ? openOdds.delete(k) : openOdds.add(k); renderShop(); });
+  c.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box, false));
+  c.querySelectorAll('[data-key]').forEach(b => b.onclick = () => openBox(b.dataset.key, true));
 }
-async function openBox(k){
-  const bx = BOXES.find(b => b.k === k), cost = PRICE[bx.kind]; if(busy || S.bi < cost) return;
-  busy = true; S.bi -= cost; S.boxes++; mon(); save(); closeSheets(); showUI(false); hideAll();
-  await anim(k, { x:0, y:-200, size:60 }, { x:0, y:0, size:175 }, 500);
-  for(let i = 0; i < 3; i++){ await anim(k, { size:175 }, { size:200 }, 180); await anim(k, { size:200 }, { size:175 }, 180); }
-  const f = $('flash'); f.style.opacity = .85; await wait(120); hideAll(); f.style.opacity = 0;
-  const w = Object.values(O.boxes[bx.kind].weights), tot = w.reduce((a, b) => a + b.weight, 0); let r = Math.random() * tot, id = +w[0].id;
-  for(const e of w){ if((r -= e.weight) < 0){ id = +e.id; break; } }
-  const b = BR[id], dup = S.owned.includes(id); pending = id;
-  const wk = winKey(b); await anim(wk, { cos:b.reveal.costume, size:20, x:0, y:40 }, { size:O.sprites[wk].size, x:0, y:40 }, 400);
-  $('rvChip').textContent = b.rarity; $('rvChip').style.background = `var(--${b.rarity})`;
-  $('rvName').textContent = b.name;
-  $('rvSub').textContent = (dup ? 'Duplicate' : 'New brand!') + ` · ${b.eth >= 0 ? '+' : ''}${fmt(b.eth)} Ethereum`;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function openBox(k, useKey){
+  const b = BOXES.find(x => x.k === k), p = boxPrice(b); if(busy) return;
+  if(useKey){ if(!S.keys) return; S.keys--; }
+  else if(b.eth){ if(S.eth < p) return; S.eth -= p; } else { if(S.bi < p) return; S.bi -= p; }
+  busy = true; S.boxes++; mon(); save(); closeSheets(); showUI(false);
+  const o = $('open'); o.innerHTML = `<div class="bxw">${boxArt(b)}</div>`; o.classList.add('on');
+  await wait(1700); const f = $('flash'); f.style.opacity = .85; await wait(150); f.style.opacity = 0;
+  const w = weights(b), tot = Object.values(w).reduce((a, x) => a + x, 0); let r = Math.random() * tot, id = +Object.keys(w)[0];
+  for(const [i, x] of Object.entries(w)){ if((r -= x) < 0){ id = +i; break; } }
+  const br = BR[id], dup = S.owned.includes(id); pending = id;
+  backdrop(id); $('stage').style.visibility = ''; $('logoBox').style.visibility = 'hidden';
+  o.innerHTML = `<img class="win" src="${br.logo}" alt="">`;
+  const eth = br.eth * (dup && S.items.dupe ? 2 : 1);
+  $('rvChip').textContent = br.rarity; $('rvChip').style.background = `var(--${br.rarity})`; $('rvName').textContent = br.name;
+  $('rvSub').textContent = (dup ? `Duplicate ×${(S.counts[id] || 1) + 1}` : 'New brand!') + ` · ${eth >= 0 ? '+' : ''}${fmt(eth)} Ethereum`;
   $('reveal').classList.add('on');
   if(window.GXY){ GXY.event('brand-clicker-27', 'boxes'); if(!dup) GXY.event('brand-clicker-27', 'brands', S.owned.length + 1); }
 }
-$('claim').onclick = () => { const b = BR[pending]; if(!b) return;
-  S.bg = b.id; S.eth += b.eth; if(!S.owned.includes(b.id)) S.owned.push(b.id); pending = 0; save(); home(); };
+$('claim').onclick = () => { const b = BR[pending]; if(!b) return; const dup = S.owned.includes(b.id);
+  S.bg = b.id; S.eth += b.eth * (dup && S.items.dupe ? 2 : 1); S.counts[b.id] = (S.counts[b.id] || 0) + 1;
+  if(!dup) S.owned.push(b.id); pending = 0; save(); home(); };
 
-// My PC: the '27 collection; tap an owned brand to apply it
+// ---------- upgrades + market ----------
+function renderUp(){ $('upCards').innerHTML = UPG.map(u => { const l = lv(u.k), max = l >= u.max, c = Math.round(u.cost(l)), lock = u.req && !lv(u.req);
+  return `<div class="card"><h3>${u.ico} ${u.name}</h3><span class="lv">Level ${l}/${u.max}</span><p>${u.desc(l)}</p>
+    <button class="btn" data-up="${u.k}" ${max || lock || S.bi < c ? 'disabled' : ''}>${max ? 'Maxed' : lock ? 'Needs Upgrade One' : fmt(c) + ' BI'}</button></div>`; }).join('');
+  $('upCards').querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const u = UPG.find(x => x.k === b.dataset.up), l = lv(u.k), c = Math.round(u.cost(l));
+    if(S.bi < c || l >= u.max) return; S.bi -= c; S.lv[u.k] = l + 1; save(); mon(); renderUp(); toast(`${u.name} → level ${l + 1}`); }); }
+function renderMkt(){ $('mktCards').innerHTML = MKT.map(m => { const own = m.once && S.items[m.k];
+  return `<div class="card"><h3>${m.ico} ${m.name}</h3><p>${m.desc}</p>${m.k === 'key' ? `<span class="lv">You have ${S.keys}</span>` : ''}
+    <button class="btn eth" data-m="${m.k}" ${own || S.eth < m.price ? 'disabled' : ''}>${own ? 'Owned' : fmt(m.price) + ' Ξ'}</button></div>`; }).join('');
+  $('mktCards').querySelectorAll('[data-m]').forEach(b => b.onclick = () => { const m = MKT.find(x => x.k === b.dataset.m); if(S.eth < m.price || (m.once && S.items[m.k])) return;
+    S.eth -= m.price;
+    if(m.once) S.items[m.k] = 1; else if(m.k === 'key') S.keys++; else if(m.k === 'boost') S.boostUntil = Math.max(Date.now(), S.boostUntil) + 180000; else if(m.k === 'cash') S.bi += 1500;
+    save(); mon(); renderMkt(); toast(m.name + '!'); }); }
+
+// ---------- My PC ----------
+let pcF = 'All';
 function renderPC(){
-  $('pcInfo').textContent = `${S.owned.length} / ${O.brands.length} brands collected · ${S.boxes} boxes opened · tap a brand to apply it`;
-  $('pcBar').style.width = S.owned.length / O.brands.length * 100 + '%';
-  $('pcGrid').innerHTML = O.brands.map(b => { const own = S.owned.includes(b.id);
-    return `<div class="cell${own ? '' : ' no'}${S.bg === b.id ? ' on' : ''}" data-id="${b.id}"><img src="${winFile(b)}" alt=""><b>${own ? b.name : '???'}</b><span class="chip" style="background:var(--${b.rarity})">${b.rarity}</span></div>`; }).join('');
+  const n = S.owned.length; $('pcInfo').textContent = `${n} / ${COLLECT.length} brands · ${S.boxes} boxes opened · ${fmt(S.taps)} taps · tap a brand to apply it`;
+  $('pcBar').style.width = n / COLLECT.length * 100 + '%';
+  $('pcF').innerHTML = ['All', 'Owned', ...RAR].map(f => `<button class="f${f === pcF ? ' on' : ''}" data-f="${f}">${f}</button>`).join('');
+  $('pcF').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { pcF = b.dataset.f; renderPC(); });
+  const list = COLLECT.filter(b => pcF === 'All' || (pcF === 'Owned' ? S.owned.includes(b.id) : b.rarity === pcF));
+  $('pcGrid').innerHTML = list.map(b => { const own = S.owned.includes(b.id);
+    return `<div class="cell${own ? '' : ' no'}${S.bg === b.id ? ' on' : ''}" data-id="${b.id}">${own && S.counts[b.id] > 1 ? `<span class="n">×${S.counts[b.id]}</span>` : ''}<img src="${b.logo}" alt=""><b>${own ? b.name : '???'}</b><span class="chip" style="background:var(--${b.rarity})">${b.rarity}</span></div>`; }).join('');
   $('pcGrid').querySelectorAll('.cell:not(.no)').forEach(d => d.onclick = () => { S.bg = +d.dataset.id; save(); closeSheets(); home(); });
 }
 
-// sheets
-const RENDER = { shop:renderShop, pc:renderPC, up:renderUp };
+// ---------- sheets + wiring ----------
+const RENDER = { shop:renderShop, pc:renderPC, up:renderUp, mkt:renderMkt };
 function openSheet(id){ if(busy) return; closeSheets(); if(RENDER[id]) RENDER[id](); $(id).classList.add('on'); }
 function closeSheets(){ document.querySelectorAll('.sheet.on').forEach(s => s.classList.remove('on')); }
-let rt = 0; function refreshOpen(){ const s = document.querySelector('.sheet.on'); if(s && RENDER[s.id] && Date.now() - rt > 400){ rt = Date.now(); RENDER[s.id](); } }
+let rt = 0; function refreshOpen(){ const s = document.querySelector('.sheet.on'); if(s && RENDER[s.id] && s.id !== 'pc' && Date.now() - rt > 700){ rt = Date.now(); RENDER[s.id](); } }
 document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openSheet(b.dataset.open));
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
 document.querySelectorAll('.sheet').forEach(s => s.onclick = e => { if(e.target === s) closeSheets(); });
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => { page = +t.dataset.page; renderShop(); });
-SP.logo.im.addEventListener('click', click);
+$('logoBox').addEventListener('click', tap);
 const toggleRm = () => { S.remaster = !S.remaster; save(); rmLabel(); if(!busy) backdrop(S.bg); };
 $('rmBtn').onclick = toggleRm; $('rmSet').onclick = toggleRm;
-document.addEventListener('keydown', e => { if(e.code === 'Space' && document.activeElement !== $('askIn')){ e.preventDefault(); click(); }
-  if(e.key === 'Escape') closeSheets(); });
+document.addEventListener('keydown', e => { if(e.code === 'Space' && document.activeElement !== $('askIn')){ e.preventDefault(); tap(); } if(e.key === 'Escape') closeSheets(); });
 $('wipe').onclick = () => { if(confirm('Reset your Brand Clicker save?')){ localStorage.removeItem(KEY); location.reload(); } };
 $('rename').onclick = () => { closeSheets(); ask(); };
 function ask(){ $('askIn').value = S.name; $('ask').style.display = 'flex'; $('askIn').focus(); }
 $('askOk').onclick = () => { const v = $('askIn').value.trim(); if(!v) return; S.name = v; save(); mon(); $('ask').style.display = 'none'; };
 $('askIn').onkeydown = e => { if(e.key === 'Enter') $('askOk').click(); };
-function fit(){ const s = Math.min(Math.max(innerWidth / 480, innerHeight / 360), innerWidth / 380); ST.style.transform = `scale(${s})`; }
+function fit(){ const s = Math.min(Math.max(innerWidth / 480, innerHeight / 360), innerWidth / 380); $('stage').style.transform = `scale(${s})`; }
 addEventListener('resize', fit); fit(); rmLabel(); home(); if(!S.name) ask();
 </script>
 <script src="../assets/gxy.js"></script>

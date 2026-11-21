@@ -144,6 +144,7 @@ const S = {
   39:{ acc:'#fc4c02', f:el => { ice('#c8102e', '#fc4c02')(el); // Anaheim Ducks
       props(el, `<svg width="30" height="16" viewBox="0 0 30 16"><path d="M2 10 Q10 2 18 8 L28 6 L22 12 Q12 16 2 10z" fill="#111"/><path d="M18 8l10-2-6 6z" fill="#fc4c02"/></svg>`, 4, 'rmDrift', 6, 10, .9, 1.4, 'left'); } }
 };
+window.BC_RM_KIT = { svg, R, props, layer, bubble, ice, S };
 window.BC_REMASTER = function(id, el){ const s = S[id] || S[0]; el.innerHTML = ''; el.style.background = '#000'; s.f(el); return s.acc; };
 window.BC_REMASTER_BASE = id => { const s = S[id] || S[0]; const l = document.createElement('div'); s.f(l); return (l.firstChild && l.firstChild.style.background) || '#000'; };
 })();
