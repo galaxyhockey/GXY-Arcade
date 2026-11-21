@@ -88,8 +88,10 @@ const CH = { x:0, z:-4 }; G.CH = CH;
   const rm = roofM('#4a3c38'); [[-1, -.55], [1, .55]].forEach(([s, a]) => { const r = new THREE.Mesh(new THREE.BoxGeometry(17, .3, 9.6), rm); r.position.set(0, up + 4.4, -4 + s * 4.1); r.rotation.x = a; r.castShadow = true; S.add(r); });
   // floors
   floor(-8, -12, 8, 4, 0, null); plane(9, 16, rep(M.carpet, 4, 6), -3.5, .02, -4); plane(7, 16, rep(M.kitchen, 5, 10), 4.5, .02, -4);
-  floor(-8, -12, 8, 4, up, null); plane(16, 10, rep(M.wood, 5, 4), 0, up + .02, -7); plane(10.4, 6, rep(M.wood, 4, 2), 2.8, up + .02, 1);
-  box(10.4, .2, 6, mat('#e8e4d8'), 2.8, up - .2, 1, { col:false }); box(16, .2, 10, mat('#e8e4d8'), 0, up - .2, -7, { col:false });
+  floor(-5.4, -12, 8, 4, up, null); floor(-8, -12, -5.4, -6, up, null); floor(-8, 2.2, -5.4, 4, up, null); // stairwell (x -8..-5.4, z -6..2.2) left open
+  plane(16, 6, rep(M.wood, 5, 2), 0, up + .02, -9); plane(13.4, 4, rep(M.wood, 4, 2), 1.3, up + .02, -4); plane(10.4, 6, rep(M.wood, 4, 2), 2.8, up + .02, 1);
+  box(10.4, .2, 6, mat('#e8e4d8'), 2.8, up - .2, 1, { col:false }); box(16, .2, 6, mat('#e8e4d8'), 0, up - .2, -9, { col:false }); box(13.4, .2, 4, mat('#e8e4d8'), 1.3, up - .2, -4, { col:false });
+  box(.1, 1, 8.2, mat('#ffffff'), -5.35, up, -1.9);
   // stairs (west wall) from z=2 (bottom) up to z=-6 (top)
   ramp(-7.8, -6, -5.4, 2.2, 'z', up, 0);
   for(let i = 0; i < 12; i++){ box(2.4, .27, .67, M.wood, -6.6, i * .267, 1.8 - i * .67, { col:false }); }
@@ -97,7 +99,7 @@ const CH = { x:0, z:-4 }; G.CH = CH;
   // upstairs rooms: hall x -8..0 ; bedroom x 0..8 (wall at x=0 with door gap z -2..-0.4)
   W(.2, 3, 7.8, 0, up, -8.1, inM); W(.2, 3, 4.2, 0, up, 1.9, inM);
   // railing around stairwell
-  box(2.4, 1, .1, trim, -6.6, up, -6.05, { col:false });
+  
   // ground floor furniture
   box(3.6, .9, 1.2, mat('#6a4a7a'), -4.5, 0, -10.6); box(3.6, .5, .4, mat('#5a3a6a'), -4.5, .9, -11.2, { col:false }); G.sofa = { x:-4.5, z:-9.6 };
   box(1.6, .7, .8, mat('#3a2a1a'), -4.5, 0, -2.6); const tv = box(1.2, 1, .9, mat('#2a2a2a'), -4.5, .7, -2.6);
