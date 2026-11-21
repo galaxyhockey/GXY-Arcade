@@ -139,7 +139,8 @@ plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 33
   [[60, 390], [100, 390], [140, 390], [160, 400], [75, 400]].forEach(([x, z]) => { const c = new THREE.Group(); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .3, .7), mat('#ddd')); const led = new THREE.Mesh(new THREE.SphereGeometry(.07), new THREE.MeshBasicMaterial({ color:0xff0000 }));
     led.position.set(0, 0, .36); c.add(b, led); c.position.set(x, 6.6, z); c.rotation.x = .5; S.add(c); G.camerasBack.push(led); });
   // rear door + dock
-  const rd = box(4, 3.6, .3, mat('#6a7a8a'), 152, 0, z1, { }); G.rearDoor = rd;
+  const rd = box(4, 3.6, .3, mat('#6a7a8a'), 152, 0, z1, { }); G.rearDoor = rd; // double steel doors with push bars (children slide with it)
+  [[-1, 0], [1, 0]].forEach(([s]) => { const bar = new THREE.Mesh(new THREE.BoxGeometry(1.4, .08, .08), mat('#c9c9c9')); bar.position.set(s * 1, -.8, -.2); rd.add(bar); }); { const seam = new THREE.Mesh(new THREE.BoxGeometry(.04, 3.5, .32), mat('#3a4048')); rd.add(seam); }
   floor(140, 402, 166, 414, .5, mat('#9a9a92'), { slab:mat('#8a8a82') }); ramp(132, 402, 140, 414, 'x', 0, .5); G.dock = { x:152, z:408 };
   PR.dumpster(161, 409.5, 0); PR.dumpster(161, 413, 0); G.colliders.push({ x0:159.3, x1:162.7, z0:408.4, z1:414, y0:0, y1:1.8 }); G.hide = { x:161, z:416.5 };
   const truck = makeCar('#e8e8e8', { suv:true }); truck.scale.set(1.4, 1.5, 2); truck.position.set(178, 0, 410); S.add(truck);

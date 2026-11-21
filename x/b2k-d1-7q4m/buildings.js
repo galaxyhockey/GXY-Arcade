@@ -130,8 +130,14 @@ export function schnucksExterior(SCH){ const { x0, x1, z0, z1 } = SCH, H = 8, f 
 // interior re-skin: polished floor, white walls, perimeter departments, end caps, checklane detail
 export function schnucksInterior(SCH){ const { x0, x1, z0, z1 } = SCH;
   const wallW = M('#f1efe8'), ceil = new THREE.MeshBasicMaterial({ color:0xdedcd4 }), H = 7.95;
-  const skin = (w, x, z, ry) => { const p = mesh(new THREE.PlaneGeometry(w, H), wallW, x, H / 2, z); p.rotation.y = ry; p.castShadow = false; };
-  skin(49, 74.5, z0 + .28, 0); skin(59, 140.5, z0 + .28, 0); { const l = mesh(new THREE.PlaneGeometry(12, 3.5), wallW, 105, 6.2, z0 + .28); l.castShadow = false; } skin(72, x0 + .28, 366, Math.PI / 2); skin(72, x1 - .28, 366, -Math.PI / 2); skin(120, 110, z1 - .28, Math.PI);
+  const skin = (w, x, z, ry, y0 = 0, y1 = H) => { const p = mesh(new THREE.PlaneGeometry(w, y1 - y0), wallW, x, (y0 + y1) / 2, z); p.rotation.y = ry; p.castShadow = false; };
+  // wall skin along a wall with door openings left uncovered: spans [[a,b]] full height, openings [[a,b,top]]
+  const skinRun = (a0, a1, ops, place) => { let a = a0; for(const [p, q, top] of ops){ if(p > a) place(p - a, (a + p) / 2, 0, H); place(q - p, (p + q) / 2, top, H); a = q; } if(a1 > a) place(a1 - a, (a + a1) / 2, 0, H); };
+  skin(49, 74.5, z0 + .28, 0); skin(59, 140.5, z0 + .28, 0); { const l = mesh(new THREE.PlaneGeometry(12, 3.5), wallW, 105, 6.2, z0 + .28); l.castShadow = false; } skinRun(z0, z1, [[392, 394, 2.4]], (w, c, y0, y1) => skin(w, x0 + .28, c, Math.PI / 2, y0, y1)); skinRun(z0, z1, [[356, 359, 2.6]], (w, c, y0, y1) => skin(w, x1 - .28, c, -Math.PI / 2, y0, y1));
+  skinRun(x0, x1, [[150, 154, 3.6]], (w, c, y0, y1) => skin(w, c, z1 - .28, Math.PI, y0, y1));
+  // the back door is the emergency exit (the crew sneaks in and out through it)
+  { const sg = mesh(new THREE.PlaneGeometry(3.6, .55), new THREE.MeshBasicMaterial({ map:label('EMERGENCY EXIT ONLY — ALARM WILL SOUND', { bg:'#c8102e', fg:'#fff', size:30, w:768, h:110 }) }), 152, 4.1, z1 - .3); sg.rotation.y = Math.PI;
+    const ex = mesh(new THREE.PlaneGeometry(.6, .22), new THREE.MeshBasicMaterial({ map:label('EXIT', { bg:'#f4f4f0', fg:'#e01010', size:80, w:128, h:48 }) }), 152, 4.7, z1 - .3); ex.rotation.y = Math.PI; }
   const cp = mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), ceil, (x0 + x1) / 2, 7.93, (z0 + z1) / 2); cp.rotation.x = Math.PI / 2; cp.castShadow = false;
   mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0 - 14), terrazzoM, (x0 + x1) / 2, .025, (z0 + z1 - 14) / 2).rotation.x = -Math.PI / 2;
   const woodSign = (t, x, y, z, ry, w = 8) => { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; S.add(g); B(w + .4, 1.5, .2, M('#9a6a3a'), 0, 0, 0, g);
