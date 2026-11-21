@@ -1,6 +1,6 @@
 // GXY Arcade service worker: precache the arcade so it installs and plays offline.
 // Bump VERSION whenever you change files so players get the update.
-const VERSION='arcade-v35';
+const VERSION='arcade-v36';
 const CORE=[
 './','index.html','manifest.webmanifest',
 'assets/aero-news.css',
@@ -95,14 +95,16 @@ const CORE=[
 ];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-// same-origin: serve from cache, refresh in background. Fonts/cloud saves: network, cache as fallback.
+// Pages and scripts: network first (updates show right away), cache when offline. Images/fonts: cache first.
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET') return;
   const url=new URL(e.request.url);
   if(url.origin!==location.origin && !url.hostname.includes('fonts.g')) return;
+  const fresh=e.request.mode==='navigate' || /.(html|js|css|json)$/.test(url.pathname) || url.pathname.endsWith('/');
   e.respondWith(caches.open(VERSION).then(async c=>{
     const hit=await c.match(e.request,{ignoreSearch:true});
-    const net=fetch(e.request).then(r=>{ if(r.ok) c.put(e.request,r.clone()); return r; }).catch(()=>hit);
-    return hit||net;
+    const net=fetch(e.request).then(r=>{ if(r.ok) c.put(e.request,r.clone()); return r; });
+    if(fresh) return net.catch(()=>hit);
+    return hit || net.catch(()=>hit);
   }));
 });
