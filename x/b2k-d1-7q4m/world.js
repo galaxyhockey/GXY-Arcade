@@ -1,6 +1,7 @@
 // Back in the 2000s: The Game — world: Belleville/Swansea 2003 slice + 1989 sets
 import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRect, makeCar, makePerson } from './engine.js';
 import * as PR from './props.js';
+import * as BL from './buildings.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
@@ -68,10 +69,10 @@ function house(x, z, face, col, o = {}){ // closed exterior house; face: 1 = doo
   bush(x - w / 2 + 1, z + face * (d / 2 + 1)); bush(x + w / 2 - 1, z + face * (d / 2 + 1)); }
 // north side of Elm (doors face +z), south side (doors face -z)
 const north = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], south = [-170, -150, -130, -60, -40, -20, 0, 20, 40, 60, 80, 120, 140];
-north.forEach((x, i) => PR.house(x, 6, 's', houseCols[i % 7], { garage:i % 3 === 0, two:i % 4 !== 2, chimney:i % 3 === 1, roof:['#4d4340', '#3d4a5a', '#5a4a3a'][i % 3], shutter:['#2f3e52', '#5a2a2a', '#2f4a2f', null][i % 4] }));
-south.forEach((x, i) => PR.house(x, 42, 'n', houseCols[(i + 3) % 7], { garage:i % 4 === 1, two:i % 3 !== 0, chimney:i % 4 === 3, roof:['#5b4a44', '#3d4a5a', '#6a3a2a'][i % 3], shutter:['#1f3a5a', null, '#4a2a2a'][i % 3] }));
+north.forEach((x, i) => BL.house(x, 6, 's', i * 7 + 3, { curb:14 }));
+south.forEach((x, i) => BL.house(x, 42, 'n', i * 5 + 11, { curb:14 }));
 [-30, -15, 30, 55, 85, 130, -115, -95, -165, -142].forEach((x, i) => { tree(x, 34 + (i % 2) * 2, 1, true); tree(x + 6, 14 - (i % 2) * 2, 1.1); });
-for(let z = 54; z < 245; z += 15){ PR.house(83, z + 4, 'e', houseCols[(z / 15 | 0) % 7], { w:10, d:8, drive:6.5, two:(z / 15 | 0) % 2 === 0 }); PR.house(117, z, 'w', houseCols[(z / 15 + 2 | 0) % 7], { w:10, d:8, drive:6.5, two:(z / 15 | 0) % 3 !== 0 }); if(z % 30 === 24){ tree(92, z + 7, 1.1, true); tree(108, z, 1); } }
+for(let z = 54, k = 0; z < 245; z += 15, k++){ const sd = [1, 2, 4, 5]; BL.house(83, z + 4, 'e', sd[k % 4] + 6 * k, { curb:13 }); BL.house(117, z, 'w', sd[(k + 2) % 4] + 6 * (k + 3), { curb:13 }); }
 // fill along Maple: rotate doors toward road is cosmetic; keep simple
 
 // ---------- Chris's house (enterable, 2 floors) ----------
@@ -90,7 +91,7 @@ const CH = { x:0, z:-4 }; G.CH = CH;
   // roof
   { const rm = roofM('#4a3c38'), rh = 3; const sh = new THREE.Shape(); sh.moveTo(-8, 0); sh.lineTo(8, 0); sh.lineTo(0, rh); sh.closePath();
     const gg = new THREE.ExtrudeGeometry(sh, { depth:16, bevelEnabled:false }); gg.translate(0, 0, -8); gg.rotateY(Math.PI / 2); const gm = new THREE.Mesh(gg, wallM); gm.position.set(0, up + 3, -4); gm.castShadow = true; S.add(gm);
-    const ang = Math.atan2(rh, 8), len = Math.hypot(rh, 8) + .6; [-1, 1].forEach(sd => { const r = new THREE.Mesh(new THREE.BoxGeometry(16.9, .16, len), rm); r.position.set(0, up + 3 + rh / 2 + .05, -4 + sd * 4.02); r.rotation.x = sd * -ang; r.castShadow = true; S.add(r); });
+    const ang = Math.atan2(rh, 8), len = Math.hypot(rh, 8) + .6; [-1, 1].forEach(sd => { const r = new THREE.Mesh(new THREE.BoxGeometry(16.9, .16, len), rm); r.position.set(0, up + 3 + rh / 2 + .05, -4 + sd * 4.02); r.rotation.x = sd * ang; r.castShadow = true; S.add(r); });
     [-1.4, 1.4].forEach(px => box(.16, 2.8, .16, mat('#fff'), px, 0, 7.2, { col:false })); const pr = new THREE.Mesh(new THREE.BoxGeometry(4, .14, 3.4), rm); pr.position.set(0, 2.9, 5.8); pr.rotation.x = .16; S.add(pr);
     [[-5, 1.6, 4.1], [5, 1.6, 4.1], [-4, up + 1.6, 4.1], [4, up + 1.6, 4.1]].forEach(([x, y, z]) => { box(1.9, 1.7, .08, mat('#fff'), x, y - .85, z + .02, { col:false }); [-1, 1].forEach(sd => box(.4, 1.6, .06, mat('#2f3e52'), x + sd * 1.15, y - .8, z + .04, { col:false })); });
     PR.mailbox(1.5, 19.2, 0); }
@@ -145,18 +146,17 @@ plane(44, 34, rep(M.grass, 8, 6), -80, .03, 70); mapRect(-102, 53, -58, 87, '#4f
 G.JX = { x:-40, z:33 };
 
 // ---------- School (Mrs. Sparks' computer class) ----------
-{ const x0 = -170, x1 = -124, z0 = 112, z1 = 160, bm = rep(M.brick, 10, 2), h = 7;
+{ const x0 = -170, x1 = -124, z0 = 112, z1 = 160, bm = BL.brickM('#b58a5e', '#d8cbb2', [12, 2], 's'), h = 7;
   box(x1 - x0, h, .4, bm, (x0 + x1) / 2, 0, z0); box(x1 - x0, h, .4, bm, (x0 + x1) / 2, 0, z1); box(.4, h, z1 - z0, bm, x0, 0, (z0 + z1) / 2);
   box(.4, h, 15, bm, x1, 0, z0 + 7.5); box(.4, h, 29, bm, x1, 0, z1 - 14.5); box(.4, 4.6, 4, bm, x1, 2.4, z0 + 17);
   box(x1 - x0, .4, z1 - z0, mat('#7a6a5a'), (x0 + x1) / 2, h, (z0 + z1) / 2, { col:false });
   plane(x1 - x0, z1 - z0, rep(M.tile, 18, 18), (x0 + x1) / 2, .02, (z0 + z1) / 2); floor(x0, z0, x1, z1, 0);
-  const sg = new THREE.Mesh(new THREE.BoxGeometry(14, 1.6, .2), new THREE.MeshBasicMaterial({ map:label('BELLEVILLE HIGH SCHOOL', { bg:'#1b2f5a', fg:'#f2d04a', size:58, w:1024, h:118 }) })); sg.position.set(x1 + .3, 5.4, z0 + 22); sg.rotation.y = Math.PI / 2; S.add(sg);
   // classroom: computer rows
   for(let r = 0; r < 4; r++) for(let c = 0; c < 4; c++){ const x = -164 + c * 6, z = 122 + r * 7; box(4.2, .75, 1.2, mat('#b89a6a'), x, 0, z);
     box(.9, .75, .8, mat('#d8d0b8'), x - .8, .75, z - .1, { col:false }); box(.9, .75, .8, mat('#d8d0b8'), x + 1.1, .75, z - .1, { col:false });
     [x - .8, x + 1.1].forEach(mx => { const s = new THREE.Mesh(new THREE.PlaneGeometry(.66, .5), new THREE.MeshBasicMaterial({ color:0x2a3a8a })); s.position.set(mx, 1.15, z + .31); S.add(s); }); }
   box(8, 2.4, .1, mat('#2a4a2a'), -150, 1, 113, { col:false }); box(3, .8, 1.4, mat('#7a5a3a'), -150, 0, 116);
-  G.classroom = { jax:{ x:-158, z:136 }, chris:{ x:-152, z:143 }, sparks:{ x:-150, z:117 }, door:{ x:-122, z:129 } };
+  G.classroom = { jax:{ x:-158, z:136 }, chris:{ x:-152, z:143 }, sparks:{ x:-150, z:117 }, door:{ x:-122, z:129 } }; BL.school();
   mapRect(x0, z0, x1, z1, '#a0604a'); plane(18, 30, rep(M.asphalt, 4, 6), -116, .02, 190); mapRect(-125, 175, -107, 205, '#5a5d63'); }
 
 // ---------- Schnucks Swansea ----------
@@ -165,15 +165,9 @@ plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 33
 { const lineM = new THREE.MeshBasicMaterial({ color:0xeeeeee });
   for(let x = 44; x < 200; x += 3.2){ plane(.12, 5, lineM, x, .04, 274); plane(.12, 5, lineM, x, .04, 323); plane(.12, 5, lineM, x, .04, 296); plane(.12, 5, lineM, x, .04, 306); }
   plane(12, 6, txMat('xw', (g, w, h) => { g.fillStyle = '#3b3d42'; g.fillRect(0, 0, w, h); g.fillStyle = '#f0f0f0'; for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 8, h); }, [1, 1]), 105, .045, 327); }
-{ const { x0, x1, z0, z1, mz } = SCH, H = 8, wm = rep(M.stucco, 8, 1), wi = mat('#e9e4d6');
+{ const { x0, x1, z0, z1, mz } = SCH, H = 8, wm = BL.brickM('#8a3626', '#bfae98', [24, 2], 'w'), wi = mat('#f4f2ec');
   // front wall with entrance gap x 99..111, staff side door on east wall z 356..359, rear door north wall x 150..154, emergency exit west wall z 392..394
   box(49, H, .5, wm, 74.5, 0, z0); box(59, H, .5, wm, 140.5, 0, z0); box(12, 3.6, .5, wm, 105, 4.4, z0);
-  const front = new THREE.Mesh(new THREE.BoxGeometry(124, 1.6, 1.2), mat('#c8102e')); front.position.set(110, H - .8, z0 - .4); S.add(front);
-  new THREE.TextureLoader().load('../../games/bc27/logos/schnucks.png', t => { t.colorSpace = THREE.SRGBColorSpace;
-    const sg = new THREE.Mesh(new THREE.PlaneGeometry(22, 2.7), new THREE.MeshBasicMaterial({ map:t, transparent:true })); sg.position.set(105, H + 1.7, z0 - .3); sg.rotation.y = Math.PI; S.add(sg);
-    const back = new THREE.Mesh(new THREE.BoxGeometry(25, 3.6, .3), mat('#fff')); back.position.set(105, H + 1.7, z0 - .1); S.add(back); });
-  const sw = new THREE.Mesh(new THREE.BoxGeometry(10, 1.2, .3), new THREE.MeshBasicMaterial({ map:label('SWANSEA', { bg:'#c8102e', fg:'#fff', size:70 }) })); sw.position.set(105, H - .8, z0 - 1.1); sw.rotation.y = Math.PI; S.add(sw);
-  [80, 90, 120, 130].forEach(x => { const w = new THREE.Mesh(new THREE.BoxGeometry(8, 3, .1), glass); w.position.set(x, 1.8, z0 - .3); S.add(w); });
   box(.5, H, 26, wm, x1, 0, 343); box(.5, H, 43, wm, x1, 0, 380.5); box(.5, 4.4, 3, wm, x1, 3.6, 357.5);
   box(100, H, .5, wm, 100, 0, z1); box(16, H, .5, wm, 162, 0, z1); box(4, 4.4, .5, wm, 152, 3.6, z1);
   box(.5, H, 62, wm, x0, 0, 361); box(.5, H, 8, wm, x0, 0, 398); box(.5, 5.6, 2, wm, x0, 2.4, 393);
@@ -235,6 +229,7 @@ plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 33
   box(.8, .9, .8, mat('#9aa'), 166, 0, 344); box(1.2, .8, .5, mat('#fff'), 158, 0, 352.6); G.restroom = { x:160, z:347, can:{ x:166, z:344 } };
   const rr = new THREE.Mesh(new THREE.BoxGeometry(2.4, .6, .1), new THREE.MeshBasicMaterial({ map:label('RESTROOM', { bg:'#2a5a8a', fg:'#fff', size:56 }) })); rr.position.set(153, 3, 342.2); rr.rotation.y = Math.PI; S.add(rr);
   mapRect(x0, z0, x1, z1, '#d8d4c8'); mapRect(140, 402, 166, 414, '#a8a8a0');
+  BL.schnucksExterior(SCH); BL.schnucksInterior(SCH);
   G.storeEntrance = { x:105, z:328 }; G.staffDoor = { x:172, z:357.5 }; G.backDoorOutside = { x:152, z:405 }; }
 // 14 numbered cart corrals (C01–C14)
 G.corrals = [];

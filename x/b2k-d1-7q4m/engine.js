@@ -23,8 +23,8 @@ const sky = new THREE.Mesh(new THREE.SphereGeometry(800, 24, 12), new THREE.Shad
   fragmentShader:'uniform vec3 top;uniform vec3 bot;varying vec3 p;void main(){float h=clamp(p.y*1.6+.12,0.,1.);gl_FragColor=vec4(mix(bot,top,h),1.);}' }));
 scene.add(sky); scene.fog = new THREE.Fog(0xcfe6ff, 70, 330);
 const TIMES = {
-  day:{ top:0x3d7fd8, bot:0xd8ecff, fog:0xcfe6ff, sun:0xfff1d6, si:1.7, hi:.8, dir:[60, 90, 40] },
-  after:{ top:0x4a86d6, bot:0xffe2b8, fog:0xf0dcc0, sun:0xffd9a0, si:1.5, hi:.7, dir:[-70, 55, 30] },
+  day:{ top:0x3d7fd8, bot:0xd8ecff, fog:0xcfe6ff, sun:0xfff1d6, si:1.7, hi:.85, dir:[50, 90, -35] },
+  after:{ top:0x4a86d6, bot:0xffe2b8, fog:0xf0dcc0, sun:0xffd9a0, si:1.5, hi:.75, dir:[-70, 60, -30] },
   dusk:{ top:0x2a2a6a, bot:0xff9a6a, fog:0xc98a7a, sun:0xff9a5a, si:1.0, hi:.55, dir:[-80, 22, 10] },
   night:{ top:0x0a1030, bot:0x2a3a6a, fog:0x1a2448, sun:0xa8b8ff, si:.7, hi:.7, dir:[40, 80, -30] },
   indoor:{ top:0x3d7fd8, bot:0xd8ecff, fog:0xcfe6ff, sun:0xfff1d6, si:1.2, hi:.95, dir:[60, 90, 40] } };
