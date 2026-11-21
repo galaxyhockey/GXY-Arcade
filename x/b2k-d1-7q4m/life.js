@@ -143,6 +143,6 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
     const k = tod(l.min); if(k !== lastT){ lastT = k; E.setTime(k); } hud();
     const r = (G.roads || []).find(r => P.p.x >= r.x0 && P.p.x <= r.x1 && P.p.z >= r.z0 && P.p.z <= r.z1); const name = r ? r.name : '';
     if(name && name !== lastRoad){ sn.textContent = name.toUpperCase(); sn.style.opacity = 1; st = 3; } lastRoad = name || lastRoad; if(st > 0 && (st -= dt) <= 0) sn.style.opacity = 0;
-    for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < 70; } };
+    for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < (G.npcDist || 70); } };
   f.amb = true; G.ticks.push(f); ticks.push(() => { const i = G.ticks.indexOf(f); if(i >= 0) G.ticks.splice(i, 1); sn.style.opacity = 0; });
   extrasOn({ L, passTime, add, pay, money, randomLook, save, addTick:fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); }, onOff:fn => ticks.push(fn) }); }

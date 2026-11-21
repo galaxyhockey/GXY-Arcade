@@ -106,7 +106,7 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
       const block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
       a += l.dir * v * dt; if((l.dir > 0 && a > l.a1) || (l.dir < 0 && a < l.a1)) a = l.a0;
       car.position.set(px, 0, pz); car.rotation.y = l.ax === 'x' ? (l.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (l.dir > 0 ? 0 : Math.PI);
-      Object.assign(col, l.ax === 'x' ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic; };
+      Object.assign(col, l.ax === 'x' ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
     t.amb = true; G.ticks.push(t); } }); }
 // parked cars in some driveways + Chris's own car (drivable)
 [[-150, 18, 0], [45, 17.5, 0], [-60, 31, Math.PI], [40, 31, Math.PI], [92, 96, Math.PI / 2], [108, 159, -Math.PI / 2]].forEach(([x, z, ry], i) => { const c = E.makeCar(['#7a2a2a', '#ccc', '#2a4a6a', '#e8e8e8', '#3a3a3a', '#6a5a2a'][i], { suv:i % 2 === 0 }); c.position.set(x, 0, z); c.rotation.y = ry; G.scene.add(c);
@@ -123,6 +123,8 @@ function openPause(on){ G.paused = on; $('pause').style.display = on ? 'flex' : 
 G.hotkey = e => { if(['Escape', 'KeyP'].includes(e.code) && !$('title').offsetParent){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; return; } openPause(!G.paused); }
   if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, 20, 195, 1.9); } } };
 $('pResume').onclick = () => openPause(false);
+{ const QS = ['LOW', 'MEDIUM', 'HIGH']; let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); const lab = () => $('pGfx').textContent = 'GRAPHICS: ' + G.quality;
+  lab(); $('pGfx').onclick = () => { const n = QS[(QS.indexOf(G.quality) + 1) % 3]; E.setQuality(n); try{ localStorage.setItem('b2k_gfx', n); }catch(e){} lab(); }; }
 $('pRestart').onclick = () => { openPause(false); restartCP(); };
 $('pLang').onclick = () => { G.filter = !G.filter; save(); $('pLang').textContent = 'STRONG LANGUAGE: ' + (G.filter ? 'FILTERED' : 'SHOWN'); };
 $('pMissions').onclick = async () => { const list = ORDER.filter(id => SV.done[id]); if(!list.length){ E.toast('Finish a mission first.'); return; } openPause(false);

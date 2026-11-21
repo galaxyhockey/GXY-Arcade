@@ -183,7 +183,10 @@ export function makeCar(color = '#b23', o = {}){
   [[-.9, 1.4], [.9, 1.4], [-.9, -1.4], [.9, -1.4]].forEach(([x, z]) => { const w = new THREE.Mesh(new THREE.CylinderGeometry(.36, .36, .26, 12), dk); w.rotation.z = Math.PI / 2; w.position.set(x, .36, z * (L / 4.3)); g.add(w); });
   [-.6, .6].forEach(x => { const hl = new THREE.Mesh(new THREE.BoxGeometry(.32, .14, .04), mat('#fff8d0', { emissive:0x777755 })); hl.position.set(x, .62, L / 2 + .01);
     const tl = new THREE.Mesh(new THREE.BoxGeometry(.3, .12, .04), mat('#c00', { emissive:0x550000 })); tl.position.set(x, .66, -L / 2 - .01); g.add(hl, tl); });
-  g.userData.len = L; return g; }
+  mergeChildren(g); g.userData.len = L; return g; }
+function mergeChildren(g){ const by = new Map(); g.children.slice().forEach(c => { if(!c.isMesh || Array.isArray(c.material)) return; const k = c.material.uuid; if(!by.has(k)) by.set(k, []); by.get(k).push(c); });
+  for(const list of by.values()){ if(list.length < 2) continue; const geos = list.map(c => { const gg = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone(); c.updateMatrix(); gg.applyMatrix4(c.matrix); for(const a of Object.keys(gg.attributes)) if(!['position', 'normal', 'uv'].includes(a)) gg.deleteAttribute(a); gg.clearGroups(); return gg; });
+    const m = mergeGeometries(geos, false); if(!m) continue; const me = new THREE.Mesh(m, list[0].material); me.castShadow = list.some(c => c.castShadow); me.receiveShadow = true; g.add(me); list.forEach(c => g.remove(c)); } }
 
 // ---------- NPCs ----------
 export class NPC {
@@ -417,7 +420,7 @@ function step(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; i
   (G.markers || []).forEach(m => { m.userData.ar.position.y = 3 + Math.sin(G.t * 3) * .25; m.userData.ar.rotation.y += dt * 2; });
   updateCam(dt);
   const fx = G.camOverride ? cam.position : P.p, sx = Math.round(fx.x / 4) * 4, sz = Math.round(fx.z / 4) * 4; sun.position.set(sx + G.sunDir.x * 120, G.sunDir.y * 120, sz + G.sunDir.z * 120); sun.target.position.set(sx, 0, sz);
-  G.frameN = (G.frameN || 0) + 1; if((G.frameN % 3 === 0 && !G.indoors) || G.shadowNow){ sun.shadow.needsUpdate = true; G.shadowNow = false; }
+  G.frameN = (G.frameN || 0) + 1; if(G.detail && G.frameN % 6 === 0){ const cx = cam.position.x, cz = cam.position.z, D = G.detailDist || 95; for(const d of G.detail){ const dx = d.x - cx, dz = d.z - cz, lim = D + d.r * 8; d.m.visible = dx * dx + dz * dz < lim * lim; } } if((G.frameN % 3 === 0 && !G.indoors) || G.shadowNow){ sun.shadow.needsUpdate = true; G.shadowNow = false; }
   sky.position.copy(cam.position); hud(); R.render(scene, cam); }
 requestAnimationFrame(frame);
 G.advance = sec => { for(let i = 0; i < sec * 20; i++){ last = performance.now() - 50; step(performance.now()); } }; // debug/testing aid
@@ -425,12 +428,18 @@ setInterval(() => { const n = performance.now(); if(n - last > 160) step(n); }, 
 
 // ---------- performance: merge every static mesh that shares a material into one draw call ----------
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+// graphics quality (pause menu): LOW = no shadows, 75% resolution, shorter draw distance; HIGH = sharper shadows + resolution
+export function setQuality(q){ G.quality = q; const dpr = Math.min(devicePixelRatio, q === 'HIGH' ? 1.5 : 1) * (q === 'LOW' ? .75 : 1); R.setPixelRatio(dpr); resize();
+  sun.castShadow = q !== 'LOW'; sun.shadow.mapSize.set(q === 'HIGH' ? 2048 : 1024, q === 'HIGH' ? 2048 : 1024); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map = null; }
+  G.fogFar = q === 'LOW' ? 210 : 330; scene.fog.far = Math.min(scene.fog.far, G.fogFar); cam.far = q === 'LOW' ? 260 : 420; cam.updateProjectionMatrix(); G.npcDist = q === 'LOW' ? 45 : q === 'HIGH' ? 95 : 70; G.detailDist = q === 'LOW' ? 60 : q === 'HIGH' ? 140 : 95; G.shadowNow = true; }
 export function bakeStatic(keepList = []){
   const keep = new Set(keepList.filter(Boolean)); keep.add(sky); keep.add(P.model); G.npcs.forEach(n => keep.add(n.o));
   scene.updateMatrixWorld(true); const groups = new Map(); let n0 = 0;
   scene.traverse(o => { if(!o.isMesh || Array.isArray(o.material) || o.material.isShaderMaterial) return;
     for(let p = o; p && p !== scene; p = p.parent) if(keep.has(p)) return;
-    const mt = o.material, k = (mt.map ? mt.uuid : mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.opacity + mt.transparent + mt.side) + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : ''); if(!groups.has(k)) groups.set(k, []); groups.get(k).push(o); n0++; });
+    if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); const bs = o.geometry.boundingSphere, c = bs.center.clone().applyMatrix4(o.matrixWorld), big = bs.radius * o.matrixWorld.getMaxScaleOnAxis() > 80;
+    const cell = big ? 'big' : Math.floor(c.x / 140) + ',' + Math.floor(c.z / 140);
+    const mt = o.material, k = (mt.map ? 'T' + (mt.map.source ? mt.map.source.uuid : mt.map.uuid) + mt.map.repeat.x.toFixed(3) + ',' + mt.map.repeat.y.toFixed(3) + ',' + mt.map.offset.x.toFixed(3) + ',' + mt.map.offset.y.toFixed(3) + mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.transparent + mt.opacity + mt.side : mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.opacity + mt.transparent + mt.side) + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : '') + '|' + cell; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(o); n0++; });
   let n1 = 0;
   for(const list of groups.values()){ if(list.length < 2) continue;
     const geos = list.map(o => { let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
@@ -438,7 +447,10 @@ export function bakeStatic(keepList = []){
       if(!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
       if(!g.attributes.normal) g.computeVertexNormals(); g.clearGroups(); return g; });
     const merged = mergeGeometries(geos, false); if(!merged) continue;
-    const m = new THREE.Mesh(merged, list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.matrixAutoUpdate = false; scene.add(m);
+    merged.computeBoundingSphere(); const m = new THREE.Mesh(merged, list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.matrixAutoUpdate = false; scene.add(m);
     list.forEach(o => o.parent && o.parent.remove(o)); geos.forEach(g => g.dispose()); n1++; }
   scene.traverse(o => { if(!o.isMesh) return; for(let p = o; p && p !== scene; p = p.parent) if(keep.has(p)) return; o.matrixAutoUpdate = false; o.updateMatrix(); });
-  G.perf = { before:n0, groups:n1 }; return G.perf; }
+  // small leftover static pieces (signs, labels, props) are hidden when far from the camera
+  G.detail = []; scene.children.forEach(o => { if(!o.isMesh || keep.has(o) || o.matrixAutoUpdate) return; if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); const r = o.geometry.boundingSphere.radius * o.matrixWorld.getMaxScaleOnAxis(); if(r > 6) return;
+    const c = o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld); G.detail.push({ m:o, x:c.x, z:c.z, r }); });
+  G.perf = { before:n0, groups:n1, detail:G.detail.length }; return G.perf; }

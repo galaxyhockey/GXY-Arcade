@@ -23,7 +23,7 @@ function makeRain(){ const n = 2600, g = new THREE.BufferGeometry(), a = new Flo
   g.setAttribute('position', new THREE.BufferAttribute(a, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color:0xa8bcd0, size:.09, transparent:true, opacity:.7, depthWrite:false })); p.frustumCulled = false; G.scene.add(p); return p; }
 function applyWeather(){ const w = G.wx || 'clear', wet = w === 'rain' || w === 'storm' || w === 'snow', dim = w === 'cloudy' ? .8 : wet ? .5 : 1;
   if(G.skyU){ G.skyU.top.value.multiplyScalar(dim); G.skyU.bot.value.lerp(new THREE.Color(0x8a9098), 1 - dim); }
-  if(G.sun) G.sun.intensity *= wet ? .3 : w === 'cloudy' ? .6 : 1; G.scene.fog.near = wet ? 30 : 70; G.scene.fog.far = wet ? 170 : 330; if(wet) G.scene.fog.color.lerp(new THREE.Color(0x8a9098), .5);
+  if(G.sun) G.sun.intensity *= wet ? .3 : w === 'cloudy' ? .6 : 1; G.scene.fog.near = wet ? 30 : 70; G.scene.fog.far = wet ? 170 : (G.fogFar || 330); if(wet) G.scene.fog.color.lerp(new THREE.Color(0x8a9098), .5);
   G.wet = wet; if(rain){ rain.material.color.set(w === 'snow' ? 0xffffff : 0xa8bcd0); rain.material.size = w === 'snow' ? .16 : .09; } }
 function windows(k){ const night = k === 'night' || k === 'dusk'; glassM.emissive.set(night ? 0x8a6a2a : 0x223344); glassM.opacity = night ? .85 : .5; }
 function leaves(dc){ const d = dateOf(dc), m = d.getMonth(), day = d.getDate(), base = ['#3f7a2e', '#4d8a34', '#5c7f2a'], fall = ['#c8641e', '#d89a2a', '#b84a22'], late = ['#7a5a3a', '#8a6a3a', '#6a4a2a'];
@@ -66,17 +66,17 @@ function paper(){ return new Promise(res => { const l = api.L(), dc = l.dayCount
 const JOBS = { mow:{ title:'LAWN MOWING', blurb:'Mr. Davis on Oakmont needs his front lawn cut.', pay:12 }, walk:{ title:'DOG WALKER', blurb:'Linda needs Buster walked to Elmwood Park and back.', pay:8 },
   lost:{ title:'LOST DOG: BISCUIT', blurb:'Small tan terrier. Reward for return to Gary on Oakmont.', pay:15 }, deliver:{ title:'GROCERY DELIVERY', blurb:'Pick up Doris’s order at Schnucks customer service.', pay:10 },
   rake:{ title:'LEAF RAKING', blurb:'Front yard on Oakmont is buried in leaves.', pay:10 } };
-function jobsFor(dc){ const m = dateOf(dc).getMonth(), keys = Object.keys(JOBS).filter(k => k !== 'rake' || m === 9 || m === 10); const a = keys[Math.floor(rnd(dc + 11) * keys.length)]; let b = keys[Math.floor(rnd(dc + 23) * keys.length)]; if(b === a) b = keys[(keys.indexOf(a) + 1) % keys.length]; return [a, b].map(k => ({ k, ...JOBS[k] })); }
+export function jobsFor(dc){ const m = dateOf(dc).getMonth(), keys = Object.keys(JOBS).filter(k => k !== 'rake' || m === 9 || m === 10); const a = keys[Math.floor(rnd(dc + 11) * keys.length)]; let b = keys[Math.floor(rnd(dc + 23) * keys.length)]; if(b === a) b = keys[(keys.indexOf(a) + 1) % keys.length]; return [a, b].map(k => ({ k, ...JOBS[k] })); }
 let job = null;
-function clearJob(){ if(!job) return; (job.objs || []).forEach(o => G.scene.remove(o)); (job.npcs || []).forEach(n => n.remove()); (job.inters || []).forEach(E.delInter); if(job.mk) E.clearMarker(job.mk); if(G.carry === job.carry) G.carry = null; E.setWay(); job = null; }
+function clearJob(){ if(!job) return; (job.objs || []).forEach(o => G.scene.remove(o)); (job.npcs || []).forEach(n => n.remove()); (job.inters || []).forEach(E.delInter); if(job.mk) E.clearMarker(job.mk); if(G.carry === job.carry) G.carry = null; E.setWay(); E.obj(''); job = null; }
 function finishJob(){ const j = job, l = api.L(); clearJob(); l.cash += j.pay; if(j.k === 'deliver') l.rep = Math.min(100, (l.rep ?? 50) + 3); api.save(); E.sfx('pass'); E.toast(`JOB DONE: ${j.title} · +${api.money(j.pay)}`, 3200); }
 const stepTo = (x, z, text) => { if(job.mk) E.clearMarker(job.mk); job.mk = E.marker(x, z, 0x7ee0ff); E.setWay(x, z); job.target = { x, z }; E.obj(text); };
-function startJob(j){ if(job){ E.toast('Finish your current job first.', 2200); return; } job = { ...j, objs:[], npcs:[], inters:[], step:0 }; E.sfx('ok');
+export function startJob(j){ if(job){ E.toast('Finish your current job first.', 2200); return; } job = { ...j, objs:[], npcs:[], inters:[], step:0 }; E.sfx('ok');
   if(j.k === 'mow'){ const owner = E.npc('Mr. Davis', { shirt:'#8a8a6a', pants:'#4a4a3a', hair:'#c8c8c8', hairStyle:'short', top:'polo' }, -146, 13); owner.look(-150, 20); job.npcs.push(owner);
-    const tufts = []; for(let i = 0; i < 8; i++){ const t = new THREE.Mesh(new THREE.ConeGeometry(.35, .5, 5), E.mat('#5a9a3a')); t.position.set(-155 + (i % 4) * 3.2, .25, 10.2 + (i / 4 | 0) * 2.4); G.scene.add(t); job.objs.push(t); tufts.push(t); }
+    const tufts = []; for(let i = 0; i < 8; i++){ const t = new THREE.Mesh(new THREE.ConeGeometry(.35, .5, 5), E.mat('#5a9a3a')); t.position.set([-156, -153.6, -146.4, -144][i % 4], .25, i < 4 ? 12.4 : 15.4); G.scene.add(t); job.objs.push(t); tufts.push(t); }
     const mower = new THREE.Group(); const body = new THREE.Mesh(new THREE.BoxGeometry(.6, .3, .7), E.mat('#c8202a')); body.position.y = .3; const hd = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .05), E.mat('#222')); hd.position.set(0, 1, -.55); mower.add(body, hd); G.scene.add(mower); job.objs.push(mower);
-    job.carry = G.carry = () => { const a = P.model.rotation.y; mower.position.set(P.p.x + Math.sin(a) * .9, P.p.y, P.p.z + Math.cos(a) * .9); mower.rotation.y = a; for(const t of tufts) if(t.visible && Math.hypot(t.position.x - mower.position.x, t.position.z - mower.position.z) < 1.1){ t.visible = false; E.sfx('cart'); } };
-    job.check = () => tufts.every(t => !t.visible); stepTo(-150, 11.4, 'MOW ALL THE TALL GRASS IN MR. DAVIS’S FRONT YARD.'); }
+    job.carry = G.carry = () => { const a = P.model.rotation.y; mower.position.set(P.p.x + Math.sin(a) * .9, P.p.y, P.p.z + Math.cos(a) * .9); mower.rotation.y = a; for(const t of tufts) if(t.visible && (Math.hypot(t.position.x - mower.position.x, t.position.z - mower.position.z) < 1.3 || Math.hypot(t.position.x - P.p.x, t.position.z - P.p.z) < 1.1)){ t.visible = false; E.sfx('cart'); } };
+    job.check = () => tufts.every(t => !t.visible); stepTo(-150, 13.9, 'MOW ALL 8 PATCHES OF TALL GRASS IN MR. DAVIS’S FRONT YARD.'); }
   if(j.k === 'rake'){ const piles = []; for(let i = 0; i < 6; i++){ const p = new THREE.Mesh(new THREE.ConeGeometry(.6, .35, 7), E.mat('#c8641e')); p.position.set(62 + (i % 3) * 2.6, .17, 10 + (i / 3 | 0) * 2.4); G.scene.add(p); job.objs.push(p); piles.push(p);
       job.inters.push(E.addInter({ x:p.position.x, z:p.position.z, r:1.5, prompt:'RAKE THE LEAVES', when:() => p.visible, use:() => { p.visible = false; api.passTime(5); E.sfx('cart'); } })); }
     job.check = () => piles.every(p => !p.visible); stepTo(64.6, 11.2, 'RAKE ALL 6 LEAF PILES.'); }
@@ -198,13 +198,13 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
     const dd = dateOf(dc), hal = dd.getMonth() === 9 && dd.getDate() === 31 && l.min >= 1080 && l.min < 1260;
     crowd('__tot', hal && !G.wet, () => ['ghost', 'witch', 'pirate', 'superhero'].map((c, i) => { const look = { ...api.randomLook(i % 2 === 1), scale:.7, ...(c === 'ghost' ? { shirt:'#f4f4f4', pants:'#f4f4f4', hairStyle:'bald', top:'tee', bottom:'jeans' } : c === 'witch' ? { shirt:'#2a1a3a', pants:'#2a1a3a', hat:'beanie', hatColor:'#111' } : c === 'pirate' ? { hat:'bandana', hatColor:'#c8202a', shirt:'#f2f2f2' } : { shirt:'#2a4ab8', pants:'#c8202a' }) };
       const n = E.npc('Trick-or-treater', look, -40 + i * 12, 17.5, { speed:2.2 }); n.townie = true; const loop = () => { if(!G.npcs.includes(n)) return; n.go([[-60 + Math.random() * 120, 16.5 + Math.random() * 2]]).then(() => setTimeout(loop, 1200)); }; loop(); return n; }));
-    for(const arr of Object.values(spawned)) for(const n of arr) if(n.o) n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < 75;
+    for(const arr of Object.values(spawned)) for(const n of arr) if(n.o) n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < (G.npcDist || 70);
     // side job progress
     if(job && job.check && job.check()) finishJob(); };
   api.addTick(tick);
   // B = skateboard on/off
   const bk = e => { if(e.code === 'KeyB' && !G.mission && G.ctl && !G.driving && !G.uiOpen && l.owned.includes('board')){ P.board = !P.board; E.sfx('cart'); } };
-  addEventListener('keydown', bk); api.onOff(() => { removeEventListener('keydown', bk); P.board = false; Object.values(spawned).forEach(a => a.forEach(x => x.remove ? x.remove() : E.delInter(x))); spawned = {}; clearJob(); objs.forEach(o => G.scene.remove(o)); objs = []; if(rain) rain.visible = false; if(decor){ G.scene.remove(decor); decor = null; } G.onTime = null; G.wet = false; G.ext = null; G.indoors = false; G.scene.fog.near = 70; G.scene.fog.far = 330; leaves(0); windows('day'); }); }
+  addEventListener('keydown', bk); api.onOff(() => { removeEventListener('keydown', bk); P.board = false; Object.values(spawned).forEach(a => a.forEach(x => x.remove ? x.remove() : E.delInter(x))); spawned = {}; clearJob(); objs.forEach(o => G.scene.remove(o)); objs = []; if(rain) rain.visible = false; if(decor){ G.scene.remove(decor); decor = null; } G.onTime = null; G.wet = false; G.ext = null; G.indoors = false; G.scene.fog.near = 70; G.scene.fog.far = G.fogFar || 330; leaves(0); windows('day'); }); }
 // rep changes from shifts (shift.js)
 export function repDelta(d){ const l = api && api.L(); if(!l) return; l.rep = Math.max(0, Math.min(100, (l.rep ?? 50) + d)); api.save(); }
 export const wage = () => { const r = api ? (api.L().rep ?? 50) : 50; return r >= 90 ? 8.25 : r >= 75 ? 7.75 : r < 25 ? 7 : 7.25; };
