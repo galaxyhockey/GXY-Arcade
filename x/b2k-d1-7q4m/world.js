@@ -2,6 +2,7 @@
 import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRect, makeCar, makePerson } from './engine.js';
 import * as PR from './props.js';
 import * as BL from './buildings.js';
+import * as CHR from './chrishouse.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
@@ -76,59 +77,7 @@ for(let z = 54, k = 0; z < 245; z += 15, k++){ const sd = [1, 2, 4, 5]; BL.house
 // fill along Maple: rotate doors toward road is cosmetic; keep simple
 
 // ---------- Chris's house (enterable, 2 floors) ----------
-const CH = { x:0, z:-4 }; G.CH = CH;
-{ const wallM = siding('#e7e0c8'), inM = mat('#efe6cf'), trim = mat('#ffffff'), up = 3.2;
-  const W = (w, h, d, x, y, z, m = wallM) => box(w, h, d, m, x, y, z);
-  // ground floor shell x -8..8, z -12..4 ; front door gap x -.8..0.8 ; back door gap x 3..4.4 ; kitchen window on east wall (visual)
-  W(7.2, up, .25, -4.4, 0, 4); W(7.2, up, .25, 4.4, 0, 4); W(1.6, .9, .25, 0, 2.3, 4);
-  W(11, up, .25, -2.5, 0, -12); W(3.6, up, .25, 6.2, 0, -12); W(1.4, .9, .25, 3.7, 2.3, -12);
-  W(.25, up, 16, -8, 0, -4); W(.25, up, 5, 8, 0, 1.5); W(.25, up, 5.2, 8, 0, -9.4); W(.25, .9, 2.8, 8, 0, -5.4); W(.25, .9, 2.8, 8, 2.3, -5.4);
-  const kw = new THREE.Mesh(new THREE.BoxGeometry(.08, 1.4, 2.8), glass); kw.position.set(8.02, 1.6, -5.4); S.add(kw); G.kitchenWindow = kw;
-  // upstairs shell
-  W(16, 3, .25, 0, up, 4); W(16, 3, .25, 0, up, -12); W(.25, 3, 16, -8, up, -4); W(.25, 3, 16, 8, up, -4);
-  [-4, 4].forEach(x => { const w = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, .1), glass); w.position.set(x, up + 1.6, 4.1); S.add(w); });
-  [-5, 5].forEach(x => { const w = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, .1), glass); w.position.set(x, 1.6, 4.14); S.add(w); });
-  // roof
-  { const rm = roofM('#4a3c38'), rh = 3; const sh = new THREE.Shape(); sh.moveTo(-8, 0); sh.lineTo(8, 0); sh.lineTo(0, rh); sh.closePath();
-    const gg = new THREE.ExtrudeGeometry(sh, { depth:16, bevelEnabled:false }); gg.translate(0, 0, -8); gg.rotateY(Math.PI / 2); const gm = new THREE.Mesh(gg, wallM); gm.position.set(0, up + 3, -4); gm.castShadow = true; S.add(gm);
-    const ang = Math.atan2(rh, 8), len = Math.hypot(rh, 8) + .6; [-1, 1].forEach(sd => { const r = new THREE.Mesh(new THREE.BoxGeometry(16.9, .16, len), rm); r.position.set(0, up + 3 + rh / 2 + .05, -4 + sd * 4.02); r.rotation.x = sd * ang; r.castShadow = true; S.add(r); });
-    [-1.4, 1.4].forEach(px => box(.16, 2.8, .16, mat('#fff'), px, 0, 7.2, { col:false })); const pr = new THREE.Mesh(new THREE.BoxGeometry(4, .14, 3.4), rm); pr.position.set(0, 2.9, 5.8); pr.rotation.x = .16; S.add(pr);
-    [[-5, 1.6, 4.1], [5, 1.6, 4.1], [-4, up + 1.6, 4.1], [4, up + 1.6, 4.1]].forEach(([x, y, z]) => { box(1.9, 1.7, .08, mat('#fff'), x, y - .85, z + .02, { col:false }); [-1, 1].forEach(sd => box(.4, 1.6, .06, mat('#2f3e52'), x + sd * 1.15, y - .8, z + .04, { col:false })); });
-    PR.mailbox(1.5, 19.2, 0); }
-  // floors
-  floor(-8, -12, 8, 4, 0, null); plane(9, 16, rep(M.carpet, 4, 6), -3.5, .02, -4); plane(7, 16, rep(M.kitchen, 5, 10), 4.5, .02, -4);
-  floor(-5.4, -12, 8, 4, up, null); floor(-8, -12, -5.4, -6, up, null); floor(-8, 2.2, -5.4, 4, up, null); // stairwell (x -8..-5.4, z -6..2.2) left open
-  plane(16, 6, rep(M.wood, 5, 2), 0, up + .02, -9); plane(13.4, 4, rep(M.wood, 4, 2), 1.3, up + .02, -4); plane(10.4, 6, rep(M.wood, 4, 2), 2.8, up + .02, 1);
-  box(10.4, .2, 6, mat('#e8e4d8'), 2.8, up - .2, 1, { col:false }); box(16, .2, 6, mat('#e8e4d8'), 0, up - .2, -9, { col:false }); box(13.4, .2, 4, mat('#e8e4d8'), 1.3, up - .2, -4, { col:false });
-  box(.1, 1, 8.2, mat('#ffffff'), -5.35, up, -1.9);
-  // stairs (west wall) from z=2 (bottom) up to z=-6 (top)
-  ramp(-7.8, -6, -5.4, 2.2, 'z', up, 0);
-  for(let i = 0; i < 12; i++){ box(2.4, .27, .67, M.wood, -6.6, i * .267, 1.8 - i * .67, { col:false }); }
-  box(.12, 1, 8, trim, -5.3, 0, -2, { col:false });
-  // upstairs rooms: hall x -8..0 ; bedroom x 0..8 (wall at x=0 with door gap z -2..-0.4)
-  W(.2, 3, 7.8, 0, up, -8.1, inM); W(.2, 3, 4.2, 0, up, 1.9, inM);
-  // railing around stairwell
-  
-  // ground floor furniture
-  PR.sofa(-4.5, -10.7, 0); G.colliders.push({ x0:-5.8, x1:-3.2, z0:-11.2, z1:-10.2, y0:0, y1:1 }); G.sofa = { x:-4.5, z:-9.6 }; PR.rug(-4.5, 0, -6.5, 4.4, 5, '#8a5a3a'); PR.lamp(-6.6, 0, -11.2); PR.picture(-7.85, 1.9, -6.5, Math.PI / 2, '#5a8ab8');
-  PR.tvStand(-4.5, -2.6, Math.PI); const tvm = PR.crtTV(-4.5, .68, -2.6, Math.PI); G.colliders.push({ x0:-5.3, x1:-3.7, z0:-3, z1:-2.2, y0:0, y1:1.6 }); G.tvScreen = tvm.screen; G.tvPos = { x:-4.5, z:-4.2 };
-  box(2.2, .45, 1.2, mat('#7a5a3a'), -4.5, 0, -6.4, { col:false }); // coffee table
-  box(6.8, .95, .7, mat('#d8d0c0'), 4.5, 0, -11.5); box(.7, .95, 4, mat('#d8d0c0'), 7.5, 0, -9);
-  PR.fridge(1.6, -11.4, 0); G.colliders.push({ x0:1.15, x1:2.05, z0:-11.8, z1:-11, y0:0, y1:1.9 }); box(1.6, .8, 1.2, mat('#8a6a4a'), 4.2, 0, -6.5); [3.2, 5.2].forEach(x => PR.chair(x, 0, -6.5, x < 4 ? Math.PI / 2 : -Math.PI / 2, '#7a5a3a')); G.window = { x:7, z:-5.4 };
-  PR.microwave(5.6, .95, -11.55, 0); PR.wallPhone(7.84, 1.15, -1, -Math.PI / 2); G.phone = { x:7, z:-1 }; G.phoneLook = { x:7.84, z:-1 }; G.micro = { x:5.6, z:-10.6 };
-  // bedroom furniture
-  PR.bed(6.6, up, -10.2, 0); G.colliders.push({ x0:5.85, x1:7.35, z0:-11.3, z1:-9.1, y0:up, y1:up + 1 }); G.bedSpawn = { x:5, z:-8.6 }; G.bed = { x:5.4, z:-9.8 }; PR.rug(4, up, -7, 3, 2.4, '#3a6a8a'); PR.picture(7.85, up + 1.8, -7, -Math.PI / 2, '#c83a3a');
-  box(2.4, .8, 1, mat('#6a4a2a'), 3.6, up, -11.4); const pc = PR.crtMonitor(3.4, up + .8, -11.45, 0); G.monitor = pc.screen; PR.chair(3.5, up, -10.3, Math.PI); G.desk = { x:3.6, z:-10.2 };
-  box(.6, .1, .8, mat('#c83'), 7, up + .6, -6.8, { col:false }); G.mags = { x:6.4, z:-6.6 };
-  box(.5, .5, .3, mat('#2a4a2a'), 1.2, up, -10.8, { col:false }); G.backpack = { x:1.6, z:-10.2 };
-  box(1.4, .5, .9, mat('#222'), 1.8, up, -5.6, { col:false }); G.console = { x:2.6, z:-5.6 }; box(.9, .7, .7, mat('#2a2a2a'), 1.8, up + .5, -5.6, { col:false });
-  // yard + fence + gate (east side, x=12, z -22..-18 is the gate)
-  fence(-14, -26, 14, -26); fence(-14, -26, -14, -12); fence(14, -26, 14, -22); fence(14, -18, 14, -12); const gate = box(.12, 1.3, 4, mat('#cfc6ad'), 14, 0, -20); G.gate = gate;
-  bush(-10, -24); tree(-10, -18, 1.1); box(.8, .9, .8, mat('#7a5a3a'), 10, 0, -24); // dog house
-  box(3, .4, 2.4, mat('#b9b6ad'), 0, 0, 5.4, { col:false }); mapRect(-8, -12, 8, 4, '#d8c8a8'); mapRect(-14, -26, 14, -12, '#6a9a4a');
-  for(let z = 6; z < 20; z += 2) plane(1.4, 1.8, mat('#b9b6ad'), 0, .05, z); // front walk
-  const car = makeCar('#2a5a9a'); car.position.set(10.5, 0, 9); S.add(car); G.colliders.push({ x0:9.5, x1:11.5, z0:6.8, z1:11.2, y0:0, y1:1.6 }); G.chrisCar = car;
-  plane(4, 14, rep(M.asphalt, 1, 3), 10.5, .03, 11); }
+const CH = { x:0, z:-4 }; G.CH = CH; CHR.buildChrisHouse();
 
 // ---------- Elmwood Park (tutorial landmark) ----------
 const PK = { x:-80, z:70 }; G.PK = PK;
@@ -271,4 +220,4 @@ export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070,
     p.position.set(x, row * .5 + .5, 19.6 + row * 1.2); p.rotation.y = Math.PI; S.add(p); G.crowd.push(p); }
   G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
 // interior lights for Chris's house and the school classroom
-[[0, 2.8, -6], [3, 6, -7]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
+[[0, 2.6, -6], [3, 5.8, -7]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });

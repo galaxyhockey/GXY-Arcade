@@ -136,6 +136,9 @@ export function schnucksInterior(SCH){ const { x0, x1, z0, z1 } = SCH;
   mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0 - 14), terrazzoM, (x0 + x1) / 2, .025, (z0 + z1 - 14) / 2).rotation.x = -Math.PI / 2;
   const woodSign = (t, x, y, z, ry, w = 8) => { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; S.add(g); B(w + .4, 1.5, .2, M('#9a6a3a'), 0, 0, 0, g);
     const p = mesh(new THREE.PlaneGeometry(w, 1.1), new THREE.MeshBasicMaterial({ map:label(t, { bg:'#a8743f', fg:'#fff', size:80, w:768, h:110, font:'Georgia' }) }), 0, .75, .11, g); return g; };
+  new THREE.TextureLoader().load('../../games/bc27/logos/schnucks.png', t => { t.colorSpace = THREE.SRGBColorSpace; const lm = new THREE.MeshBasicMaterial({ map:t, transparent:true });
+    [[80, z0 + .32, 0, 10], [130, z0 + .32, 0, 10], [x1 - .32, 345, -Math.PI / 2, 8]].forEach(([x, z, ry, w]) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 8), lm); p.position.set(x, 6.2, z); p.rotation.y = ry; S.add(p); });
+    const cs = new THREE.Mesh(new THREE.PlaneGeometry(4, .5), lm); cs.position.set(94, 4.1, 338.75); S.add(cs); });
   woodSign('BAKERY', x0 + .4, 4.6, 348, Math.PI / 2); woodSign('DELI', x0 + .4, 4.6, 364, Math.PI / 2, 6); woodSign('MEAT & SEAFOOD', 104, 4.6, 387.6, Math.PI, 12); woodSign('DAIRY', 160, 4.6, 387.6, Math.PI, 6);
   // perimeter refrigerated cases along the back wall (leave the back-room doors clear)
   [[88, 117], [125, 139], [147, 149]].forEach(([a, b]) => { if(b - a < 3) return; B(b - a, 2.1, 1.4, M('#e8e8e8'), (a + b) / 2, 0, 386.6); mesh(new THREE.PlaneGeometry(b - a - .4, 1.3), new THREE.MeshLambertMaterial({ color:0xbfe3ff, emissive:0x2a4a5a, transparent:true, opacity:.8 }), (a + b) / 2, 1.3, 385.85).rotation.y = Math.PI;
