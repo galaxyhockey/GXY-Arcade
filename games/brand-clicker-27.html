@@ -4,7 +4,20 @@
 <title>Brand Clicker '27 (Test v0.2)</title>
 <style>
 :root{--glass:rgba(16,18,28,.62);--line:rgba(255,255,255,.14);--txt:#f4f6ff;--mut:#a9b0c7;--acc:#ff8c1a;
-  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600)}
+  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600);--Exclusive:linear-gradient(90deg,#ff2d95,#7c4dff)}
+body.neon{--glass:rgba(30,6,48,.6);--line:rgba(255,45,149,.55);--mut:#e3b8ff}
+body.neon .glass{box-shadow:0 0 18px rgba(255,45,149,.45),inset 0 0 12px rgba(124,77,255,.25)}
+body.neon .btn:not(:disabled){box-shadow:0 0 12px var(--acc)}
+body.neon .pill b,body.neon .sh h2{text-shadow:0 0 8px #ff2d95}
+.tier{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;align-items:center;padding:8px;border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:6px}
+.tier.done{background:rgba(255,255,255,.1)}
+.tier b{font-size:15px;text-align:center}
+.rw{display:flex;align-items:center;gap:8px;font-size:12px;min-height:40px}
+.rw img{width:32px;height:32px;object-fit:contain}
+.rw .btn{padding:6px 10px;font-size:12px;margin-left:auto}
+.sell{position:absolute;left:4px;right:4px;bottom:4px;border:0;border-radius:7px;background:#16a34a;color:#fff;font-size:10px;font-weight:700;padding:3px;cursor:pointer}
+.cell.hasSell{height:124px;justify-content:flex-start;padding-top:10px}
+.timer{font-size:12px;color:var(--mut)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #wrap{position:fixed;inset:0;background:#05060a;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -100,10 +113,11 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 <div id="hint">Tap the logo · +<span id="mTap">5</span> Brand Items <span id="boost"></span></div>
 <div id="dock" class="glass">
   <button class="db hot" data-open="shop"><span>🛒</span>Shop</button>
+  <button class="db" data-open="items"><span>🏪</span>Items</button>
+  <button class="db" data-open="pass"><span>🎟️</span>Pass</button>
   <button class="db" data-open="pc"><span>🖥️</span>My PC</button>
   <button class="db" data-open="up"><span>⚡</span>Upgrades</button>
   <button class="db" data-open="mkt"><span>Ξ</span>Market</button>
-  <button class="db" data-open="trade"><span>🔄</span>Trade</button>
   <button class="db" data-open="set"><span>⚙️</span>Settings</button>
 </div>
 <div id="toast" class="glass"></div>
@@ -129,13 +143,21 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
   <p class="note">Spend Ethereum from your brands. In-game currency only.</p>
   <div class="cards" id="mktCards"></div>
 </div></div>
+<div class="sheet" id="items"><div class="glass">
+  <div class="sh"><h2>Item Shop</h2><button class="x" data-close>✕</button></div>
+  <p class="timer" id="itTimer"></p><div class="cards" id="itCards"></div>
+</div></div>
+<div class="sheet" id="pass"><div class="glass">
+  <div class="sh"><h2 id="bpName"></h2><button class="x" data-close>✕</button></div>
+  <div id="bpHead"></div><div id="bpTiers"></div>
+</div></div>
 <div class="sheet" id="trade"><div class="glass">
   <div class="sh"><h2>Trade</h2><button class="x" data-close>✕</button></div>
   <p class="note">Trading needs online play, which isn't in this test build yet.</p>
 </div></div>
 <div class="sheet" id="set"><div class="glass">
   <div class="sh"><h2>Settings</h2><button class="x" data-close>✕</button></div>
-  <div class="row"><button class="btn alt" id="rename">Change username</button><button class="btn alt" id="rmSet"></button><button class="btn alt" id="wipe">Reset save</button></div>
+  <div class="row"><button class="btn alt" id="rename">Change username</button><button class="btn alt" id="rmSet"></button><button class="btn alt" id="wipe">Reset save</button><button class="btn alt" id="themeBtn" hidden></button><button class="btn alt" data-open="trade">Trade</button></div>
   <p class="note">Fan remake for GXY Arcade, built from Kraken2022's original "Brand Clicker! – Full Game – PC Edition". Brand names and logos belong to their owners; this game isn't sponsored or endorsed by them. Brand Items and Ethereum are in-game only.</p>
 </div></div>
 <div id="reveal" class="glass"><span class="chip" id="rvChip"></span><h2 id="rvName"></h2><p id="rvSub"></p><button class="btn" id="claim">Claim &amp; Apply</button></div>
@@ -154,6 +176,7 @@ async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return; sessionS
 <script src="bc27/remaster.js?v=4"></script>
 <script src="bc27/remaster2.js?v=4"></script>
 <script src="bc27/remaster3d.js?v=5"></script>
+<script src="bc27/season1.js?v=6"></script>
 <script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT) bcHeal();</script>
 <script>
 const O = BC_ORIG, V = BC_V02, $ = id => document.getElementById(id);
@@ -166,9 +189,10 @@ const ALL = [{ id:0, name:'Linus Tech Tips', rarity:'Starter', eth:0, logo:'bc27
 for(const b of O.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b.eth, backdrop:b.backdrop,
   logo:HQ[b.id] ? `bc27/hq/${b.id}.${HQ[b.id]}` : file(cosOf(O.sprites[winKey(b)], b.reveal.costume).file) });
 for(const b of V.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b.eth, logo:'bc27/' + b.logoFile });
+for(const [id, nm, slug] of BC_SEASON.brands) ALL.push({ id, name:nm, rarity:'Exclusive', eth:0, exclusive:true, logo:`bc27/logos/${slug}.svg` });
 for(const [id, base, nm] of BC_3D) ALL.push({ id, name:nm + ' 3D', rarity:'3D', eth:25000, is3d:true, logo:ALL.find(b => b.id === base).logo });
 const BR = Object.fromEntries(ALL.map(b => [b.id, b])), COLLECT = ALL.filter(b => b.id);
-const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Chroma', '3D'];
+const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Chroma', '3D', 'Exclusive'];
 
 // ---------- boxes ----------
 const origW = k => Object.fromEntries(Object.values(O.boxes[k].weights).map(e => [e.id, e.weight]));
@@ -194,7 +218,7 @@ const boxArt = b => b.cube ? cube() : b.art ? `<img src="${b.art}" alt="">` : `<
 const KEY = 'bc27_save';
 let S; try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
 if(S && S.saveVersion) S = null; // v0.1 test save had a different format
-S = Object.assign({ v:2, bi:0, eth:0, bg:0, owned:[], counts:{}, up:0, lv:{}, items:{}, keys:0, boostUntil:0, name:'', boxes:0, taps:0, remaster:true }, S || {});
+S = Object.assign({ v:2, bi:0, eth:0, bg:0, owned:[], counts:{}, up:0, lv:{}, items:{}, keys:0, boostUntil:0, name:'', boxes:0, taps:0, remaster:true, pass:{ xp:0, prem:0, got:{} }, theme:'' }, S || {});
 if(!Array.isArray(S.owned)) S.owned = [];
 for(const id of S.owned) S.counts[id] = S.counts[id] || 1;
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} };
@@ -221,7 +245,7 @@ const MKT = [
   { k:'boost', name:'Overclock', ico:'🚀', price:1500, desc:'×3 on everything for 3 minutes' },
   { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade Ethereum for Brand Items · 1 Ξ = 15 BI' }
 ];
-const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120 };
+const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120, Exclusive:60 };
 const boosted = () => Date.now() < S.boostUntil ? 3 : 1;
 const tapValue = () => (5 + 5 * lv('tap')) * (S.items.golden ? 2 : 1) * boosted();
 function perSec(){
@@ -257,7 +281,7 @@ function home(){ busy = false; $('reveal').classList.remove('on'); $('open').cla
 // ---------- tapping ----------
 function tap(e){ if(busy || document.querySelector('.sheet.on')) return;
   const crit = Math.random() < .04 * lv('crit'), v = tapValue() * (crit ? 10 : 1);
-  S.bi += v; S.taps++; mon();
+  S.bi += v; S.taps++; S.pass.xp++; mon();
   const p = document.createElement('div'); p.className = 'pop' + (crit ? ' crit' : ''); p.textContent = (crit ? 'VIRAL! +' : '+') + fmt(v);
   const x = e && e.clientX != null ? e.clientX : innerWidth / 2 + (Math.random() * 80 - 40), y = e && e.clientY != null ? e.clientY : innerHeight / 2;
   p.style.left = x - 20 + 'px'; p.style.top = y - 30 + 'px'; document.body.appendChild(p); setTimeout(() => p.remove(), 800); }
@@ -289,7 +313,7 @@ async function openBox(k, useKey){
   const b = BOXES.find(x => x.k === k), p = boxPrice(b); if(busy) return;
   if(useKey){ if(!S.keys) return; S.keys--; }
   else if(b.eth){ if(S.eth < p) return; S.eth -= p; } else { if(S.bi < p) return; S.bi -= p; }
-  busy = true; S.boxes++; mon(); save(); closeSheets(); showUI(false);
+  busy = true; S.boxes++; S.pass.xp += 40; mon(); save(); closeSheets(); showUI(false);
   const o = $('open'); o.innerHTML = `<div class="bxw">${boxArt(b)}</div>`; o.classList.add('on');
   await wait(1700); const f = $('flash'); f.style.opacity = .85; await wait(150); f.style.opacity = 0;
   const w = weights(b), tot = Object.values(w).reduce((a, x) => a + x, 0); let r = Math.random() * tot, id = +Object.keys(w)[0];
@@ -305,7 +329,7 @@ async function openBox(k, useKey){
 }
 $('claim').onclick = () => { const b = BR[pending]; if(!b) return; const dup = S.owned.includes(b.id);
   S.bg = b.id; S.eth += b.eth * (dup && S.items.dupe ? 2 : 1); S.counts[b.id] = (S.counts[b.id] || 0) + 1;
-  if(!dup) S.owned.push(b.id); pending = 0; save(); home(); };
+  if(!dup){ S.owned.push(b.id); S.pass.xp += 100; } pending = 0; save(); home(); };
 
 // ---------- upgrades + market ----------
 function renderUp(){ $('upCards').innerHTML = UPG.map(u => { const l = lv(u.k), max = l >= u.max, c = Math.round(u.cost(l)), lock = u.req && !lv(u.req);
@@ -327,21 +351,77 @@ function renderMkt(){ $('mktCards').innerHTML = MKT.map(m => { const own = m.onc
 // ---------- My PC ----------
 let pcF = 'All';
 function renderPC(){
-  const n = S.owned.length; $('pcInfo').textContent = `${n} / ${COLLECT.length} brands · ${S.boxes} boxes opened · ${fmt(S.taps)} taps · tap a brand to apply it`;
+  const n = S.owned.length, dupes = S.owned.reduce((a, id) => a + ((S.counts[id] || 1) - 1) * SELL[BR[id].rarity], 0);
+  $('pcInfo').innerHTML = (dupes ? `<button class="btn" id="sellAll" style="margin-bottom:8px">♻️ Resell all duplicates · +${fmt(dupes)} BI</button><br>` : '') + `${n} / ${COLLECT.length} brands · ${S.boxes} boxes opened · ${fmt(S.taps)} taps · tap a brand to apply it`;
+  if($('sellAll')) $('sellAll').onclick = () => { for(const id of S.owned){ S.bi += ((S.counts[id] || 1) - 1) * SELL[BR[id].rarity]; S.counts[id] = 1; } save(); mon(); renderPC(); toast(`Resold duplicates · +${fmt(dupes)} BI`); };
   $('pcBar').style.width = n / COLLECT.length * 100 + '%';
   $('pcF').innerHTML = ['All', 'Owned', ...RAR].map(f => `<button class="f${f === pcF ? ' on' : ''}" data-f="${f}">${f}</button>`).join('');
   $('pcF').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { pcF = b.dataset.f; renderPC(); });
   const list = COLLECT.filter(b => pcF === 'All' || (pcF === 'Owned' ? S.owned.includes(b.id) : b.rarity === pcF));
   $('pcGrid').innerHTML = list.map(b => { const own = S.owned.includes(b.id);
-    return `<div class="cell${own ? '' : ' no'}${S.bg === b.id ? ' on' : ''}" data-id="${b.id}">${own && S.counts[b.id] > 1 ? `<span class="n">×${S.counts[b.id]}</span>` : ''}<img src="${b.logo}" alt=""><b>${own ? b.name : '???'}</b><span class="chip" style="background:var(--${b.rarity})">${b.rarity}</span></div>`; }).join('');
+    const dup = own && S.counts[b.id] > 1 && SELL[b.rarity];
+    return `<div class="cell${own ? '' : ' no'}${S.bg === b.id ? ' on' : ''}${dup ? ' hasSell' : ''}" data-id="${b.id}">${dup ? `<button class="sell" data-sell="${b.id}">Resell 1 · ${fmt(SELL[b.rarity])}</button>` : ''}${own && S.counts[b.id] > 1 ? `<span class="n">×${S.counts[b.id]}</span>` : ''}<img src="${b.logo}" alt=""><b>${own ? b.name : '???'}</b><span class="chip" style="background:var(--${b.rarity})">${b.rarity}</span></div>`; }).join('');
+  $('pcGrid').querySelectorAll('[data-sell]').forEach(s => s.onclick = e => { e.stopPropagation(); const id = +s.dataset.sell; if(S.counts[id] < 2) return;
+    S.counts[id]--; S.bi += SELL[BR[id].rarity]; save(); mon(); renderPC(); toast(`Resold ${BR[id].name} · +${fmt(SELL[BR[id].rarity])} BI`); });
   $('pcGrid').querySelectorAll('.cell:not(.no)').forEach(d => d.onclick = () => { S.bg = +d.dataset.id; save(); closeSheets(); home(); });
 }
 
+// ---------- resell values ----------
+const SELL = { Starter:0, Common:60, Uncommon:150, Rare:400, Epic:1000, Legendary:2500, Chroma:6000, '3D':60000, Exclusive:0 };
+// ---------- Item Shop: 6 brands, rotates every day at local midnight ----------
+const ITPRICE = { Common:150, Uncommon:400, Rare:1000, Epic:2500, Legendary:6000, Chroma:15000 };
+function dayKey(){ const d = new Date(); return d.getFullYear() * 1e4 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function todayItems(){ let s = dayKey(); const rnd = () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const pool = COLLECT.filter(b => ITPRICE[b.rarity]), out = [];
+  while(out.length < 6){ const b = pool[Math.floor(rnd() * pool.length)]; if(!out.includes(b)) out.push(b); }
+  return out.sort((a, c) => ITPRICE[c.rarity] - ITPRICE[a.rarity]); }
+function renderItems(){
+  const end = new Date(); end.setHours(24, 0, 0, 0); const ms = end - Date.now();
+  $('itTimer').textContent = `New items in ${Math.floor(ms / 36e5)}h ${Math.floor(ms / 6e4) % 60}m · buy brands directly with Ethereum`;
+  $('itCards').innerHTML = todayItems().map(b => { const own = S.owned.includes(b.id), p = ITPRICE[b.rarity];
+    return `<div class="card"><div class="art"><img src="${b.logo}" alt="" style="max-height:64px"></div><h3>${b.name}</h3><span class="chip" style="background:var(--${b.rarity});align-self:flex-start">${b.rarity}</span>
+      <button class="btn eth" data-it="${b.id}" ${own || S.eth < p ? 'disabled' : ''}>${own ? 'Owned' : fmt(p) + ' Ξ'}</button></div>`; }).join('');
+  $('itCards').querySelectorAll('[data-it]').forEach(x => x.onclick = () => { const b = BR[x.dataset.it], p = ITPRICE[b.rarity];
+    if(S.owned.includes(b.id) || S.eth < p) return; S.eth -= p; S.owned.push(b.id); S.counts[b.id] = 1; S.pass.xp += 100; save(); mon(); renderItems(); toast(`${b.name} added to your collection!`); });
+}
+// ---------- Battle Pass ----------
+const BP = BC_SEASON;
+const tierOf = () => Math.min(BP.tiers, Math.floor(S.pass.xp / BP.xpPerTier));
+const RWI = { bi:'\u{1F6CD}️', eth:'Ξ', key:'\u{1F5DD}️' }, RWN = { bi:'Brand Items', eth:'Ethereum' };
+function rwHtml(r){ const [t, v] = r;
+  if(t === 'brand') return `<img src="${BR[v].logo}" alt=""><span><b>${BR[v].name}</b><br>Exclusive brand</span>`;
+  if(t === 'theme') return `<span style="font-size:24px">\u{1F303}</span><span><b>Neon Night</b><br>Exclusive theme</span>`;
+  return `<span style="font-size:22px">${RWI[t]}</span><span>${fmt(v)} ${t === 'key' ? (v > 1 ? 'Box Keys' : 'Box Key') : RWN[t]}</span>`; }
+function grant(r){ const [t, v] = r;
+  if(t === 'bi') S.bi += v; else if(t === 'eth') S.eth += v; else if(t === 'key') S.keys += v;
+  else if(t === 'brand'){ if(!S.owned.includes(v)) S.owned.push(v); S.counts[v] = (S.counts[v] || 0) + 1; }
+  else if(t === 'theme'){ S.items.neon = 1; S.theme = 'neon'; applyTheme(); } }
+function renderPass(){
+  const t = tierOf(), into = S.pass.xp - t * BP.xpPerTier;
+  $('bpName').textContent = BP.name;
+  $('bpHead').innerHTML = `<p class="note">Tier <b>${t}</b> / ${BP.tiers} · ${t >= BP.tiers ? 'Max tier!' : `${fmt(into)} / ${BP.xpPerTier} XP`} · Earn XP: tap +1, open a box +40, new brand +100</p>
+    <div class="bar"><i style="width:${t >= BP.tiers ? 100 : into / BP.xpPerTier * 100}%"></i></div>
+    ${S.pass.prem ? '<p class="note">⭐ Premium pass active</p>' : `<button class="btn eth" id="bpBuy" ${S.eth < BP.premium ? 'disabled' : ''}>Unlock Premium track · ${fmt(BP.premium)} Ξ</button><p class="note">Premium is paid with in-game Ethereum only.</p>`}
+    <div class="tier" style="background:none"><span></span><b style="font-size:12px">FREE</b><b style="font-size:12px">⭐ PREMIUM</b></div>`;
+  if($('bpBuy')) $('bpBuy').onclick = () => { if(S.eth < BP.premium) return; S.eth -= BP.premium; S.pass.prem = 1; save(); mon(); renderPass(); toast('Premium pass unlocked!'); };
+  let rows = '';
+  for(let i = 1; i <= BP.tiers; i++){ const T = BP.track[i], cell = side => { const key = i + side, got = S.pass.got[key], can = t >= i && (side === 'f' || S.pass.prem);
+      return `<div class="rw">${rwHtml(side === 'f' ? T.free : T.prem)}${got ? '<span style="margin-left:auto">✅</span>' : can ? `<button class="btn" data-bp="${key}">Claim</button>` : '<span style="margin-left:auto">\u{1F512}</span>'}</div>`; };
+    rows += `<div class="tier${t >= i ? ' done' : ''}"><b>${i}</b>${cell('f')}${cell('p')}</div>`; }
+  $('bpTiers').innerHTML = rows;
+  $('bpTiers').querySelectorAll('[data-bp]').forEach(b => b.onclick = () => { const key = b.dataset.bp, i = parseInt(key), side = key.slice(-1);
+    if(S.pass.got[key] || tierOf() < i || (side === 'p' && !S.pass.prem)) return;
+    S.pass.got[key] = 1; grant(side === 'f' ? BP.track[i].free : BP.track[i].prem); save(); mon(); renderPass(); toast('Reward claimed!'); });
+}
+function applyTheme(){ document.body.classList.toggle('neon', S.theme === 'neon'); const b = $('themeBtn');
+  b.hidden = !S.items.neon; b.textContent = 'Theme: ' + (S.theme === 'neon' ? 'Neon Night' : 'Default'); }
+$('themeBtn').onclick = () => { S.theme = S.theme === 'neon' ? '' : 'neon'; save(); applyTheme(); };
+
 // ---------- sheets + wiring ----------
-const RENDER = { shop:renderShop, pc:renderPC, up:renderUp, mkt:renderMkt };
+const RENDER = { shop:renderShop, pc:renderPC, up:renderUp, mkt:renderMkt, items:renderItems, pass:renderPass };
 function openSheet(id){ if(busy) return; closeSheets(); if(RENDER[id]) RENDER[id](); $(id).classList.add('on'); }
 function closeSheets(){ document.querySelectorAll('.sheet.on').forEach(s => s.classList.remove('on')); }
-let rt = 0; function refreshOpen(){ const s = document.querySelector('.sheet.on'); if(s && RENDER[s.id] && s.id !== 'pc' && Date.now() - rt > 700){ rt = Date.now(); RENDER[s.id](); } }
+let rt = 0; function refreshOpen(){ const s = document.querySelector('.sheet.on'); if(s && RENDER[s.id] && s.id !== 'pc' && s.id !== 'pass' && Date.now() - rt > 700){ rt = Date.now(); RENDER[s.id](); } }
 document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openSheet(b.dataset.open));
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
 document.querySelectorAll('.sheet').forEach(s => s.onclick = e => { if(e.target === s) closeSheets(); });
@@ -355,7 +435,7 @@ function ask(){ $('askIn').value = S.name; $('ask').style.display = 'flex'; $('a
 $('askOk').onclick = () => { const v = $('askIn').value.trim(); if(!v) return; S.name = v; save(); mon(); $('ask').style.display = 'none'; };
 $('askIn').onkeydown = e => { if(e.key === 'Enter') $('askOk').click(); };
 function fit(){ const s = Math.min(Math.max(innerWidth / 480, innerHeight / 360), innerWidth / 380); $('stage').style.transform = `scale(${s})`; }
-addEventListener('resize', fit); fit(); rmLabel(); home(); if(!S.name) ask();
+addEventListener('resize', fit); fit(); rmLabel(); applyTheme(); home(); if(!S.name) ask();
 </script>
 <script src="../assets/gxy.js"></script>
 <script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
