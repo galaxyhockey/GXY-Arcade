@@ -94,6 +94,11 @@ const GAMES = {
       <rect x="440" y="470" width="22" height="150" fill="#e2e8f0"/><rect x="420" y="440" width="62" height="36" rx="6" fill="#38bdf8"/>
       <g transform="translate(250 320) rotate(-18) scale(5)"><path d="M-16 0 L14 0 L18 2 L14 4 L-16 4 Z" fill="#f8fafc"/><path d="M-2 2 L-10 -10 L-5 -10 L6 2 Z M-2 2 L-10 14 L-5 14 L6 2 Z" fill="#38bdf8"/><path d="M-16 2 L-20 -5 L-16 -5 L-12 2Z" fill="#ef4444"/></g>
       ${rep(5, i => `<path d="M${40 + i * 30} ${380 + i * 8} l-60 18" stroke="#fff" stroke-opacity=".35" stroke-width="3"/>`)}` },
+  'brand-clicker-27': { title: ['BRAND', "CLICKER '27"], sub: 'COLLECTOR’S REVIVAL', tag: 'Tap. Unbox. Collect every brand.', rating: 'E', c: ['#1a0f02', '#facc15', '#ec4899'],
+    art: () => `<rect y="${TOP}" width="${W}" height="610" fill="url(#sky)"/>
+      ${rep(5, i => `<g transform="translate(${90 + i * 90} ${300 + (i % 2) * 40}) rotate(${-14 + i * 7})"><rect x="-55" y="-72" width="110" height="144" rx="10" fill="${['#94a3b8','#22c55e','#3b82f6','#a855f7','#f59e0b'][i]}" stroke="#fff" stroke-width="4"/><rect x="-45" y="-60" width="90" height="70" rx="6" fill="#0f172a"/><text y="48" font-family="Arial Black" font-size="16" fill="#fff" text-anchor="middle">${['STARTER','UNCOMMON','RARE','EPIC','LEGEND'][i]}</text></g>`)}
+      <g transform="translate(270 560)"><circle r="70" fill="#facc15" stroke="#fff" stroke-width="6"/><path d="M-14 -36 L22 10 L4 10 L18 40 L6 46 L-8 16 L-22 30 Z" fill="#1a0f02"/></g>
+      ${rep(8, i => `<text x="${40 + i * 62}" y="${190 + (i % 3) * 18}" font-size="22">✨</text>`)}` },
 };
 
 const svg = (id, g) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">

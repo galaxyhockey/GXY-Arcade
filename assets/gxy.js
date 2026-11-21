@@ -12,7 +12,7 @@
   const GAMES = {
     'supermarket-wars':'Supermarket Wars', 'transit-tycoon':'Transit Tycoon', 'airport-empire':'Airport Empire', 'tv-battles':'TV Battles',
     'gxy-tech-empire':'Technology Empire', 'neon-siege':'Neon Siege', 'gxy-hockey':'GXY Hockey', 'gxy-football':'YOUFL Football',
-    'trivia':'GXY Trivia', 'price-guess':'Price Guess', 'gxy-daily':'Daily Word', 'arcade':'GXY Arcade' };
+    'trivia':'GXY Trivia', 'brand-clicker-27':"Brand Clicker '27", 'price-guess':'Price Guess', 'gxy-daily':'Daily Word', 'arcade':'GXY Arcade' };
 
   /* ---------------- cosmetics ---------------- */
   const COSMETICS = [
