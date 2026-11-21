@@ -93,28 +93,78 @@ function face(skin, o){ const k = skin + (o.glasses ? 'g' : '') + (o.beard || ''
     if(o.beard){ g.fillStyle = o.beard; g.fillRect(12, 42, 40, 22); g.fillStyle = o.lips || '#8a4a3a'; g.fillRect(24, 46, 16, 3); }
     faceTex[k] = new THREE.CanvasTexture(c); faceTex[k].colorSpace = THREE.SRGBColorSpace; faceTex[k].magFilter = THREE.NearestFilter; }
   return faceTex[k]; }
+// ---------- early-2000s wardrobe ----------
+// hairStyle: short | spiky (frosted tips) | curtains (middle part) | buzz | shaggy (skater) | cornrows | afro | sideswept | long | pony | bun | pigtails | bald
+// top: tee | graphic | jersey | hoodie | polo (popped collar) | track (jacket stripes) | flannel | tank | babytee
+// bottom: jeans | baggy | cargo | shorts (cargo shorts) | track | flare | skirt ; hat: cap | capback | trucker | beanie | bandana ; chain: puka | silver
+export const WARDROBE = {
+  hairStyle:['short', 'spiky', 'curtains', 'buzz', 'shaggy', 'cornrows', 'afro', 'sideswept', 'long', 'pony', 'bun', 'pigtails', 'bald'],
+  top:['tee', 'graphic', 'jersey', 'hoodie', 'polo', 'track', 'flannel', 'tank', 'babytee'], bottom:['jeans', 'baggy', 'cargo', 'shorts', 'track', 'flare', 'skirt'],
+  hat:['', 'cap', 'capback', 'trucker', 'beanie', 'bandana'], chain:['', 'puka', 'silver'] };
+const shirtTexCache = {};
+function shirtTex(kind, color, print){ const k = kind + color + print; if(shirtTexCache[k]) return shirtTexCache[k];
+  const c = document.createElement('canvas'); c.width = 64; c.height = 76; const g = c.getContext('2d'); g.fillStyle = color; g.fillRect(0, 0, 64, 76);
+  const lt = new THREE.Color(color).getHSL({}).l > .55, ink = lt ? '#1a1a1a' : '#f4f1ea';
+  if(kind === 'flannel'){ g.globalAlpha = .35; g.fillStyle = '#111'; for(let i = 0; i < 64; i += 16){ g.fillRect(i, 0, 6, 76); g.fillRect(0, i + 4, 64, 6); } g.globalAlpha = 1; }
+  if(kind === 'graphic'){ g.fillStyle = ink; g.beginPath(); g.arc(32, 32, 14, 0, 7); g.fill(); g.fillStyle = color; g.font = 'bold 12px Arial'; g.textAlign = 'center'; g.fillText(print || 'XTRM', 32, 37); }
+  if(kind === 'jersey' && print){ g.fillStyle = ink; g.font = 'bold 30px Arial Black'; g.textAlign = 'center'; g.fillText(print, 32, 50); }
+  if(kind === 'polo'){ g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(28, 0, 8, 22); }
+  if(kind === 'track'){ g.fillStyle = '#f4f4f0'; g.fillRect(30, 0, 4, 76); }
+  if(kind === 'hoodie'){ g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(14, 50, 36, 16); g.fillStyle = ink; g.fillRect(26, 6, 2, 18); g.fillRect(36, 6, 2, 18); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return shirtTexCache[k] = new THREE.MeshLambertMaterial({ map:t }); }
 export function makePerson(o = {}){
   const skin = o.skin || '#e8b896', g = new THREE.Group(), sk = mat(skin), sh = mat(o.shirt || '#3a6ea5'), pa = mat(o.pants || '#2b3550'), sho = mat(o.shoes || '#222');
-  const s = o.scale || 1, wide = o.wide || 1;
-  const leg = side => { const p = new THREE.Group(); p.position.set(side * .13 * wide, .9, 0);
-    const l = new THREE.Mesh(new THREE.BoxGeometry(.2 * wide, .82, .22), pa); l.position.y = -.41; const f = new THREE.Mesh(new THREE.BoxGeometry(.22 * wide, .1, .32), sho); f.position.set(0, -.86, .05);
-    p.add(l, f); l.castShadow = f.castShadow = true; return p; };
+  const s = o.scale || 1, wide = (o.wide || 1) * (o.thin ? .88 : 1), top = o.top || 'tee', bot = o.bottom || 'jeans', hs = o.hairStyle || (o.long ? 'long' : 'short');
+  const legW = bot === 'baggy' ? .25 : bot === 'flare' ? .22 : .2;
+  const leg = side => { const p = new THREE.Group(); p.position.set(side * .13 * wide, .9, 0); const parts = [];
+    if(bot === 'shorts'){ const u = new THREE.Mesh(new THREE.BoxGeometry(.23 * wide, .5, .24), pa); u.position.y = -.25; const d = new THREE.Mesh(new THREE.BoxGeometry(.15, .34, .15), sk); d.position.y = -.65; parts.push(u, d); }
+    else { const l = new THREE.Mesh(new THREE.BoxGeometry(legW * wide, bot === 'baggy' ? .86 : .82, legW + .02), pa); l.position.y = bot === 'baggy' ? -.45 : -.41; parts.push(l);
+      if(bot === 'flare'){ const fl = new THREE.Mesh(new THREE.BoxGeometry(.27 * wide, .16, .28), pa); fl.position.y = -.76; parts.push(fl); }
+      if(bot === 'track'){ const st = new THREE.Mesh(new THREE.BoxGeometry(.02, .8, .05), mat('#f4f4f0')); st.position.set(side * (legW * wide / 2 + .005), -.41, 0); parts.push(st); } }
+    if(bot === 'cargo' || bot === 'shorts'){ const pk = new THREE.Mesh(new THREE.BoxGeometry(.04, .14, .14), pa); pk.position.set(side * (.12 * wide), -.36, 0); parts.push(pk); }
+    const f = new THREE.Mesh(new THREE.BoxGeometry(.23 * wide, .12, .34), sho); f.position.set(0, -.86, .05); parts.push(f);
+    p.add(...parts); parts.forEach(m => m.castShadow = true); return p; };
+  const sleeveSk = o.sleeve === 'short' || ['tee', 'graphic', 'polo', 'babytee'].includes(top) && o.sleeve !== 'long', bare = top === 'jersey' || top === 'tank';
   const arm = side => { const p = new THREE.Group(); p.position.set(side * (.32 * wide + .03), 1.5, 0);
-    const a = new THREE.Mesh(new THREE.BoxGeometry(.15, .38, .17), sh); a.position.y = -.19; const el = new THREE.Group(); el.position.y = -.38; const fa = new THREE.Mesh(new THREE.BoxGeometry(.13, .38, .14), o.sleeve === 'short' ? sk : sh); fa.position.y = -.17;
-    const h = new THREE.Mesh(new THREE.BoxGeometry(.13, .13, .13), sk); h.position.y = -.41; el.add(fa, h); p.add(a, el); p.userData.el = el; [a, fa].forEach(m => m.castShadow = true); return p; };
+    const a = new THREE.Mesh(new THREE.BoxGeometry(.15, .38, .17), bare ? sk : sh); a.position.y = -.19; const el = new THREE.Group(); el.position.y = -.38; const fa = new THREE.Mesh(new THREE.BoxGeometry(.13, .38, .14), sleeveSk || bare ? sk : sh); fa.position.y = -.17;
+    const h = new THREE.Mesh(new THREE.BoxGeometry(.13, .13, .13), sk); h.position.y = -.41; el.add(fa, h); p.add(a, el); p.userData.el = el; [a, fa].forEach(m => m.castShadow = true);
+    if(top === 'track'){ const st = new THREE.Mesh(new THREE.BoxGeometry(.02, .74, .05), mat('#f4f4f0')); st.position.set(side * .08, -.37, 0); p.add(st); } return p; };
   const lL = leg(-1), lR = leg(1), aL = arm(-1), aR = arm(1);
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(.54 * wide, .64, .3 * Math.max(1, wide * .9)), sh); torso.position.y = 1.22; torso.castShadow = true;
+  const tw = .54 * wide, tz = .3 * Math.max(1, wide * .9), fm = ['graphic', 'jersey', 'polo', 'track', 'hoodie', 'flannel'].includes(top) ? shirtTex(top, o.shirt || '#3a6ea5', o.print) : sh;
+  const torsoH = top === 'babytee' ? .5 : .64, torso = new THREE.Mesh(new THREE.BoxGeometry(tw, torsoH, tz), [sh, sh, sh, sh, fm, top === 'jersey' ? fm : sh]); torso.position.y = 1.22 + (.64 - torsoH) / 2; torso.castShadow = true;
+  const extra = [];
+  if(top === 'babytee'){ const mid = new THREE.Mesh(new THREE.BoxGeometry(tw * .96, .14, tz * .96), sk); mid.position.y = 0.97; extra.push(mid); }
+  if(top === 'hoodie'){ const hood = new THREE.Mesh(new THREE.BoxGeometry(.4, .22, .12), sh); hood.position.set(0, 1.52, -.17); extra.push(hood); }
+  if(top === 'polo'){ const col = new THREE.Mesh(new THREE.BoxGeometry(.3, .1, .2), o.collar ? mat(o.collar) : sh); col.position.set(0, 1.58, 0); extra.push(col); }
+  if(top === 'jersey' || top === 'tank'){ [-1, 1].forEach(sd => { const b = new THREE.Mesh(new THREE.BoxGeometry(.06, .1, tz), sk); b.position.set(sd * (tw / 2 - .03), 1.5, 0); extra.push(b); }); }
+  if(bot === 'skirt'){ const sk2 = new THREE.Mesh(new THREE.BoxGeometry(.56 * wide, .34, .34), pa); sk2.position.y = .78; extra.push(sk2); }
+  if(o.chain){ const ch = new THREE.Mesh(new THREE.TorusGeometry(.12, .018, 4, 14), mat(o.chain === 'puka' ? '#f4efe0' : '#c9ccd0')); ch.position.set(0, 1.5, .1); ch.rotation.x = 1.2; extra.push(ch); }
   const neck = new THREE.Mesh(new THREE.BoxGeometry(.14, .08, .14), sk); neck.position.y = 1.57;
   const head = new THREE.Group(); head.position.y = 1.62;
   const hm = [sk, sk, sk, sk, new THREE.MeshLambertMaterial({ map:face(skin, o) }), sk];
   const hd = new THREE.Mesh(new THREE.BoxGeometry(.36, .38, .34), hm); hd.position.y = .2; hd.castShadow = true; head.add(hd);
-  if(o.hair !== 'none'){ const hm2 = mat(o.hair || '#3a2414'); const top = new THREE.Mesh(new THREE.BoxGeometry(.38, .12, .36), hm2); top.position.y = .42;
-    const back = new THREE.Mesh(new THREE.BoxGeometry(.38, o.long ? .5 : .26, .08), hm2); back.position.set(0, o.long ? .17 : .28, -.15); head.add(top, back);
-    if(o.long){ [-1, 1].forEach(sd => { const sdm = new THREE.Mesh(new THREE.BoxGeometry(.06, .42, .3), hm2); sdm.position.set(sd * .19, .2, -.02); head.add(sdm); }); } }
-  if(o.cap){ const cm = mat(o.cap); const c1 = new THREE.Mesh(new THREE.BoxGeometry(.4, .12, .38), cm); c1.position.y = .44; const br = new THREE.Mesh(new THREE.BoxGeometry(.34, .04, .2), cm); br.position.set(0, .4, .26); head.add(c1, br); }
+  const hc = mat(o.hair || '#3a2414'), H = (w, h, d, x, y, z, m = hc, rx = 0, rz = 0) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.rotation.set(rx, 0, rz); head.add(b); return b; };
+  if(o.hair !== 'none' && hs !== 'bald'){
+    if(hs === 'buzz') H(.37, .05, .35, 0, .405, 0, mat(new THREE.Color(o.hair || '#3a2414').offsetHSL(0, -.1, .05).getStyle()));
+    else if(hs === 'afro'){ H(.5, .32, .48, 0, .48, -.02); }
+    else { H(.38, .12, .36, 0, .42, 0); H(.38, ['long', 'pony', 'pigtails'].includes(hs) ? .5 : hs === 'shaggy' ? .36 : .26, .08, 0, ['long', 'pony', 'pigtails'].includes(hs) ? .17 : hs === 'shaggy' ? .22 : .28, -.15); }
+    if(hs === 'spiky'){ const tip = mat(o.tips || '#f0dc9a'); for(let i = 0; i < 7; i++){ const sp = new THREE.Mesh(new THREE.ConeGeometry(.05, .14, 4), i % 2 ? tip : hc); sp.position.set(-.15 + i * .05, .53, -.05 + (i % 3) * .06); sp.rotation.x = -.25; head.add(sp); } }
+    if(hs === 'curtains'){ H(.17, .06, .05, -.09, .37, .17, hc, 0, .35); H(.17, .06, .05, .09, .37, .17, hc, 0, -.35); }
+    if(hs === 'shaggy'){ H(.38, .1, .06, 0, .36, .17); [-1, 1].forEach(sd => H(.05, .22, .3, sd * .19, .3, -.02)); }
+    if(hs === 'sideswept'){ H(.26, .1, .05, .05, .33, .17, hc, 0, -.25); }
+    if(hs === 'cornrows'){ for(let i = 0; i < 5; i++) H(.03, .03, .34, -.14 + i * .07, .485, 0, mat('#111')); }
+    if(hs === 'long' || hs === 'pigtails'){ [-1, 1].forEach(sd => H(.06, .42, .3, sd * .19, .2, -.02)); }
+    if(hs === 'pony'){ H(.1, .3, .1, 0, .2, -.24); }
+    if(hs === 'bun'){ const b = new THREE.Mesh(new THREE.SphereGeometry(.1, 8, 6), hc); b.position.set(0, .5, -.16); head.add(b); }
+    if(hs === 'pigtails'){ [-1, 1].forEach(sd => H(.08, .26, .08, sd * .24, .12, -.05)); } }
+  const hat = o.hat || (o.cap ? 'cap' : ''), hm3 = mat(o.cap || o.hatColor || '#1d1d1d');
+  if(hat === 'cap' || hat === 'capback' || hat === 'trucker'){ H(.4, .12, .38, 0, .45, 0, hm3); H(.34, .04, .2, 0, .41, hat === 'capback' ? -.27 : .27, hm3);
+    if(hat === 'trucker'){ H(.41, .1, .3, 0, .46, -.05, mat('#f4f4f0')); } }
+  if(hat === 'beanie'){ H(.4, .18, .38, 0, .44, 0, hm3); H(.41, .05, .39, 0, .36, 0, mat(new THREE.Color(o.cap || o.hatColor || '#1d1d1d').offsetHSL(0, 0, .1).getStyle())); }
+  if(hat === 'bandana'){ H(.39, .08, .37, 0, .43, 0, mat(o.hatColor || '#2a3a8a')); }
   if(o.vest){ const v = new THREE.Mesh(new THREE.BoxGeometry(.56 * wide, .5, .32 * Math.max(1, wide * .9)), mat(o.vest)); v.position.y = 1.2; g.add(v); }
-  g.add(lL, lR, aL, aR, torso, neck, head); g.scale.setScalar(s);
-  g.userData = { lL, lR, aL, aR, head, phase:0 }; return g; }
+  g.add(lL, lR, aL, aR, torso, neck, head, ...extra); g.scale.setScalar(s);
+  g.userData = { lL, lR, aL, aR, head, torso, phase:0, seed:Math.random() * 6, look:o }; return g; }
 export function makeDog(color = '#c9a26b', o = {}){
   const g = new THREE.Group(), m = mat(color), d = mat(o.dark || '#3a2a1a'), s = o.size || 1;
   const body = new THREE.Mesh(new THREE.BoxGeometry(.3, .26, .6), m); body.position.y = .38; body.castShadow = true;
@@ -156,10 +206,17 @@ export class NPC {
     if(tgt){ const dx = tgt.x - this.p.x, dz = tgt.z - this.p.z, d = Math.hypot(dx, dz) || 1, sp = this.fol && !this.path ? Math.min(this.speed * (d > 8 ? 1.6 : 1), d * 3) : this.speed;
       this.p.x += dx / d * sp * dt; this.p.z += dz / d * sp * dt; this.face = Math.atan2(dx, dz); moving = sp; }
     const gy = groundAt(this.p.x, this.p.z, this.p.y); this.p.y += (gy - this.p.y) * Math.min(1, dt * 12);
+    if(this.o.userData) this.o.userData.talking = !!G.speaking && G.speaking.toLowerCase() === this.name.toLowerCase();
     animate(this.o, moving, dt); this.sync(); } }
 export function animate(o, speed, dt){ const u = o.userData; if(!u) return; u.phase += dt * (speed > 0 ? 3 + speed * 1.6 : 0); const s = speed > 0 ? Math.sin(u.phase) * Math.min(.8, .25 + speed * .1) : 0;
   if(u.dog){ u.legs.forEach((l, i) => l.rotation.x = (i % 3 ? 1 : -1) * s); u.tail.rotation.y = Math.sin(G.t * 12) * .5; return; }
-  u.lL.rotation.x = s; u.lR.rotation.x = -s; if(!u.pose){ u.aL.rotation.x = -s * .8; if(!u.phone) u.aR.rotation.x = s * .8; } }
+  u.lL.rotation.x = s; u.lR.rotation.x = -s; if(!u.pose){ u.aL.rotation.x = -s * .8; if(!u.phone) u.aR.rotation.x = s * .8; }
+  // idle: breathing + glancing around; talking: nods + hand gestures
+  const t = G.t + (u.seed || 0), still = speed <= 0;
+  if(u.torso) u.torso.scale.y = 1 + (still ? Math.sin(t * 2.2) * .012 : 0);
+  if(u.head && !u.pose){ u.head.rotation.y = u.talking ? Math.sin(t * 1.7) * .12 : still ? Math.sin(t * .45) * .22 * Math.max(0, Math.sin(t * .17)) : 0; u.head.rotation.x = u.talking ? Math.sin(t * 8) * .07 : 0; }
+  if(u.talking && still && !u.pose && !u.phone){ const el = u.aR.userData.el; u.aR.rotation.x = -.45 + Math.sin(t * 3.1) * .25; u.aR.rotation.z = .12; if(el) el.rotation.x = -.7 + Math.sin(t * 4.3) * .2; u.aL.rotation.x = Math.sin(t * 2.3) * .12; }
+  else if(!u.phone && !u.pose){ u.aR.rotation.z = 0; const el = u.aR.userData.el; if(el) el.rotation.x = 0; if(still){ u.aR.rotation.x = Math.sin(t * 1.1) * .04; u.aL.rotation.x = -Math.sin(t * 1.1) * .04; } } }
 // phone in the right hand at the ear: kind 'nokia' | 'handset' | null (put it away)
 export function holdPhone(model, kind){ const u = model.userData, aR = u.aR, el = aR.userData.el; if(u.phone){ el.remove(u.phone); u.phone = null; } aR.rotation.set(0, 0, 0); el.rotation.set(0, 0, 0); if(!kind) return;
   const g = new THREE.Group(); if(kind === 'nokia'){ const b = new THREE.Mesh(new THREE.BoxGeometry(.06, .13, .03), mat('#2c3a48')); const sc = new THREE.Mesh(new THREE.PlaneGeometry(.04, .035), new THREE.MeshBasicMaterial({ color:0x9fc25a })); sc.position.set(0, .03, .016); const an = new THREE.Mesh(new THREE.BoxGeometry(.015, .03, .015), mat('#222')); an.position.set(.018, .08, 0); g.add(b, sc, an); }
@@ -170,7 +227,9 @@ export function npc(name, look, x, z, o){ return new NPC(name, look.dog ? makeDo
 // ---------- player ----------
 export const P = { p:new THREE.Vector3(0, 0, 0), yaw:0, pitch:-.12, vy:0, model:null, speed:6.4, sprint:11.5, rad:.34, moved:0, rotated:0, stam:1, tired:false };
 P.model = makePerson({ shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#efc29e' }); scene.add(P.model);
-export function setOutfit(o){ scene.remove(P.model); P.model = makePerson({ shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#efc29e', ...o }); scene.add(P.model); }
+// Chris's everyday look (changed in his closet / at the barber); mission outfits layer on top
+G.chrisLook = { shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#efc29e', hairStyle:'spiky', tips:'#e8cf8a', top:'graphic', print:'SK8', bottom:'baggy', shoes:'#3a3a3a' };
+export function setOutfit(o){ scene.remove(P.model); P.model = makePerson({ ...G.chrisLook, ...o }); P.model.rotation.y = P.yaw; scene.add(P.model); }
 export function place(x, z, yaw = 0, y){ P.p.set(x, y ?? groundAt(x, z, .3), z); P.yaw = yaw; P.vy = 0; }
 const camP = new THREE.Vector3(), camL = new THREE.Vector3();
 // ---------- driving (any car registered with makeDrivable) ----------
@@ -206,7 +265,7 @@ function updatePlayer(dt){
   if(G.carry) G.carry(dt, mv);
   collide(P.p, P.rad);
   const gy = groundAt(P.p.x, P.p.z, P.p.y); if(P.p.y > gy + .05){ P.vy -= 22 * dt; P.p.y = Math.max(gy, P.p.y + P.vy * dt); } else { P.p.y += (gy - P.p.y) * Math.min(1, dt * 15); P.vy = 0; }
-  P.model.position.copy(P.p); animate(P.model, mv, dt); P.mv = mv; }
+  P.model.userData.talking = G.speaking === 'Chris'; P.model.position.copy(P.p); animate(P.model, mv, dt); P.mv = mv; }
 function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between player and camera
   let t = 1; const steps = 12;
   for(let i = 1; i <= steps; i++){ const u = i / steps, x = a.x + (b.x - a.x) * u, z = a.z + (b.z - a.z) * u, y = a.y + (b.y - a.y) * u;
@@ -264,16 +323,16 @@ $('dlg').addEventListener('click', () => adv && adv());
 export function say(lines, o = {}){ // lines: [[who, text], ...]; who '' = narration (Chris's thoughts). o.auto: plays while you keep walking
   return new Promise(async done => { const box = $('dlg'), who = box.querySelector('.who'), txt = box.querySelector('.txt'), ar = box.querySelector('.arrow');
     if(o.auto){ while(G.dialogOn || G.autoTalk) await wait(200); G.autoTalk = true; box.classList.add('auto');
-      for(const [w, t] of lines){ const text = clean(t); who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w); ar.style.display = 'none'; box.style.display = 'block';
+      for(const [w, t] of lines){ const text = clean(t); G.speaking = w; who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w); ar.style.display = 'none'; box.style.display = 'block';
         for(let i = 0; i <= text.length; i += 2){ txt.textContent = text.slice(0, i); if(i % 6 === 0) blip(w); await wait(14); } await wait(Math.max(1500, text.length * 38)); }
-      box.style.display = 'none'; box.classList.remove('auto'); G.autoTalk = false; done(); return; }
+      box.style.display = 'none'; box.classList.remove('auto'); G.autoTalk = false; G.speaking = null; done(); return; }
     G.dialogOn = true; box.style.display = 'block'; $('prompt').style.display = 'none';
-    for(const [w, t] of lines){ const text = clean(t); who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w);
+    for(const [w, t] of lines){ const text = clean(t); G.speaking = w; who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w);
       ar.style.display = 'none'; let i = 0, skip = false; txt.textContent = '';
       await new Promise(r => { adv = () => { skip = true; }; const iv = setInterval(() => { i += skip ? 999 : 2; txt.textContent = text.slice(0, i); if(i % 6 === 0 && !skip) blip(w);
         if(i >= text.length){ clearInterval(iv); r(); } }, 13); });
       ar.style.display = 'block'; await new Promise(r => { adv = r; }); }
-    adv = null; G.dialogOn = false; box.style.display = 'none'; done(); }); }
+    adv = null; G.dialogOn = false; G.speaking = null; box.style.display = 'none'; done(); }); }
 export function choose(opts){ return new Promise(res => { const el = $('choices'); let k = 0; G.choiceOn = true;
   const draw = () => { el.innerHTML = opts.map((o, i) => `<div class="${i === k ? 'on' : ''}" data-i="${i}">${o}</div>`).join(''); el.querySelectorAll('div').forEach(d => d.onclick = () => fin(+d.dataset.i)); };
   const fin = i => { G.choiceOn = false; el.style.display = 'none'; res(i); };
@@ -286,7 +345,16 @@ export async function banner(big, small = '', fail = false, ms = 4200){ const b 
 export function toast(t, ms = 2600){ const e = $('toast'); e.innerHTML = t; e.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = 'none', ms); }
 export function killDialog(){ adv = null; G.dialogOn = false; G.choiceOn = false; $('dlg').style.display = 'none'; $('choices').style.display = 'none'; }
 export function cut(on){ G.ctl = !on; P.model.visible = true; document.body.classList.toggle('bars', !!on); if(on){ unlock(); $('prompt').style.display = 'none'; } else G.camOverride = null; }
-export function camShot(pos, look, ms = 0){ const a = cam.position.clone(), b = new THREE.Vector3(...pos), lk = new THREE.Vector3(...look), q0 = cam.quaternion.clone();
+// cutscene cameras never sit behind a wall: ray from the subject to the camera, stop in front of the first solid surface
+const shotRay = new THREE.Raycaster();
+export function clearShot(b, lk){ const d = b.clone().sub(lk), L = d.length(); if(L < .6) return b; d.divideScalar(L); shotRay.set(lk, d); shotRay.far = L;
+  const skip = new Set([P.model, sky, ...G.npcs.map(n => n.o), ...(G.markers || [])]);
+  for(const h of shotRay.intersectObjects(scene.children, true)){ const o = h.object, m = Array.isArray(o.material) ? o.material[0] : o.material; let bad = false;
+    for(let p = o; p && !bad; p = p.parent) if(skip.has(p) || !p.visible) bad = true;
+    if(bad || !m || m.isShaderMaterial || (m.transparent && m.opacity < .7) || h.distance < .7) continue;
+    return lk.clone().addScaledVector(d, Math.max(.9, h.distance - .35)); }
+  return b; }
+export function camShot(pos, look, ms = 0){ const a = cam.position.clone(), lk = new THREE.Vector3(...look), b = clearShot(new THREE.Vector3(...pos), lk), q0 = cam.quaternion.clone();
   const tmp = new THREE.PerspectiveCamera(); tmp.position.copy(b); tmp.lookAt(lk); const q1 = tmp.quaternion.clone(); let t = 0;
   return new Promise(res => { G.camOverride = dt => { t += dt * 1000; const u = ms ? Math.min(1, t / ms) : 1, e = u * u * (3 - 2 * u);
     cam.position.lerpVectors(a, b, e); cam.quaternion.slerpQuaternions(q0, q1, e); if(u >= 1 && res){ const r = res; res = null; r(); } }; }); }

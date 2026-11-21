@@ -5,6 +5,7 @@ import * as BL from './buildings.js';
 import * as CHR from './chrishouse.js';
 import * as SC from './school.js';
 import * as PZ from './plaza.js';
+import * as ST from './store.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
@@ -34,15 +35,17 @@ function road(x0, z0, x1, z1, name){ plane(x1 - x0, z1 - z0, rep(M.asphalt, (x1 
   else { for(let z = z0 + 2; z < z1; z += 6) plane(.18, 3, dash, (x0 + x1) / 2, .03, z); plane(2.4, z1 - z0, rep(M.walk, 1, (z1 - z0) / 3), x0 - 1.2, .06, (z0 + z1) / 2); plane(2.4, z1 - z0, rep(M.walk, 1, (z1 - z0) / 3), x1 + 1.2, .06, (z0 + z1) / 2); }
   if(name) G.roads.push({ x0, z0, x1, z1, name }); }
 G.roads = [];
-road(-190, 20, 150, 28, 'Elm Street');            // main residential street
+road(-190, 20, 150, 28, 'N 17th Street');         // Chris's street (real: N 17th St, Belleville IL)
 road(96, 28, 104, 252, 'Maple Street');           // Maple Street (dog chase meet-up)
-road(-190, 252, 230, 260, 'Swansea Road');        // road to the plaza
-road(-112, 28, -104, 252, 'Lincoln Avenue');      // school road
+road(-190, 252, 230, 260, 'N Illinois Street');   // real: Schnucks Swansea is on N Illinois St (IL-159)
+road(-112, 28, -104, 252, 'Frank Scott Pkwy');    // real: Belleville West is on Frank Scott Pkwy W
 [[96, 104, 17.6, 30.4], [96, 104, 249.6, 262.4], [-112, -104, 17.6, 30.4], [-112, -104, 249.6, 262.4]].forEach(([x0, x1, z0, z1]) => plane(x1 - x0, z1 - z0, rep(M.asphalt, 2, 3), (x0 + x1) / 2, .07, (z0 + z1) / 2));
 [[100, 19], [100, 29], [-108, 19], [-108, 29], [100, 251], [100, 261]].forEach(([x, z]) => plane(8, 2.2, txMat('xw2', (g, w, h) => { g.fillStyle = '#3b3d42'; g.fillRect(0, 0, w, h); g.fillStyle = '#eee'; for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 8, h); }, [1, 1]), x, .075, z));
 function streetSign(x, z, t, ry = 0){ cyl(.05, 3, mat('#777'), x, 0, z); const s = new THREE.Mesh(new THREE.BoxGeometry(1.8, .4, .05), new THREE.MeshBasicMaterial({ map:label(t, { bg:'#1d6b3a', fg:'#fff', size:52, w:512, h:110 }) }));
   s.position.set(x, 3, z); s.rotation.y = ry; S.add(s); }
-streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSign(-102.5, 30, 'LINCOLN AVE', Math.PI / 2); streetSign(-1.5, 18.5, 'ELM ST');
+streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSign(-102.5, 30, 'FRANK SCOTT PKWY', Math.PI / 2); streetSign(-1.5, 18.5, 'N 17TH ST'); streetSign(94.5, 262.5, 'N ILLINOIS ST'); streetSign(-102.5, 249.5, 'N ILLINOIS ST');
+{ const lim = (x, z, ry, t) => { cyl(.05, 2.6, mat('#777'), x, 0, z); const s = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1, .05), new THREE.MeshBasicMaterial({ map:label(t, { bg:'#1d6b3a', fg:'#fff', size:36, w:512, h:230 }) })); s.position.set(x, 2.6, z); s.rotation.y = ry; S.add(s); };
+  lim(93.5, 205, Math.PI / 2, ['VILLAGE OF', 'SWANSEA', 'POP. 10,579']); lim(106.5, 75, -Math.PI / 2, ['CITY OF', 'BELLEVILLE', 'EST. 1814']); }
 
 // ---------- trees / props ----------
 const leafM = [mat('#3f7a2e'), mat('#4d8a34'), mat('#5c7f2a'), mat('#b5651d'), mat('#c98a2a')];
@@ -169,7 +172,7 @@ plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 33
   box(.8, .9, .8, mat('#9aa'), 166, 0, 344); box(1.2, .8, .5, mat('#fff'), 158, 0, 352.6); G.restroom = { x:160, z:347, can:{ x:166, z:344 } };
   const rr = new THREE.Mesh(new THREE.BoxGeometry(2.4, .6, .1), new THREE.MeshBasicMaterial({ map:label('RESTROOM', { bg:'#2a5a8a', fg:'#fff', size:56 }) })); rr.position.set(153, 3, 342.2); rr.rotation.y = Math.PI; S.add(rr);
   mapRect(x0, z0, x1, z1, '#d8d4c8'); mapRect(140, 402, 166, 414, '#a8a8a0');
-  BL.schnucksExterior(SCH); BL.schnucksInterior(SCH); PZ.plazaShops();
+  BL.schnucksExterior(SCH); BL.schnucksInterior(SCH); ST.storeDetail(SCH); PZ.plazaShops();
   G.storeEntrance = { x:105, z:328 }; G.staffDoor = { x:172, z:357.5 }; G.backDoorOutside = { x:152, z:405 }; }
 // 14 numbered cart corrals (C01–C14)
 G.corrals = [];

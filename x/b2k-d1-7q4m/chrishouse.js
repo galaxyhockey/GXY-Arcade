@@ -97,6 +97,7 @@ export function buildChrisHouse(){
   PR.rug(4, UP, -7, 3, 2.4, '#3a6a8a'); box(2.4, .8, 1, wood, 3.6, UP, -11.4); const pc = PR.crtMonitor(3.4, UP + .8, -11.45, 0); G.monitor = pc.screen; PR.chair(3.5, UP, -10.3, Math.PI); G.desk = { x:3.6, z:-10.2 }; G.monitorPos = [3.4, UP + 1.05, -11.45];
   [['#c83a3a', 2.2, -11.86, 0], ['#2a4a8a', 7.86, -6, -Math.PI / 2], ['#e8a020', 7.86, -3.5, -Math.PI / 2]].forEach(([c, x, z, ry]) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(.8, 1.1), mat(c)); p.position.set(x, UP + 1.8, z); p.rotation.y = ry; S.add(p); }); // posters
   deco(.6, .08, .8, mat('#c83'), 7, UP + .62, -6.8); G.mags = { x:6.4, z:-6.6 }; deco(.5, .5, .3, mat('#2a4a2a'), 1.2, UP, -10.8); G.backpack = { x:1.6, z:-10.2 };
+  box(.7, 2.4, 2.4, mat('#f2efe6'), 7.5, UP, -5, {}); deco(.04, 2.3, .04, mat('#bbb'), 7.14, UP, -5); [-5.6, -4.4].forEach(z => deco(.04, .25, .04, mat('#999'), 7.13, UP + 1.1, z)); G.closet = { x:6.6, z:-5 }; // closet (bifold doors)
   box(1.2, 1, .55, wood, 7.5, UP, -1.5); deco(.15, .12, .5, mat('#ddd'), 7.5, UP + 1, -1.5); // dresser
   box(1.2, .5, .7, mat('#3a2a1a'), 1, UP, -5.6); PR.crtTV(1, UP + .5, -5.6, Math.PI / 2, .7); deco(.35, .08, .3, mat('#222'), 1, UP + .5, -5.15); G.console = { x:2.4, z:-5.6 }; // TV + PS2-style console
   // ---------- yard, fence, gate, driveway, car ----------

@@ -13,11 +13,13 @@ async function crawl(n, wx, dir, z){ n.stop(); n.manual = true; const o = n.o, u
 import { M04, S01 } from './missions2.js';
 const { G, P } = E;
 export const LOOK = {
-  zeke:{ shirt:'#d8a020', pants:'#3a4a6a', wide:1.32, cap:'#1d1d1d', hair:'#3a2414' }, jax:{ shirt:'#2a8a4a', pants:'#2b3550', hair:'#151515', skin:'#c48a5e' },
-  matt:{ shirt:'#8a2a2a', pants:'#3a3a3a', hair:'#c9a15a' }, milo:{ shirt:'#5a5aa8', pants:'#4a4a3a', hair:'#5a3a1c', glasses:true },
-  dad:{ shirt:'#4a5568', pants:'#2a2a33', hair:'#4a3a2a', beard:'#5a4a3a', wide:1.15, scale:1.05 }, mom:{ shirt:'#a8557a', pants:'#333a55', hair:'#7a4a2a', long:true, lips:'#b5505a' },
+  zeke:{ shirt:'#d8a020', pants:'#3a4a6a', wide:1.32, hat:'capback', cap:'#1d1d1d', hair:'#3a2414', hairStyle:'buzz', top:'jersey', print:'23', bottom:'baggy', chain:'silver', shoes:'#f2f2f2' },
+  jax:{ shirt:'#2a6a3a', pants:'#2b3550', hair:'#151515', skin:'#c48a5e', hairStyle:'cornrows', top:'hoodie', bottom:'baggy', shoes:'#f4f4f4', thin:true, scale:1.04 },
+  matt:{ shirt:'#8a2a2a', pants:'#5a5a4a', hair:'#c9a15a', hairStyle:'shaggy', top:'flannel', bottom:'cargo', chain:'puka', shoes:'#2a2a2a' },
+  milo:{ shirt:'#4a6ab8', pants:'#9a8a6a', hair:'#5a3a1c', glasses:true, hairStyle:'curtains', top:'polo', collar:'#f4f4f0', bottom:'cargo', thin:true },
+  dad:{ shirt:'#4a5568', pants:'#5a4a3a', hair:'#4a3a2a', beard:'#5a4a3a', wide:1.15, scale:1.05, top:'polo', hairStyle:'short' }, mom:{ shirt:'#a8557a', pants:'#a8557a', hair:'#7a4a2a', hairStyle:'pony', top:'track', bottom:'track', lips:'#b5505a' },
   pepper:{ dog:true, color:'#efe6d6', dark:'#6a5a4a', size:.8 }, remy:{ dog:true, color:'#3a2a1a', dark:'#1a1a1a' }, levi:{ dog:true, color:'#c9a26b', dark:'#5a3a1a', size:1.1 },
-  blackout:{ shirt:'#141414', pants:'#141414', shoes:'#111' } };
+  blackout:{ shirt:'#141414', pants:'#141414', shoes:'#111', top:'hoodie', bottom:'cargo', hat:'beanie', hatColor:'#111' } };
 export const black = l => ({ ...l, shirt:'#141414', pants:'#141414', cap:l.cap ? '#111' : undefined });
 const C = 'Chris';
 export const pos = a => a.p || a;
@@ -63,7 +65,7 @@ const M01 = { title:'Welcome to Belleville', sub:'GAME ORIGINAL · TUTORIAL', wh
       Object.assign(G.flags, { M01_complete:true, M02_available:true, free_roam:true }); } ] };
 
 // =================== M02 — TRIP TO THE KITCHEN (BOOK: September 23, 2003) ===================
-const pj = { shirt:'#7a9ad8', pants:'#5a7ac0', shoes:'#e8b896', sleeve:'short' };
+const pj = { shirt:'#7a9ad8', pants:'#5a7ac0', shoes:'#e8b896', sleeve:'short', top:'tee', bottom:'jeans' };
 const CHASE = [[11, -2], [11.5, 10], [16, 23.5], [45, 23.5], [80, 24], [100, 26], [100, 60], [100, 95], [100, 118]];
 const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the TV in Chris's living room", needs:'M01', start:{ x:-4.5, z:-5 },
   setup(i){ E.setTime('after'); E.setOutfit(pj); clock(day1, ''); G.noTraffic = true; },

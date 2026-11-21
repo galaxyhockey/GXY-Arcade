@@ -7,10 +7,10 @@ const C = 'Chris', day4 = 'SEPTEMBER 26TH 2003';
 const vest = '#c8102e';
 const W = { // 2003 work cast + 1989 cast
   eric:{ shirt:'#e9e9e9', pants:'#30323a', hair:'#5d5d5d', beard:'#6a6a6a', wide:1.12, scale:1.04 }, jacob:{ shirt:'#d8dde6', pants:'#30323a', hair:'#8a8a8a', glasses:true, wide:1.08 },
-  andrew:{ shirt:'#e8e0c8', pants:'#2a2a3a', hair:'#8a5a2a', vest }, madison:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#3a2414', long:true, vest, lips:'#b5505a' },
-  ryan:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#151515', skin:'#b07a52', vest }, mia:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#c9a15a', long:true, vest, lips:'#b5505a' },
-  jack:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#6a4a2a', vest }, doris:{ shirt:'#a87aa8', pants:'#6a5a7a', hair:'#dcdcdc', long:true, glasses:true, lips:'#a05060' },
-  sparks:{ shirt:'#7a4a6a', pants:'#3a3a4a', hair:'#9a9a9a', long:true, glasses:true }, cust:{ shirt:'#6a8a3a', pants:'#3a3a3a', hair:'#3a2a1a', beard:'#3a2a1a' },
+  andrew:{ shirt:'#e8e0c8', pants:'#2a2a3a', hair:'#8a5a2a', vest, hairStyle:'sideswept', thin:true }, madison:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#3a2414', hairStyle:'pony', vest, lips:'#b5505a', scale:.95 },
+  ryan:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#151515', skin:'#b07a52', vest, hairStyle:'afro' }, mia:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#c9a15a', hairStyle:'pigtails', vest, lips:'#b5505a', scale:.94 },
+  jack:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#6a4a2a', vest, hairStyle:'buzz', wide:1.1 }, doris:{ shirt:'#a87aa8', pants:'#6a5a7a', hair:'#dcdcdc', hairStyle:'bun', glasses:true, lips:'#a05060', scale:.92 },
+  sparks:{ shirt:'#7a4a6a', pants:'#3a3a4a', hair:'#9a9a9a', hairStyle:'bun', glasses:true, bottom:'skirt' }, cust:{ shirt:'#6a8a3a', pants:'#3a3a3a', hair:'#3a2a1a', beard:'#3a2a1a' },
   eric89:{ shirt:'#cc0000', pants:'#3a4a6a', hair:'#3a2414' }, jacob89:{ shirt:'#f4f4f4', pants:'#2b3550', hair:'#6a4a2a' }, lilly:{ shirt:'#cc0000', pants:'#2b3550', hair:'#e0c070', long:true, lips:'#c0505a' },
   guy:{ shirt:'#7bafd4', pants:'#334', hair:'#2a1a0a' } };
 const work = { vest };

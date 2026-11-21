@@ -7,7 +7,8 @@ import * as PR from './props.js';
 import { bigTree as tree } from './buildings.js';
 const S = G.scene, M = mat, HW = 12.6, HC = 9; // wing height (3 storeys), commons height
 const deco = (w, h, d, m, x, y, z) => box(w, h, d, m, x, y, z, { col:false });
-const col = (x0, z0, x1, z1, y1 = 13) => G.colliders.push({ x0:Math.min(x0, x1), x1:Math.max(x0, x1), z0:Math.min(z0, z1), z1:Math.max(z0, z1), y0:0, y1 });
+let YO = 0; // floor offset while building the upper storeys
+const col = (x0, z0, x1, z1, y1 = 13) => G.colliders.push({ x0:Math.min(x0, x1), x1:Math.max(x0, x1), z0:Math.min(z0, z1), z1:Math.max(z0, z1), y0:YO, y1:YO + y1 });
 function vp(w, h, m, x, y, z, ry){ const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); p.position.set(x, y, z); p.rotation.y = ry; p.receiveShadow = true; S.add(p); return p; }
 const basic = c => new THREE.MeshBasicMaterial({ color:c });
 const white = M('#f3f1ea'), cream = M('#e3d6b8'), maroon = M('#6e1a26'), black = M('#1c1c1c'), metal = M('#9aa0a6');
@@ -68,19 +69,19 @@ function floorP(x0, z0, x1, z1, m){ if(m === 'T') m = terr((x1 - x0) / 4, (z1 - 
 // interior wall along x at z with door/opening gaps [[a,b,h]], skin material per side
 // m: material, or 'W' = block wainscot to 3.6 m + plain block above (textured per piece so blocks keep their size)
 function piece(len, y0, y1, m, ax, c, s){ const parts = m === 'W' ? [[y0, Math.min(y1, 3.6), wain], [Math.max(y0, 3.6), y1, upperBlock]] : [[y0, y1, () => m]];
-  for(const [a, b, f] of parts){ if(b - a < .01) continue; const mt = f === wain ? wain(len, a, b) : f(len); if(ax === 'x') deco(len, b - a, .25, mt, s, a, c); else deco(.25, b - a, len, mt, c, a, s); } }
+  for(const [a, b, f] of parts){ if(b - a < .01) continue; const mt = f === wain ? wain(len, a, b) : f(len); if(ax === 'x') deco(len, b - a, .25, mt, s, a + YO, c); else deco(.25, b - a, len, mt, c, a + YO, s); } }
 function wallX(x0, x1, z, h, m, gaps = [], y1 = h){ let x = x0; for(const [a, b, gh] of [...gaps].sort((p, q) => p[0] - q[0])){ if(a > x){ piece(a - x, 0, h, m, 'x', z, (x + a) / 2); col(x, z - .15, a, z + .15, y1); } if(gh < h) piece(b - a, gh, h, m, 'x', z, (a + b) / 2); x = b; } if(x1 > x){ piece(x1 - x, 0, h, m, 'x', z, (x + x1) / 2); col(x, z - .15, x1, z + .15, y1); } }
 function wallZ(z0, z1, x, h, m, gaps = []){ let z = z0; for(const [a, b, gh] of [...gaps].sort((p, q) => p[0] - q[0])){ if(a > z){ piece(a - z, 0, h, m, 'z', x, (z + a) / 2); col(x - .15, z, x + .15, a); } if(gh < h) piece(b - a, gh, h, m, 'z', x, (a + b) / 2); z = b; } if(z1 > z){ piece(z1 - z, 0, h, m, 'z', x, (z + z1) / 2); col(x - .15, z, x + .15, z1); } }
 // classroom door: brown wood leaf, maroon steel frame, push bar, room number
-function door(x, z, ry, num){ const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g); const add = (w, h, d, m, px, py, pz) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(px, py + h / 2, pz); g.add(b); };
+function door(x, z, ry, num){ const g = new THREE.Group(); g.position.set(x, YO, z); g.rotation.y = ry; S.add(g); const add = (w, h, d, m, px, py, pz) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(px, py + h / 2, pz); g.add(b); };
   add(1.0, 2.2, .06, M('#6a4a30'), 0, 0, .02); [-.56, .56].forEach(px => add(.1, 2.3, .14, maroon, px, 0, 0)); add(1.22, .1, .14, maroon, 0, 2.2, 0); add(.7, .05, .06, M('#b8a070'), 0, 1, .07); add(.18, .5, .02, glass, -.25, 1.4, .06);
   if(num){ const n = new THREE.Mesh(new THREE.PlaneGeometry(.4, .16), sign(num, { bg:'#fff', fg:'#222', size:60, w:128, h:50 })); n.position.set(.85, 1.8, .03); g.add(n); } }
 function ledClock(x, y, z, ry){ const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; S.add(g); const b = new THREE.Mesh(new THREE.BoxGeometry(.6, .22, .05), M('#2a2c30')); g.add(b);
   const f = new THREE.Mesh(new THREE.PlaneGeometry(.44, .15), sign('8:35', { bg:'#1a0a0e', fg:'#ff3a8a', size:90, w:256, h:90, font:'Courier New' })); f.position.z = .03; g.add(f); }
 // built-in lockers flush with the wall (1st floor = maroon)
-const lockers = n => new THREE.MeshLambertMaterial({ map:tex('bwlock', (g, w, h) => { g.fillStyle = '#6a1b2a'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.45)';
+const lockers = (n, c = '#6a1b2a') => new THREE.MeshLambertMaterial({ map:tex('bwlock' + c, (g, w, h) => { g.fillStyle = c; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.45)';
   for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 1, h); g.fillRect(0, h / 2, w, 1); g.fillStyle = 'rgba(0,0,0,.35)'; for(let x = 4; x < w; x += 16) for(let k = 0; k < 4; k++){ g.fillRect(x, 6 + k * 3, 8, 1); g.fillRect(x, h / 2 + 6 + k * 3, 8, 1); }
-  g.fillStyle = '#c9c9c9'; for(let x = 12; x < w; x += 16){ g.fillRect(x, h / 2 - 14, 2, 6); g.fillRect(x, h - 14, 2, 6); } }, 128, 64, [n, 1]), emissive:0x2a0a10 });
+  g.fillStyle = '#c9c9c9'; for(let x = 12; x < w; x += 16){ g.fillRect(x, h / 2 - 14, 2, 6); g.fillRect(x, h - 14, 2, 6); } }, 128, 64, [n, 1]), emissive:new THREE.Color(c).multiplyScalar(.45) });
 function lamp(x, z){ const p = new THREE.Mesh(new THREE.CylinderGeometry(.07, .1, 4.2, 8), black); p.position.set(x, 2.1, z); S.add(p); const h = new THREE.Mesh(new THREE.CylinderGeometry(.22, .14, .5, 8), black); h.position.set(x, 4.4, z); S.add(h); const b = new THREE.Mesh(new THREE.SphereGeometry(.16, 8, 6), basic(0xfff3cf)); b.position.set(x, 4.2, z); S.add(b); }
 
 export function buildSchool(){
@@ -99,12 +100,12 @@ export function buildSchool(){
     // 1st-floor hallway z 114..120 (author's photos): maroon VCT with white speckled bands, block wainscot walls, built-in maroon lockers,
     // brown wood doors in maroon frames, 2x2 drop ceiling, red LED clocks, Trustworthy/Caring/Fair banners
     plane(x1 - x0 - 4, 6, vct(x1 - x0 - 4, 6), (x0 + x1) / 2, .03, 117); ceiling(x0, 113.8, x1, 120.2, 3.6); lightsGrid(x0 + 2, 114, x1 - 2, 120, 3.6, 6);
-    wallX(x0 + 2, x1 - 2, 114, 3.6, 'W', [[-185.5, -184.3, 2.3]]); wallX(x0 + 2, x1 - 2, 120, 3.6, 'W', [[-175, -165, 3.6]]);
+    wallX(x0 + 2, x1 - 2, 114, 3.6, 'W', [[-185.5, -184.3, 2.3]]); wallX(x0 + 2, x1 - 2, 120, 3.6, 'W', [[-175, -165, 3.6], [-158, -155.6, 2.5]]);
     wallZ(114, 120, x0 + 2, 3.6, 'W'); wallZ(114, 120, x1 - 2, 3.6, 'W'); door(x1 - 2.2, 116.6, -Math.PI / 2); door(x1 - 2.2, 117.8, -Math.PI / 2); door(x0 + 2.2, 117.2, Math.PI / 2);
     for(let x = x0 + 3; x < x1 - 3; x += 12){ const a = x, b = x + 12, skip = ([p, q]) => b > p && a < q, rm = String(100 + ((x - x0) / 12 | 0) * 2);
       if(!skip([-207, -181])) door(x + 6, 114.15, 0, rm); else if(skip([-187, -183])) { /* lab door */ }
       [[x + 1, x + 5], [x + 7, x + 11]].forEach(([p, q]) => { if(skip([-187.5, -182]) && p < -182 && q > -187.5) return; vp(q - p, 2.05, lockers(q - p), (p + q) / 2, 1.08, 114.14, 0); deco(q - p, .08, .1, maroon, (p + q) / 2, 2.1, 114.15); });
-      if(!skip([-176, -164])){ vp(10, 2.05, lockers(10), x + 6, 1.08, 119.86, Math.PI); deco(10, .08, .1, maroon, x + 6, 2.1, 119.85); } }
+      if(!skip([-176, -164]) && !skip([-158.5, -155])){ vp(10, 2.05, lockers(10), x + 6, 1.08, 119.86, Math.PI); deco(10, .08, .1, maroon, x + 6, 2.1, 119.85); } }
     [-185.6, -184.2].forEach(x => deco(.1, 2.3, .3, maroon, x, 0, 114)); deco(1.5, .1, .3, maroon, -184.9, 2.3, 114); vp(.4, .16, sign('118', { bg:'#fff', fg:'#222', size:60, w:128, h:50 }), -183.8, 1.8, 113.84, Math.PI);
     [[-250, 'TRUSTWORTHY'], [-226, 'CARING'], [-202, 'FAIR'], [-152, 'RESPECTFUL']].forEach(([x, t]) => { vp(4.4, .7, sign(t, { bg:'#7a1a2a', fg:'#fff', size:62, w:512, h:82, font:'Arial Black' }), x, 2.75, 119.85, Math.PI); deco(4.6, .1, .03, black, x, 2.36, 119.86); });
     for(let x = x0 + 14; x < x1 - 4; x += 36) ledClock(x, 3.05, 114.2, 0);
@@ -121,6 +122,27 @@ export function buildSchool(){
     const seats = [], screens = [];
     for(const cx of [-199, -193, -187]) for(const cz of [103.4, 107.4, 111.4]){ box(.9, .74, 2.6, M('#cfc6b4'), cx - .7, 0, cz);
       [-.6, .6].forEach(dz => { const pc = PR.crtMonitor(cx - .85, .74, cz + dz, Math.PI / 2); screens.push(pc.screen); PR.chair(cx + .1, 0, cz + dz, -Math.PI / 2, '#a8282e'); seats.push({ x:cx + .2, z:cz + dz }); }); }
+    // ---- stairwell (x -164.6..-155.4, z 120..128): switchback flights, landings at half-storeys; serves floors 2 and 3
+    { const SX0 = -164.6, SX1 = -155.4, rail = M('#5a5f66'), tread = M('#8a8f96');
+      wallZ(120, 128, SX0, 12.4, 'W'); wallZ(120, 128, SX1, 12.4, 'W'); floorP(SX0, 120, SX1, 128, terrB(1.5, 1.3)); ceiling(SX0, 120, SX1, 128, 12.4);
+      for(const fy of [0, 4.2]){ const mid = fy + 2.1, top = fy + 4.2;
+        G.ramps.push({ x0:-162.5, z0:120.4, x1:-157.6, z1:123.7, axis:'x', ya:mid, yb:fy }); G.ramps.push({ x0:-162.5, z0:124.3, x1:-157.6, z1:127.6, axis:'x', ya:mid, yb:top });
+        G.platforms.push({ x0:SX0, z0:120.2, x1:-162.5, z1:127.8, y:mid }); deco(2.1, .2, 7.6, tread, -163.55, mid - .2, 124);
+        G.platforms.push({ x0:-157.6, z0:119.8, x1:SX1, z1:127.8, y:top }); deco(2.2, .2, 7.6, tread, -156.5, top - .2, 124);
+        for(let i = 0; i < 12; i++){ const u = i / 12; deco(.42, .18, 3.3, tread, -157.8 - u * 4.7, fy + u * 2.1, 122.05); deco(.42, .18, 3.3, tread, -162.3 + u * 4.7, mid + u * 2.1, 125.95); }
+        deco(4.9, .9, .06, rail, -160.05, mid + 1, 124); col(-162.5, 123.95, -157.6, 124.05, mid + 1); YO = 0; }
+      const sg = vp(1.6, .3, sign('STAIRS', { bg:'#7a1a2a', fg:'#fff', size:60, w:256, h:48 }), -156.8, 2.7, 119.85, Math.PI); }
+    // ---- floors 2 & 3 hallways: same build as floor 1, lockers blue (2nd) and green (3rd) per the author
+    for(const [fy, lc, fl] of [[4.2, '#1f4a8a', 2], [8.4, '#2a6a3a', 3]]){ YO = fy; const lM = n => lockers(n, lc);
+      G.platforms.push({ x0:x0 + 2, z0:114, x1:x1 - 2, z1:120, y:fy }); plane(x1 - x0 - 4, 6, vct(x1 - x0 - 4, 6), (x0 + x1) / 2, fy + .03, 117); deco(x1 - x0 - 4, .2, 6, M('#c9c7c0'), (x0 + x1) / 2, fy - .2, 117);
+      ceiling(x0, 113.8, x1, 120.2, fy + 3.6); lightsGrid(x0 + 2, 114, x1 - 2, 120, fy + 3.6, 6);
+      wallX(x0 + 2, x1 - 2, 114, 3.6, 'W'); wallX(x0 + 2, x1 - 2, 120, 3.6, 'W', [[-158, -155.6, 2.5]]); wallZ(114, 120, x0 + 2, 3.6, 'W'); wallZ(114, 120, x1 - 2, 3.6, 'W');
+      for(let x = x0 + 3; x < x1 - 3; x += 12){ const a = x, b = x + 12, skip = ([p, q]) => b > p && a < q; door(x + 6, 114.15, 0, String(fl * 100 + ((x - x0) / 12 | 0) * 2));
+        [[x + 1, x + 5], [x + 7, x + 11]].forEach(([p, q]) => { vp(q - p, 2.05, lM(q - p), (p + q) / 2, fy + 1.08, 114.14, 0); deco(q - p, .08, .1, M(lc), (p + q) / 2, fy + 2.1, 114.15); });
+        if(!skip([-158.5, -155])){ vp(10, 2.05, lM(10), x + 6, fy + 1.08, 119.86, Math.PI); deco(10, .08, .1, M(lc), x + 6, fy + 2.1, 119.85); } }
+      vp(4.4, .7, sign(fl === 2 ? 'SECOND FLOOR' : 'THIRD FLOOR', { bg:lc, fg:'#fff', size:56, w:512, h:82, font:'Arial Black' }), -200, fy + 2.75, 119.85, Math.PI);
+      for(let x = x0 + 14; x < x1 - 4; x += 36) ledClock(x, fy + 3.05, 114.2, 0); }
+    YO = 0;
     G.classroom = { seats, sparks:{ x:L0 + 3, z:105.6 }, jax:seats[4], chris:seats[17], door:{ x:-184.9, z:117 }, cam:[[-183.5, 3, 113], [-200, 1.2, 104]], screens };
     mapRect(L0, 100, L1, 114, '#b07a6a'); }
   // ===== commons (two storeys, glass front + back) =====
