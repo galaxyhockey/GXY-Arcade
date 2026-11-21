@@ -94,9 +94,19 @@
     A('gxy-tech-empire','te-review','📰',"Critics' Darling",'Launch a device that reviews 9.0+',150,'gxy-tech-empire.review',90),
     A('tv-battles','tvb-plus','🚀','Streaming Mogul','Reach 3 million GXY+ subscribers',150,'tv-battles.plus',3000000),
     A('supermarket-wars','smw-recess','📉','Recession Proof','Make it through a recession',100,'supermarket-wars.survived',1),
+    A('brand-clicker-27','bc-first','📦','Unboxed','Open your first Brand Clicker box',25,'brand-clicker-27.boxes',1),
+    A('brand-clicker-27','bc-100box','🎁','Box Addict','Open 100 boxes in Brand Clicker',100,'brand-clicker-27.boxes',100),
+    A('brand-clicker-27','bc-25','🛍️','Brand Collector','Collect 25 brands',75,'brand-clicker-27.collection',25),
+    A('brand-clicker-27','bc-100','🏬','Brand Empire','Collect 100 brands',200,'brand-clicker-27.collection',100),
+    A('brand-clicker-27','bc-chroma','🌈','First Chroma','Pull a Chroma brand',75,'brand-clicker-27.chroma',1),
+    A('brand-clicker-27','bc-3d','🧊','3D Pull','Pull a 3D edition from the 3D Box',150,'brand-clicker-27.d3',1),
+    A('brand-clicker-27','bc-set','🏁','Full Set','Complete every brand in a box',100,'brand-clicker-27.sets',1),
+    A('brand-clicker-27','bc-tier30','🎟️','Tier 30','Reach tier 30 on a Brand Clicker Battle Pass',150,'brand-clicker-27.tier',30),
+    A('brand-clicker-27','bc-rebirth','🔁','Born Again','Rebirth in Brand Clicker',100,'brand-clicker-27.rebirths',1),
+    A('brand-clicker-27','bc-wins','⚔️','Brand Warrior','Win 10 Brand Battles',100,'brand-clicker-27.wins',10),
     A('gxy-football','fb-league','🛠️','Commissioner','Create a custom YOUFL league',50,'gxy-football.leagues',1),
   ];
-  const MAX_STATS = /\.(streak|wave|daily|level|unique|terminals|cities|history|review|plus|teams|leagues|free)$/;
+  const MAX_STATS = /\.(streak|wave|daily|level|unique|terminals|cities|history|review|plus|teams|leagues|free|collection|sets|tier)$/;
 
   /* ---------------- weekly challenges ---------------- */
   // Three per week, from different games, chosen the same way for everyone by the week number.

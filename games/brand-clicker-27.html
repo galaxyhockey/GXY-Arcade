@@ -1,10 +1,26 @@
 <!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Brand Clicker '27 (Test v0.2)</title>
+<title>Brand Clicker '27 (Test v0.3)</title>
 <style>
 :root{--glass:rgba(16,18,28,.62);--line:rgba(255,255,255,.14);--txt:#f4f6ff;--mut:#a9b0c7;--acc:#ff8c1a;
-  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600);--Exclusive:linear-gradient(90deg,#ff2d95,#7c4dff)}
+  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600);--Exclusive:linear-gradient(90deg,#ff2d95,#7c4dff);--Event:#ff7043}
+body.ice{--glass:rgba(200,235,255,.16);--line:rgba(160,225,255,.65);--mut:#d6f0ff}
+body.ice .glass{box-shadow:0 0 18px rgba(120,210,255,.45),inset 0 0 14px rgba(255,255,255,.18)}
+body.ice .pill b,body.ice .sh h2{text-shadow:0 0 8px #9be7ff}
+#open .multi{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;width:min(94vw,640px)}
+#open .mc{background:rgba(10,12,20,.75);border:2px solid transparent;border-radius:14px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;animation:pop .45s cubic-bezier(.2,1.6,.4,1) both;color:#fff;text-align:center}
+#open .mc img{width:100%;height:48px;object-fit:contain}#open .mc small{font-size:10px}
+.v-gold{filter:drop-shadow(0 0 10px #ffd700) sepia(.7) saturate(3.5) hue-rotate(-12deg) brightness(1.1)!important}
+.v-diamond{filter:drop-shadow(0 0 12px #9be7ff) saturate(.4) brightness(1.35) contrast(1.1)!important}
+.v-holo{animation:holo 2.4s linear infinite!important}
+@keyframes holo{0%{filter:hue-rotate(0) drop-shadow(0 0 10px #f0f) saturate(2)}100%{filter:hue-rotate(360deg) drop-shadow(0 0 10px #0ff) saturate(2)}}
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
+.modal>div{width:min(380px,90%);border-radius:18px;padding:18px;text-align:center}
+.hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.hub button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--txt);border-radius:14px;padding:14px 10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center}
+.hub button span{font-size:26px}
+@media (max-width:560px){#open .multi{grid-template-columns:repeat(3,1fr)}}
 body.neon{--glass:rgba(30,6,48,.6);--line:rgba(255,45,149,.55);--mut:#e3b8ff}
 body.neon .glass{box-shadow:0 0 18px rgba(255,45,149,.45),inset 0 0 12px rgba(124,77,255,.25)}
 body.neon .btn:not(:disabled){box-shadow:0 0 12px var(--acc)}
@@ -118,7 +134,7 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
   <button class="db" data-open="pc"><span>🖥️</span>My PC</button>
   <button class="db" data-open="up"><span>⚡</span>Upgrades</button>
   <button class="db" data-open="mkt"><span>Ξ</span>Market</button>
-  <button class="db" data-open="set"><span>⚙️</span>Settings</button>
+  <button class="db" data-open="more"><span>☰</span>More</button>
 </div>
 <div id="toast" class="glass"></div>
 <div id="flash"></div><div id="open"></div>
@@ -151,13 +167,19 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
   <div class="sh"><h2 id="bpName"></h2><button class="x" data-close>✕</button></div>
   <div id="bpHead"></div><div id="bpTiers"></div>
 </div></div>
-<div class="sheet" id="trade"><div class="glass">
-  <div class="sh"><h2>Trade</h2><button class="x" data-close>✕</button></div>
-  <p class="note">Trading needs online play, which isn't in this test build yet.</p>
-</div></div>
+<div class="sheet" id="trade"><div class="glass"><div class="sh"><h2>🔄 Trade · Gift Codes</h2><button class="x" data-close>✕</button></div><div id="trBody"></div></div></div>
+<div class="sheet" id="more"><div class="glass"><div class="sh"><h2>More</h2><button class="x" data-close>✕</button></div>
+  <div class="hub"><button data-open="rebirth"><span>🔁</span>Rebirth</button><button data-open="battle"><span>⚔️</span>Brand Battles</button><button data-open="sets"><span>🏁</span>Collection Sets</button>
+  <button data-open="trade"><span>🎁</span>Trade</button><button data-open="stats"><span>📊</span>Stats</button><button data-open="lb"><span>🏆</span>Leaderboard</button><button data-open="set"><span>⚙️</span>Settings</button></div></div></div>
+<div class="sheet" id="rebirth"><div class="glass"><div class="sh"><h2>🔁 Rebirth</h2><button class="x" data-close>✕</button></div><div id="rbBody"></div></div></div>
+<div class="sheet" id="sets"><div class="glass"><div class="sh"><h2>🏁 Collection Sets</h2><button class="x" data-close>✕</button></div><div id="setBody"></div></div></div>
+<div class="sheet" id="battle"><div class="glass"><div class="sh"><h2>⚔️ Brand Battles</h2><button class="x" data-close>✕</button></div><div id="btBody"></div></div></div>
+<div class="sheet" id="stats"><div class="glass"><div class="sh"><h2>📊 Stats</h2><button class="x" data-close>✕</button></div><div id="statBody"></div></div></div>
+<div class="sheet" id="lb"><div class="glass"><div class="sh"><h2>🏆 Leaderboard · Brands collected</h2><button class="x" data-close>✕</button></div><div id="lbBody"></div></div></div>
+<div class="modal" id="away"><div class="glass"><h2>👋 Welcome back!</h2><p class="note" id="awayTxt"></p><button class="btn" id="awayOk" style="width:100%">Collect</button></div></div>
 <div class="sheet" id="set"><div class="glass">
   <div class="sh"><h2>Settings</h2><button class="x" data-close>✕</button></div>
-  <div class="row"><button class="btn alt" id="rename">Change username</button><button class="btn alt" id="rmSet"></button><button class="btn alt" id="wipe">Reset save</button><button class="btn alt" id="themeBtn" hidden></button><button class="btn alt" data-open="trade">Trade</button></div>
+  <div class="row"><button class="btn alt" id="rename">Change username</button><button class="btn alt" id="rmSet"></button><button class="btn alt" id="wipe">Reset save</button><button class="btn alt" id="themeBtn" hidden></button><button class="btn alt" id="sndBtn"></button></div>
   <p class="note">Fan remake for GXY Arcade, built from Kraken2022's original "Brand Clicker! – Full Game – PC Edition". Brand names and logos belong to their owners; this game isn't sponsored or endorsed by them. Brand Items and Ethereum are in-game only.</p>
 </div></div>
 <div id="reveal" class="glass"><span class="chip" id="rvChip"></span><h2 id="rvName"></h2><p id="rvSub"></p><button class="btn" id="claim">Claim &amp; Apply</button></div>
@@ -177,7 +199,8 @@ async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return; sessionS
 <script src="bc27/remaster2.js?v=4"></script>
 <script src="bc27/remaster3d.js?v=5"></script>
 <script src="bc27/season1.js?v=6"></script>
-<script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT) bcHeal();</script>
+<script src="bc27/v03.js?v=7"></script>
+<script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT || !window.BC_EVENTS) bcHeal();</script>
 <script>
 const O = BC_ORIG, V = BC_V02, $ = id => document.getElementById(id);
 const file = f => 'bc27/orig/' + f;
@@ -192,7 +215,7 @@ for(const b of V.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b
 for(const [id, nm, slug] of BC_SEASON.brands) ALL.push({ id, name:nm, rarity:'Exclusive', eth:0, exclusive:true, logo:`bc27/logos/${slug}.svg` });
 for(const [id, base, nm] of BC_3D) ALL.push({ id, name:nm + ' 3D', rarity:'3D', eth:25000, is3d:true, logo:ALL.find(b => b.id === base).logo });
 const BR = Object.fromEntries(ALL.map(b => [b.id, b])), COLLECT = ALL.filter(b => b.id);
-const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Chroma', '3D', 'Exclusive'];
+const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Event', 'Chroma', '3D', 'Exclusive'];
 
 // ---------- boxes ----------
 const origW = k => Object.fromEntries(Object.values(O.boxes[k].weights).map(e => [e.id, e.weight]));
@@ -221,7 +244,7 @@ if(S && S.saveVersion) S = null; // v0.1 test save had a different format
 S = Object.assign({ v:2, bi:0, eth:0, bg:0, owned:[], counts:{}, up:0, lv:{}, items:{}, keys:0, boostUntil:0, name:'', boxes:0, taps:0, remaster:true, pass:{ xp:0, prem:0, got:{} }, theme:'' }, S || {});
 if(!Array.isArray(S.owned)) S.owned = [];
 for(const id of S.owned) S.counts[id] = S.counts[id] || 1;
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} };
+const save = () => { S.seen = Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} };
 
 // ---------- upgrades (Brand Items) ----------
 const UPG = [
@@ -245,13 +268,13 @@ const MKT = [
   { k:'boost', name:'Overclock', ico:'🚀', price:1500, desc:'×3 on everything for 3 minutes' },
   { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade Ethereum for Brand Items · 1 Ξ = 15 BI' }
 ];
-const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120, Exclusive:60 };
+const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120, Exclusive:60, Event:40 };
 const boosted = () => Date.now() < S.boostUntil ? 3 : 1;
-const tapValue = () => (5 + 5 * lv('tap')) * (S.items.golden ? 2 : 1) * boosted();
+const tapValue = () => (5 + 5 * lv('tap')) * (S.items.golden ? 2 : 1) * boosted() * gmult();
 function perSec(){
   let s = (lv('auto1') ? 5 / 3 : 0) + (lv('auto2') ? 10 : 0) + 15 * lv('factory');
-  s += S.owned.reduce((a, id) => a + RBONUS[BR[id] ? BR[id].rarity : 'Common'], 0) * (1 + lv('coll') * .5);
-  return s * (S.items.diamond ? 2 : 1) * boosted();
+  s += S.owned.reduce((a, id) => a + brandRoyalty(id), 0) * (1 + lv('coll') * .5);
+  return s * (S.items.diamond ? 2 : 1) * boosted() * gmult();
 }
 const boxPrice = b => b.eth ? b.price : Math.round(b.price * (1 - .05 * lv('disc')));
 
@@ -276,17 +299,17 @@ function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'
 const showUI = on => ['hud', 'dock', 'hint', 'stage'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
 let busy = false, pending = 0;
 function home(){ busy = false; $('reveal').classList.remove('on'); $('open').classList.remove('on'); showUI(true); $('logoBox').style.visibility = '';
-  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; $('logoBox').classList.toggle('is3d', !!(BR[S.bg] || {}).is3d); mon(); }
+  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; $('logo').className = S.var && S.var[S.bg] ? 'v-' + S.var[S.bg] : ''; $('logoBox').classList.toggle('is3d', !!(BR[S.bg] || {}).is3d); mon(); }
 
 // ---------- tapping ----------
 function tap(e){ if(busy || document.querySelector('.sheet.on')) return;
   const crit = Math.random() < .04 * lv('crit'), v = tapValue() * (crit ? 10 : 1);
-  S.bi += v; S.taps++; S.pass.xp++; mon();
+  S.bi += v; S.st.bi += v; S.run += v; S.taps++; S.pass.xp++; S.pass2.xp++; mon(); sfx('tap');
   const p = document.createElement('div'); p.className = 'pop' + (crit ? ' crit' : ''); p.textContent = (crit ? 'VIRAL! +' : '+') + fmt(v);
   const x = e && e.clientX != null ? e.clientX : innerWidth / 2 + (Math.random() * 80 - 40), y = e && e.clientY != null ? e.clientY : innerHeight / 2;
   p.style.left = x - 20 + 'px'; p.style.top = y - 30 + 'px'; document.body.appendChild(p); setTimeout(() => p.remove(), 800); }
 let last = Date.now();
-setInterval(() => { const now = Date.now(), dt = (now - last) / 1000; last = now; S.bi += perSec() * Math.min(dt, 5); mon(); refreshOpen(); }, 250);
+setInterval(() => { const now = Date.now(), dt = (now - last) / 1000; last = now; { const g = perSec() * Math.min(dt, 5); S.bi += g; S.st.bi += g; S.run += g; } mon(); refreshOpen(); }, 250);
 setInterval(save, 2000); addEventListener('pagehide', save);
 
 // ---------- shop ----------
@@ -300,10 +323,11 @@ function renderShop(){
   const c = $('shopCards');
   if(S.bi <= O.prices.shopUnlock && !S.boxes){ c.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center"><h3>🔒 Shop locked</h3><p>Collect more than ${O.prices.shopUnlock} Brand Items to open the Brand Shop (just like the original).</p></div>`; return; }
   c.innerHTML = BOXES.map(b => { const p = boxPrice(b), cur = b.eth ? S.eth : S.bi, have = Object.keys(b.w).filter(id => S.owned.includes(+id)).length;
-    return `<div class="card"><div class="art">${boxArt(b)}</div><h3>${b.name}</h3><p>${b.desc}</p><p>${have}/${Object.keys(b.w).length} collected</p>
+    return `<div class="card"><div class="art">${boxArt(b)}</div><h3>${b.name}</h3><p>${b.desc}</p><p>${have}/${Object.keys(b.w).length} collected</p>${b.event ? `<p>⏳ Event ends in ${weekLeft()}</p>` : ''}
       <button class="lnk" data-odds="${b.k}">View odds</button><div class="odds" ${openOdds.has(b.k) ? '' : 'hidden'}>${oddsList(b)}</div>
       <div class="row" style="margin:0"><button class="btn ${b.eth ? 'eth' : ''}" style="flex:1" data-box="${b.k}" ${cur < p ? 'disabled' : ''}>${p ? 'Open · ' + fmt(p) + (b.eth ? ' Ξ' : ' BI') : 'Open · Free'}</button>
-      ${S.keys ? `<button class="btn alt" data-key="${b.k}">🗝️ ${S.keys}</button>` : ''}</div></div>`; }).join('');
+      ${p ? `<button class="btn alt" data-box10="${b.k}" ${cur < p * 10 ? 'disabled' : ''}>×10</button>` : ''}${S.keys ? `<button class="btn alt" data-key="${b.k}">🗝️ ${S.keys}</button>` : ''}</div></div>`; }).join('');
+  c.querySelectorAll('[data-box10]').forEach(b => b.onclick = () => openBox(b.dataset.box10, false, 10));
   c.querySelectorAll('[data-odds]').forEach(b => b.onclick = () => { const k = b.dataset.odds; openOdds.has(k) ? openOdds.delete(k) : openOdds.add(k); renderShop(); });
   c.querySelectorAll('[data-box]').forEach(b => b.onclick = () => openBox(b.dataset.box, false));
   c.querySelectorAll('[data-key]').forEach(b => b.onclick = () => openBox(b.dataset.key, true));
@@ -360,14 +384,14 @@ function renderPC(){
   const list = COLLECT.filter(b => pcF === 'All' || (pcF === 'Owned' ? S.owned.includes(b.id) : b.rarity === pcF));
   $('pcGrid').innerHTML = list.map(b => { const own = S.owned.includes(b.id);
     const dup = own && S.counts[b.id] > 1 && SELL[b.rarity];
-    return `<div class="cell${own ? '' : ' no'}${S.bg === b.id ? ' on' : ''}${dup ? ' hasSell' : ''}" data-id="${b.id}">${dup ? `<button class="sell" data-sell="${b.id}">Resell 1 · ${fmt(SELL[b.rarity])}</button>` : ''}${own && S.counts[b.id] > 1 ? `<span class="n">×${S.counts[b.id]}</span>` : ''}<img src="${b.logo}" alt=""><b>${own ? b.name : '???'}</b><span class="chip" style="background:var(--${b.rarity})">${b.rarity}</span></div>`; }).join('');
+    return `<div class="cell${own ? '' : ' no'}${S.bg === b.id ? ' on' : ''}${dup ? ' hasSell' : ''}" data-id="${b.id}">${dup ? `<button class="sell" data-sell="${b.id}">Resell 1 · ${fmt(SELL[b.rarity])}</button>` : ''}${own && S.counts[b.id] > 1 ? `<span class="n">×${S.counts[b.id]}</span>` : ''}<img src="${b.logo}" alt="" class="${own && S.var[b.id] ? 'v-' + S.var[b.id] : ''}"><b>${own ? b.name : '???'}</b>${own ? `<span class="lv">${'★'.repeat(mastLv(b.id))}${S.var[b.id] ? ' ' + VAR[S.var[b.id]].ico : ''}</span>` : ''}<span class="chip" style="background:var(--${b.rarity})">${b.rarity}</span></div>`; }).join('');
   $('pcGrid').querySelectorAll('[data-sell]').forEach(s => s.onclick = e => { e.stopPropagation(); const id = +s.dataset.sell; if(S.counts[id] < 2) return;
     S.counts[id]--; S.bi += SELL[BR[id].rarity]; save(); mon(); renderPC(); toast(`Resold ${BR[id].name} · +${fmt(SELL[BR[id].rarity])} BI`); });
   $('pcGrid').querySelectorAll('.cell:not(.no)').forEach(d => d.onclick = () => { S.bg = +d.dataset.id; save(); closeSheets(); home(); });
 }
 
 // ---------- resell values ----------
-const SELL = { Starter:0, Common:60, Uncommon:150, Rare:400, Epic:1000, Legendary:2500, Chroma:6000, '3D':60000, Exclusive:0 };
+const SELL = { Starter:0, Common:60, Uncommon:150, Rare:400, Epic:1000, Legendary:2500, Chroma:6000, '3D':60000, Exclusive:0, Event:1500 };
 // ---------- Item Shop: 6 brands, rotates every day at local midnight ----------
 const ITPRICE = { Common:150, Uncommon:400, Rare:1000, Epic:2500, Legendary:6000, Chroma:15000 };
 function dayKey(){ const d = new Date(); return d.getFullYear() * 1e4 + (d.getMonth() + 1) * 100 + d.getDate(); }
@@ -382,7 +406,7 @@ function renderItems(){
     return `<div class="card"><div class="art"><img src="${b.logo}" alt="" style="max-height:64px"></div><h3>${b.name}</h3><span class="chip" style="background:var(--${b.rarity});align-self:flex-start">${b.rarity}</span>
       <button class="btn eth" data-it="${b.id}" ${own || S.eth < p ? 'disabled' : ''}>${own ? 'Owned' : fmt(p) + ' Ξ'}</button></div>`; }).join('');
   $('itCards').querySelectorAll('[data-it]').forEach(x => x.onclick = () => { const b = BR[x.dataset.it], p = ITPRICE[b.rarity];
-    if(S.owned.includes(b.id) || S.eth < p) return; S.eth -= p; S.owned.push(b.id); S.counts[b.id] = 1; S.pass.xp += 100; save(); mon(); renderItems(); toast(`${b.name} added to your collection!`); });
+    if(S.owned.includes(b.id) || S.eth < p) return; S.eth -= p; S.owned.push(b.id); S.counts[b.id] = 1; S.mast[b.id] = (S.mast[b.id] || 0) + 1; S.pass.xp += 100; S.pass2.xp += 100; sfx('buy'); bcLB.dirty(); save(); mon(); renderItems(); toast(`${b.name} added to your collection!`); });
 }
 // ---------- Battle Pass ----------
 const BP = BC_SEASON;
@@ -417,11 +441,232 @@ function applyTheme(){ document.body.classList.toggle('neon', S.theme === 'neon'
   b.hidden = !S.items.neon; b.textContent = 'Theme: ' + (S.theme === 'neon' ? 'Neon Night' : 'Default'); }
 $('themeBtn').onclick = () => { S.theme = S.theme === 'neon' ? '' : 'neon'; save(); applyTheme(); };
 
+// ===================== v0.3 =====================
+S.st = Object.assign({ bi:0, eth:0, pulls:0, rare:0, best:0, battles:0, wins:0 }, S.st || {});
+S.mast = S.mast || {}; for(const id of S.owned) S.mast[id] = Math.max(S.mast[id] || 0, S.counts[id] || 1);
+S.var = S.var || {}; S.stars = S.stars || 0; S.rebirths = S.rebirths || 0; S.run = S.run || 0;
+S.pass2 = S.pass2 || { xp:0, prem:0, got:{} }; S.redeemed = S.redeemed || []; if(S.sound === undefined) S.sound = 1;
+const RORD = ['Starter', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Event', 'Exclusive', 'Chroma', '3D'];
+const RARE = ['Rare', 'Epic', 'Legendary', 'Chroma', '3D', 'Event', 'Exclusive'];
+
+// ---------- mastery (copies ever pulled) + Gold/Diamond/Holo variants ----------
+const MT = [1, 2, 4, 7, 12];
+const mastLv = id => MT.filter(t => (S.mast[id] || 0) >= t).length;
+const VAR = { gold:{ m:2, name:'Gold', ico:'🥇' }, diamond:{ m:3, name:'Diamond', ico:'💎' }, holo:{ m:5, name:'Holo', ico:'🌈' } };
+const vMult = id => S.var[id] ? VAR[S.var[id]].m : 1;
+const brandRoyalty = id => RBONUS[BR[id] ? BR[id].rarity : 'Common'] * (1 + .25 * Math.max(0, mastLv(id) - 1)) * vMult(id);
+// ---------- collection sets: own every brand in a box → +5% everything ----------
+const setBoxes = () => BOXES.filter(b => !b.event);
+function setsDone(){ return setBoxes().filter(b => Object.keys(b.w).every(id => S.owned.includes(+id))); }
+let setCache = 0, setT = 0;
+function gmult(){ if(Date.now() - setT > 1000){ setT = Date.now(); setCache = setsDone().length; } return (1 + .1 * S.stars) * (1 + .05 * setCache); }
+
+// ---------- weekly event box ----------
+const WEEK = Math.floor((Date.now() / 864e5 + 3) / 7), EV = BC_EVENTS[WEEK % BC_EVENTS.length];
+BOXES.push({ k:'event', event:true, name:EV.name + ' Box', price:2000, emoji:EV.emoji, bg:EV.bg,
+  desc:`This week only: ${EV.brands.map(b => b[1]).join(' & ')} + featured brands`, w:Object.fromEntries([...EV.brands.map(b => [b[0], 3]), ...EV.extra.map(i => [i, 8])]) });
+function weekLeft(){ const end = (WEEK + 1) * 7 - 3, ms = end * 864e5 - Date.now(); return `${Math.floor(ms / 864e5)}d ${Math.floor(ms / 36e5) % 24}h`; }
+
+// ---------- sounds (generated, no files) ----------
+let AC;
+function note(f, t0, d, type = 'sine', v = .06){ const o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(v, AC.currentTime + t0); g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime + t0 + d);
+  o.connect(g).connect(AC.destination); o.start(AC.currentTime + t0); o.stop(AC.currentTime + t0 + d + .02); }
+function sfx(t){ if(!S.sound) return; try{ AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+  if(t === 'tap') note(700 + Math.random() * 80, 0, .05, 'square', .025);
+  else if(t === 'shake') [0, .36, .72, 1.08].forEach(s => note(160, s, .15, 'sawtooth', .035));
+  else if(t === 'buy') note(880, 0, .12, 'triangle', .06);
+  else if(t === 'common') note(523, 0, .3, 'triangle', .07);
+  else if(t === 'rare') [523, 659, 784].forEach((f, i) => note(f, i * .09, .35, 'triangle', .07));
+  else if(t === 'epic') [523, 659, 784, 1046].forEach((f, i) => note(f, i * .08, .5, 'sine', .08));
+  else if(t === 'chroma') [523, 659, 784, 1046, 1318, 1568].forEach((f, i) => note(f, i * .07, .9, 'sine', .08));
+}catch(e){} }
+const rarSfx = r => ['Chroma', '3D', 'Exclusive'].includes(r) ? 'chroma' : ['Epic', 'Legendary', 'Event'].includes(r) ? 'epic' : r === 'Rare' ? 'rare' : 'common';
+
+// ---------- boxes v0.3: open ×1 / ×10, one shared claim path ----------
+function weights(b, extra = []){ const L = 1 + .15 * lv('luck'), w = {}, has = id => S.owned.includes(+id) || extra.includes(+id);
+  const deny = lv('nodupe') && Object.keys(b.w).some(id => !has(id));
+  for(const [id, x] of Object.entries(b.w)) if(!(deny && has(id))) w[id] = x * (RARE.includes(BR[id].rarity) ? L : 1); return w; }
+function rollBox(b, extra){ const w = weights(b, extra), tot = Object.values(w).reduce((a, x) => a + x, 0); let r = Math.random() * tot, id = +Object.keys(w)[0];
+  for(const [i, x] of Object.entries(w)){ if((r -= x) < 0){ id = +i; break; } }
+  const R = BR[id].rarity; S.st.pulls++; if(RARE.includes(R)) S.st.rare++;
+  if(!S.st.best || RORD.indexOf(R) > RORD.indexOf(BR[S.st.best].rarity)) S.st.best = id;
+  if(window.GXY){ if(R === 'Chroma') GXY.event('brand-clicker-27', 'chroma'); if(R === '3D') GXY.event('brand-clicker-27', 'd3'); }
+  return id; }
+function gain(id){ const b = BR[id], dup = S.owned.includes(id), eth = (b.eth || 0) * (dup && S.items.dupe ? 2 : 1), before = setsDone().length;
+  S.eth += eth; if(eth > 0) S.st.eth += eth; S.counts[id] = (S.counts[id] || 0) + 1; S.mast[id] = (S.mast[id] || 0) + 1;
+  if(!dup){ S.owned.push(id); S.pass.xp += 100; S.pass2.xp += 100; }
+  const after = setsDone().length; if(after > before){ toast(`🏁 Set complete! +5% everything (${after} sets)`); setT = 0; }
+  if(window.GXY){ GXY.event('brand-clicker-27', 'collection', S.owned.length); GXY.event('brand-clicker-27', 'sets', after); }
+  bcLB && bcLB.dirty(); return { dup, eth }; }
+let pendingVar = null;
+async function openBox(k, useKey, n = 1){
+  const b = BOXES.find(x => x.k === k); if(busy || !b) return; if(useKey) n = 1; const p = boxPrice(b) * n;
+  if(useKey){ if(!S.keys) return; S.keys--; }
+  else if(b.eth){ if(S.eth < p) return; S.eth -= p; } else { if(S.bi < p) return; S.bi -= p; }
+  busy = true; S.boxes += n; S.pass.xp += 40 * n; S.pass2.xp += 40 * n; mon(); save(); closeSheets(); showUI(false); sfx('shake');
+  if(window.GXY) GXY.event('brand-clicker-27', 'boxes', n);
+  const o = $('open'); o.innerHTML = `<div class="bxw">${boxArt(b)}</div>`; o.classList.add('on');
+  await wait(1700); const f = $('flash'); f.style.opacity = .85; await wait(150); f.style.opacity = 0;
+  const ids = []; for(let i = 0; i < n; i++) ids.push(rollBox(b, ids));
+  pending = ids; const best = ids.reduce((a, id) => RORD.indexOf(BR[id].rarity) > RORD.indexOf(BR[a].rarity) ? id : a, ids[0]);
+  backdrop(best); $('stage').style.visibility = ''; $('logoBox').style.visibility = 'hidden'; sfx(rarSfx(BR[best].rarity));
+  const seen = new Set(S.owned), dupMult = id => S.items.dupe && seen.has(id) ? 2 : 1;
+  let eth = 0, fresh = 0; ids.forEach(id => { eth += BR[id].eth * dupMult(id); if(!seen.has(id)){ fresh++; seen.add(id); } });
+  if(n === 1){ const br = BR[best], dup = S.owned.includes(best);
+    o.innerHTML = `<img class="win" src="${br.logo}" alt="">`;
+    $('rvChip').textContent = br.rarity; $('rvChip').style.background = `var(--${br.rarity})`; $('rvName').textContent = br.name;
+    $('rvSub').textContent = (dup ? `Duplicate ×${(S.counts[best] || 1) + 1}` : 'New brand!') + ` · ${eth >= 0 ? '+' : ''}${fmt(eth)} Ethereum`;
+    $('claim').textContent = 'Claim & Apply'; }
+  else { o.innerHTML = `<div class="multi">${ids.map((id, i) => `<div class="mc" style="animation-delay:${i * .08}s;border-color:${RORD.indexOf(BR[id].rarity) >= 3 ? 'var(--' + BR[id].rarity + ')' : 'transparent'}"><img src="${BR[id].logo}" alt=""><span class="chip" style="background:var(--${BR[id].rarity})">${BR[id].rarity}</span><small>${BR[id].name}</small></div>`).join('')}</div>`;
+    $('rvChip').textContent = BR[best].rarity; $('rvChip').style.background = `var(--${BR[best].rarity})`; $('rvName').textContent = `${n} brands · best: ${BR[best].name}`;
+    $('rvSub').textContent = `${fresh} new · ${eth >= 0 ? '+' : ''}${fmt(eth)} Ethereum`; $('claim').textContent = 'Claim all & apply best'; }
+  $('reveal').classList.add('on');
+}
+$('claim').onclick = () => {
+  if(pendingVar){ const { id, v } = pendingVar; S.var[id] = v; pendingVar = null; S.bg = id; save(); home(); return; }
+  const ids = Array.isArray(pending) ? pending : pending ? [pending] : []; if(!ids.length) return;
+  const best = ids.reduce((a, id) => RORD.indexOf(BR[id].rarity) > RORD.indexOf(BR[a].rarity) ? id : a, ids[0]);
+  ids.forEach(gain); pending = 0; S.bg = best; save(); home(); };
+
+// ---------- offline earnings ----------
+function offline(){ const away = (Date.now() - (S.seen || Date.now())) / 1000; if(away < 60) return;
+  const secs = Math.min(away, 8 * 3600), g = Math.floor(perSec() / boosted() * secs * .5); if(g < 1) return;
+  S.bi += g; S.st.bi += g; S.run += g;
+  const h = Math.floor(secs / 3600), m = Math.floor(secs / 60) % 60;
+  $('awayTxt').innerHTML = `You were away for <b>${h ? h + 'h ' : ''}${m}m</b>${away > 8 * 3600 ? ' (max 8h counted)' : ''}.<br>Your brands earned <b>${fmt(g)} Brand Items</b> while you were gone (50% of your per-second rate).`;
+  $('away').style.display = 'flex'; }
+$('awayOk').onclick = () => { $('away').style.display = 'none'; mon(); };
+
+// ---------- rebirth ----------
+const starsFor = run => Math.floor(Math.sqrt(run / 1e6));
+function renderRebirth(){ const gainS = starsFor(S.run);
+  $('rbBody').innerHTML = `<p class="note">Rebirth resets your <b>Brand Items and upgrades</b>. You keep your brands, Ethereum, Market items, passes and keys.
+    Each <b>Brand Star</b> permanently adds <b>+10%</b> to everything.</p>
+    <div class="cards"><div class="card"><h3>⭐ ${S.stars} Brand Stars</h3><p>+${S.stars * 10}% to taps and per-second income · ${S.rebirths} rebirths</p></div>
+    <div class="card"><h3>This run</h3><p>${fmt(S.run)} Brand Items earned · next star at ${fmt((gainS + 1) ** 2 * 1e6)}</p>
+    <button class="btn" id="rbGo" ${gainS < 1 ? 'disabled' : ''}>${gainS < 1 ? 'Earn 1M Brand Items in one run' : `Rebirth for +${gainS} ⭐`}</button></div>
+    <div class="card"><div class="art">${cube(56).replace('3D', '★').replace(/3D/g, '★')}</div><h3>Rebirth Box</h3><p>Turns one of your brands into a <b>Gold</b> (×2), <b>Diamond</b> (×3) or <b>Holo</b> (×5 royalties) edition. Odds: Gold 70% · Diamond 25% · Holo 5%</p>
+    <button class="btn" id="rbBox" ${!S.rebirths || S.bi < 250000 || !S.owned.length ? 'disabled' : ''}>${S.rebirths ? 'Open · 250,000 BI' : 'Unlocks after your first rebirth'}</button></div></div>`;
+  if($('rbGo')) $('rbGo').onclick = () => { const s = starsFor(S.run); if(s < 1 || !confirm(`Rebirth for ${s} Brand Star${s > 1 ? 's' : ''}? Brand Items and upgrades reset.`)) return;
+    S.stars += s; S.rebirths++; S.bi = 0; S.lv = {}; S.up = 0; S.run = 0; S.boostUntil = 0; setT = 0; save(); mon(); renderRebirth(); sfx('chroma'); toast(`🔁 Reborn! ⭐ ${S.stars} Brand Stars`);
+    if(window.GXY) GXY.event('brand-clicker-27', 'rebirths'); };
+  if($('rbBox')) $('rbBox').onclick = async () => { if(!S.rebirths || S.bi < 250000 || busy) return; S.bi -= 250000;
+    const r = Math.random(), v = r < .05 ? 'holo' : r < .30 ? 'diamond' : 'gold';
+    const pool = S.owned.filter(id => (VAR[S.var[id]] || { m:1 }).m < VAR[v].m), id = (pool.length ? pool : S.owned)[Math.floor(Math.random() * (pool.length || S.owned.length))];
+    busy = true; closeSheets(); showUI(false); sfx('shake'); const o = $('open'); o.innerHTML = `<div class="bxw">${cube()}</div>`; o.classList.add('on');
+    await wait(1700); pendingVar = { id, v }; backdrop(id); $('stage').style.visibility = ''; $('logoBox').style.visibility = 'hidden';
+    o.innerHTML = `<img class="win v-${v}" src="${BR[id].logo}" alt="">`; sfx(v === 'gold' ? 'rare' : 'chroma');
+    $('rvChip').textContent = VAR[v].name; $('rvChip').style.background = v === 'gold' ? '#ffd700' : v === 'diamond' ? '#9be7ff' : 'var(--3D)';
+    $('rvName').textContent = `${VAR[v].ico} ${VAR[v].name} ${BR[id].name}`; $('rvSub').textContent = `Royalties ×${VAR[v].m} for this brand`; $('claim').textContent = 'Apply'; $('reveal').classList.add('on'); };
+}
+
+// ---------- sets ----------
+function renderSets(){ const done = setsDone();
+  $('setBody').innerHTML = `<p class="note">Own every brand in a box to complete its set. Each set: <b>+5% to everything</b>. ${done.length} / ${setBoxes().length} complete (+${done.length * 5}%).</p><div class="cards">` +
+    setBoxes().map(b => { const ids = Object.keys(b.w), have = ids.filter(id => S.owned.includes(+id)).length, ok = have === ids.length;
+      return `<div class="card"><div class="art" style="height:70px">${ok ? '<span style="font-size:44px">🏁</span>' : boxArt(b)}</div><h3>${b.name}${ok ? ' ✅' : ''}</h3><p>${have} / ${ids.length}</p><div class="bar" style="margin:0"><i style="width:${have / ids.length * 100}%"></i></div></div>`; }).join('') + '</div>'; }
+
+// ---------- stats ----------
+function renderStats(){ const luck = S.st.pulls ? (S.st.rare / S.st.pulls) / .3 : 0;
+  const row = (k, v) => `<div class="card" style="padding:10px"><p>${k}</p><h3>${v}</h3></div>`;
+  $('statBody').innerHTML = '<div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">' + [
+    row('Taps', fmt(S.taps)), row('Boxes opened', fmt(S.boxes)), row('Brands', `${S.owned.length} / ${COLLECT.length}`),
+    row('Brand Items earned', fmt(S.st.bi)), row('Ethereum earned', fmt(S.st.eth)), row('Per second', fmt(perSec())),
+    row('Rarest pull', S.st.best ? `${BR[S.st.best].name} (${BR[S.st.best].rarity})` : '—'), row('Rare+ pulls', `${S.st.rare} / ${S.st.pulls}`),
+    row('Luck rating', S.st.pulls < 10 ? 'Open 10 boxes' : luck >= 1.3 ? '🍀 Lucky' : luck >= .8 ? '🙂 Average' : '😬 Unlucky'),
+    row('Sets complete', setsDone().length), row('Brand Stars', '⭐ ' + S.stars), row('Battles won', `${S.st.wins} / ${S.st.battles}`),
+    row('Mastery 5 brands', S.owned.filter(id => mastLv(id) >= 5).length), row('Variants', Object.keys(S.var).length), row('Pass tiers', `${tierP(0)} · ${tierP(1)}`)
+  ].join('') + '</div>'; }
+
+// ---------- Brand Battles ----------
+const POW = { Starter:5, Common:10, Uncommon:16, Rare:25, Epic:40, Legendary:60, Event:55, Exclusive:80, Chroma:90, '3D':150 };
+const power = id => POW[BR[id].rarity] * (1 + .2 * Math.max(0, mastLv(id) - 1)) * (1 + (vMult(id) - 1) * .25);
+const DIFF = { easy:{ name:'Easy', pool:['Common', 'Uncommon', 'Rare'], eth:150 }, normal:{ name:'Normal', pool:['Rare', 'Epic', 'Legendary'], eth:500 }, hard:{ name:'Hard', pool:['Legendary', 'Event', 'Chroma', 'Exclusive', '3D'], eth:1500 } };
+let team = [], diff = 'easy';
+function renderBattle(){ const cd = Math.max(0, Math.ceil(((S.bcd || 0) - Date.now()) / 1000));
+  team = team.filter(id => S.owned.includes(id));
+  $('btBody').innerHTML = `<p class="note">Pick 3 brands, pick a rival, best of 3 rounds. Power comes from rarity, mastery and variants. Win Ethereum and pass XP.</p>
+    <div class="filters">${Object.entries(DIFF).map(([k, d]) => `<button class="f${k === diff ? ' on' : ''}" data-d="${k}">${d.name} · ${fmt(d.eth)} Ξ</button>`).join('')}</div>
+    <p class="note">Your team: ${team.map(id => `<b>${BR[id].name}</b> (${Math.round(power(id))})`).join(', ') || 'tap 3 brands below'}</p>
+    <button class="btn" id="btGo" ${team.length < 3 || cd ? 'disabled' : ''}>${cd ? `Rest ${cd}s` : 'Battle!'}</button><div id="btLog" class="note" style="margin:10px 0"></div>
+    <div class="grid">${S.owned.slice().sort((a, b) => power(b) - power(a)).map(id => `<div class="cell${team.includes(id) ? ' on' : ''}" data-t="${id}"><img src="${BR[id].logo}" alt=""><b>${BR[id].name}</b><span class="lv">⚔️ ${Math.round(power(id))}</span></div>`).join('')}</div>`;
+  $('btBody').querySelectorAll('[data-d]').forEach(b => b.onclick = () => { diff = b.dataset.d; renderBattle(); });
+  $('btBody').querySelectorAll('[data-t]').forEach(c => c.onclick = () => { const id = +c.dataset.t; team = team.includes(id) ? team.filter(x => x !== id) : team.length < 3 ? [...team, id] : team; renderBattle(); });
+  if($('btGo')) $('btGo').onclick = () => { if(team.length < 3 || (S.bcd || 0) > Date.now()) return; const d = DIFF[diff], pool = COLLECT.filter(b => d.pool.includes(b.rarity));
+    const foe = []; while(foe.length < 3){ const b = pool[Math.floor(Math.random() * pool.length)]; if(!foe.includes(b.id)) foe.push(b.id); }
+    let w = 0; const log = team.map((id, i) => { const a = power(id) * (.75 + Math.random() * .5), z = power(foe[i]) * (.75 + Math.random() * .5), win = a >= z; if(win) w++;
+      return `${win ? '✅' : '❌'} ${BR[id].name} ${Math.round(a)} vs ${Math.round(z)} ${BR[foe[i]].name}`; });
+    const won = w >= 2; S.st.battles++; S.bcd = Date.now() + 15000;
+    if(won){ S.st.wins++; S.eth += d.eth; S.st.eth += d.eth; S.pass.xp += 60; S.pass2.xp += 60; sfx('rare'); if(window.GXY) GXY.event('brand-clicker-27', 'wins'); } else sfx('common');
+    save(); mon(); renderBattle(); $('btLog').innerHTML = log.join('<br>') + `<br><b>${won ? `Victory! +${fmt(d.eth)} Ξ` : 'Defeat — try again soon'}</b>`; };
+  if(cd) setTimeout(() => { if($('battle').classList.contains('on')) renderBattle(); }, 1000); }
+
+// ---------- trade: gift codes ----------
+const hsh = s => { let h = 7; for(const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h.toString(36); };
+function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && BR[id].rarity !== 'Exclusive');
+  $('trBody').innerHTML = `<p class="note">Send a duplicate brand to a friend with a gift code. Creating a code removes one copy from your collection. Each code works once per player.</p>
+    <h4>Redeem a code</h4><div class="row"><input id="trIn" placeholder="BC27-…" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--txt)"><button class="btn" id="trRedeem">Redeem</button></div>
+    <h4>Gift a duplicate</h4>${gifts.length ? `<div class="grid">${gifts.map(id => `<div class="cell" data-g="${id}"><span class="n">×${S.counts[id]}</span><img src="${BR[id].logo}" alt=""><b>${BR[id].name}</b><span class="lv">Make code</span></div>`).join('')}</div>` : '<p class="note">No duplicates to gift yet.</p>'}
+    <div id="trOut"></div>`;
+  $('trBody').querySelectorAll('[data-g]').forEach(c => c.onclick = () => { const id = +c.dataset.g; if(S.counts[id] < 2) return;
+    const payload = id + '.' + Math.random().toString(36).slice(2, 10), code = 'BC27-' + btoa(payload + '.' + hsh('bc27gift' + payload)).replace(/=+$/, '');
+    S.counts[id]--; save(); renderTrade(); $('trOut').innerHTML = `<h4>Your code for ${BR[id].name}</h4><div class="row"><input readonly value="${code}" style="flex:1;padding:10px;border-radius:10px;border:0" id="trCode"><button class="btn" id="trCopy">Copy</button></div>`;
+    $('trCopy').onclick = () => { $('trCode').select(); try{ navigator.clipboard.writeText(code); }catch(e){ document.execCommand('copy'); } toast('Code copied'); }; });
+  $('trRedeem').onclick = () => { try{ const [p1, p2, h] = atob($('trIn').value.trim().replace(/^BC27-/, '')).split('.'), payload = p1 + '.' + p2, id = +p1;
+      if(hsh('bc27gift' + payload) !== h || !BR[id]) throw 0;
+      if(S.redeemed.includes(p2)) return toast('That code was already used');
+      S.redeemed.push(p2); gain(id); save(); mon(); renderTrade(); sfx('rare'); toast(`🎁 You received ${BR[id].name}!`); }catch(e){ toast('Invalid code'); } }; }
+
+// ---------- passes: Season 1 + Season 2 ----------
+const PASSES = [{ def:BC_SEASON, st:() => S.pass }, { def:BC_SEASON2, st:() => S.pass2 }];
+for(const [id, nm, slug] of BC_SEASON2.brands) if(!BR[id]){ const b = { id, name:nm, rarity:'Exclusive', eth:0, exclusive:true, logo:`bc27/logos/${slug}.svg` }; ALL.push(b); BR[id] = b; COLLECT.push(b); }
+for(const ev of BC_EVENTS) for(const [id, nm, slug] of ev.brands) if(!BR[id]){ const b = { id, name:nm, rarity:'Event', eth:2000, logo:`bc27/logos/${slug}.svg` }; ALL.push(b); BR[id] = b; COLLECT.push(b); }
+let curPass = 1;
+const tierP = i => Math.min(PASSES[i].def.tiers, Math.floor(PASSES[i].st().xp / PASSES[i].def.xpPerTier));
+const THEMES = { neon:'Neon Night', ice:'Frostbite Ice' };
+function rwHtml(r){ const [t, v] = r;
+  if(t === 'brand') return `<img src="${BR[v].logo}" alt=""><span><b>${BR[v].name}</b><br>Exclusive brand</span>`;
+  if(t === 'theme') return `<span style="font-size:24px">${v === 'ice' ? '❄️' : '🌃'}</span><span><b>${THEMES[v]}</b><br>Exclusive theme</span>`;
+  return `<span style="font-size:22px">${RWI[t]}</span><span>${fmt(v)} ${t === 'key' ? (v > 1 ? 'Box Keys' : 'Box Key') : RWN[t]}</span>`; }
+function grant(r){ const [t, v] = r;
+  if(t === 'bi') S.bi += v; else if(t === 'eth') S.eth += v; else if(t === 'key') S.keys += v;
+  else if(t === 'brand') gain(v);
+  else if(t === 'theme'){ S.items[v] = 1; S.theme = v; applyTheme(); } }
+function renderPass(){
+  const P = PASSES[curPass], D = P.def, st = P.st(), t = tierP(curPass), into = st.xp - t * D.xpPerTier;
+  $('bpName').textContent = 'Battle Pass';
+  $('bpHead').innerHTML = `<div class="filters">${PASSES.map((p, i) => `<button class="f${i === curPass ? ' on' : ''}" data-pass="${i}">${p.def.name}</button>`).join('')}</div>
+    <p class="note">Tier <b>${t}</b> / ${D.tiers} · ${t >= D.tiers ? 'Max tier!' : `${fmt(into)} / ${D.xpPerTier} XP`} · Earn XP: tap +1, box +40, new brand +100, battle win +60 (both passes level together)</p>
+    <div class="bar"><i style="width:${t >= D.tiers ? 100 : into / D.xpPerTier * 100}%"></i></div>
+    ${st.prem ? '<p class="note">⭐ Premium pass active</p>' : `<button class="btn eth" id="bpBuy" ${S.eth < D.premium ? 'disabled' : ''}>Unlock Premium track · ${fmt(D.premium)} Ξ</button><p class="note">Premium is paid with in-game Ethereum only.</p>`}
+    <div class="tier" style="background:none"><span></span><b style="font-size:12px">FREE</b><b style="font-size:12px">⭐ PREMIUM</b></div>`;
+  $('bpHead').querySelectorAll('[data-pass]').forEach(b => b.onclick = () => { curPass = +b.dataset.pass; renderPass(); });
+  if($('bpBuy')) $('bpBuy').onclick = () => { if(S.eth < D.premium) return; S.eth -= D.premium; st.prem = 1; save(); mon(); renderPass(); sfx('buy'); toast('Premium pass unlocked!'); };
+  let rows = '';
+  for(let i = 1; i <= D.tiers; i++){ const T = D.track[i], cell = side => { const key = i + side, got = st.got[key], can = t >= i && (side === 'f' || st.prem);
+      return `<div class="rw">${rwHtml(side === 'f' ? T.free : T.prem)}${got ? '<span style="margin-left:auto">✅</span>' : can ? `<button class="btn" data-bp="${key}">Claim</button>` : '<span style="margin-left:auto">🔒</span>'}</div>`; };
+    rows += `<div class="tier${t >= i ? ' done' : ''}"><b>${i}</b>${cell('f')}${cell('p')}</div>`; }
+  $('bpTiers').innerHTML = rows;
+  $('bpTiers').querySelectorAll('[data-bp]').forEach(b => b.onclick = () => { const key = b.dataset.bp, i = parseInt(key), side = key.slice(-1);
+    if(st.got[key] || tierP(curPass) < i || (side === 'p' && !st.prem)) return;
+    st.got[key] = 1; grant(side === 'f' ? D.track[i].free : D.track[i].prem); save(); mon(); renderPass(); sfx('buy'); toast('Reward claimed!'); });
+  if(window.GXY) GXY.event('brand-clicker-27', 'tier', Math.max(tierP(0), tierP(1)));
+}
+function applyTheme(){ document.body.classList.remove('neon', 'ice'); if(S.theme) document.body.classList.add(S.theme);
+  const own = Object.keys(THEMES).filter(k => S.items[k]), b = $('themeBtn'); b.hidden = !own.length; b.textContent = 'Theme: ' + (THEMES[S.theme] || 'Default'); }
+$('themeBtn').onclick = () => { const list = ['', ...Object.keys(THEMES).filter(k => S.items[k])]; S.theme = list[(list.indexOf(S.theme) + 1) % list.length]; save(); applyTheme(); };
+$('sndBtn').onclick = () => { S.sound = S.sound ? 0 : 1; save(); $('sndBtn').textContent = 'Sound: ' + (S.sound ? 'On' : 'Off'); };
+$('sndBtn').textContent = 'Sound: ' + (S.sound ? 'On' : 'Off');
+// leaderboard hook (filled in by the module script below)
+window.bcLB = window.bcLB || { dirty(){}, load(){ $('lbBody').innerHTML = '<p class="note">Loading…</p>'; } };
+function renderLB(){ bcLB.load(); }
+
 // ---------- sheets + wiring ----------
-const RENDER = { shop:renderShop, pc:renderPC, up:renderUp, mkt:renderMkt, items:renderItems, pass:renderPass };
+const RENDER = { shop:renderShop, pc:renderPC, up:renderUp, mkt:renderMkt, items:renderItems, pass:renderPass, rebirth:renderRebirth, sets:renderSets, stats:renderStats, battle:renderBattle, trade:renderTrade, lb:renderLB };
 function openSheet(id){ if(busy) return; closeSheets(); if(RENDER[id]) RENDER[id](); $(id).classList.add('on'); }
 function closeSheets(){ document.querySelectorAll('.sheet.on').forEach(s => s.classList.remove('on')); }
-let rt = 0; function refreshOpen(){ const s = document.querySelector('.sheet.on'); if(s && RENDER[s.id] && s.id !== 'pc' && s.id !== 'pass' && Date.now() - rt > 700){ rt = Date.now(); RENDER[s.id](); } }
+let rt = 0; function refreshOpen(){ const s = document.querySelector('.sheet.on'); if(s && RENDER[s.id] && !['pc', 'pass', 'battle', 'trade', 'lb', 'stats'].includes(s.id) && Date.now() - rt > 700){ rt = Date.now(); RENDER[s.id](); } }
 document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openSheet(b.dataset.open));
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
 document.querySelectorAll('.sheet').forEach(s => s.onclick = e => { if(e.target === s) closeSheets(); });
@@ -435,7 +680,26 @@ function ask(){ $('askIn').value = S.name; $('ask').style.display = 'flex'; $('a
 $('askOk').onclick = () => { const v = $('askIn').value.trim(); if(!v) return; S.name = v; save(); mon(); $('ask').style.display = 'none'; };
 $('askIn').onkeydown = e => { if(e.key === 'Enter') $('askOk').click(); };
 function fit(){ const s = Math.min(Math.max(innerWidth / 480, innerHeight / 360), innerWidth / 380); $('stage').style.transform = `scale(${s})`; }
-addEventListener('resize', fit); fit(); rmLabel(); applyTheme(); home(); if(!S.name) ask();
+addEventListener('resize', fit); fit(); rmLabel(); applyTheme(); offline(); home(); if(!S.name) ask();
+</script>
+<script type="module">
+// Leaderboard: brands collected (GXY account required). Firestore collection: scores_brandclicker
+import { gxyAccount } from '../assets/gxyaccount.js';
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, collection, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const cfg = {apiKey:"AIzaSyCN4mEtGMjSxdgsTlthhzX6FXIjxltJKHQ",authDomain:"gxyhockey.firebaseapp.com",projectId:"gxyhockey",storageBucket:"gxyhockey.firebasestorage.app",messagingSenderId:"474584991663",appId:"1:474584991663:web:b8986544418d6b85fa115a"};
+let db = null; try{ db = getFirestore(getApps().length ? getApps()[0] : initializeApp(cfg)); }catch(e){}
+let dirty = true, sent = -1;
+async function push(){ if(!dirty || !db) return; dirty = false; try{ await gxyAccount.ready(); const d = gxyAccount.data || {};
+  if(!d.mcUsername || !gxyAccount.user || S.owned.length === sent) return; sent = S.owned.length;
+  await setDoc(doc(db, 'scores_brandclicker', gxyAccount.user.uid), { uid:gxyAccount.user.uid, name:d.mcUsername, score:S.owned.length, eth:Math.floor(S.eth), stars:S.stars || 0, ts:serverTimestamp() }); }catch(e){ console.warn('lb', e); } }
+setInterval(push, 30000); setTimeout(push, 5000);
+window.bcLB = { dirty(){ dirty = true; }, async load(){ const el = document.getElementById('lbBody');
+  if(!db){ el.innerHTML = '<p class="note">Leaderboard is offline.</p>'; return; } el.innerHTML = '<p class="note">Loading…</p>'; dirty = true; push();
+  try{ const snap = await getDocs(query(collection(db, 'scores_brandclicker'), orderBy('score', 'desc'), limit(25))), rows = []; snap.forEach(x => rows.push(x.data()));
+    await gxyAccount.ready(); const me = gxyAccount.user && gxyAccount.user.uid, signed = !!(gxyAccount.data || {}).mcUsername;
+    el.innerHTML = (signed ? '' : '<p class="note">Sign in to GXY Cloud from the Library to appear on the leaderboard.</p>') + (rows.length ? rows.map((r, i) => `<div class="tier" style="grid-template-columns:44px 1fr auto${r.uid === me ? ';outline:2px solid var(--acc)' : ''}"><b>${['🥇','🥈','🥉'][i] || i + 1}</b><span><b>${String(r.name).replace(/[<>&]/g, '')}</b>${r.stars ? ' ⭐' + r.stars : ''}</span><span>${r.score} brands</span></div>`).join('') : '<p class="note">No collectors ranked yet. Be the first!</p>');
+  }catch(e){ el.innerHTML = '<p class="note">Couldn\'t load the leaderboard (' + (e.code || e.message) + ').</p>'; } } };
 </script>
 <script src="../assets/gxy.js"></script>
 <script src="../assets/theme.js" data-root="../" data-no-css="true"></script>

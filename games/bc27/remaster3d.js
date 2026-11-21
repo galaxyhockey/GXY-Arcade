@@ -42,5 +42,6 @@ const D3 = {
   109:{ acc:'#ff4500', f:el => { const d = root(el, 'radial-gradient(circle,#2b0a00,#000 70%)'); warp(d, '#ff4500', 60); orbits(d, ['#ff4500', '#ffffff'], '#ff8c1a'); } } // LTT 3D: screwdriver orbit
 };
 Object.assign(S, D3);
+window.BC_D3 = { root, tunnel, floor, cubes, orbits, warp };
 window.BC_3D = [[100, 27, 'NVIDIA'], [101, 25, 'PS5'], [102, 49, 'Tesla'], [103, 75, 'Ferrari'], [104, 19, 'Apple'], [105, 23, 'Nintendo'], [106, 62, 'Red Bull'], [107, 16, 'Netflix'], [108, 74, 'Lamborghini'], [109, 0, 'Linus Tech Tips']];
 })();
