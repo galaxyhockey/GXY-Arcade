@@ -12,7 +12,7 @@ G.flags = SV.flags; G.filter = !!SV.filter; G.camMode = SV.cam || 'tp';
 let gen = 0, failRes = null;
 const live = p => { const g = gen; return p.then(v => g === gen ? v : new Promise(() => {})); };
 export const H = {
-  say:l => live(E.say(l)), wait:ms => live(E.wait(ms)), reach:(x, z, r, o) => live(E.reach(x, z, r, o)), interact:(x, z, pr, r, y) => live(E.interact(x, z, pr, r, y)),
+  say:(l, o) => live(E.say(l, o)), wait:ms => live(E.wait(ms)), reach:(x, z, r, o) => live(E.reach(x, z, r, o)), interact:(x, z, pr, r, y) => live(E.interact(x, z, pr, r, y)),
   choose:o => live(E.choose(o)), fade:(on, ms) => live(E.fade(on, ms)), card:(a, b, ms) => live(E.card(a, b, ms)), shot:(p, l, ms) => live(E.camShot(p, l, ms)),
   until:fn => live(new Promise(r => { const t = E.tick(() => { if(fn()){ t(); r(); } }); mt.push(t); })),
   go:(n, pts, sp) => live(n.go(pts, sp)), banner:(a, b, f, ms) => live(E.banner(a, b, f, ms)) };
@@ -21,7 +21,7 @@ export function mnpc(name, look, x, z, o){ const n = E.npc(name, look, x, z, o);
 export function mtick(fn){ const t = E.tick(fn); mt.push(t); return t; }
 export function minter(o){ o.persist = true; mInter.push(o); return E.addInter(o); }
 export function fail(msg){ failRes && failRes(msg); }
-function cleanup(){ gen++; mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
+function cleanup(){ gen++; G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
   G.ticks = G.ticks.filter(t => t.amb); (G.markers || []).slice().forEach(E.clearMarker); E.setWay(); E.killDialog(); E.cut(false); E.obj('');
   G.carry = null; clearTrain(); G.camOverride = null; $('timer').style.display = 'none'; $('carts').style.display = 'none'; alarmFx(false); G.blips = []; }
 export let MIS = {}; export const setMissions = m => MIS = m;
@@ -36,7 +36,7 @@ export async function play(id, i = 0){
     const r = await Promise.race([m.stages[i](), new Promise(res => failRes = res)]); failRes = null;
     if(typeof r === 'string'){ cleanup(); E.cut(true); await E.banner('MISSION FAILED', r, true, 3200); await E.fade(true, 500); continue; }
     i++; }
-  cleanup(); if(!G.noComplete) SV.done[id] = true; G.noComplete = false; SV.cp = null; if(m.done) m.done(); save(); G.mission = null; freeRoam(true); }
+  cleanup(); if(!G.noComplete){ SV.done[id] = true; if(['M02', 'M03', 'M04'].includes(id) && !SV.replaying) SV.needSleep = id; } G.noComplete = false; SV.cp = null; if(m.done) m.done(); save(); G.mission = null; freeRoam(true); }
 export async function restartCP(){ if(!SV.cp) return; await E.fade(true, 300); play(SV.cp.id, SV.cp.i); }
 
 // ---------- clock / HUD helpers ----------
@@ -58,34 +58,51 @@ export function clearTrain(){ train.forEach(c => G.scene.remove(c)); train.lengt
 export function fillCorral(c, n){ c.carts.forEach(m => G.scene.remove(m)); c.carts = []; c.initial = n; c.delivered = 0;
   for(let i = 0; i < n; i++){ const m = newCart(); m.position.set(c.x, 0, c.z + 2.2 - i * .55); m.rotation.y = Math.PI; G.scene.add(m); c.carts.push(m); } }
 export function emptyCorrals(){ G.corrals.forEach(c => fillCorral(c, 0)); }
-export function startPushing(){ const hist = []; G.carry = (dt, mv) => { // carts nest into a train that trails behind Chris
-    if(!train.length) return; hist.unshift({ x:P.p.x, z:P.p.z, a:P.model.rotation.y }); if(hist.length > 400) hist.pop();
-    let d = 0, k = 0; for(let i = 0; i < train.length; i++){ const want = 1.0 + i * .55;
-      while(k < hist.length - 1 && d < want){ d += Math.hypot(hist[k].x - hist[k + 1].x, hist[k].z - hist[k + 1].z); k++; }
-      const h = hist[Math.min(k, hist.length - 1)]; train[i].position.set(h.x, P.p.y, h.z); train[i].rotation.y = h.a + Math.PI; } }; }
+export function startPushing(){ G.carry = (dt, mv) => { // carts nest into a line Chris pushes IN FRONT of him
+    if(!train.length) return; const a = P.model.rotation.y, fx = Math.sin(a), fz = Math.cos(a);
+    for(let i = 0; i < train.length; i++){ const d = 1.05 + i * .5; train[i].position.set(P.p.x + fx * d, P.p.y, P.p.z + fz * d); train[i].rotation.y = a + Math.PI; } }; }
+export function park(x, z, ry){ const c = G.chrisDrive; c.car.position.set(x, 0, z); c.car.rotation.y = ry; c.head = ry; c.car.visible = true; const sw = Math.abs(Math.sin(ry)) > .7;
+  Object.assign(G.chrisCarCol, sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3 }); G.chrisCarCol.off = false; }
 export function grabFrom(c, max){ const n = Math.min(max - train.length, c.carts.length); for(let i = 0; i < n; i++){ const m = c.carts.pop(); train.push(m); (m.userData.from = c); } if(n) E.sfx('cart'); return n; }
 export function deliver(){ const n = train.length; train.forEach(m => { m.userData.from.delivered++; G.scene.remove(m); }); train.length = 0; return n; }
 
 // ---------- free roam: mission markers, ambient life ----------
 const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01'];
 let roamMarks = [];
-export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.delInter(r.it); r.stop && r.stop(); }); roamMarks = []; E.setWay();
+const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
+export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.delInter(r.it); r.stop && r.stop(); }); roamMarks = []; E.setWay(); G.blips = [];
   if(!on) return; clock('BELLEVILLE, IL', '2003'); E.setTime(G.roamTime || 'after');
+  if(SV.needSleep){ const b = G.bed, mk = E.marker(b.x, b.z, 0x9a7cff, 3.2); G.blips.push({ x:b.x, z:b.z, c:'#9a7cff' }); E.setWay(b.x, b.z);
+    const it = E.addInter({ x:b.x, z:b.z, y:3.2, r:2.2, prompt:'SLEEP UNTIL TOMORROW', use:async () => { freeRoam(false); E.cut(true); await E.fade(true, 900);
+      const day = NEXT_DAY[SV.needSleep] || 'THE NEXT DAY'; SV.needSleep = false; G.roamTime = 'day'; save(); await E.card('THE NEXT MORNING', day, 2600);
+      E.place(G.bedSpawn.x, G.bedSpawn.z, Math.PI, 3.2); E.cut(false); await E.fade(false, 700); freeRoam(true); } });
+    roamMarks.push({ mk, it }); E.obj("It's late. Go home and sleep — your bed is upstairs."); return; }
   const next = ORDER.find(id => !SV.done[id] && MIS[id] && (!MIS[id].needs || SV.done[MIS[id].needs]));
   const avail = ORDER.filter(id => MIS[id] && (id === next || (id === 'S01' && SV.done.M04)));
   avail.forEach(id => { const m = MIS[id], s = m.start, mk = E.marker(s.x, s.z, id[0] === 'S' ? 0x4fc3ff : 0xffd23f, s.y);
-    const stop = E.tick(() => { if(!G.mission && G.ctl && Math.hypot(P.p.x - s.x, P.p.z - s.z) < 1.4 && Math.abs(P.p.y - (s.y || 0)) < 2){ freeRoam(false); play(id, 0); } });
+    const stop = E.tick(() => { if(!G.mission && G.ctl && !G.driving && Math.hypot(P.p.x - s.x, P.p.z - s.z) < 1.4 && Math.abs(P.p.y - (s.y || 0)) < 2){ freeRoam(false); play(id, 0); } });
     roamMarks.push({ mk, stop }); G.blips.push({ x:s.x, z:s.z, c:id[0] === 'S' ? '#4fc3ff' : '#ffd23f' }); });
-  if(next) E.obj(`${MIS[next].title}: go to the ${next[0] === 'S' ? 'blue' : 'yellow'} marker (${MIS[next].where}).`); else E.obj('Free roam. Replay missions from the pause menu.'); }
-// ambient: traffic + pedestrians with barks (never in the dialogue zone of a mission)
-{ const lanes = [{ z:22.2, x0:-185, x1:145, dir:1 }, { z:25.8, x0:145, x1:-185, dir:-1 }, { z:254.2, x0:-185, x1:225, dir:1 }, { z:257.8, x0:225, x1:-185, dir:-1 }];
-  const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a'];
-  lanes.forEach((l, i) => { for(let k = 0; k < 2; k++){ const car = E.makeCar(cols[(i * 2 + k) % 6], { suv:k === 1 }); G.scene.add(car); const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col);
-    let x = l.x0 + (l.x1 - l.x0) * (k * .5 + i * .13);
-    const t = dt => { const near = Math.hypot(P.p.x - x, P.p.z - l.z) < 5 && Math.abs((P.p.x - x) * l.dir) < 5 && (P.p.x - x) * l.dir > 0;
-      x += l.dir * (near ? 0 : 11) * dt; if((l.dir > 0 && x > l.x1) || (l.dir < 0 && x < l.x1)) x = l.x0;
-      car.position.set(x, 0, l.z); car.rotation.y = l.dir > 0 ? Math.PI / 2 : -Math.PI / 2; Object.assign(col, { x0:x - 2.2, x1:x + 2.2, z0:l.z - 1, z1:l.z + 1, off:!!G.noTraffic }); car.visible = !G.noTraffic; };
+  if(next){ E.obj(`${MIS[next].title}: go to the ${next[0] === 'S' ? 'blue' : 'yellow'} marker (${MIS[next].where}).`); E.setWay(MIS[next].start.x, MIS[next].start.z); } else E.obj('Free roam. Replay missions from the pause menu.'); }
+// ambient traffic: drives on the right on every road, stops for Chris (on foot or driving)
+{ const lanes = [
+    { ax:'x', c:25.8, a0:-188, a1:148, dir:1 }, { ax:'x', c:22.2, a0:148, a1:-188, dir:-1 },
+    { ax:'x', c:257.8, a0:-188, a1:228, dir:1 }, { ax:'x', c:254.2, a0:228, a1:-188, dir:-1 },
+    { ax:'z', c:98, a0:30, a1:250, dir:1 }, { ax:'z', c:102, a0:250, a1:30, dir:-1 },
+    { ax:'z', c:-110, a0:30, a1:250, dir:1 }, { ax:'z', c:-106, a0:250, a1:30, dir:-1 } ];
+  const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
+  lanes.forEach((l, i) => { const n = l.ax === 'x' ? 4 : 3; for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0 }); G.scene.add(car);
+    const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let a = l.a0 + (l.a1 - l.a0) * ((k + (i % 2) * .5) / n), v = 12;
+    const t = dt => { const px = l.ax === 'x' ? a : l.c, pz = l.ax === 'x' ? l.c : a, fx = l.ax === 'x' ? l.dir : 0, fz = l.ax === 'z' ? l.dir : 0;
+      const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx);
+      const block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
+      a += l.dir * v * dt; if((l.dir > 0 && a > l.a1) || (l.dir < 0 && a < l.a1)) a = l.a0;
+      car.position.set(px, 0, pz); car.rotation.y = l.ax === 'x' ? (l.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (l.dir > 0 ? 0 : Math.PI);
+      Object.assign(col, l.ax === 'x' ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic; };
     t.amb = true; G.ticks.push(t); } }); }
+// parked cars in some driveways + Chris's own car (drivable)
+[[-150, 18, 0], [45, 17.5, 0], [-60, 31, Math.PI], [40, 31, Math.PI], [92, 96, Math.PI / 2], [108, 159, -Math.PI / 2]].forEach(([x, z, ry], i) => { const c = E.makeCar(['#7a2a2a', '#ccc', '#2a4a6a', '#e8e8e8', '#3a3a3a', '#6a5a2a'][i], { suv:i % 2 === 0 }); c.position.set(x, 0, z); c.rotation.y = ry; G.scene.add(c);
+  const sw = Math.abs(Math.sin(ry)) > .7; G.colliders.push(sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1, y0:0, y1:1.6 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3, y0:0, y1:1.6 }); });
+G.chrisCarCol = G.colliders.find(c => c.x0 === 9.5 && c.z0 === 6.8); G.chrisDrive = E.makeDrivable(G.chrisCar, G.chrisCarCol);
 { const barks = ['"Afternoon."', '"Watch the road, kid."', '"Nice weather, huh?"'];
   const peds = [[[-150, 17], [-20, 17]], [[20, 31], [140, 31]], [[94, 60], [94, 230]]];
   peds.forEach((path, i) => { const n = E.npc('ped' + i, { shirt:['#8a5a9a', '#3a7a6a', '#a8743a'][i], pants:'#334', hair:['#222', '#a87a4a', '#ddd'][i], long:i === 1 }, path[0][0], path[0][1], { speed:1.6 });

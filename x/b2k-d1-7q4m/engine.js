@@ -141,14 +141,18 @@ export class NPC {
     this.r = o.r || 2.2; scene.add(model); model.traverse(m => m.isMesh && (m.castShadow = true)); this.sync(); G.npcs.push(this); }
   sync(){ this.o.position.copy(this.p); this.o.rotation.y = this.face; }
   go(pts, speed){ this.path = pts.map(a => new THREE.Vector3(a[0], 0, a[1])); if(speed) this.speed = speed; return new Promise(r => this.done = r); }
-  follow(t, gap = 2.2, speed){ this.fol = t; this.gap = gap; if(speed) this.speed = speed; }
+  follow(t, gap = 2.2, speed, off){ this.fol = t; this.gap = gap; this.off = off; if(speed) this.speed = speed; } // off = [side, back] slot in the leader's frame
   stop(){ this.path = null; this.fol = null; }
   look(x, z){ this.face = Math.atan2(x - this.p.x, z - this.p.z); this.sync(); }
   at(x, z, f){ this.p.set(x, groundAt(x, z, this.p.y + .3), z); if(f !== undefined) this.face = f; this.path = null; this.sync(); }
   remove(){ scene.remove(this.o); G.npcs.splice(G.npcs.indexOf(this), 1); }
   update(dt){ let moving = 0, tgt = null;
     if(this.path && this.path.length){ tgt = this.path[0]; if(Math.hypot(tgt.x - this.p.x, tgt.z - this.p.z) < .35){ this.path.shift(); if(!this.path.length){ this.path = null; this.done && this.done(); } } }
-    else if(this.fol){ const f = this.fol.p || this.fol; if(Math.hypot(f.x - this.p.x, f.z - this.p.z) > this.gap) tgt = f; }
+    else if(this.fol){ let f = this.fol.p || this.fol;
+      if(this.off){ const h = this.fol === P ? P.model.rotation.y : (this.fol.face || 0), [sx, bz] = this.off; f = { x:f.x + Math.cos(h) * sx - Math.sin(h) * bz, z:f.z - Math.sin(h) * sx - Math.cos(h) * bz, y:f.y }; }
+      const d = Math.hypot(f.x - this.p.x, f.z - this.p.z);
+      if((d > 26 || Math.abs((f.y || 0) - this.p.y) > 2.5) && !this.slow){ this.lost = (this.lost || 0) + dt; if(this.lost > 2.5){ this.p.set(f.x, f.y || 0, f.z); this.lost = 0; } } else this.lost = 0;
+      if(d > (this.off ? .5 : this.gap)) tgt = f; }
     if(tgt){ const dx = tgt.x - this.p.x, dz = tgt.z - this.p.z, d = Math.hypot(dx, dz) || 1, sp = this.fol && !this.path ? Math.min(this.speed * (d > 8 ? 1.6 : 1), d * 3) : this.speed;
       this.p.x += dx / d * sp * dt; this.p.z += dz / d * sp * dt; this.face = Math.atan2(dx, dz); moving = sp; }
     const gy = groundAt(this.p.x, this.p.z, this.p.y); this.p.y += (gy - this.p.y) * Math.min(1, dt * 12);
@@ -159,17 +163,39 @@ export function animate(o, speed, dt){ const u = o.userData; if(!u) return; u.ph
 export function npc(name, look, x, z, o){ return new NPC(name, look.dog ? makeDog(look.color, look) : makePerson(look), x, z, o); }
 
 // ---------- player ----------
-export const P = { p:new THREE.Vector3(0, 0, 0), yaw:0, pitch:-.12, vy:0, model:null, speed:4.2, sprint:7.6, rad:.34, moved:0, rotated:0 };
+export const P = { p:new THREE.Vector3(0, 0, 0), yaw:0, pitch:-.12, vy:0, model:null, speed:6.4, sprint:11.5, rad:.34, moved:0, rotated:0, stam:1, tired:false };
 P.model = makePerson({ shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#efc29e' }); scene.add(P.model);
 export function setOutfit(o){ scene.remove(P.model); P.model = makePerson({ shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#efc29e', ...o }); scene.add(P.model); }
 export function place(x, z, yaw = 0, y){ P.p.set(x, y ?? groundAt(x, z, .3), z); P.yaw = yaw; P.vy = 0; }
 const camP = new THREE.Vector3(), camL = new THREE.Vector3();
+// ---------- driving (any car registered with makeDrivable) ----------
+export const CARS = [];
+export function makeDrivable(car, col){ const c = { car, col, speed:0, head:car.rotation.y }; CARS.push(c);
+  addInter({ x:() => car.position.x, z:() => car.position.z, r:3.4, prompt:'DRIVE', persist:true, amb:true, when:() => !G.driving && !G.noDrive && car.visible, use:() => enterCar(c) }); return c; }
+export function enterCar(c){ G.driving = c; c.head = c.car.rotation.y; c.speed = 0; if(c.col) c.col.off = true; P.model.visible = false; sfx('door'); }
+export function exitCar(){ const c = G.driving; if(!c) return; G.driving = null; const a = c.head + Math.PI / 2;
+  place(c.car.position.x + Math.sin(a) * 2, c.car.position.z + Math.cos(a) * 2, c.head); P.model.visible = true;
+  if(c.col){ const x = c.car.position.x, z = c.car.position.z, sw = Math.abs(Math.sin(c.head)) > .7; Object.assign(c.col, sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3 }); c.col.off = false; } sfx('door'); }
+const carP = new THREE.Vector3();
+function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.paused;
+  const th = ctl ? (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0) : 0, st = ctl ? (k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) : 0;
+  if(th > 0) c.speed += (c.speed < 0 ? 26 : 11) * dt; else if(th < 0) c.speed -= (c.speed > 0 ? 24 : 7) * dt; else c.speed *= Math.pow(.45, dt);
+  if(k.Space && ctl) c.speed *= Math.pow(.05, dt); c.speed = Math.max(-7, Math.min(24, c.speed));
+  c.head += st * dt * Math.min(1, Math.abs(c.speed) / 6) * 1.7 * Math.sign(c.speed || 1);
+  carP.copy(c.car.position); carP.x += Math.sin(c.head) * c.speed * dt; carP.z += Math.cos(c.head) * c.speed * dt; carP.y = 0;
+  const bx = carP.x, bz = carP.z; collide(carP, 1.25); if(Math.hypot(carP.x - bx, carP.z - bz) > .01){ c.speed *= .4; }
+  c.car.position.set(carP.x, groundAt(carP.x, carP.z, .3), carP.z); c.car.rotation.y = c.head; P.p.set(carP.x, 0, carP.z); P.yaw = c.head; P.mv = Math.abs(c.speed); }
+
 function updatePlayer(dt){
+  if(G.driving){ updateDriving(dt); return; }
   const k = G.keys; let f = 0, s = 0;
   if(G.ctl && !G.paused){ if(k.KeyW) f++; if(k.KeyS) f--; if(k.KeyA) s--; if(k.KeyD) s++;
     if(k.ArrowLeft){ P.yaw += dt * 2.2; P.rotated += dt * 2.2; } if(k.ArrowRight){ P.yaw -= dt * 2.2; P.rotated += dt * 2.2; }
     if(k.ArrowUp) P.pitch = Math.min(.9, P.pitch + dt); if(k.ArrowDown) P.pitch = Math.max(-1.1, P.pitch - dt); }
-  const sp = (k.ShiftLeft || k.ShiftRight) && G.ctl ? P.sprint : P.speed, mv = Math.hypot(f, s) ? sp : 0;
+  const want = (k.ShiftLeft || k.ShiftRight) && G.ctl && Math.hypot(f, s);
+  if(P.stam <= 0) P.tired = true; if(P.stam > .3) P.tired = false;
+  const run = want && !P.tired; P.stam = Math.max(0, Math.min(1, P.stam + (run ? -.16 : .22) * dt));
+  const sp = run ? P.sprint : P.speed, mv = Math.hypot(f, s) ? sp : 0;
   if(mv){ const a = P.yaw + Math.atan2(-s, f), ox = P.p.x, oz = P.p.z; P.p.x += Math.sin(a) * mv * dt; P.p.z += Math.cos(a) * mv * dt;
     P.moved += Math.hypot(P.p.x - ox, P.p.z - oz); P.model.rotation.y = a; }
   if(G.carry) G.carry(dt, mv);
@@ -183,6 +209,8 @@ function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between p
   return t; }
 function updateCam(dt){
   if(G.camOverride){ G.camOverride(dt); return; }
+  if(G.driving){ const c = G.driving.car, h = G.driving.head, want = new THREE.Vector3(c.position.x - Math.sin(h) * 8.5, 3.6, c.position.z - Math.cos(h) * 8.5);
+    camP.lerp(want, Math.min(1, dt * 5)); if(camP.distanceTo(want) > 20) camP.copy(want); cam.position.copy(camP); cam.lookAt(c.position.x + Math.sin(h) * 4, 1.2, c.position.z + Math.cos(h) * 4); return; }
   const fp = G.camMode === 'fp'; P.model.visible = !fp;
   const head = new THREE.Vector3(P.p.x, P.p.y + 1.62, P.p.z), dir = new THREE.Vector3(Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), Math.cos(P.yaw) * Math.cos(P.pitch));
   if(fp){ cam.position.copy(head).addScaledVector(dir, .12); cam.lookAt(head.clone().add(dir)); return; }
@@ -202,9 +230,10 @@ export const unlock = () => document.pointerLockElement && document.exitPointerL
 // ---------- interactions / markers / blips ----------
 export function addInter(o){ G.inter.push(o); return o; } // {x,z,y?,r,prompt,use,when?}
 export function delInter(o){ const i = G.inter.indexOf(o); if(i >= 0) G.inter.splice(i, 1); }
-export function interact(x, z, prompt, r = 2.2, y){ return new Promise(res => { const o = addInter({ x, z, y, r, prompt, use:() => { delInter(o); res(); } }); }); }
+export function interact(x, z, prompt, r = 2.2, y){ const st = typeof x === 'number', mk = st ? marker(x, z, 0x7ee0ff, y, .5) : null; if(st) setWay(x, z);
+  return new Promise(res => { const o = addInter({ x, z, y, r, prompt, use:() => { delInter(o); clearMarker(mk); if(st) setWay(); res(); } }); }); }
 const mkGeo = new THREE.CylinderGeometry(.9, .9, 2.4, 24, 1, true);
-export function marker(x, z, color = 0xffd23f, y){ const g = new THREE.Group();
+export function marker(x, z, color = 0xffd23f, y, sc = 1){ const g = new THREE.Group(); g.scale.setScalar(sc);
   const m = new THREE.Mesh(mkGeo, new THREE.MeshBasicMaterial({ color, transparent:true, opacity:.38, side:THREE.DoubleSide, depthWrite:false }));
   m.position.y = 1.2; const ar = new THREE.Mesh(new THREE.ConeGeometry(.35, .6, 4), new THREE.MeshBasicMaterial({ color })); ar.rotation.x = Math.PI; ar.position.y = 3;
   g.add(m, ar); g.position.set(x, y ?? groundAt(x, z, .3), z); scene.add(g); g.userData.ar = ar; G.markers = (G.markers || []).concat(g); return g; }
@@ -220,18 +249,24 @@ const SWEAR = /\b(fuck\w*|shit\w*|damn\w*|ass(es|hole)?|bitch\w*|hell|retarded|g
 export const clean = s => G.filter ? s.replace(SWEAR, m => m[0] + '*'.repeat(m.length - 1)) : s;
 let adv = null;
 G.onKey = e => { if(G.dialogOn && ['KeyE', 'Space', 'Enter'].includes(e.code)){ adv && adv(); return; }
+  if(G.driving){ if(e.code === 'KeyE' && G.ctl && !G.paused && !G.noExit && Math.abs(G.driving.speed) < 3) exitCar(); G.hotkey && G.hotkey(e); return; }
+  if(e.code === 'Space' && G.ctl && !G.paused && !G.choiceOn && P.vy === 0 && P.p.y - groundAt(P.p.x, P.p.z, P.p.y) < .1){ P.vy = 7.2; P.p.y += .06; }
   if(G.choiceOn) return G.choiceKey(e);
   if(e.code === 'KeyE' && G.ctl && !G.paused){ const it = nearestInter(); if(it){ it.use(); } }
   if(e.code === 'KeyV' && G.ctl && !G.paused){ G.camMode = G.camMode === 'tp' ? 'fp' : 'tp'; G.camToggled = true; }
   G.hotkey && G.hotkey(e); };
 $('dlg').addEventListener('click', () => adv && adv());
-export function say(lines){ // lines: [[who, text], ...]; who '' = narration (Chris's thoughts)
+export function say(lines, o = {}){ // lines: [[who, text], ...]; who '' = narration (Chris's thoughts). o.auto: plays while you keep walking
   return new Promise(async done => { const box = $('dlg'), who = box.querySelector('.who'), txt = box.querySelector('.txt'), ar = box.querySelector('.arrow');
+    if(o.auto){ while(G.dialogOn || G.autoTalk) await wait(200); G.autoTalk = true; box.classList.add('auto');
+      for(const [w, t] of lines){ const text = clean(t); who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w); ar.style.display = 'none'; box.style.display = 'block';
+        for(let i = 0; i <= text.length; i += 2){ txt.textContent = text.slice(0, i); if(i % 6 === 0) blip(w); await wait(14); } await wait(Math.max(1500, text.length * 38)); }
+      box.style.display = 'none'; box.classList.remove('auto'); G.autoTalk = false; done(); return; }
     G.dialogOn = true; box.style.display = 'block'; $('prompt').style.display = 'none';
     for(const [w, t] of lines){ const text = clean(t); who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w);
       ar.style.display = 'none'; let i = 0, skip = false; txt.textContent = '';
-      await new Promise(r => { adv = () => { skip = true; }; const iv = setInterval(() => { i += skip ? 999 : 1; txt.textContent = text.slice(0, i); if(i % 3 === 0 && !skip) blip(w);
-        if(i >= text.length){ clearInterval(iv); r(); } }, 26); });
+      await new Promise(r => { adv = () => { skip = true; }; const iv = setInterval(() => { i += skip ? 999 : 2; txt.textContent = text.slice(0, i); if(i % 6 === 0 && !skip) blip(w);
+        if(i >= text.length){ clearInterval(iv); r(); } }, 13); });
       ar.style.display = 'block'; await new Promise(r => { adv = r; }); }
     adv = null; G.dialogOn = false; box.style.display = 'none'; done(); }); }
 export function choose(opts){ return new Promise(res => { const el = $('choices'); let k = 0; G.choiceOn = true;
@@ -278,14 +313,17 @@ export function drawMap(g, size, cx, cz, scale, rot){ g.save(); g.clearRect(0, 0
   for(const n of G.npcs) if(n.blip) dot(n.p.x, n.p.z, n.blip, 5);
   if(G.way){ dot(G.way.x, G.way.z, '#ffd23f', 8); }
   g.restore();
-  g.save(); g.translate(size / 2, size / 2); if(rot === undefined){ g.translate((P.p.x - cx) * scale, (P.p.z - cz) * scale); g.rotate(-P.yaw + Math.PI); } else g.rotate(Math.PI);
+  g.save(); g.translate(size / 2, size / 2); if(rot === undefined){ g.translate((P.p.x - cx) * scale, (P.p.z - cz) * scale); g.rotate(-P.yaw + Math.PI); }
   g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -9); g.lineTo(7, 8); g.lineTo(0, 4); g.lineTo(-7, 8); g.closePath(); g.fill(); g.stroke(); g.restore(); }
 function hud(){
   drawMap(mini, 360, P.p.x, P.p.z, 2.2, P.yaw - Math.PI);
   if(G.way){ const dx = G.way.x - P.p.x, dz = G.way.z - P.p.z, d = Math.hypot(dx, dz), a = Math.atan2(dx, dz) - P.yaw;
     const arrows = ['⬆', '⬉', '⬅', '⬋', '⬇', '⬊', '➡', '⬈'], i = ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8;
     $('compass').textContent = `${arrows[i]} ${Math.round(d)} m`; } else $('compass').textContent = '';
-  const it = G.ctl && !G.dialogOn ? nearestInter() : null, pr = $('prompt');
+  const it = G.ctl && !G.dialogOn && !G.driving ? nearestInter() : null, pr = $('prompt');
+  const sb = $('stam'); if(sb){ sb.style.display = P.stam < .99 && !G.driving ? 'block' : 'none'; sb.firstChild.style.width = P.stam * 100 + '%'; sb.firstChild.style.background = P.tired ? '#ff5252' : '#7ee07e'; }
+  $('speedo') && ($('speedo').style.display = G.driving ? 'block' : 'none', G.driving && ($('speedo').textContent = Math.round(Math.abs(G.driving.speed) * 2.24) + ' MPH  ·  E — EXIT (when stopped)'));
+  if(G.driving && !G.dialogOn){ pr.style.display = 'none'; return; }
   if(it){ pr.textContent = 'E — ' + it.prompt; pr.style.display = 'block'; } else pr.style.display = 'none'; }
 function nearestInter(){ let best = null, bd = 1e9;
   for(const it of G.inter){ if(it.when && !it.when()) continue; const x = typeof it.x === 'function' ? it.x() : it.x, z = typeof it.z === 'function' ? it.z() : it.z;

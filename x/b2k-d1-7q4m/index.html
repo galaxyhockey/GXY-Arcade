@@ -21,6 +21,9 @@ canvas#c{display:block;width:100%;height:100%}
 #dlg .who{position:absolute;top:-22px;left:22px;background:#ffd23f;color:#222;border:4px solid #2a2a3a;border-radius:10px;padding:5px 12px;font-size:12px}
 #dlg .arrow{position:absolute;right:20px;bottom:10px;font-size:14px;animation:blink .6s steps(2) infinite;display:none}
 @keyframes blink{50%{opacity:0}}
+#stam{left:50%;bottom:92px;transform:translateX(-50%);width:160px;height:8px;background:#0008;border:2px solid #000;border-radius:5px;display:none}#stam i{display:block;height:100%;border-radius:3px}
+#speedo{right:16px;bottom:18px;font-family:'Press Start 2P';font-size:11px;background:#000a;padding:8px 10px;border:2px solid #fff;border-radius:6px;display:none}
+#dlg.auto{opacity:.93;min-height:0;padding:12px 22px 14px;font-size:13px;pointer-events:none}
 #dlg.thought{background:#eef3ff;font-style:italic}
 #choices{position:fixed;right:max(4vw,calc(50% - 430px));bottom:166px;background:#fff;color:#222;border:6px solid #2a2a3a;border-radius:12px;padding:10px 18px;font-family:'Press Start 2P';font-size:13px;line-height:2.2;z-index:21;display:none}
 #choices div{cursor:pointer;padding-left:22px;position:relative}#choices div.on::before{content:'▶';position:absolute;left:0}
@@ -55,7 +58,7 @@ canvas#c{display:block;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div class="hud" id="clock"></div><div class="hud" id="compass"></div><div class="hud" id="timer"></div>
 <canvas class="hud" id="mini" width="360" height="360"></canvas><div class="hud" id="carts"></div>
-<div class="hud" id="obj"></div><div class="hud" id="prompt"></div>
+<div class="hud" id="obj"></div><div class="hud" id="stam"><i></i></div><div class="hud" id="speedo"></div><div class="hud" id="prompt"></div>
 <div id="dlg"><div class="who"></div><div class="txt"></div><div class="arrow">▼</div></div>
 <div id="choices"></div>
 <div id="fade"></div><div id="card"></div><div id="banner"></div><div id="toast"></div>
@@ -75,6 +78,6 @@ canvas#c{display:block;width:100%;height:100%}
   <button id="pLang"></button><button id="pExport">EXPORT SAVE</button><button id="pImport">IMPORT SAVE</button>
   <button id="pBug">COPY BUG REPORT</button><button id="pTitle">QUIT TO TITLE</button></div></div>
 <div id="mapv"><canvas id="mapc" width="900" height="900"></canvas><p class="note">M — close map</p></div>
-<div id="help"><h2>CONTROLS</h2><div class="keys">WASD · move &nbsp; MOUSE · look (click to lock)<br>SHIFT · sprint &nbsp; E / SPACE · interact &amp; next text<br>V · first / third person &nbsp; M · map<br>ESC / P · pause &nbsp; ARROWS · look (no mouse)</div><button class="btn" id="hClose">GOT IT</button></div>
-<script type="module" src="game.js?v=1"></script>
+<div id="help"><h2>CONTROLS</h2><div class="keys">WASD · move &nbsp; MOUSE · look (click to lock)<br>SHIFT · run (uses stamina) &nbsp; SPACE · jump<br>E · interact / next text / get in a car<br>IN A CAR: W/S gas &amp; brake · A/D steer · SPACE handbrake<br>V · first / third person &nbsp; M · map<br>ESC / P · pause &nbsp; ARROWS · look (no mouse)</div><button class="btn" id="hClose">GOT IT</button></div>
+<script type="module" src="game.js?v=3"></script>
 </body></html>

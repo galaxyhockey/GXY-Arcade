@@ -76,15 +76,16 @@ const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the
       pep.stop(); pep.at(4.8, -6.4); E.sfx('bark'); flick(); G.tvScreen.material.color.set(0x4a6aa8);
       await H.say([['Zeke', 'YO'], ['Zeke', 'OPEN THIS DAMN WINDOW'], ['', 'The dog starts to do that annoying fucking bark she always does, yip yip, yip yip.'],
         [C, "Dude. What the hell are you doing here?"], ['Zeke', "We are gonna do this sick idea, you know it's sick."], [C, 'It sounds cool but i can’t do it'], ['Zeke', 'Then i will make you']]);
-      E.place(2.5, -6.4, Math.PI / 2); await H.go(zeke, [[6.5, -5.6], [5.2, -6.3]], 3); pep.o.visible = false; E.sfx('bark'); await H.go(zeke, [[9.8, -5.4], [11, -3]], 5);
-      await H.say([['', 'Zeke walks through my fucking window, steals the dog and fucking runs off with it. So now I am chasing this actual idiot with my dog down the street in daytime pajamas. Story of my fucking life.'],
+      E.place(2.5, -6.4, Math.PI / 2); const kw = G.kitchenWindow, ky = kw.position.y; for(let i = 0; i < 12; i++){ kw.position.y = ky + i * .07; await H.wait(30); } E.sfx('door');
+      await H.go(zeke, [[6.5, -5.6], [5.2, -6.3]], 3); pep.o.visible = false; E.sfx('bark'); await H.go(zeke, [[9.8, -5.4], [11, -3]], 5);
+      kw.position.y = ky; await H.say([['', 'Zeke walks through my fucking window, steals the dog and fucking runs off with it. So now I am chasing this actual idiot with my dog down the street in daytime pajamas. Story of my fucking life.'],
         ['', 'It’s so over when dad gets home.']]);
       await H.card('GET PEPPER BACK', '', 1800); E.cut(false); },
     async () => { const zeke = mnpc('Zeke', LOOK.zeke, 11, -2); const pep = mnpc('Pepper', LOOK.pepper, 11, -2); zeke.blip = '#ff4f4f';
       E.place(9.2, -5.4, 0); E.obj('CHASE ZEKE AND GET PEPPER BACK.'); clock(day1, '2:55 PM');
       mtick(() => { pep.p.set(zeke.p.x + Math.sin(zeke.face + 1.6) * .3, zeke.p.y + .75, zeke.p.z + Math.cos(zeke.face + 1.6) * .3); pep.face = zeke.face; pep.sync(); });
-      let tired = false; zeke.go(CHASE, 6.2).then(() => tired = true);
-      mtick(() => { const d = Math.hypot(P.p.x - zeke.p.x, P.p.z - zeke.p.z); zeke.speed = tired ? 1.6 : d > 16 ? 4.6 : d < 4 ? 7.3 : 6.2; if(d > 75) fail('You lost Zeke.'); });
+      let tired = false; zeke.go(CHASE, 9).then(() => tired = true);
+      mtick(() => { const d = Math.hypot(P.p.x - zeke.p.x, P.p.z - zeke.p.z); zeke.speed = tired ? 2.4 : d > 16 ? 6.4 : d < 4 ? 10.6 : 9; if(d > 75) fail('You lost Zeke.'); });
       E.setWay(100, 118); await H.until(() => Math.hypot(P.p.x - zeke.p.x, P.p.z - zeke.p.z) < 2.2 && zeke.p.z > 60); zeke.stop(); E.setWay();
       E.cut(true); face(zeke, P.p); faceP(zeke); await two(P.p, zeke, -1);
       await H.say([['', 'Good thing for me, Zeke is a fat ass and is too slow. I finally caught up to him but we were still a mile to a mile and a half from my house.'],
@@ -92,26 +93,26 @@ const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the
         ['Zeke', 'Alright dude lets just stop yelling'], [C, 'Fine. How are we gonna get this dog home?'], ['Zeke', 'I don’t know… walk?'], [C, 'Jesus']]); E.cut(false); },
     async () => { E.place(99, 112, Math.PI); const zeke = mnpc('Zeke', LOOK.zeke, 101, 113); const pep = mnpc('Pepper', LOOK.pepper, 101, 113);
       mtick(() => { if(!pep.free){ pep.p.set(zeke.p.x + .3, zeke.p.y + .75, zeke.p.z); pep.face = zeke.face; pep.sync(); } });
-      E.obj('Walk Pepper home.'); zeke.follow(P, 2.4, 4.4); await H.reach(100, 92, 3, { noMarker:true });
+      E.obj('Walk Pepper home.'); zeke.follow(P, 2.4, 6.2, [1.4, -.4]); await H.reach(100, 92, 3, { noMarker:true });
       zeke.stop(); E.cut(true); pep.free = true; pep.at(zeke.p.x + .8, zeke.p.z - .5); await two(P.p, zeke, 1);
       await H.say([['', 'We start walking, and walking but then Zeke does the most dumbass thing AGAIN. HE DROPS THE DOG TO LET IT USE THE BATHROOM.'],
         [C, 'ZEKE WHAT THE HELL ARE YOU DOING!'], ['Zeke', 'I’M JUST LETTING THE DOG DO ITS BUSINESS.. WAIT']]);
-      pep.go([[100, 120]], 7); E.sfx('bark'); await H.wait(700);
+      pep.go([[100, 120]], 10); E.sfx('bark'); await H.wait(700);
       await H.say([['', 'zeke said as the Pepper started to run away, god. damn. It.'], [C, 'WHAT THE FUCK. CHASE AFTER HER'], [C, 'ACT LIKES ITS FOOD'], ['Zeke', 'ALRIGHT']]);
       await H.card('FOLLOW PEPPER', '', 1400); E.cut(false); },
     async () => { const zeke = mnpc('Zeke', LOOK.zeke, 101, 96); const pep = mnpc('Pepper', LOOK.pepper, 100, 122); pep.blip = '#fff'; E.place(100, 99, 0);
-      E.obj('FOLLOW PEPPER.'); clock(day1, '3:20 PM'); zeke.follow(P, 1.5, 7.2); let t0 = G.t, revealed = false, tiredSaid = false;
-      pep.go([[100, 140], [99, 170], [101, 200], [100, 214]], 6);
-      mtick(() => { const d = Math.hypot(P.p.x - pep.p.x, P.p.z - pep.p.z); pep.speed = d > 22 ? 3 : d < 9 ? 7.4 : 6;
-        if(G.t - t0 > 90 && !tiredSaid){ tiredSaid = true; zeke.speed = 2.2; E.toast('Zeke ran out of energy within the first minute and a half.', 3500); }
+      E.obj('FOLLOW PEPPER.'); clock(day1, '3:20 PM'); zeke.follow(P, 1.5, 10.5); let t0 = G.t, revealed = false, tiredSaid = false;
+      pep.go([[100, 140], [99, 170], [101, 200], [100, 214]], 9.5);
+      mtick(() => { const d = Math.hypot(P.p.x - pep.p.x, P.p.z - pep.p.z); pep.speed = d > 22 ? 4.5 : d < 9 ? 10.8 : 9.5;
+        if(G.t - t0 > 90 && !tiredSaid){ tiredSaid = true; zeke.speed = 3; E.toast('Zeke ran out of energy within the first minute and a half.', 3500); }
         if(d > 60) fail('Pepper got away.'); });
       await H.until(() => P.p.z > 150);
-      if(!tiredSaid){ tiredSaid = true; zeke.speed = 2.2; }
+      if(!tiredSaid){ tiredSaid = true; zeke.speed = 3; }
       await H.say([['', 'Man is that guy a fat ass. Dude ran as fast as he could but ran out of energy within the first minute and a half. I kept running though because I needed that damn dog.'],
         ['', 'Remy and Levi are at home by themselves and I left them outside. Luckily the fence gate is closed.. wait a fucking second.'],
-        [C, 'ZEKE DID YOU LEAVE THE GATE OPEN AT MY HOUSE'], ['Zeke', 'UH I MIGHT OF'], [C, 'HOLY SHIT I MIGHT GO INSANE']]);
+        [C, 'ZEKE DID YOU LEAVE THE GATE OPEN AT MY HOUSE'], ['Zeke', 'UH I MIGHT OF'], [C, 'HOLY SHIT I MIGHT GO INSANE']], { auto:true });
       E.toast('3 DOGS LOOSE · Parents home in about 2½ hours', 4500); G.flags.three_dogs_loose = true;
-      await H.say([['', 'i now have 3 dogs on the loose and two parents who are gonna be pissed in 2 ½ hours when they get home. So i think i have to devise a plan, my teacher taught me that word in class. I still don’t know what it means.']]);
+      await H.say([['', 'i now have 3 dogs on the loose and two parents who are gonna be pissed in 2 ½ hours when they get home. So i think i have to devise a plan, my teacher taught me that word in class. I still don’t know what it means.']], { auto:true });
       await H.reach(100, 200, 4); pep.go([[100, 251], [140, 256]], 8); },
     async () => { E.place(100, 200, 0); const zeke = mnpc('Zeke', LOOK.zeke, 101.5, 198, { face:0 }); zeke.blip = '#ff4f4f'; clock(day1, '3:35 PM');
       E.cut(true); await two(P.p, zeke);
@@ -166,7 +167,7 @@ const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the
         ['', 'However, that damn phone interrupts my episode.']]);
       const ring = setInterval(() => E.sfx('ring'), 1400); E.cut(false); E.obj('ANSWER THE PHONE.');
       await H.interact(G.phone.x, G.phone.z, 'ANSWER THE PHONE', 2); clearInterval(ring); clock(day1, '6:00 PM');
-      E.cut(true); faceP({ x:1.5, z:-.2 }); await H.shot([-1.5, 2.2, -3.5], [1.5, 1.5, -.5], 500);
+      E.cut(true); faceP(G.phoneLook); await H.shot([4.2, 2.2, -3.2], [7.8, 1.4, -1], 500);
       await H.say([[C, 'Hello?'], ['Eric (phone)', 'Is this Chris?'], [C, 'Yeah? Who is this now? Are you one of those dumbass telemarketers?'], ['Eric (phone)', 'No, I am your boss, where the hell are you Chris?'],
         [C, 'Eric? That\'s you? Your voice sounds funnier over the phone'], ['Eric (phone)', 'CHRIS, ITS 6 PM AND YOU WERE SUPPOSED TO BE AT WORK 3 HOURS AGO TO CLOSE. GET YOUR ASS HERE NOW'],
         [C, 'What if…. I take the day off'], ['Eric (phone)', 'Get to work… NOW.'], [C, 'I’m good on this one dude, i’ll take the sick day']]);
@@ -207,28 +208,29 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
         ['Zeke', 'It’s closed on Sundays, it’s like Chick-fil-a'], ['', 'pretty smart call by zeke, no wonder why i never work sundays, or never show up that is.'], ['Milo', 'It\'s not clos…. Nevermind,']]);
       G.flags.plan_enter_from_back = true; await H.fade(true, 500); },
     async () => { E.place(0, 7, 0); const L = LOOK, g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(L[k]), -1.5 + i, 5));
-      g.forEach((n, i) => { n.follow(P, 2 + i * 1.3, 4.3); n.blip = '#4fc3ff'; }); g[1].speed = 3.6;
+      const FORM = [[-1.6, 1.6], [1.6, 1.8], [-1.4, 3.4], [1.4, 3.6]]; g.forEach((n, i) => { n.follow(P, 2, 6.8, FORM[i]); n.blip = '#4fc3ff'; }); g[1].speed = 5.8;
       E.obj('GO TO SCHNUCKS SWANSEA.'); E.setWay(105, 268); E.toast('Everyone is wearing all black. Very subtle.', 3500);
-      await H.say([['', 'So after whatever that was, we started walking to my work, Schnucks Swansea. It\'s only 1 ½ miles away so it should be good.']]);
+      await H.say([['', 'So after whatever that was, we started walking to my work, Schnucks Swansea. It\'s only 1 ½ miles away so it should be good.']], { auto:true });
       await H.until(() => P.p.z > 140);
-      await H.say([['Zeke', 'It’s so hard to walk…. I’m soooo tired'], ['Milo', 'Maybe thats cause you a dumb fatass'], [C, 'Woah cool it off you two dudes, we\'re almost to the plaza']]);
+      await H.say([['Zeke', 'It’s so hard to walk…. I’m soooo tired'], ['Milo', 'Maybe thats cause you a dumb fatass'], [C, 'Woah cool it off you two dudes, we\'re almost to the plaza']], { auto:true });
       await H.reach(105, 268, 7);
       await H.say([['', 'We then made it to the Schnucks plaza.'], [C, 'Alright let’s go around the back of the place'], ['Zeke', 'Alright']]); },
-    async () => { E.place(105, 266, 0); const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 103 + i, 263)); g.forEach((n, i) => n.follow(P, 2 + i * 1.3, 4.6));
-      E.obj('FOLLOW THE GROUP TO THE REAR LOADING DOCK.'); G.storeOpen = true; await H.reach(173, 410, 4);
-      await H.reach(156, 409, 3); g.forEach(n => n.stop());
-      E.cut(true); G.rearDoor.position.x = 155.5; G.rearDoor.userData.col.off = true; E.sfx('door');
-      const eli = mnpc('Eli', { shirt:'#3a5a3a', pants:'#2a2a2a', hair:'#6a4a2a', vest:'#c8102e' }, 152, 400.5); face(eli, P.p); faceP(eli); await two(P.p, eli, 1, 4.2);
+    async () => { E.place(105, 266, 0); const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 103 + i, 263)); const FORM = [[-1.6, 1.6], [1.6, 1.8], [-1.4, 3.4], [1.4, 3.6]]; g.forEach((n, i) => n.follow(P, 2, 7, FORM[i]));
+      E.obj('LEAD THE GROUP AROUND BACK TO THE LOADING DOCK.'); G.storeOpen = true; await H.reach(176, 380, 5); await H.reach(G.hide.x + 2.6, G.hide.z - .5, 2.6); g.forEach(n => n.stop());
+      g.forEach((n, i) => { n.at(G.hide.x - 1.2 + (i % 2) * .9, G.hide.z + .4 + (i > 1 ? .9 : 0), Math.PI); n.o.scale.y = .72; });
+      E.place(G.hide.x + 2.6, G.hide.z - 1, Math.PI);
+      E.cut(true); await H.shot([164.5, 2.6, 422.5], [152, 1.3, 403], 600); G.rearDoor.position.x = 155.5; G.rearDoor.userData.col.off = true; E.sfx('door');
+      const eli = mnpc('Eli', { shirt:'#3a5a3a', pants:'#2a2a2a', hair:'#6a4a2a', vest:'#c8102e' }, 152, 401); await H.go(eli, [[152, 404]], 1.6); face(eli, P.p); faceP(eli);
       await H.say([['', 'The back loading docks, but then we heard the back door open.'], [C, 'DUCK'], ['', 'I said quickly except for some reason I wasn\'t ducking.'],
         ['Eli', 'Hey buddyyyy'], ['', 'said Eli, that lame porter that always pissed everyone off and thinks he\'s friends with them.'], [C, 'Hi Eli, pleasure to see you'],
         ['', 'i said, hating every fucking second of this conversation, and it just started.'], ['Eli', 'Wanna hang out some timeeeeee'], [C, 'I’ll pass thanks.'],
         ['Eli', 'Alright buddyyyyy, ill see you aroundddd'], [C, 'Thats fine but can you leave the door open'], ['Eli', 'Alright buddyyy'], [C, 'STOP'],
         ['', 'I said as he kept continuing that exaggeration every single time.']]);
-      await H.go(eli, [[176, 404], [190, 404]], 2.5).catch(() => {}); eli.remove();
+      await H.go(eli, [[176, 404], [190, 404]], 2.5).catch(() => {}); eli.remove(); g.forEach(n => n.o.scale.y = 1);
       await H.say([[C, 'Alright the coast is clear'], ['Matt', 'Wow thats gay'], ['Zeke', 'You should hang out with him,'], ['', 'Zeke said, clearly joking but I didn\'t want to hear it.']]);
       E.cut(false); E.obj('ENTER THROUGH THE BACK.'); await H.interact(152, 403.5, 'SNEAK INSIDE', 2.4); },
     async () => { E.place(152, 399, Math.PI); G.rearDoor.position.x = 155.5; G.rearDoor.userData.col.off = true; G.storeOpen = true;
-      const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 151 + i * .7, 400.5)); g.forEach((n, i) => n.follow(P, 1.8 + i * 1.1, 4.6));
+      const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 151 + i * .7, 400.5)); const FORM = [[-1.2, 1.4], [1.2, 1.5], [-1, 2.8], [1, 2.9]]; g.forEach((n, i) => n.follow(P, 1.8, 7, FORM[i]));
       E.cut(true); await H.shot([146, 5.5, 394], [100, 6.6, 390], 600);
       await H.say([['', 'We walk inside the backroom when I realize there are cameras in every square damn inch of the back. We are also wearing all black clothing, maybe this is a bad idea, but I also need that homework.'],
         ['', 'So we sneak inside and straight onto the shopping area.'], [C, 'Alright, the lockers are upstairs above the pharmacy']]); E.cut(false);
@@ -243,7 +245,9 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
     async () => { E.place(57, 384, Math.PI / 2, 3.6); G.rearDoor.position.x = 152; G.rearDoor.userData.col.off = false;
       const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 60 + i, 383, { y:3.6 })); g.forEach((n, i) => n.follow(P, 1.8 + i * 1.1, 5));
       E.sfx('pa'); await H.say([['PA SYSTEM', 'Security scan all aisles, Security scan all aisles'], [C, 'FUCK. We have to dash guys']]);
-      E.obj('GET BACK TO THE REAR DOOR.'); await H.reach(152, 398, 3);
+      E.obj('GET BACK TO THE REAR DOOR BEFORE SECURITY FINDS YOU!'); let left = 70; const tEl = document.getElementById('timer'); tEl.style.display = 'block';
+      mtick(dt => { if(!G.dialogOn) left -= dt; tEl.textContent = '0:' + String(Math.max(0, Math.ceil(left))).padStart(2, '0'); tEl.style.color = left < 15 ? '#ff5252' : '#fff'; if(left <= 0) fail('Security caught you. Back to the last checkpoint.'); });
+      await H.reach(152, 398, 3); tEl.style.display = 'none';
       E.cut(true); await H.shot([146, 2.4, 394], [152, 1.6, 401], 400);
       await H.say([['', 'we all started running back the way we came but the door was closed.'], [C, 'FUCK!!'], ['', 'i said, knowing this was a sitation that was utterly fucked.'],
         ['Zeke', 'JUST OPEN THE DOOR, IT MAY CAUSE AN ALARM BUT WE CAN GET OUT OF HERE'], [C, 'NO DUMBASS, WE CAN’T DO THAT THE FIRE DEPARTMENT WILL COME AND THEY WILL CHECK THE CAMERAS'],
@@ -252,9 +256,9 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
       G.exitDoor.position.x = 48.5; G.exitDoor.userData.col.off = true; alarmFx(true);
       await H.say([['', 'zeke says as he opens the fucking emergency exit after it was re-armed. Jesus fucking christ this is terrible.']]); E.cut(false); },
     async () => { G.exitDoor.position.x = 48.5; G.exitDoor.userData.col.off = true; alarmFx(true); E.place(60, 393, -Math.PI / 2);
-      const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 62 + i, 394)); g.forEach((n, i) => n.follow(P, 1.8 + i * 1.1, 7)); g[1].speed = 3.6; g[1].follow(P, 2, 3.6);
+      const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 62 + i, 394)); const FORM = [[-1.4, 1.6], [0, 0], [1.4, 1.7], [0, 3]]; g.forEach((n, i) => n.follow(P, 2, 11, FORM[i])); g[1].slow = true; g[1].follow(P, 3, 4.4);
       E.obj('ESCAPE SCHNUCKS WITH THE GROUP.'); E.setWay(44, 393); await H.until(() => P.p.x < 48); alarmFx(false); E.toast('The alarm fades behind you. RUN.', 2500);
-      E.obj('RUN HOME.'); await H.say([['', 'So we ran, although Zeke fell behind quickly. We then finally made it home.']]); await H.reach(0, 7, 2.6); await H.fade(true, 500); },
+      E.obj('RUN HOME.'); g[1].blip = '#ffa040'; await H.say([['', 'So we ran, although Zeke fell behind quickly.']], { auto:true }); await H.reach(0, 7, 2.6); await H.say([['', 'We then finally made it home.']]); await H.fade(true, 500); },
     async () => { E.place(-4.5, -9.4, 0); const g = { milo:mnpc('Milo', LOOK.milo, -6.5, -6), zeke:mnpc('Zeke', LOOK.zeke, -2.3, -6.6), jax:mnpc('Jax', LOOK.jax, -6.8, -8.2), matt:mnpc('Matt', LOOK.matt, -2, -8.4) };
       Object.values(g).forEach(n => face(n, P.p)); E.cut(true); await H.shot([-6.5, 2.4, -4], [-4.5, 1.3, -8.6], 0); G.exitDoor.position.x = 50; G.exitDoor.userData.col.off = false;
       await H.say([[C, 'Alright, Milo, you can finally help me with tomorrows homework'], ['Milo', 'Does that mean give you the answers'], [C, 'Yes'], ['Zeke', 'Can i get those aswell'],

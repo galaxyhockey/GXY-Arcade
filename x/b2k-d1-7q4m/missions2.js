@@ -1,6 +1,6 @@
 // Back in the 2000s: The Game — Draft #1 missions M04 (book) and S01 (game original)
 import * as E from './engine.js';
-import { H, mnpc, mtick, minter, fail, clock, setMissions, SV, save, fillCorral, emptyCorrals, startPushing, grabFrom, deliver, train, clearTrain } from './game.js';
+import { H, mnpc, mtick, minter, fail, clock, setMissions, SV, save, fillCorral, emptyCorrals, startPushing, grabFrom, deliver, train, clearTrain, park } from './game.js';
 import { LOOK, two, face, faceP, pos } from './missions.js';
 const { G, P } = E; const $ = id => document.getElementById(id);
 const C = 'Chris', day4 = 'SEPTEMBER 26TH 2003';
@@ -17,23 +17,41 @@ const work = { vest };
 
 // ---- mini-games ----
 function towelGame(){ return new Promise(done => { const c = $('mg'), g = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight; c.style.display = 'block'; G.ctl = false; E.unlock();
-  let made = 0, tries = 0, t = 0, fly = null; G.mgSkip = () => { made = 10; }; let msg = 'SPACE / CLICK — THROW (time the meter!)', mt = 0; const w = c.width, h = c.height;
-  const throwIt = () => { if(fly) return; const pw = (Math.sin(t * 3.1) + 1) / 2, aim = Math.sin(t * 1.7) * .5; tries++; fly = { t:0, pw, aim, hit:Math.abs(pw - .72) < .11 && Math.abs(aim) < .36 }; };
-  const key = e => { if(['Space', 'KeyE', 'Enter'].includes(e.code)){ e.preventDefault(); throwIt(); } }; addEventListener('keydown', key); c.onclick = throwIt;
-  const loop = () => { t += 1 / 60; g.fillStyle = '#cfd8dc'; g.fillRect(0, 0, w, h); g.fillStyle = '#b0bec5'; for(let y = 0; y < h; y += 40) g.fillRect(0, y, w, 2);
-    g.fillStyle = '#90a4ae'; g.fillRect(0, h * .72, w, h * .28);
-    const cx = w / 2, cy = h * .62; g.fillStyle = '#546e7a'; g.beginPath(); g.moveTo(cx - 60, cy - 70); g.lineTo(cx + 60, cy - 70); g.lineTo(cx + 48, cy + 60); g.lineTo(cx - 48, cy + 60); g.fill(); g.fillStyle = '#263238'; g.fillRect(cx - 62, cy - 76, 124, 10);
-    const pw = (Math.sin(t * 3.1) + 1) / 2, aim = Math.sin(t * 1.7) * .5;
-    g.fillStyle = '#222'; g.fillRect(40, h * .2, 34, h * .5); g.fillStyle = '#4caf50'; g.fillRect(40, h * .2 + h * .5 * (1 - .82), 34, h * .5 * .2);
-    g.fillStyle = '#ffd23f'; g.fillRect(36, h * .2 + h * .5 * (1 - pw) - 4, 42, 8);
-    g.strokeStyle = '#fff'; g.lineWidth = 4; g.beginPath(); g.moveTo(cx, h - 30); g.lineTo(cx + aim * 300, h - 220); g.stroke();
-    if(fly){ fly.t += 1 / 50; const u = Math.min(1, fly.t), tx = cx + fly.aim * 600 * u, ty = h - 40 - Math.sin(u * Math.PI) * h * .45 * (fly.pw + .3) - (cy - 50 - (h - 40)) * u * (fly.pw / .72);
-      g.fillStyle = '#fafafa'; g.beginPath(); g.ellipse(tx, ty, 18 * (1 - u * .4), 12 * (1 - u * .4), u * 6, 0, 7); g.fill();
-      if(u >= 1){ if(fly.hit){ made++; E.sfx('ok'); msg = made >= 10 ? 'TEN! FINALLY.' : 'SWISH.'; } else { E.sfx('miss'); msg = ['Nope.', 'My aim sucks like balls.', 'Wet towel on the floor. Classic.'][tries % 3]; } fly = null; mt = 90; } }
-    g.fillStyle = '#111'; g.font = 'bold 26px "Press Start 2P", monospace'; g.textAlign = 'center'; g.fillText(`WET TOWEL THROWS: ${made} / 10`, w / 2, 70);
-    g.font = '14px "Press Start 2P", monospace'; g.fillText(mt-- > 0 ? msg : 'SPACE / CLICK — THROW · stop the meter in the green, aim straight', w / 2, 110); g.fillText(`Tries: ${tries}`, w / 2, 140);
-    if(made >= 10 && !fly){ removeEventListener('keydown', key); setTimeout(() => { c.style.display = 'none'; G.ctl = true; done(tries); }, 900); return; }
-    requestAnimationFrame(loop); }; loop(); }); }
+  const w = c.width, h = c.height, can = { x:w / 2, y:h * .5, r:62 };
+  let made = 0, tries = 0, aim = 0, power = 0, charging = false, fly = null, msg = 'Aim with the mouse (or A / D). HOLD click or SPACE to charge, RELEASE to throw.', mt = 0, dir = 1, last = performance.now();
+  G.mgSkip = () => { made = 10; };
+  const start = () => { if(!fly){ charging = true; power = 0; dir = 1; } };
+  const release = () => { if(!charging || fly) return; charging = false; tries++;
+    const ok = power > .62 && power < .84 && Math.abs(aim) < .17; fly = { t:0, p:power, a:aim, ok }; };
+  const kd = e => { if(['Space', 'KeyE', 'Enter'].includes(e.code)){ e.preventDefault(); if(!e.repeat) start(); } if(e.code === 'KeyA') aim = Math.max(-1, aim - .06); if(e.code === 'KeyD') aim = Math.min(1, aim + .06); };
+  const ku = e => { if(['Space', 'KeyE', 'Enter'].includes(e.code)) release(); };
+  const mm = e => { aim = Math.max(-1, Math.min(1, (e.clientX - w / 2) / (w * .35))); };
+  addEventListener('keydown', kd); addEventListener('keyup', ku); c.addEventListener('mousemove', mm); c.onmousedown = start; c.onmouseup = release;
+  const loop = now => { const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if(charging){ power += dir * dt * .9; if(power >= 1){ power = 1; dir = -1; } if(power <= 0){ power = 0; dir = 1; } }
+    // bathroom
+    g.fillStyle = '#dfe7ea'; g.fillRect(0, 0, w, h); g.fillStyle = '#c9d4d8'; for(let x = 0; x < w; x += 48) for(let y = 0; y < h * .62; y += 48) g.strokeRect(x, y, 48, 48);
+    g.fillStyle = '#9fb0b6'; g.fillRect(0, h * .62, w, h * .38); g.fillStyle = '#b9c6ca'; for(let x = 0; x < w; x += 80) g.fillRect(x, h * .62, 2, h * .38);
+    g.fillStyle = '#e8eef0'; g.fillRect(w * .08, h * .2, 140, 190); g.fillStyle = '#cfd8dc'; g.fillRect(w * .08 + 20, h * .2 + 120, 100, 40); // paper towel dispenser
+    // can
+    g.fillStyle = '#4a5a64'; g.beginPath(); g.moveTo(can.x - 70, can.y - 60); g.lineTo(can.x + 70, can.y - 60); g.lineTo(can.x + 54, can.y + 80); g.lineTo(can.x - 54, can.y + 80); g.fill();
+    g.fillStyle = '#26323a'; g.beginPath(); g.ellipse(can.x, can.y - 60, 72, 16, 0, 0, 7); g.fill(); g.fillStyle = '#11181d'; g.beginPath(); g.ellipse(can.x, can.y - 60, 60, 11, 0, 0, 7); g.fill();
+    // aim line from the hand
+    const hx = w / 2, hy = h - 40, tx = can.x + aim * w * .35; g.setLineDash([10, 10]); g.strokeStyle = Math.abs(aim) < .17 ? '#2e7d32' : '#555'; g.lineWidth = 4; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, can.y - 40); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#f2c9a0'; g.beginPath(); g.ellipse(hx, hy + 10, 46, 30, 0, 0, 7); g.fill();
+    // power meter
+    const mx = w - 90, my = h * .2, mh = h * .5; g.fillStyle = '#222'; g.fillRect(mx, my, 34, mh); g.fillStyle = '#4caf50'; g.fillRect(mx, my + mh * (1 - .84), 34, mh * .22);
+    g.fillStyle = charging ? '#ffd23f' : '#888'; g.fillRect(mx + 4, my + mh * (1 - power), 26, mh * power); g.strokeStyle = '#fff'; g.strokeRect(mx, my, 34, mh);
+    // towel flight
+    if(fly){ fly.t += dt * 1.3; const u = Math.min(1, fly.t), ex = can.x + fly.a * w * .35, ey = can.y - 50 + (fly.p - .73) * -500;
+      const x = hx + (ex - hx) * u, y = hy + (ey - hy) * u - Math.sin(u * Math.PI) * h * .3; g.fillStyle = '#fafafa'; g.strokeStyle = '#bbb';
+      g.beginPath(); g.ellipse(x, y, 18 * (1 - u * .35), 12 * (1 - u * .35), u * 7, 0, 7); g.fill(); g.stroke();
+      if(u >= 1){ if(fly.ok){ made++; E.sfx('ok'); msg = made >= 10 ? 'TEN! FINALLY.' : ['SWISH.', 'Nothing but trash can.', 'Counts.'][made % 3]; }
+        else { E.sfx('miss'); msg = fly.p >= .84 ? 'Way too hard. Off the wall.' : fly.p <= .62 ? 'Too soft. Wet towel on the floor.' : 'Nope. Aim straight.'; } fly = null; mt = 1.4; } }
+    g.fillStyle = '#111'; g.textAlign = 'center'; g.font = 'bold 24px "Press Start 2P", monospace'; g.fillText(`WET TOWEL THROWS: ${made} / 10`, w / 2, 64);
+    g.font = '12px "Press Start 2P", monospace'; g.fillText(mt > 0 ? msg : 'Aim: mouse or A/D · HOLD click / SPACE to charge · RELEASE in the green', w / 2, 100); mt -= dt; g.fillText(`Tries: ${tries}`, w / 2, 126);
+    if(made >= 10 && !fly){ removeEventListener('keydown', kd); removeEventListener('keyup', ku); setTimeout(() => { c.style.display = 'none'; G.ctl = true; done(tries); }, 900); return; }
+    requestAnimationFrame(loop); }; requestAnimationFrame(loop); }); }
 function footballMontage(){ return new Promise(async done => { const tv = $('tv'); tv.style.display = 'flex';
   tv.innerHTML = `<div style="width:min(860px,94vw);aspect-ratio:4/3;background:linear-gradient(#2e7d32,#1b5e20);border:16px solid #222;border-radius:30px;position:relative;overflow:hidden;font-family:'Press Start 2P'">
     <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 9%,#ffffff55 9% 9.4%)"></div>
@@ -56,7 +74,7 @@ async function cartRun(corralIdx, need, prompt = 'GRAB CARTS'){
 
 // =================== M04 — OLD DUDE (BOOK: September 26, 2003) ===================
 export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Belleville High School', needs:'M03', start:{ x:-118, z:129 },
-  setup(i){ E.setTime(i >= 9 ? 'night' : 'day'); E.setOutfit(i >= 2 && i < 9 ? work : {}); clock(day4, ''); G.noTraffic = false; G.storeOpen = true; },
+  setup(i){ E.setTime(i >= 6 ? 'night' : i >= 4 ? 'dusk' : 'day'); E.setOutfit(i >= 2 && i < 9 ? work : {}); clock(day4, ''); G.noTraffic = false; G.storeOpen = true; },
   stages:[
     async () => { const cl = G.classroom; E.place(cl.chris.x, cl.chris.z, Math.PI); clock(day4, '2:45 PM');
       const sp = mnpc('Mrs. Sparks', W.sparks, cl.sparks.x, cl.sparks.z, { face:0 }); const jax = mnpc('Jax', LOOK.jax, cl.jax.x, cl.jax.z, { face:Math.PI });
@@ -71,14 +89,11 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Bellevi
         ['Jax', 'Shouldn’t you do your job? Wouldn\'t that make you a good worker and you can get promoted'], [C, 'Why would i want to get promoted, that place sucks ass'], ['Jax', 'Fair point i guess']]);
       E.sfx('bell'); await H.card('SCHOOL BELL RINGS', '', 1400); await H.say([[C, 'Finally']]); E.cut(false);
       E.obj('LEAVE CLASS WHEN THE BELL RINGS.'); await H.reach(G.classroom.door.x, G.classroom.door.z, 2.6); },
-    async () => { E.cut(true); P.model.visible = false; const car = E.makeCar('#2a5a9a'); G.scene.add(car); const route = [[-108, 135], [-108, 254], [60, 256], [100, 256], [108, 268], [168, 322], [176, 352]];
-      let seg = 0; const sp = new E.THREE.Vector3(-108, 0, 135);
-      E.camTrack(dt => { const t = route[Math.min(seg, route.length - 1)], dx = t[0] - sp.x, dz = t[1] - sp.z, d = Math.hypot(dx, dz);
-        if(d < 1 && seg < route.length - 1) seg++; else if(d > .01){ sp.x += dx / d * Math.min(d, 26 * dt); sp.z += dz / d * Math.min(d, 26 * dt); car.rotation.y = Math.atan2(dx, dz); }
-        car.position.copy(sp); return [[sp.x - Math.sin(car.rotation.y) * 8 + 2, 3.6, sp.z - Math.cos(car.rotation.y) * 8], [sp.x, 1, sp.z]]; });
-      await H.say([['', 'i ran out of that building like it was on FIRE. I drove to work and changed into my shirt while I was in my car.']]);
-      await H.until(() => seg >= route.length - 1); G.scene.remove(car); clock(day4, '3:58 PM');
-      E.place(176, 354, -Math.PI / 2); P.model.visible = true; E.cut(false);
+    async () => { park(-116, 186, Math.PI); E.place(-118.5, 183, Math.PI); E.cut(false); G.blips.push({ x:-116, z:186, c:'#4fc3ff' });
+      E.say([['', 'i ran out of that building like it was on FIRE.']], { auto:true });
+      E.obj('GET IN YOUR CAR. (E)'); await H.until(() => G.driving); G.noExit = true; E.obj('DRIVE TO WORK — SCHNUCKS SWANSEA. Park by the staff entrance.'); G.blips = [];
+      await H.reach(180, 352, 5, { color:0x4fc3ff }); E.toast('Stop the car to park (S / SPACE)', 2500); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar(); clock(day4, '3:58 PM');
+      await H.say([['', 'I drove to work and changed into my shirt while I was in my car.']]);
       await H.say([['', 'I then walked inside, not ready for a lame ass day of work. 7 whole hours of torture.']]);
       E.obj('CLOCK IN AND PICK UP YOUR VEST.'); await H.reach(171, 357.5, 2.2);
       const andrew = mnpc('Andrew', W.andrew, 164, 358.6); face(andrew, { x:158, z:358 });
@@ -135,7 +150,8 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Bellevi
       await H.wait(1200); E.cut(true); face(doris, P.p); faceP(doris); await two(P.p, doris, 1, 4.4);
       await H.say([['Doris', 'Jackass'], ['', 'from the old lady, that kinda pissed me off'], [C, 'You’re a loser you old hag'], ['', 'i said just loud enough for her to hear but not loud enough for my bosses to hear'],
         ['Doris', 'THATS IT'], ['Doris', 'I wanna talk to your manager']]);
-      const eric = mnpc('Eric', W.eric, 118, 322); await H.go(eric, [[G.parkDoris.x - 3.5, G.parkDoris.z - 3.2]], 5); face(eric, doris); await two(doris, eric, 1, 4.4);
+      E.sfx('ring'); await H.say([['Walkie (GAME ORIGINAL)', '*kssht* ...need a manager out in the lot, please. *kssht*']]);
+      const eric = mnpc('Eric', W.eric, 105, 333); await H.shot([G.parkDoris.x - 8, 2.4, G.parkDoris.z - 8], [105, 1.4, 326], 600); await H.go(eric, [[105, 326], [G.parkDoris.x - 3.5, G.parkDoris.z - 3.2]], 5.5); face(eric, doris); await two(doris, eric, 1, 4.4);
       await H.say([['', 'As she said that Eric looks my way, absolutely pissed and comes over to where we are at.'], ['Eric', 'I am so sorry ma’am, we will have a talk with him'],
         ['Eric', 'Chris, push a row of carts then go to my office.'], [C, 'Damn it'], ['', 'I muttered under my breath.']]); G.flags.doris_complaint = true;
       eric.go([[105, 326], [150, 362]], 4); E.cut(false); },
@@ -190,17 +206,19 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Bellevi
         [C, 'I learned that drinking is only cool if it isn’t a Coors Banquet'], ['Eric', 'Get out of my office and back to work.'], ['', 'man these people suck.']]);
       G.flags.heard_1989 = true; E.cut(false); },
     async () => { E.setOutfit(work); clock(day4, '8:40 PM'); E.place(160, 362, Math.PI); E.obj('RETURN TO THE SALES FLOOR.');
-      const mia = mnpc('Mia', W.mia, 112, 349); const cust = mnpc('Customer', W.cust, 62, 351); const jack = mnpc('Jack', W.jack, 145, 336.6, { face:0 });
+      const mia = mnpc('Mia', W.mia, 112, 349); const cust = mnpc('Customer', W.cust, 62, 351); const jack = mnpc('Jack', W.jack, G.custService.x, G.custService.z - 4.6, { face:0 });
       await H.reach(118, 351, 4); E.cut(true); face(mia, P.p); faceP(mia); await two(P.p, mia);
       await H.say([['', 'I went back to work and continued to get carts. Until Mia continues to get on me for some reason.'], ['Mia', 'CHRIS!'], [C, 'Yo.'], ['Mia', 'Why have you not been bagging, isn’t that your job'],
         [C, 'I don’t know, carts have been like biting me'], ['Mia', 'That makes no sense, start bagging'], [C, 'No i am good'], ['Mia', 'Your doing such a great job chris keep it up'],
         [C, 'Yes i am'], ['', 'i said walking away, Mia gave nice compliments. I continue to do my job lame as hell. Communicating with the customers very well.']]); E.cut(false);
       E.obj('HELP CUSTOMERS ON THE FLOOR.'); cust.blip = '#4fc3ff'; await H.interact(() => cust.p.x, () => cust.p.z, 'HELP THE CUSTOMER', 2.6);
       E.cut(true); face(cust, P.p); faceP(cust); await two(P.p, cust);
-      await H.say([['', 'A customer came up to me at the same time asking where the apples are at'], [C, 'THISSSS ISSSSS AN APPPPLEEEE, CAN YOU SAY APPPPPPLEEEEEEE'], ['Customer', 'Do you think i am retarded'],
+      const apple = new E.THREE.Mesh(new E.THREE.SphereGeometry(.09, 10, 8), E.mat('#c8202a')); apple.position.set(0, -.86, .12); P.model.userData.aR.add(apple); P.model.userData.aR.rotation.x = -1.4;
+      await H.say([['', 'A customer came up to me at the same time asking where the apples are at']]); await H.shot([P.p.x + Math.sin(P.yaw) * 1.6, 1.9, P.p.z + Math.cos(P.yaw) * 1.6], [P.p.x, 1.55, P.p.z], 400);
+      await H.say([[C, 'THISSSS ISSSSS AN APPPPLEEEE, CAN YOU SAY APPPPPPLEEEEEEE'], ['Customer', 'Do you think i am retarded'],
         [C, 'Well you sure didn’t know where the apples are, even i know they are in produce'], ['Customer', 'Your job is to help me buddy, calm down'], [C, 'Whatever i got like work stuff to handle'],
-        ['', 'i said walking away, customer interactions suck. Jack called me over to customer service']]); E.cut(false);
-      E.obj('GO TO CUSTOMER SERVICE.'); jack.blip = '#4fc3ff'; await H.interact(() => jack.p.x, () => jack.p.z + 1.6, 'TALK TO JACK', 2.6);
+        ['', 'i said walking away, customer interactions suck. Jack called me over to customer service']]); P.model.userData.aR.remove(apple); P.model.userData.aR.rotation.x = 0; E.cut(false);
+      E.obj('GO TO CUSTOMER SERVICE.'); jack.blip = '#4fc3ff'; await H.interact(G.custService.x, G.custService.z, 'TALK TO JACK', 2.6);
       await H.say([[C, 'Yeah Jack'], ['Jack', 'Time for your break'], [C, 'Thank god']]); },
     async () => { E.setOutfit(work); clock(day4, '9:05 PM'); E.place(145, 342, Math.PI); E.obj('TAKE YOUR BREAK. (Grab snacks from the vending machine, then head to the break room)');
       minter({ x:G.vending.x, z:G.vending.z, y:G.vending.y, r:2, prompt:'BUY DORITOS 3D + A REESE\'S CUP', use:() => { G.flags.snacks = true; E.sfx('ok'); E.toast('Doritos 3D — they looked cool<br>+ a Reese\'s peanut butter cup', 3000); } });
@@ -212,20 +230,15 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Bellevi
       await H.say([['', 'Now that I am back from break I let Jack know I was going to the bathroom. I walked to the bathroom and had one goal, i am not leaving until i make 10 wet towel throws into the trash can.']]);
       const tries = await live2(towelGame()); E.toast(`10 throws made · ${tries} tries`, 3000);
       await H.say([['', 'It took awhile but my aim sucks like balls. Luckily it was time to go home by then and all the bosses went there like cocoons or whatever they are called.']]); clock(day4, '11:00 PM'); },
-    async () => { E.setTime('night'); E.setOutfit({}); clock(day4, '11:05 PM'); E.cut(true); P.model.visible = false;
-      const car = E.makeCar('#2a5a9a'); G.scene.add(car); const route = [[176, 352], [168, 322], [108, 268], [100, 256], [100, 30], [40, 26], [12, 26], [10.5, 12]]; let seg = 0; const sp = new E.THREE.Vector3(176, 0, 352);
-      G.chrisCar.visible = false;
-      E.camTrack(dt => { const t = route[Math.min(seg, route.length - 1)], dx = t[0] - sp.x, dz = t[1] - sp.z, d = Math.hypot(dx, dz);
-        if(d < 1 && seg < route.length - 1) seg++; else if(d > .01){ sp.x += dx / d * Math.min(d, 24 * dt); sp.z += dz / d * Math.min(d, 24 * dt); car.rotation.y = Math.atan2(dx, dz); }
-        car.position.copy(sp); return [[sp.x + 5, 3, sp.z + 6], [sp.x, 1, sp.z]]; });
-      await H.say([['', 'I drove home, that was the best part of the night. The air was like cold but it was nice and warm and the music I was listening to was awesome. (music placeholder)']]);
-      await H.until(() => seg >= route.length - 1); G.scene.remove(car); G.chrisCar.visible = true;
-      E.place(-4.5, -6, Math.PI); P.model.visible = true;
-      const dad = mnpc('Dad', LOOK.dad, -5.3, -10.2, { face:Math.PI }); const mom = mnpc('Mom', LOOK.mom, -3.7, -10.2, { face:Math.PI }); [dad, mom].forEach(n => n.p.y = .25);
+    async () => { E.setTime('night'); E.setOutfit({}); clock(day4, '11:05 PM'); park(180, 352, Math.PI); E.place(177.5, 349, Math.PI); E.cut(false);
+      E.obj('DRIVE HOME. (E to get in)'); await H.until(() => G.driving); G.noExit = true; E.say([['', 'I drove home, that was the best part of the night. The air was like cold but it was nice and warm and the music I was listening to was awesome. (music placeholder)']], { auto:true });
+      E.obj('DRIVE HOME — park in your driveway.'); await H.reach(10.5, 10, 4, { color:0x4fc3ff }); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar();
+      await H.fade(true, 400); E.place(-4.5, -6, Math.PI); E.cut(true); await H.fade(false, 400);
+      const dad = mnpc('Dad', LOOK.dad, -5.3, -10.3, { face:0 }); const mom = mnpc('Mom', LOOK.mom, -3.7, -10.3, { face:0 }); [dad, mom].forEach(n => n.p.y = .25);
       await H.shot([-1.5, 2.4, -5], [-4.5, 1.2, -10], 0); mtick(() => G.tvScreen.material.color.setHSL((G.t * .2) % 1, .4, .45));
       await H.say([['', 'I got home and mom and dad were like on the couch watching a gay movie'], ['Dad', 'Welcome home chris'], ['Mom', 'Welcome home chrissy'],
         [C, 'Don’t say that again mom, where\'s the food'], [C, 'i hate when she calls me that, feel like a mistake'], ['Mom', 'It\'s in the microwave']]); E.cut(false);
-      E.obj('EAT DINNER.'); await H.interact(4.5, -10.6, 'HEAT UP THE LEFTOVERS', 2); E.tone(440, 0, 1.2, 'sine', .03); await H.wait(1300); E.sfx('ok');
+      E.obj('EAT DINNER.'); await H.interact(G.micro.x, G.micro.z, 'HEAT UP THE LEFTOVERS', 2); E.tone(440, 0, 1.2, 'sine', .03); await H.wait(1300); E.sfx('ok');
       await H.say([['', 'I walked over to the microwave and heated up the leftovers. I ate it, and they make some good food.']]);
       E.obj('GO TO YOUR ROOM.'); await H.reach(4, -6, 2, { y:3.2 }); E.obj('PLAY MADDEN 2002.'); await H.interact(G.console.x, G.console.z, 'PLAY MADDEN 2002', 2, 3.2);
       await H.say([['', 'I walked over to my room, sat down and played some Madden 2002. The Rams were gonna win against the Panthers because they had, the one, the only Christopher Storbach, if only it was Staubach, I\'d have cooler parents.'],
