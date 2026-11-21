@@ -92,7 +92,7 @@ function card(id, rot, section){
     <div class="title">${esc(it.title)}</div><div class="desc">${esc(it.description)}${it.note ? ` <i>(${esc(it.note)})</i>` : ''}</div>
     <div class="price">✨ ${it.priceXP.toLocaleString()} XP <span>${it.priceIsProvisional ? '· provisional price' : ''}</span></div>
     <div class="row"><span class="state ${st.k === 'owned' ? 'owned' : st.k === 'soon' ? 'soon' : st.k === 'short' ? 'short' : st.k === 'avail' ? 'avail' : ''}">${st.label}</span></div>
-    <div class="row">${st.k === 'avail' ? `<button class="btn" onclick="buy('${id}')">Buy for ${it.priceXP.toLocaleString()} XP</button>` : st.k === 'owned' ? `<button class="btn ghost" onclick="tab='collection';render()">View in collection</button>` : `<button class="btn" disabled>${st.k === 'soon' ? 'Coming Soon' : 'Unavailable'}</button>`}
+    <div class="row">${st.k === 'avail' ? `<button class="btn" onclick="buy('${id}')">Buy for ${it.priceXP.toLocaleString()} XP</button>` : st.k === 'owned' ? (it.playUrl ? `<a class="btn" style="text-decoration:none" href="${esc(it.playUrl)}">▶ Play</a>` : `<button class="btn ghost" onclick="tab='collection';render()">View in collection</button>`) : `<button class="btn" disabled>${st.k === 'soon' ? 'Coming Soon' : 'Unavailable'}</button>`}
       <button class="btn ghost" onclick="GXY.toggleWish('${id}');render()" aria-pressed="${wish}">${wish ? '★ Wishlisted' : '☆ Wishlist'}</button></div></div></div>`;
 }
 

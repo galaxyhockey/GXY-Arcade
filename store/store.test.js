@@ -17,7 +17,8 @@ t('exact group membership', () => {
   assert.strictEqual(g('B'), ['brand-clicker-27','hockey-play-now','metro-builder','galaxy-profile-pack'].sort().join());
   assert.strictEqual(g('C'), ['vice-city-transit','technologies','disaster-pack','classic-theme'].sort().join());
 });
-t('Kraken2022 Archives and Brand Clicker are hidden placeholders', () => ['kraken2022-archives','brand-clicker-27'].forEach(id => assert(S.byId(id).hidden)));
+t("Brand Clicker '27 is still a hidden placeholder", () => assert(S.byId('brand-clicker-27').hidden));
+t('Kraken2022 Archives is visible', () => assert(!S.byId('kraken2022-archives').hidden));
 t('nothing is released yet (no phantom inventory)', () => assert(S.CATALOG.every(x => x.releaseState === 'coming_soon')));
 t('transit DLCs point at the real game id', () => ['metro-builder','vice-city-transit'].forEach(id => assert.strictEqual(S.byId(id).baseGameId, 'transit-tycoon')));
 
