@@ -1,224 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Brand Clicker '27 · GXY Arcade</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Brand Clicker '27 (Test v0.1)</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--ink:#f8fafc;--dim:#a5b4cc;--panel:#0f172acc;--line:#ffffff22;--gold:#facc15;
-  --r-starter:#94a3b8;--r-common:#cbd5e1;--r-uncommon:#22c55e;--r-rare:#3b82f6;--r-epic:#a855f7;--r-legendary:#f59e0b;--r-chroma:#ec4899;--r-teslic:#22d3ee}
-body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:#020617;min-height:100vh;overflow-x:hidden}
-button{font:inherit;color:inherit;cursor:pointer;border:0}
-.mono{font-family:'Space Mono',monospace}
-#bg{position:fixed;inset:0;background:#020617 center/cover no-repeat;z-index:-2;transition:background-image .3s}
-#bg::after{content:"";position:fixed;inset:0;background:linear-gradient(180deg,#02061799,#020617cc 70%);z-index:-1}
-.test{background:#f59e0b;color:#1c1003;text-align:center;font-size:.75rem;font-weight:800;padding:4px}
-.top{display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap}
-.top a{color:var(--dim);text-decoration:none;font-size:.9rem}
-.top h1{font:800 1.5rem 'Barlow Condensed';letter-spacing:.04em;text-transform:uppercase;margin-right:auto}
-.top h1 span{color:var(--gold)}
-.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.82rem;backdrop-filter:blur(6px)}
-.chip b{font-family:'Space Mono',monospace;color:var(--gold)}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 14px 10px;scrollbar-width:none}
-.tabs button{flex:none;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:700;font-size:.86rem;backdrop-filter:blur(6px)}
-.tabs button.on{background:var(--gold);color:#1c1003;border-color:var(--gold)}
-main{max-width:980px;margin:auto;padding:0 14px 40px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;backdrop-filter:blur(8px);margin-bottom:12px}
-h2{font:800 1.3rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
-.dim{color:var(--dim);font-size:.84rem}
-/* clicker */
-.tapzone{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 0}
-#tap{position:relative;width:min(300px,72vw);aspect-ratio:621/482;border-radius:18px;overflow:hidden;box-shadow:0 0 0 4px var(--rc,#fff),0 18px 40px #000a;transition:transform .06s;background:#000 center/cover}
-#tap:active{transform:scale(.96)}
-#tap .lbl{position:absolute;inset:auto 0 0 0;padding:10px;background:linear-gradient(transparent,#000c);font:800 1.4rem 'Barlow Condensed';text-transform:uppercase;letter-spacing:.03em}
-.big{font:700 2.2rem 'Space Mono',monospace;color:var(--gold);text-shadow:0 2px 10px #000}
-.pop{position:fixed;pointer-events:none;font:800 1.2rem 'Space Mono';color:var(--gold);animation:up .8s ease-out forwards;text-shadow:0 2px 6px #000}
-@keyframes up{to{transform:translateY(-70px);opacity:0}}
-/* grids */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.bcard{position:relative;border-radius:12px;overflow:hidden;background:#000 center/cover;aspect-ratio:621/482;border:3px solid var(--rc,#334155);text-align:left}
-.bcard .n{position:absolute;inset:auto 0 0 0;padding:6px 8px;background:linear-gradient(transparent,#000d);font-weight:800;font-size:.82rem;line-height:1.1}
-.bcard .r{display:block;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--rc)}
-.bcard .cnt{position:absolute;top:6px;right:6px;background:#000b;border-radius:999px;padding:2px 7px;font:700 .72rem 'Space Mono'}
-.bcard.miss{background:#0b1222 !important;border-style:dashed;filter:grayscale(1)}
-.bcard.miss .n{color:#64748b}
-.bcard.eq{outline:3px solid #fff;outline-offset:2px}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.btn{background:linear-gradient(120deg,#facc15,#f59e0b);color:#1c1003;font-weight:800;border-radius:12px;padding:10px 16px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.ghost{background:#ffffff14;color:var(--ink);border:1px solid var(--line)}
-.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:.75rem;margin:2px;background:#ffffff0d}
-.pill.on{background:var(--ink);color:#000}
-.bar{height:10px;border-radius:6px;background:#ffffff1a;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#facc15,#ec4899)}
-.odds td,.odds th{padding:5px 8px;font-size:.82rem;text-align:left;border-bottom:1px solid var(--line)}
-.up{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.up:last-child{border:0}
-.up .ic{font-size:1.6rem;width:42px;text-align:center}
-.up .t{flex:1}
-/* reveal */
-#reveal{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:#000d;padding:16px}
-#reveal.on{display:grid}
-#reveal .box{width:min(420px,92vw);text-align:center;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
-@keyframes pop{from{transform:scale(.4) rotate(-6deg);opacity:0}}
-#reveal .bcard{margin:12px 0;box-shadow:0 0 60px var(--rc)}
-#reveal .rar{font:800 1.8rem 'Barlow Condensed';letter-spacing:.1em;text-transform:uppercase;color:var(--rc)}
-:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style>
-</head>
-<body>
-<div id="bg"></div>
-<div class="test">🧪 TEST BUILD v0.1: progress may be reset before release</div>
-<div class="top"><a href="../index.html">← Library</a><h1>Brand Clicker <span>'27</span></h1>
-  <span class="chip">💎 <b id="hBP">0</b> BP</span><span class="chip">⚡ <b id="hPS">0</b>/s</span><span class="chip">🔷 <b id="hSh">0</b> shards</span><span class="chip">📖 <b id="hCol">0</b></span></div>
-<div class="tabs" id="tabs"></div>
-<main id="main"></main>
-<div id="reveal" role="dialog" aria-modal="true"></div>
-<script src="bc27/brands.js"></script>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:Helvetica,Arial,sans-serif;user-select:none;-webkit-user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:480px;height:360px;overflow:hidden;background:#fff;flex:none}
+#stage img{position:absolute;-webkit-user-drag:none}
+.sp{cursor:pointer}
+#rm{position:absolute;inset:0;display:none;overflow:hidden}
+#rm .tile{position:absolute;inset:-60%;background-size:64px auto;background-repeat:space;opacity:.13;transform:rotate(-18deg);animation:drift 40s linear infinite}
+#rm .glow{position:absolute;width:320px;height:320px;left:68px;top:20px;border-radius:50%;filter:blur(40px);opacity:.55}
+#rm .pat{position:absolute;inset:0}
+@keyframes drift{to{background-position:640px 320px}}
+.mon{position:absolute;left:5px;background:#e6f0ff;border:1px solid #c4ccd9;border-radius:4px;padding:2px 5px;font-size:11px;color:#575e75;font-weight:bold;display:flex;gap:6px;align-items:center;z-index:50}
+.mon b{background:#ff8c1a;color:#fff;border-radius:4px;padding:1px 6px;min-width:30px;text-align:center}
+#ask{position:absolute;left:8px;right:8px;bottom:8px;background:#fff;border:2px solid #c4ccd9;border-radius:8px;padding:6px;display:none;z-index:90;font-size:12px;color:#575e75}
+#ask input{width:calc(100% - 40px);border:1px solid #c4ccd9;border-radius:12px;padding:4px 8px;font-size:12px}
+#ask button{width:26px;height:26px;border-radius:50%;border:0;background:#855cd6;color:#fff;font-weight:bold}
+.pan{position:absolute;inset:0;background:rgba(0,0,0,.85);color:#fff;z-index:80;display:none;padding:10px;box-sizing:border-box;font-size:11px;overflow:auto}
+.pan h3{margin:0 0 6px;font-size:14px}
+.pan button{cursor:pointer}
+.pan .x{position:absolute;right:8px;top:6px;background:#ff8c1a;border:0;color:#fff;border-radius:4px;padding:3px 8px;font-weight:bold}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.cell{background:#222;border:2px solid #444;border-radius:5px;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:8px;text-align:center}
+.cell img{position:static!important;max-width:90%;max-height:34px}
+.cell.no{opacity:.25;cursor:default}.cell.on{border-color:#ff8c1a}
+#txt{position:absolute;left:0;right:0;text-align:center;font-weight:900;color:#fff;text-shadow:0 2px 0 #000,0 0 6px #000;z-index:60;pointer-events:none}
+.pop{position:absolute;color:#fff;font-weight:900;font-size:14px;text-shadow:0 1px 0 #000;pointer-events:none;z-index:70;animation:up .7s forwards}
+@keyframes up{to{transform:translateY(-30px);opacity:0}}
+#odds{position:absolute;left:4px;bottom:4px;font-size:10px;background:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;z-index:55;display:none;color:#333;font-weight:bold}
+#test{position:fixed;bottom:3px;right:6px;color:#fff8;font-size:10px;z-index:99}
+#back{position:fixed;top:4px;left:6px;color:#fff;font-size:12px;z-index:99;text-decoration:none;background:#0008;padding:3px 8px;border-radius:4px}
+#rmBtn{position:fixed;top:4px;right:6px;z-index:99;background:#0008;color:#fff;border:1px solid #fff4;border-radius:4px;font-size:12px;padding:3px 8px;cursor:pointer}
+</style></head><body>
+<a id="back" href="../index.html">‹ Library</a><button id="rmBtn"></button>
+<div id="test">TEST BUILD v0.1 · fan remake of Brand Clicker! by Kraken2022 · not affiliated with any brand</div>
+<div id="wrap"><div id="stage">
+  <img id="bd" alt="">
+  <div id="rm"><div class="glow"></div><div class="pat"></div><div class="tile"></div></div>
+  <div class="mon" style="top:5px">☁ Brand Items <b id="mBI">0</b></div>
+  <div class="mon" style="top:27px">username <b id="mName"></b></div>
+  <div class="mon" style="top:49px">☁ Ethereum <b id="mETH">0</b></div>
+  <div id="txt"></div><div id="odds">Box odds</div>
+  <div id="ask"><div id="askQ"></div><input id="askIn" maxlength="20"> <button id="askOk">✓</button></div>
+  <div class="pan" id="pc"><button class="x" data-close="pc">CLOSE</button><h3>MY PC — Brand Collection</h3><div id="pcInfo"></div><div class="grid" id="pcGrid"></div></div>
+  <div class="pan" id="trade"><button class="x" data-close="trade">CLOSE</button><h3>TRADE MENU</h3><p>Trading needs online play, which isn't in this test build yet.</p></div>
+  <div class="pan" id="set"><button class="x" data-close="set">CLOSE</button><h3>SETTINGS</h3><p><button id="rename">Change username</button> <button id="rmSet"></button></p><p><button id="wipe">Reset save</button></p><p>Fan remake for GXY Arcade, built from Kraken2022's original "Brand Clicker! – Full Game – PC Edition". Brand names and logos belong to their owners; this game isn't sponsored or endorsed by them. Brand Items and Ethereum are in-game only and can't be bought.</p></div>
+  <div class="pan" id="oddsP"><button class="x" data-close="oddsP">CLOSE</button><h3>Box odds (same as the original game)</h3><div id="oddsT"></div></div>
+</div></div>
+<script src="bc27/orig.js"></script>
 <script>
-/* ================= data ================= */
-const D = window.BC27_DATA, $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const RC = r => `var(--r-${r.toLowerCase()})`;
-const BG = f => `bc27/bg/${f}`;
-const brand = id => D.brands.find(b => b.id === id);
-const fmt = n => { n = Math.floor(n); if(n < 1e4) return n.toLocaleString(); const u = ['K','M','B','T','Qa','Qi']; let i = -1; while(n >= 1000 && i < u.length - 1){ n /= 1000; i++; } return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + u[i]; };
-// Box odds by rarity (disclosed in the Boxes tab). Starter brands come only from the start/LTT reward.
-const ODDS = [['Common',40],['Uncommon',27],['Rare',16],['Epic',9],['Legendary',5],['Chroma',2.6],['Teslic',0.4]];
-const SHARDS = { Starter:1, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, Teslic:60 };
-const UPGRADES = [
-  { id:'tap', icon:'👆', name:'Stronger Taps', desc:'+1 Brand Point per tap', base:15, grow:1.55 },
-  { id:'ads', icon:'📺', name:'Ad Campaign', desc:'+1 Brand Point per second', base:40, grow:1.5 },
-  { id:'deal', icon:'🏷️', name:'Bulk Deals', desc:'Brand Boxes cost 5% less (max 50%)', base:250, grow:2.1, max:10 },
-  { id:'luck', icon:'🍀', name:'Lucky Ink', desc:'Shifts box odds toward rarer brands', base:600, grow:2.4, max:10 },
-];
-const CONTRACTS = [
-  { id:'open10', name:'Unboxing Day', desc:'Open 10 Brand Boxes', goal:s => s.stats.boxes >= 10, prog:s => [s.stats.boxes, 10], reward:{ bp:500, shards:10 } },
-  { id:'rare5', name:'Rare Finds', desc:'Collect 5 different Rare-or-better brands', goal:s => owned(s).filter(b => rankOf(b.rarity) >= 3).length >= 5, prog:s => [owned(s).filter(b => rankOf(b.rarity) >= 3).length, 5], reward:{ bp:2000, shards:25 } },
-  { id:'set-food', name:'Fast Food Fan', desc:'Collect Burger King, McDonalds and Wendys', goal:s => ['burger-king-legendary','mcdonalds-legendary','wendys-uncommon'].every(id => s.owned[id]), prog:s => [['burger-king-legendary','mcdonalds-legendary','wendys-uncommon'].filter(id => s.owned[id]).length, 3], reward:{ bp:5000, shards:60 } },
-  { id:'equipleg', name:'Show It Off', desc:'Equip a Legendary or better background', goal:s => rankOf((brand(s.equipped.id) || {}).rarity) >= 5, prog:s => [rankOf((brand(s.equipped.id) || {}).rarity) >= 5 ? 1 : 0, 1], reward:{ bp:3000, shards:30 } },
-  { id:'half', name:'Halfway There', desc:'Collect half of all brands', goal:s => owned(s).length >= Math.ceil(D.brands.length / 2), prog:s => [owned(s).length, Math.ceil(D.brands.length / 2)], reward:{ bp:25000, shards:150 } },
-];
-const rankOf = r => D.rarities.indexOf(r);
-
-/* ================= save ================= */
+const O = BC_ORIG, ST = document.getElementById('stage'), $ = id => document.getElementById(id);
+const BR = Object.fromEntries(O.brands.map(b => [b.id, b]));
 const KEY = 'bc27_save';
-function fresh(){
-  const s = { saveVersion:1, gameId:'brand-clicker-27', bp:0, shards:0, total:0, owned:{}, equipped:{ id:'oreo-starter', variant:0 }, ups:{}, done:{}, stats:{ taps:0, boxes:0 }, last:Date.now(), started:Date.now() };
-  collect(s, 'oreo-starter', 'start'); return s;
-}
-function load(){ try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && s.saveVersion === 1) return s; }catch(e){} return fresh(); }
-function save(){ S.last = Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
-const owned = s => D.brands.filter(b => s.owned[b.id]);
-function collect(s, id, how){
-  const b = brand(id), o = s.owned[id];
-  if(o){ o.count++; o.last = Date.now(); s.shards += SHARDS[b.rarity]; return { dup:true, shards:SHARDS[b.rarity] }; }
-  s.owned[id] = { count:1, first:Date.now(), last:Date.now(), how, variants:b.variants.map((_, i) => i) };   // first discovery unlocks every original background variant of that brand
-  return { dup:false };
+let S; try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
+S = Object.assign({ bi:0, eth:0, bg:0, owned:[], up:0, name:'', boxes:0, remaster:true }, S || {});
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} };
+
+// ---- Remastered backgrounds: a new scene per logo (brand colours + its own pattern + the logo tiled) ----
+// [base, accent, pattern]  patterns: rays, stripes, dots, grid, waves, diamonds, rings, ice, snow
+const RM = { 0:['#0b0b0f','#ff6a00','grid'], 1:['#00632f','#c8e600','waves'], 2:['#ff7a00','#4a2311','stripes'], 3:['#00205b','#4fc3f7','waves'],
+  4:['#111','#ff6f00','rays'], 5:['#000','#00a77f','grid'], 6:['#d62300','#f5a623','dots'], 7:['#0a1a33','#1c69d4','rings'],
+  8:['#7a0019','#e8f5e9','snow'], 9:['#000','#5a5a5a','diamonds'], 10:['#120030','#b388ff','rays'], 11:['#002a5c','#0071c5','grid'],
+  12:['#002f87','#fcb514','ice'], 13:['#001628','#99d9d9','ice'], 14:['#1a1a1a','#ce1126','ice'], 15:['#005daa','#e31837','stripes'],
+  16:['#000','#e50914','rays'], 17:['#131921','#ff9900','waves'], 18:['#0b0c0f','#1ce783','dots'], 19:['#1d1d1f','#a1a1a6','rings'],
+  20:['#cc0000','#fff','rings'], 21:['#121212','#1db954','waves'], 22:['#da291c','#ffc72c','stripes'], 23:['#e60012','#fff','dots'],
+  24:['#003087','#00439c','diamonds'], 25:['#0a0a0a','#e5e7ff','rays'], 26:['#101820','#5b6dcd','dots'], 27:['#0b0b0b','#76b900','grid'],
+  28:['#00704a','#d4e9e2','rings'], 29:['#ed1c24','#ffde00','diamonds'], 30:['#451400','#a81612','stripes'], 31:['#000','#00b8fc','grid'],
+  32:['#4b0e1b','#a50034','waves'], 33:['#e2203d','#fff','dots'], 34:['#1a1f71','#f7b600','stripes'], 35:['#002d72','#e4002b','rays'],
+  36:['#1b4d2b','#c62828','snow'], 37:['#0d3b1e','#ffd54f','snow'], 38:['#081c10','#ff5252','snow'], 39:['#111','#fc4c02','ice'] };
+const PAT = {
+  rays:a => `repeating-conic-gradient(from 0deg at 50% 55%, ${a}33 0 10deg, transparent 10deg 20deg)`,
+  stripes:a => `repeating-linear-gradient(135deg, ${a}30 0 18px, transparent 18px 36px)`,
+  dots:a => `radial-gradient(${a}55 2.5px, transparent 3px) 0 0/22px 22px`,
+  grid:a => `linear-gradient(${a}40 1px, transparent 1px) 0 0/24px 24px, linear-gradient(90deg, ${a}40 1px, transparent 1px) 0 0/24px 24px`,
+  waves:a => `repeating-radial-gradient(circle at 0 100%, transparent 0 22px, ${a}30 22px 26px)`,
+  diamonds:a => `linear-gradient(45deg, ${a}25 25%, transparent 25% 75%, ${a}25 75%) 0 0/30px 30px, linear-gradient(45deg, ${a}25 25%, transparent 25% 75%, ${a}25 75%) 15px 15px/30px 30px`,
+  rings:a => `repeating-radial-gradient(circle at 50% 55%, transparent 0 18px, ${a}28 18px 20px)`,
+  ice:a => `linear-gradient(180deg, transparent 60%, #ffffff40 60% 61%, transparent 61% 80%, ${a}50 80% 82%, transparent 82%), repeating-linear-gradient(90deg, transparent 0 59px, ${a}35 59px 61px)`,
+  snow:a => `radial-gradient(#fff9 1.5px, transparent 2px) 0 0/27px 31px, radial-gradient(#fff6 1px, transparent 1.5px) 11px 13px/19px 23px, linear-gradient(180deg, transparent 75%, ${a}40 75%)` };
+function remaster(id){
+  const [base, acc, pat] = RM[id] || RM[0], el = $('rm'), lg = cosOf(O.sprites.logo, (BR[id] && BR[id].logo) || 'Linus Tech Tips');
+  el.style.background = `linear-gradient(160deg, ${base}, #000 140%)`;
+  el.querySelector('.glow').style.background = acc;
+  el.querySelector('.pat').style.background = PAT[pat](acc);
+  el.querySelector('.tile').style.backgroundImage = `url(bc27/orig/${lg.file})`;
 }
 
-/* ================= economy ================= */
-let S = load();
-const lvl = id => S.ups[id] || 0;
-const perTap = () => 1 + lvl('tap') + Math.floor(owned(S).length / 10);      // collection size gives a small tap bonus
-const perSec = () => lvl('ads') * (1 + owned(S).length * 0.02);
-const upCost = u => Math.round(u.base * Math.pow(u.grow, lvl(u.id)));
-const boxCost = () => Math.round((50 * Math.pow(1.06, S.stats.boxes)) * (1 - Math.min(.5, lvl('deal') * .05)));
-function odds(){
-  const l = lvl('luck'); const w = ODDS.map(([r, p], i) => [r, p * (i >= 3 ? 1 + l * .12 : i === 0 ? 1 - l * .05 : 1)]);
-  const t = w.reduce((a, x) => a + x[1], 0); return w.map(([r, p]) => [r, p / t * 100]);
+// ---- Scratch-accurate placement: stage 480x360, origin centre, y up ----
+const cosOf = (s, name) => (typeof name === 'number' ? s.costumes[name] : s.costumes.find(c => c.name === name)) || s.costumes[0];
+function place(img, c, x, y, size){
+  const k = size / 100 / c.res, go = () => { img.style.width = img.naturalWidth * k + 'px';
+    img.style.left = 240 + x - c.rcx * k + 'px'; img.style.top = 180 - y - c.rcy * k + 'px'; };
+  if(img.dataset.f !== c.file){ img.dataset.f = c.file; img.onload = go; img.src = 'bc27/orig/' + c.file; } else if(img.complete) go();
 }
-// offline earnings, capped at 2 hours
-(function offline(){ const sec = Math.min(7200, (Date.now() - S.last) / 1000); if(sec > 30 && perSec() > 0){ const g = Math.floor(sec * perSec()); S.bp += g; S.total += g; setTimeout(() => toast(`📺 Your ads earned ${fmt(g)} BP while you were away`), 600); } })();
+const SP = {};
+for(const [k, s] of Object.entries(O.sprites)){
+  const im = document.createElement('img'); im.className = 'sp'; im.alt = k; im.style.display = 'none'; ST.appendChild(im);
+  SP[k] = { s, im, x:s.x, y:s.y, size:s.size, cos:s.cur };
+}
+function show(k, o = {}){ const p = SP[k]; Object.assign(p, o); p.im.style.display = ''; place(p.im, cosOf(p.s, p.cos), p.x, p.y, p.size); }
+const hide = (...ks) => ks.forEach(k => SP[k].im.style.display = 'none');
+const hideAll = () => Object.keys(SP).forEach(k => hide(k));
+function backdrop(name, id){ const c = O.backdrops.find(b => b.name === name) || O.backdrops[0]; place($('bd'), c, 0, 0, 100);
+  const r = id !== undefined && S.remaster; $('rm').style.display = r ? 'block' : 'none'; if(r) remaster(id); }
+const glide = (k, x, y, ms) => new Promise(r => { const p = SP[k], x0 = p.x, y0 = p.y, t0 = performance.now();
+  (function f(t){ const a = Math.min(1, (t - t0) / ms); show(k, { x:x0 + (x - x0) * a, y:y0 + (y - y0) * a }); a < 1 ? requestAnimationFrame(f) : r(); })(t0); });
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let hue = 0; setInterval(() => { hue = (hue + 3) % 360; for(const k of ['trade', 'settings']) SP[k].im.style.filter = `hue-rotate(${hue}deg)`; }, 50);
 
-function tap(e){
-  const g = perTap(); S.bp += g; S.total += g; S.stats.taps++;
-  const p = document.createElement('div'); p.className = 'pop'; p.textContent = '+' + fmt(g);
-  const x = e && e.clientX ? e.clientX : innerWidth / 2, y = e && e.clientY ? e.clientY : innerHeight / 2;
-  p.style.left = x - 20 + 'px'; p.style.top = y - 30 + 'px'; document.body.appendChild(p); setTimeout(() => p.remove(), 800);
-  hud();
-}
-function buyUp(id){ const u = UPGRADES.find(x => x.id === id), c = upCost(u); if(S.bp < c || (u.max && lvl(id) >= u.max)) return; S.bp -= c; S.ups[id] = lvl(id) + 1; save(); render(); }
-function openBox(){
-  const c = boxCost(); if(S.bp < c) return;
-  S.bp -= c; S.stats.boxes++;
-  let roll = Math.random() * 100, rarity = 'Common';
-  for(const [r, p] of odds()){ if((roll -= p) < 0){ rarity = r; break; } }
-  const pool = D.brands.filter(b => b.rarity === rarity), b = pool[Math.floor(Math.random() * pool.length)];
-  const res = collect(S, b.id, 'box');
-  if(window.GXY){ GXY.event('brand-clicker-27', 'boxes'); if(!res.dup) GXY.event('brand-clicker-27', 'brands', owned(S).length); }
-  save(); reveal(b, res); render();
-}
-function claim(id){ const c = CONTRACTS.find(x => x.id === id); if(S.done[id] || !c.goal(S)) return; S.done[id] = Date.now(); S.bp += c.reward.bp; S.shards += c.reward.shards; save(); toast(`✅ ${c.name}: +${fmt(c.reward.bp)} BP, +${c.reward.shards} shards`); render(); }
-function equip(id, v){ if(!S.owned[id]) return; S.equipped = { id, variant:v }; save(); applyBg(); render(); toast('🖼️ Background equipped'); }
+const fmt = n => Math.round(n).toLocaleString();
+function mon(){ $('mBI').textContent = fmt(S.bi); $('mETH').textContent = fmt(S.eth); $('mName').textContent = S.name; }
+function rmLabel(){ const t = 'Backgrounds: ' + (S.remaster ? 'Remastered' : 'Original'); $('rmBtn').textContent = '🎨 ' + t; $('rmSet').textContent = t; }
+let scr = 'home', busy = false, pending = 0;
 
-/* ================= UI ================= */
-let tab = 'click', bookFilter = 'All';
-function applyBg(){ const b = brand(S.equipped.id), v = b && b.variants[S.equipped.variant] || b.variants[0]; $('bg').style.backgroundImage = `url("${BG(v.file)}")`; }
-function hud(){ $('hBP').textContent = fmt(S.bp); $('hPS').textContent = fmt(perSec()); $('hSh').textContent = fmt(S.shards); $('hCol').textContent = `${owned(S).length}/${D.brands.length}`; if(tab === 'click') $('tapBP') && ($('tapBP').textContent = fmt(S.bp)); refreshButtons(); }
-function refreshButtons(){ document.querySelectorAll('[data-cost]').forEach(b => b.disabled = S.bp < +b.dataset.cost || b.dataset.max === '1'); }
-const cardHTML = (b, opts = {}) => { const o = S.owned[b.id], v = b.variants[opts.variant ?? b.variants.length - 1];
-  return `<${opts.tag || 'div'} class="bcard ${o ? '' : 'miss'} ${opts.eq ? 'eq' : ''}" style="--rc:${RC(b.rarity)};${o ? `background-image:url('${BG(v.file)}')` : ''}" ${opts.attrs || ''}>
-    ${o && opts.count !== false ? `<span class="cnt">×${o.count}</span>` : ''}<span class="n">${o ? esc(b.name) : '???'}<span class="r">${b.rarity}${opts.ver ? ' · ' + esc(v.label) : ''}</span></span></${opts.tag || 'div'}>`; };
-function render(){
-  $('tabs').innerHTML = [['click','👆 Clicker'],['boxes','📦 Brand Boxes'],['book','📖 Collection Book'],['locker','🖼️ Background Locker'],['ups','⬆️ Upgrades'],['contracts','📜 Contracts']]
-    .map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" onclick="tab='${k}';render()">${l}</button>`).join('');
-  const m = $('main'), eb = brand(S.equipped.id), ev = eb.variants[S.equipped.variant] || eb.variants[0];
-  if(tab === 'click') m.innerHTML = `<div class="tapzone"><div class="big" id="tapBP">${fmt(S.bp)}</div><div class="dim">Brand Points · ${fmt(perTap())} per tap · ${fmt(perSec())}/s</div>
-      <button id="tap" style="--rc:${RC(eb.rarity)};background-image:url('${BG(ev.file)}')" aria-label="Tap to earn Brand Points" onpointerdown="tap(event)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();tap()}"><span class="lbl">${esc(eb.name)}</span></button>
-      <div class="row"><button class="btn" data-cost="${boxCost()}" onclick="openBox()">📦 Open a Brand Box · ${fmt(boxCost())} BP</button><button class="btn ghost" onclick="tab='book';render()">📖 ${owned(S).length}/${D.brands.length} collected</button></div>
-      <div class="card" style="width:100%;margin-top:6px"><div class="row" style="justify-content:space-between"><b>Collection</b><span class="dim">${Math.round(owned(S).length / D.brands.length * 100)}%</span></div><div class="bar" style="margin-top:6px"><i style="width:${owned(S).length / D.brands.length * 100}%"></i></div>
-      <p class="dim" style="margin-top:8px">Every new brand unlocks its original Brand Clicker background${''} in every version it appeared in. Every 10 brands adds +1 per tap.</p></div></div>`;
-  if(tab === 'boxes') m.innerHTML = `<div class="card"><h2>📦 Brand Boxes</h2><p class="dim">Each box reveals one random brand. New brands go into your Collection Book and unlock their backgrounds. Duplicates are kept and turn into Brand Shards. Boxes only cost Brand Points earned in the game; nothing is sold for real money.</p>
-      <div class="row" style="margin:12px 0"><button class="btn" data-cost="${boxCost()}" onclick="openBox()">Open a box · ${fmt(boxCost())} BP</button><span class="dim">Opened: ${S.stats.boxes}</span></div>
-      <h2 style="font-size:1rem;margin-top:8px">Odds (exact)</h2><table class="odds"><tr><th>Rarity</th><th>Chance</th><th>Brands</th><th>Duplicate gives</th></tr>
-      ${odds().map(([r, p]) => `<tr><td style="color:${RC(r)};font-weight:800">${r}</td><td class="mono">${p.toFixed(2)}%</td><td>${D.brands.filter(b => b.rarity === r).length}</td><td>${SHARDS[r]} shards</td></tr>`).join('')}</table>
-      <p class="dim" style="margin-top:8px">Starter brands aren't in boxes. Box prices rise a little with each box you open.</p></div>`;
-  if(tab === 'book'){
-    const list = D.brands.filter(b => bookFilter === 'All' || b.rarity === bookFilter);
-    m.innerHTML = `<div class="card"><h2>📖 Collection Book</h2><div class="row" style="margin-bottom:10px">${['All', ...D.rarities].map(r => `<button class="pill ${bookFilter === r ? 'on' : ''}" onclick="bookFilter='${r}';render()">${r} ${r === 'All' ? `${owned(S).length}/${D.brands.length}` : `${D.brands.filter(b => b.rarity === r && S.owned[b.id]).length}/${D.brands.filter(b => b.rarity === r).length}`}</button>`).join('')}</div>
-      <div class="grid">${list.map(b => cardHTML(b, { tag:'button', attrs:`onclick="info('${b.id}')" aria-label="${S.owned[b.id] ? esc(b.name) : 'Undiscovered brand'}"` })).join('')}</div></div>`;
-  }
-  if(tab === 'locker'){
-    const mine = owned(S).sort((a, b) => rankOf(b.rarity) - rankOf(a.rarity));
-    m.innerHTML = `<div class="card"><h2>🖼️ Background Locker</h2><p class="dim" style="margin-bottom:10px">Every version of a background you've unlocked, exactly as it appeared in the original Brand Clicker games. Tap one to equip it.</p>
-      ${mine.map(b => `<div style="margin-bottom:12px"><b style="color:${RC(b.rarity)}">${esc(b.name)}</b> <span class="dim">${b.rarity} · ${b.variants.length} version${b.variants.length > 1 ? 's' : ''}</span>
-        <div class="grid" style="margin-top:6px">${b.variants.map((v, i) => cardHTML(b, { tag:'button', variant:i, ver:true, count:false, eq:S.equipped.id === b.id && S.equipped.variant === i, attrs:`onclick="equip('${b.id}',${i})" aria-label="Equip ${esc(b.name)}, ${esc(v.label)}"` })).join('')}</div></div>`).join('')}</div>`;
-  }
-  if(tab === 'ups') m.innerHTML = `<div class="card"><h2>⬆️ Upgrades</h2>${UPGRADES.map(u => { const c = upCost(u), mx = u.max && lvl(u.id) >= u.max;
-      return `<div class="up"><span class="ic">${u.icon}</span><div class="t"><b>${u.name}</b> <span class="dim">Lv ${lvl(u.id)}${u.max ? '/' + u.max : ''}</span><div class="dim">${u.desc}</div></div>
-      <button class="btn" data-cost="${c}" data-max="${mx ? 1 : 0}" onclick="buyUp('${u.id}')">${mx ? 'Maxed' : fmt(c) + ' BP'}</button></div>`; }).join('')}</div>`;
-  if(tab === 'contracts') m.innerHTML = `<div class="card"><h2>📜 Contracts</h2>${CONTRACTS.map(c => { const [a, t] = c.prog(S), ok = c.goal(S), done = S.done[c.id];
-      return `<div class="up"><span class="ic">${done ? '✅' : '📜'}</span><div class="t"><b>${c.name}</b><div class="dim">${c.desc} · reward ${fmt(c.reward.bp)} BP + ${c.reward.shards} shards</div><div class="bar" style="margin-top:6px"><i style="width:${Math.min(100, a / t * 100)}%"></i></div></div>
-      ${done ? '<span class="dim">Claimed</span>' : `<button class="btn" ${ok ? '' : 'disabled'} onclick="claim('${c.id}')">${ok ? 'Claim' : `${Math.min(a, t)}/${t}`}</button>`}</div>`; }).join('')}</div>`;
-  hud();
+function home(){
+  scr = 'home'; busy = false; hideAll(); $('txt').textContent = ''; $('odds').style.display = 'none';
+  const b = BR[S.bg]; backdrop(b ? b.backdrop : 'LTT Menu (Starter)', S.bg);
+  show('logo', { cos:b && b.logo ? b.logo : 'Linus Tech Tips' });
+  show('shop'); show('trade'); show('settings'); show('pc', { x:36, y:27 });
+  if(S.up < 1) show('up1'); else if(S.up < 2) show('up2');
+  mon();
 }
-function info(id){
-  const b = brand(id), o = S.owned[id]; if(!o) return toast('🔒 Not discovered yet. Keep opening Brand Boxes!');
-  $('reveal').innerHTML = `<div class="box" style="--rc:${RC(b.rarity)}"><div class="rar">${b.rarity}</div>${cardHTML(b)}
-    <h2>${esc(b.name)}</h2><p class="dim">Owned ×${o.count} · first collected ${new Date(o.first).toLocaleString()}</p>
-    <p class="dim" style="margin-top:6px">Appeared in: ${b.variants.map(v => esc(v.label)).join(', ')}</p>
-    <div class="row" style="justify-content:center;margin-top:12px"><button class="btn" onclick="equip('${b.id}',${b.variants.length - 1});closeR()">Equip background</button><button class="btn ghost" onclick="closeR()">Close</button></div></div>`;
-  $('reveal').classList.add('on');
+function shop(page){
+  if(busy) return; if(page === 1 && S.bi <= O.prices.shopUnlock){ say('You need more than 50 Brand Items to open the Brand Shop!', 120); return; }
+  scr = 'shop'; hideAll(); $('txt').textContent = ''; $('odds').style.display = 'block';
+  if(page === 1){ backdrop('BRAND SHOP'); show('boxStd'); show('boxNhl'); show('boxXmas'); show('next'); }
+  else { backdrop('BRAND SHOP PAGE 2'); show('box1980'); show('last'); }
+  show('home');
 }
-function reveal(b, res){
-  $('reveal').innerHTML = `<div class="box" style="--rc:${RC(b.rarity)}"><div class="rar">${res.dup ? 'Duplicate' : 'New brand!'} · ${b.rarity}</div>${cardHTML(b)}
-    <h2>${esc(b.name)}</h2><p class="dim">${res.dup ? `You already had it. +${res.shards} Brand Shards.` : `Added to your Collection Book. ${b.variants.length} original background${b.variants.length > 1 ? 's' : ''} unlocked in the Locker.`}</p>
-    <div class="row" style="justify-content:center;margin-top:12px">${res.dup ? '' : `<button class="btn" onclick="equip('${b.id}',${b.variants.length - 1});closeR()">Equip it</button>`}<button class="btn ghost" data-cost="${boxCost()}" onclick="closeR();openBox()">Open another · ${fmt(boxCost())}</button><button class="btn ghost" onclick="closeR()">Close</button></div></div>`;
-  $('reveal').classList.add('on'); refreshButtons();
-  if(navigator.vibrate) try{ navigator.vibrate(rankOf(b.rarity) >= 5 ? [40, 60, 40, 60, 80] : 25); }catch(e){}
+function say(t, y){ const e = $('txt'); e.textContent = t; e.style.top = (180 - y) + 'px'; e.style.fontSize = '14px';
+  clearTimeout(say.t); say.t = setTimeout(() => { if(e.textContent === t) e.textContent = ''; }, 2000); }
+function pop(x, y, t){ const e = document.createElement('div'); e.className = 'pop'; e.textContent = t;
+  e.style.left = 240 + x + 'px'; e.style.top = 180 - y + 'px'; ST.appendChild(e); setTimeout(() => e.remove(), 700); }
+
+// clicking: original gives +5 per click on the logo, or space
+function click(){ if(scr !== 'home' || busy) return; S.bi += O.prices.perClick; mon(); save();
+  show('logo', { size:140 }); setTimeout(() => show('logo', { size:150 }), 70); pop(-12 + (Math.random() * 80 - 40), 40, '+5'); }
+// upgrades: original Sprite1/Sprite2 — 40 BI -> +5 every 3s, 550 BI -> +25 every 2.5s
+function buyUp(n){ const cost = n === 1 ? 40 : 550; if(S.bi < cost){ say(`Needs ${cost} Brand Items`, -60); return; }
+  S.bi -= cost; S.up = n; save(); home(); }
+setInterval(() => { if(S.up >= 1){ S.bi += 5; mon(); save(); } }, 3000);
+setInterval(() => { if(S.up >= 2){ S.bi += 25; mon(); save(); } }, 2500);
+
+// boxes: same weights as the original Brand Win scripts
+const BOX = { boxStd:'standard', boxNhl:'nhl', boxXmas:'xmas' };
+const PRICE = { standard:O.prices.standard, nhl:O.prices.nhl, xmas:O.prices.xmas };
+const winKey = b => b.reveal.sprite === 'Brand Win' ? 'win' : b.reveal.sprite === 'Brand Win2' ? 'win2' : 'win3';
+function roll(kind){ const w = Object.values(O.boxes[kind].weights), tot = w.reduce((a, b) => a + b.weight, 0);
+  let r = Math.random() * tot; for(const e of w){ if((r -= e.weight) < 0) return +e.id; } return +w[0].id; }
+async function openBox(k){
+  if(busy) return; const kind = BOX[k], cost = PRICE[kind];
+  if(S.bi < cost){ say(`Not enough Brand Items (${cost} needed)`, 150); return; }
+  busy = true; S.bi -= cost; S.boxes++; mon(); save(); $('odds').style.display = 'none';
+  for(const o of Object.keys(BOX)) if(o !== k) hide(o); hide('next', 'home');
+  await glide(k, 0, 0, 500); show(k, { size:175 });
+  for(let i = 0; i < 3; i++){ await wait(250); show(k, { size:195 }); await wait(250); show(k, { size:175 }); }
+  hide(k); Object.assign(SP[k], { x:O.sprites[k].x, y:O.sprites[k].y, size:O.sprites[k].size });
+  const id = roll(kind), b = BR[id], dup = S.owned.includes(id); pending = id;
+  show(winKey(b), { cos:b.reveal.costume });
+  if(b.card) show('card', { cos:b.card });
+  $('txt').textContent = `${b.name} · ${b.rarity}${dup ? ' · DUPLICATE' : ' · NEW!'}`; $('txt').style.top = '8px'; $('txt').style.fontSize = '13px';
+  show('claim');
+  if(window.GXY){ GXY.event('brand-clicker-27', 'boxes'); if(!dup) GXY.event('brand-clicker-27', 'brands', S.owned.length + 1); }
 }
-function closeR(){ $('reveal').classList.remove('on'); }
-let tt; function toast(t){ let el = $('toastB'); if(!el){ el = document.createElement('div'); el.id = 'toastB'; el.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f172af2;border:1px solid #ffffff33;border-radius:12px;padding:10px 14px;font-weight:700;z-index:30;max-width:92vw'; document.body.appendChild(el); } el.textContent = t; el.style.display = 'block'; clearTimeout(tt); tt = setTimeout(() => el.style.display = 'none', 2400); }
-addEventListener('keydown', e => { if(e.key === 'Escape') closeR(); });
-// passive income
-setInterval(() => { const g = perSec() / 4; if(g){ S.bp += g; S.total += g; hud(); } }, 250);
-setInterval(save, 5000); addEventListener('pagehide', save); addEventListener('visibilitychange', () => document.hidden && save());
-applyBg(); render(); save();
+function claim(){ const b = BR[pending]; if(!b) return;
+  S.bg = b.id; S.eth += b.eth; if(!S.owned.includes(b.id)) S.owned.push(b.id); pending = 0; save(); home(); }
+
+// My PC: the '27 collection; tap an owned brand to apply it
+async function openPC(){ if(busy) return; busy = true; await glide('pc', 36, 325, 700); hide('pc');
+  const g = $('pcGrid'); g.innerHTML = '';
+  $('pcInfo').textContent = `${S.owned.length} / ${O.brands.length} brands collected · ${S.boxes} boxes opened. Tap a brand to apply it.`;
+  for(const b of O.brands){ const d = document.createElement('div'), own = S.owned.includes(b.id);
+    d.className = 'cell' + (own ? '' : ' no') + (S.bg === b.id ? ' on' : '');
+    d.innerHTML = `<img src="bc27/orig/${cosOf(O.sprites[winKey(b)], b.reveal.costume).file}" alt=""><span>${own ? b.name : '???'}</span><span>${b.rarity}</span>`;
+    if(own) d.onclick = () => { S.bg = b.id; save(); $('pc').style.display = 'none'; home(); };
+    g.appendChild(d); }
+  $('pc').style.display = 'block'; busy = false; }
+
+const on = (k, f) => SP[k].im.addEventListener('click', f);
+on('logo', click); on('shop', () => shop(1)); on('next', () => shop(2)); on('last', () => shop(1)); on('home', () => { if(!busy) home(); });
+for(const k of Object.keys(BOX)) on(k, () => openBox(k));
+on('box1980', () => say("1980's Box – Coming Soon", -140)); on('claim', claim); on('pc', openPC);
+on('up1', () => buyUp(1)); on('up2', () => buyUp(2));
+on('trade', () => { if(!busy) $('trade').style.display = 'block'; }); on('settings', () => { if(!busy) $('set').style.display = 'block'; });
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => { $(b.dataset.close).style.display = 'none'; if(b.dataset.close === 'pc') home(); });
+$('odds').onclick = () => { const t = $('oddsT'); t.innerHTML = '';
+  for(const [k, nm] of [['standard', `Brand Box (${PRICE.standard} BI)`], ['nhl', `NHL Box (${PRICE.nhl} BI)`], ['xmas', 'Christmas Box (free)']]){
+    const w = Object.values(O.boxes[k].weights), tot = w.reduce((a, b) => a + b.weight, 0);
+    t.innerHTML += `<p><b>${nm}</b><br>` + w.map(e => `${BR[e.id].name} ${(e.weight / tot * 100).toFixed(1)}%`).join(' · ') + '</p>'; }
+  $('oddsP').style.display = 'block'; };
+const toggleRm = () => { S.remaster = !S.remaster; save(); rmLabel(); if(scr === 'home') home(); };
+$('rmBtn').onclick = toggleRm; $('rmSet').onclick = toggleRm;
+document.addEventListener('keydown', e => { if(e.code === 'Space' && document.activeElement !== $('askIn')){ e.preventDefault(); click(); } });
+$('wipe').onclick = () => { if(confirm('Reset your Brand Clicker save?')){ localStorage.removeItem(KEY); location.reload(); } };
+$('rename').onclick = () => { $('set').style.display = 'none'; ask(); };
+function ask(){ $('askQ').textContent = 'What is your username?'; $('askIn').value = S.name; $('ask').style.display = 'block'; $('askIn').focus(); }
+$('askOk').onclick = () => { const v = $('askIn').value.trim(); if(!v) return; S.name = v; save(); mon(); $('ask').style.display = 'none'; };
+$('askIn').onkeydown = e => { if(e.key === 'Enter') $('askOk').click(); };
+function fit(){ const s = Math.min(innerWidth / 480, innerHeight / 360); ST.style.transform = `scale(${s})`; }
+addEventListener('resize', fit); fit(); rmLabel(); home(); if(!S.name) ask();
 </script>
 <script src="../assets/gxy.js"></script>
 <script src="../assets/theme.js" data-root="../" data-no-css="true"></script>
-</body>
-</html>
+</body></html>
