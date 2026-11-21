@@ -166,10 +166,10 @@ const fmt = n => Math.round(n).toLocaleString();
 function mon(){ $('mBI').textContent = fmt(S.bi); $('mETH').textContent = fmt(S.eth); $('mName').textContent = S.name || '—'; }
 function rmLabel(){ const t = S.remaster ? 'Remastered' : 'Original'; $('rmBtn').textContent = '🎨 ' + t; $('rmSet').textContent = 'Backgrounds: ' + t; }
 function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 1800); }
-const chrome = on => ['hud', 'dock', 'hint'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
+const showUI = on => ['hud', 'dock', 'hint'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
 let busy = false, pending = 0;
 
-function home(){ busy = false; hideAll(); $('reveal').classList.remove('on'); chrome(true);
+function home(){ busy = false; hideAll(); $('reveal').classList.remove('on'); showUI(true);
   backdrop(S.bg); show('logo', { cos:logoName(S.bg), size:150, x:O.sprites.logo.x, y:O.sprites.logo.y }); mon(); }
 
 // clicking: original gives +5 per click on the logo, or space
@@ -212,7 +212,7 @@ function renderShop(){
 }
 async function openBox(k){
   const bx = BOXES.find(b => b.k === k), cost = PRICE[bx.kind]; if(busy || S.bi < cost) return;
-  busy = true; S.bi -= cost; S.boxes++; mon(); save(); closeSheets(); chrome(false); hideAll();
+  busy = true; S.bi -= cost; S.boxes++; mon(); save(); closeSheets(); showUI(false); hideAll();
   await anim(k, { x:0, y:-200, size:60 }, { x:0, y:0, size:175 }, 500);
   for(let i = 0; i < 3; i++){ await anim(k, { size:175 }, { size:200 }, 180); await anim(k, { size:200 }, { size:175 }, 180); }
   const f = $('flash'); f.style.opacity = .85; await wait(120); hideAll(); f.style.opacity = 0;
