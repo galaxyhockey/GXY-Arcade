@@ -9,7 +9,7 @@ const canvas = $('c');
 const R = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
 R.setPixelRatio(Math.min(devicePixelRatio, 1)); R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFShadowMap;
 R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
-const scene = new THREE.Scene(); G.scene = scene;
+const scene = new THREE.Scene(); G.scene = scene; G.R = R;
 const cam = new THREE.PerspectiveCamera(62, 1, .1, 420); G.cam = cam;
 function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();

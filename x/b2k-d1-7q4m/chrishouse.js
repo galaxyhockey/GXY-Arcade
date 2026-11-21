@@ -46,7 +46,7 @@ export function buildChrisHouse(){
   ip(5, 3, .15, -5.5, UP, -8.5); ip(2, 3, .15, -1, UP, -8.5); ip(1, .8, .15, -2.5, UP + 2.2, -8.5);
   // ---------- exterior trim, roof, porch ----------
   [[-8, 4], [8, 4], [-8, -12], [8, -12]].forEach(([x, z]) => deco(.3, UP + 3, .3, trim, x, 0, z));
-  deco(16.6, .45, 16.6, mat('#8f8a82'), 0, -.05, -4); deco(16.5, .25, .3, trim, 0, UP - .1, 4.15); deco(16.5, .25, .3, trim, 0, UP - .1, -12.15);
+  { const fm2 = mat('#8f8a82'); deco(16.6, .45, .2, fm2, 0, -.3, 4.2); deco(16.6, .45, .2, fm2, 0, -.3, -12.2); deco(.2, .45, 16.6, fm2, -8.2, -.3, -4); deco(.2, .45, 16.6, fm2, 8.2, -.3, -4); } deco(16.5, .25, .3, trim, 0, UP - .1, 4.15); deco(16.5, .25, .3, trim, 0, UP - .1, -12.15);
   const rm = txMat('chroof', (g, w, h) => { noise(g, w, h, '#4a3c38', .25, 3000); for(let y = 0; y < h; y += 10){ g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(0, y, w, 2); for(let x = (y / 10) % 2 ? 0 : 8; x < w; x += 16) g.fillRect(x, y, 2, 10); } }, [6, 3]);
   { const rh = 3.2, sh = new THREE.Shape(); sh.moveTo(-8, 0); sh.lineTo(8, 0); sh.lineTo(0, rh); sh.closePath();
     const gg = new THREE.ExtrudeGeometry(sh, { depth:16, bevelEnabled:false }); gg.translate(0, 0, -8); gg.rotateY(Math.PI / 2); const gm = new THREE.Mesh(gg, sid); gm.position.set(0, UP + 3, -4); gm.castShadow = true; S.add(gm);
@@ -66,11 +66,11 @@ export function buildChrisHouse(){
   plane(9, 16, carpet, -3.5, .02, -4); plane(7, 16, vinyl, 4.5, .02, -4);
   floor(-5.4, -12, 8, 4, UP, null); floor(-8, -12, -5.4, -6, UP, null); floor(-8, 2.2, -5.4, 4, UP, null);
   plane(16, 6, oak, 0, UP + .02, -9); plane(13.4, 4, oak, 1.3, UP + .02, -4); plane(10.4, 6, oak, 2.8, UP + .02, 1);
-  const ceil = mat('#f4f1ea'); deco(10.4, .2, 6, ceil, 2.8, UP - .2, 1); deco(16, .2, 6, ceil, 0, UP - .2, -9); deco(13.4, .2, 4, ceil, 1.3, UP - .2, -4); deco(16, .15, 16, ceil, 0, UP + 2.95, -4);
+  const ceil = new THREE.MeshBasicMaterial({ color:0xe9e5dc }); deco(10.4, .2, 6, ceil, 2.8, UP - .2, 1); deco(16, .2, 6, ceil, 0, UP - .2, -9); deco(13.4, .2, 4, ceil, 1.3, UP - .2, -4); deco(16, .15, 16, ceil, 0, UP + 2.95, -4);
   ramp(-7.8, -6, -5.4, 2.2, 'z', UP, 0);
-  for(let i = 0; i < 12; i++){ deco(2.4, .27, .67, wood, -6.6, i * .267, 1.8 - i * .67); deco(2.4, .03, .1, mat('#6a4428'), -6.6, i * .267 + .24, 2.1 - i * .67); }
+  for(let i = 0; i < 12; i++){ deco(2.4, i * .267 + .2, .67, paint, -6.6, 0, 1.8 - i * .67); deco(2.4, .07, .67, wood, -6.6, i * .267 + .2, 1.8 - i * .67); deco(2.4, .03, .1, mat('#6a4428'), -6.6, i * .267 + .24, 2.1 - i * .67); }
   box(.12, 1, 8.2, trim, -5.35, UP, -1.9);                                     // upstairs rail (blocks the drop)
-  for(let i = 0; i < 12; i++){ deco(.06, .9, .06, trim, -5.35, (11 - i) * .267 + .27, 1.8 - (11 - i) * .67); } deco(.1, .08, 8.4, mat('#6a4428'), -5.35, 1.15, -2);
+  for(let i = 0; i < 12; i++){ deco(.06, .9, .06, trim, -5.35, (11 - i) * .267 + .27, 1.8 - (11 - i) * .67); } { const hr = new THREE.Mesh(new THREE.BoxGeometry(.1, .08, Math.hypot(8, 3.2)), mat('#6a4428')); hr.position.set(-5.35, 1.6 + 1.05, -1.9); hr.rotation.x = Math.atan2(3.2, 8); S.add(hr); }
   for(let z = -5.8; z < 2.2; z += .45) deco(.05, .9, .05, trim, -5.35, UP, z); deco(.1, .08, 8.2, mat('#6a4428'), -5.35, UP + .92, -1.9);
   [[-3.5, -6], [4.5, -7], [-3, UP, -2], [4, -8]].forEach(([x, z, zz]) => { const y = zz !== undefined ? UP + 2.92 : UP - .22, cz = zz !== undefined ? zz : z; const l = new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, .06, 14), new THREE.MeshBasicMaterial({ color:0xfff6dc })); l.position.set(x, y, cz); S.add(l); });
   // ---------- living room ----------
@@ -105,6 +105,10 @@ export function buildChrisHouse(){
     for(let t = 0; t <= len; t += .4) deco(.1, 1.45, .1, fm, x0 + (x1 - x0) * t / len, 0, z0 + (z1 - z0) * t / len); });
   G.gate = box(.12, 1.3, 4, mat('#cfc6ad'), 14, 0, -20);
   deco(.8, .9, .8, mat('#7a5a3a'), 10, 0, -24); deco(1, .12, 1, mat('#5a3a22'), 10, .9, -24); deco(4.5, .02, 6, mat('#5a4a3a'), -9, .01, -22); // dog house + garden bed
+  plane(7, 4, mat('#b9b3a8'), -1, .04, -14.2); deco(1.6, .18, .5, mat('#b9b3a8'), -1, 0, -12.4);
+  deco(.6, .9, .45, mat('#222'), 1.5, 0, -14.6); deco(.7, .08, .55, mat('#333'), 1.5, .9, -14.6);
+  box(.9, .8, .9, mat('#b8bcc0'), 8.7, 0, -9.5); deco(.7, .02, .7, mat('#555'), 8.7, .81, -9.5);
+  [4.25, -12.25].forEach(z => deco(16.4, .14, .14, mat('#e8e8e2'), 0, UP + 2.8, z)); [[-8.1, 4.2], [8.1, 4.2], [-8.1, -12.2], [8.1, -12.2]].forEach(([x, z]) => deco(.1, UP + 2.8, .1, mat('#e8e8e2'), x, 0, z));
   mapRect(-8, -12, 8, 4, '#d8c8a8'); mapRect(-14, -26, 14, -12, '#6a9a4a');
   for(let z = 7.5; z < 20; z += 1.6) plane(1.3, 1.45, mat('#b9b6ad'), 0, .05, z);
   const car = makeCar('#2a5a9a'); car.position.set(10.5, 0, 9); S.add(car); G.colliders.push({ x0:9.5, x1:11.5, z0:6.8, z1:11.2, y0:0, y1:1.6 }); G.chrisCar = car;
