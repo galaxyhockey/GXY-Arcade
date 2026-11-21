@@ -219,7 +219,7 @@ const MKT = [
   { k:'dupe', name:'Duplicate Exchange', ico:'♻️', price:3000, once:true, desc:'Duplicate brands pay double Ethereum' },
   { k:'key', name:'Box Key', ico:'🗝️', price:750, desc:'Open any box for free (keys stack)' },
   { k:'boost', name:'Overclock', ico:'🚀', price:1500, desc:'×3 on everything for 3 minutes' },
-  { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade 100 Ethereum for 1,500 Brand Items' }
+  { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade Ethereum for Brand Items · 1 Ξ = 15 BI' }
 ];
 const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120 };
 const boosted = () => Date.now() < S.boostUntil ? 3 : 1;
@@ -315,10 +315,13 @@ function renderUp(){ $('upCards').innerHTML = UPG.map(u => { const l = lv(u.k), 
     if(S.bi < c || l >= u.max) return; S.bi -= c; S.lv[u.k] = l + 1; save(); mon(); renderUp(); toast(`${u.name} → level ${l + 1}`); }); }
 function renderMkt(){ $('mktCards').innerHTML = MKT.map(m => { const own = m.once && S.items[m.k];
   return `<div class="card"><h3>${m.ico} ${m.name}</h3><p>${m.desc}</p>${m.k === 'key' ? `<span class="lv">You have ${S.keys}</span>` : ''}
-    <button class="btn eth" data-m="${m.k}" ${own || S.eth < m.price ? 'disabled' : ''}>${own ? 'Owned' : fmt(m.price) + ' Ξ'}</button></div>`; }).join('');
+    ${m.k === 'cash' ? `<div class="row" style="margin:0">${[10, 100, 1000, 1e4, 1e5, 'all'].map(a => `<button class="btn eth" style="flex:1;padding:8px 6px;font-size:12px" data-cash="${a}" ${S.eth < (a === 'all' ? 1 : a) ? 'disabled' : ''}>${a === 'all' ? 'All' : fmt(a)} Ξ</button>`).join('')}</div>`
+    : `<button class="btn eth" data-m="${m.k}" ${own || S.eth < m.price ? 'disabled' : ''}>${own ? 'Owned' : fmt(m.price) + ' Ξ'}</button>`}</div>`; }).join('');
+  $('mktCards').querySelectorAll('[data-cash]').forEach(b => b.onclick = () => { const a = b.dataset.cash === 'all' ? Math.floor(S.eth) : +b.dataset.cash;
+    if(a < 1 || S.eth < a) return; S.eth -= a; S.bi += a * 15; save(); mon(); renderMkt(); toast(`Cashed out ${fmt(a)} Ξ → +${fmt(a * 15)} BI`); });
   $('mktCards').querySelectorAll('[data-m]').forEach(b => b.onclick = () => { const m = MKT.find(x => x.k === b.dataset.m); if(S.eth < m.price || (m.once && S.items[m.k])) return;
     S.eth -= m.price;
-    if(m.once) S.items[m.k] = 1; else if(m.k === 'key') S.keys++; else if(m.k === 'boost') S.boostUntil = Math.max(Date.now(), S.boostUntil) + 180000; else if(m.k === 'cash') S.bi += 1500;
+    if(m.once) S.items[m.k] = 1; else if(m.k === 'key') S.keys++; else if(m.k === 'boost') S.boostUntil = Math.max(Date.now(), S.boostUntil) + 180000; 
     save(); mon(); renderMkt(); toast(m.name + '!'); }); }
 
 // ---------- My PC ----------
