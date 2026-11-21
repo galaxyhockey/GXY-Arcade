@@ -2,6 +2,7 @@
 // Customers drain the cart bay and refill the corrals; Eric radios hourly cart runs; checklanes call for a bagger; some
 // orders become carryouts (tips). Eric's patience drops when jobs are ignored or Chris hides in the break room.
 import * as E from './engine.js';
+import { repDelta, wage } from './extras.js';
 import { save, newCart, train, clearTrain, startPushing, grabFrom, deliver, fillCorral, emptyCorrals } from './game.js';
 const { G, P } = E; const $ = id => document.getElementById(id);
 const SPOTS = [[70, 276], [130, 276], [160, 302], [90, 302], [40, 318], [180, 318], [210, 276], [20, 302]];
@@ -51,8 +52,8 @@ export async function playShift(life, randomLook){ const { L, passTime } = life,
   t.amb = true; G.ticks.push(t);
   async function end(why){ G.onShift = false; const i = G.ticks.indexOf(t); if(i >= 0) G.ticks.splice(i, 1); inters.forEach(E.delInter); if(S.req) E.clearMarker(S.req.mk); if(S.out){ E.clearMarker(S.out.mk); S.out.cust.remove(); G.scene.remove(S.out.cart); } E.setWay();
     clearTrain(); G.carry = null; emptyCorrals(); $('carts').style.display = 'none';
-    const base = Math.round(7.25 * S.el / 60 * 100) / 100, bonus = why === 'done' ? (S.pat >= 80 ? 5 : S.pat < 30 ? -8 : 0) : why === 'sent' ? -10 : 0, total = Math.max(0, base + bonus + S.tips);
-    l.cash += total; save(); E.setOutfit({}); E.cut(true);
+    const base = Math.round(wage() * S.el / 60 * 100) / 100, bonus = why === 'done' ? (S.pat >= 80 ? 5 : S.pat < 30 ? -8 : 0) : why === 'sent' ? -10 : 0, total = Math.max(0, base + bonus + S.tips);
+    l.cash += total; repDelta(why === 'done' ? (S.pat >= 80 ? 8 : S.pat < 30 ? -8 : 2) : why === 'sent' ? -12 : -15); save(); E.setOutfit({}); E.cut(true);
     const line = { done:S.pat >= 80 ? ['Eric', 'Not bad, Chris. Don’t let it go to your head.'] : S.pat < 30 ? ['Eric', 'That was a disaster. I’m docking you.'] : ['Eric', 'You survived. Go home.'],
       sent:['Eric', 'Go home, Chris. Just... go home.'], walked:['Eric (phone)', 'Did you just WALK OFF? You’re only getting paid for what you worked.'] }[why];
     await E.say([line]); await E.banner(why === 'done' ? 'SHIFT COMPLETE' : 'SHIFT OVER', `Carts returned ${S.carts} · Bagged ${S.bags} · Carryouts ${S.outs}<br>Pay ${money(base)} ${bonus ? (bonus > 0 ? '+ bonus ' : '− ') + money(Math.abs(bonus)) : ''} + tips ${money(S.tips)} = <b>${money(total)}</b>`, why !== 'done', 4800);

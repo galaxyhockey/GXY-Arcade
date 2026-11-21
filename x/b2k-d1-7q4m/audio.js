@@ -37,7 +37,7 @@ let ambT = 0, hum = null;
 function setHum(on, f = 58){ if(on && !hum){ hum = A.createOscillator(); const g = A.createGain(); g.gain.value = .025; hum.type = 'sine'; hum.frequency.value = f; hum.connect(g); g.connect(ambG); hum.start(); hum.g = g; }
   if(!on && hum){ hum.stop(); hum = null; } }
 function ambience(dt){ ambT -= dt; if(ambT > 0) return; const t = A.currentTime, night = G.time === 'night' || G.time === 'dusk';
-  if(zone === 'out'){ ambT = .4 + Math.random() * 1.2;
+  if(zone === 'out'){ ambT = .4 + Math.random() * 1.2; if(G.wet && G.wx !== 'snow'){ ambT = .25; for(let i = 0; i < 3; i++) noise(t + i * .08, .6, G.wx === 'storm' ? .07 : .045, ambG, 1800 + Math.random() * 2000, .4); }
     if(night){ for(let i = 0; i < 3; i++) osc('sine', 4200 + Math.random() * 300, t + i * .07, .05, .012, ambG); }
     else if(Math.random() < .45){ const f = 2400 + Math.random() * 1600; osc('sine', f, t, .09, .02, ambG, f * 1.3); osc('sine', f * 1.1, t + .12, .08, .016, ambG, f * .9); }
     if(Math.random() < .25) noise(t, 2.2, .025, ambG, 400, .4, 'lowpass'); }

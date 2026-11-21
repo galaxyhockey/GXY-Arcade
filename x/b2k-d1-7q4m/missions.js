@@ -12,7 +12,7 @@ async function crawl(n, wx, dir, z){ n.stop(); n.manual = true; const o = n.o, u
   o.rotation.x = 0; u.aL.rotation.x = u.aR.rotation.x = u.lL.rotation.x = u.lR.rotation.x = 0; u.pose = false; n.manual = false; n.sync(); }
 import { M04, S01 } from './missions2.js';
 const { G, P } = E;
-export const LOOK = {
+export const LOOK = G.LOOK = {
   zeke:{ shirt:'#d8a020', pants:'#3a4a6a', wide:1.32, hat:'capback', cap:'#1d1d1d', hair:'#3a2414', hairStyle:'buzz', top:'jersey', print:'23', bottom:'baggy', chain:'silver', shoes:'#f2f2f2' },
   jax:{ shirt:'#2a6a3a', pants:'#2b3550', hair:'#151515', skin:'#c48a5e', hairStyle:'cornrows', top:'hoodie', bottom:'baggy', shoes:'#f4f4f4', thin:true, scale:1.04 },
   matt:{ shirt:'#8a2a2a', pants:'#5a5a4a', hair:'#c9a15a', hairStyle:'shaggy', top:'flannel', bottom:'cargo', chain:'puka', shoes:'#2a2a2a' },

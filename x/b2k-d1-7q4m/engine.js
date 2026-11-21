@@ -9,15 +9,15 @@ const canvas = $('c');
 const R = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
 R.setPixelRatio(Math.min(devicePixelRatio, 1)); R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFShadowMap;
 R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
-const scene = new THREE.Scene(); G.scene = scene; G.R = R;
+const scene = new THREE.Scene(); G.scene = scene; G.R = R; G.skyU = null;
 const cam = new THREE.PerspectiveCamera(62, 1, .1, 420); G.cam = cam;
 function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-const hemi = new THREE.HemisphereLight(0xcfe6ff, 0x5a4a30, .75); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0xcfe6ff, 0x5a4a30, .75); scene.add(hemi); G.hemi = hemi;
 const sun = new THREE.DirectionalLight(0xfff1d6, 1.6); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
 Object.assign(sun.shadow.camera, { left:-45, right:45, top:45, bottom:-45, near:1, far:240 }); sun.shadow.autoUpdate = false; // re-rendered every 3rd frame (biggest per-frame cost around Schnucks) sun.shadow.bias = -.0006; sun.shadow.normalBias = .03;
-scene.add(sun, sun.target);
-const skyU = { top:{ value:new THREE.Color(0x3d7fd8) }, bot:{ value:new THREE.Color(0xcfe6ff) } };
+scene.add(sun, sun.target); G.sun = sun;
+const skyU = G.skyU = { top:{ value:new THREE.Color(0x3d7fd8) }, bot:{ value:new THREE.Color(0xcfe6ff) } };
 const sky = new THREE.Mesh(new THREE.SphereGeometry(390, 24, 12), new THREE.ShaderMaterial({ side:THREE.BackSide, depthWrite:false, uniforms:skyU,
   vertexShader:'varying vec3 p;void main(){p=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
   fragmentShader:'uniform vec3 top;uniform vec3 bot;varying vec3 p;void main(){float h=clamp(p.y*1.6+.12,0.,1.);gl_FragColor=vec4(mix(bot,top,h),1.);}' }));
@@ -30,7 +30,7 @@ const TIMES = {
   indoor:{ top:0x3d7fd8, bot:0xd8ecff, fog:0xcfe6ff, sun:0xfff1d6, si:1.2, hi:.95, dir:[60, 90, 40] } };
 export function setTime(k){ const t = TIMES[k]; G.time = k; skyU.top.value.set(t.top); skyU.bot.value.set(t.bot); scene.fog.color.set(t.fog);
   sun.color.set(t.sun); sun.intensity = t.si; hemi.intensity = t.hi; G.sunDir = new THREE.Vector3(...t.dir).normalize();
-  G.lamps && G.lamps.forEach(l => l.visible = k === 'night' || k === 'dusk'); }
+  G.lamps && G.lamps.forEach(l => l.visible = k === 'night' || k === 'dusk'); G.onTime && G.onTime(k); }
 setTime('day');
 
 // ---------- canvas textures ----------
@@ -244,7 +244,9 @@ export function exitCar(){ const c = G.driving; if(!c) return; G.driving = null;
   if(c.col){ const x = c.car.position.x, z = c.car.position.z, sw = Math.abs(Math.sin(c.head)) > .7; Object.assign(c.col, sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3 }); c.col.off = false; } sfx('door'); }
 const carP = new THREE.Vector3();
 function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.paused;
-  const th = ctl ? (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0) : 0, st = ctl ? (k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) : 0;
+  let th = ctl ? (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0) : 0;
+  if(G.gas != null && !G.mission){ G.gas = Math.max(0, G.gas - Math.abs(c.speed) * dt * 6e-4); if(G.gas <= 0 && th > 0){ th = 0; if(!G.gasWarn){ G.gasWarn = 1; toast('Out of gas. Should have stopped at the station.', 3000); } } } else G.gasWarn = 0;
+  const st = ctl ? (k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) : 0;
   if(th > 0) c.speed += (c.speed < 0 ? 26 : 11) * dt; else if(th < 0) c.speed -= (c.speed > 0 ? 24 : 7) * dt; else c.speed *= Math.pow(.45, dt);
   if(k.Space && ctl) c.speed *= Math.pow(.05, dt); c.speed = Math.max(-7, Math.min(24, c.speed));
   c.head += st * dt * Math.min(1, Math.abs(c.speed) / 6) * 1.7 * Math.sign(c.speed || 1);
@@ -260,14 +262,16 @@ function updatePlayer(dt){
     if(k.ArrowUp) P.pitch = Math.min(.9, P.pitch + dt); if(k.ArrowDown) P.pitch = Math.max(-1.1, P.pitch - dt); }
   const want = (k.ShiftLeft || k.ShiftRight) && G.ctl && Math.hypot(f, s);
   if(P.stam <= 0) P.tired = true; if(P.stam > .3) P.tired = false;
-  const run = want && !P.tired; P.stam = Math.max(0, Math.min(1, P.stam + (run ? -.16 : .22) * dt));
-  const sp = run ? P.sprint : P.speed, mv = Math.hypot(f, s) ? sp : 0;
+  const run = want && !P.tired && !P.board; P.stam = Math.max(0, Math.min(1, P.stam + (run ? -.16 : .22) * dt));
+  const sp = (P.board ? 13.5 : run ? P.sprint : P.speed) * (G.carry && G.wet ? .8 : 1), mv = Math.hypot(f, s) ? sp : 0;
+  if(P.board && !P.model.userData.board){ const b = new THREE.Group(), dk = new THREE.Mesh(new THREE.BoxGeometry(.26, .04, .82), mat('#2a2a2a')); dk.position.y = .1; b.add(dk); [-.3, .3].forEach(z => [-.09, .09].forEach(x => { const w = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .04, 8), mat('#f2f2e8')); w.rotation.z = Math.PI / 2; w.position.set(x, .04, z); b.add(w); })); P.model.add(b); P.model.userData.board = b; }
+  if(!P.board && P.model.userData.board){ P.model.remove(P.model.userData.board); P.model.userData.board = null; }
   if(mv){ const a = P.yaw + Math.atan2(-s, f), ox = P.p.x, oz = P.p.z; P.p.x += Math.sin(a) * mv * dt; P.p.z += Math.cos(a) * mv * dt;
     P.moved += Math.hypot(P.p.x - ox, P.p.z - oz); P.model.rotation.y = a; }
   if(G.carry) G.carry(dt, mv);
   collide(P.p, P.rad);
   const gy = groundAt(P.p.x, P.p.z, P.p.y); if(P.p.y > gy + .05){ P.vy -= 22 * dt; P.p.y = Math.max(gy, P.p.y + P.vy * dt); } else { P.p.y += (gy - P.p.y) * Math.min(1, dt * 15); P.vy = 0; }
-  if(mv && P.model.userData.sitting){ P.model.userData.sitting = false; if(G.sofaCol) G.sofaCol.off = false; } P.model.userData.talking = G.speaking === 'Chris'; P.model.position.copy(P.p); animate(P.model, mv, dt); P.mv = mv; }
+  if(mv && P.model.userData.sitting){ P.model.userData.sitting = false; if(G.sofaCol) G.sofaCol.off = false; } P.model.userData.talking = G.speaking === 'Chris'; P.model.position.copy(P.p); if(P.board) P.model.position.y += .12; animate(P.model, P.board ? 0 : mv, dt); P.mv = mv; }
 function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between player and camera
   let t = 1; const steps = 12;
   for(let i = 1; i <= steps; i++){ const u = i / steps, x = a.x + (b.x - a.x) * u, z = a.z + (b.z - a.z) * u, y = a.y + (b.y - a.y) * u;
@@ -397,7 +401,7 @@ function hud(){
     $('compass').textContent = `${arrows[i]} ${Math.round(d)} m`; } else $('compass').textContent = '';
   const it = G.ctl && !G.dialogOn && !G.driving ? nearestInter() : null, pr = $('prompt');
   const sb = $('stam'); if(sb){ sb.style.display = P.stam < .99 && !G.driving ? 'block' : 'none'; sb.firstChild.style.width = P.stam * 100 + '%'; sb.firstChild.style.background = P.tired ? '#ff5252' : '#7ee07e'; }
-  $('speedo') && ($('speedo').style.display = G.driving ? 'block' : 'none', G.driving && ($('speedo').textContent = Math.round(Math.abs(G.driving.speed) * 2.24) + ' MPH  ·  E — EXIT (when stopped)'));
+  $('speedo') && ($('speedo').style.display = G.driving ? 'block' : 'none', G.driving && ($('speedo').textContent = Math.round(Math.abs(G.driving.speed) * 2.24) + ' MPH' + (G.gas != null && !G.mission ? '  ·  GAS ' + G.gas.toFixed(1) + ' gal' : '') + '  ·  E — EXIT (when stopped)'));
   if(G.driving && !G.dialogOn){ pr.style.display = 'none'; return; }
   if(it){ pr.textContent = 'E — ' + it.prompt; pr.style.display = 'block'; } else pr.style.display = 'none'; }
 function nearestInter(){ let best = null, bd = 1e9;
