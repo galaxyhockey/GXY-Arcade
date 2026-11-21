@@ -129,7 +129,7 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
       await cartRun(2, 6); clock(day4, '5:40 PM');
       await H.say([['', 'Jax’s friend is hosting a rager this Friday, and I\'m off. This sounds like an amazing idea. I guess I\'ll save it for later, if I can remember.']]);
       const mad = mnpc('Madison', W.madison, 96, 320); mad.blip = '#4fc3ff'; await cartRun(9, 5); clock(day4, '6:55 PM');
-      mad.at(108, 327); face(mad, P.p); E.cut(true); faceP(mad); await two(P.p, mad);
+      E.cut(true); E.place(103.8, 320.5, 0); mad.at(106.6, 322.2); face(mad, P.p); faceP(mad); await H.shot([107.3, 2.2, 318.1], [105.2, 1.5, 321.4], 600);
       await H.say([['', 'My awesome thoughts get interrupted by Madison.'], ['Madison', 'Why aren’t you pushing more carts? We need them!'], [C, 'Why are you pushing so many carts, how about that'],
         ['Madison', 'Real funny Chris, how long did it take you to think that one up'], [C, 'Only 5 minutes'], ['Madison', 'Exactly'],
         ['', 'Madison said pushing carts in, I followed behind, she works too much for my liking, always stealing those extra shifts, getting all the credit. It sucks.']]);
