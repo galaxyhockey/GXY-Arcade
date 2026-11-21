@@ -1,0 +1,271 @@
+// Back in the 2000s: The Game — world: Belleville/Swansea 2003 slice + 1989 sets
+import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRect, makeCar, makePerson } from './engine.js';
+const S = G.scene;
+// ---------- materials ----------
+const M = {
+  grass:txMat('grass', (g, w, h) => noise(g, w, h, '#5d8f3e', .22, 2600), [1, 1]),
+  asphalt:txMat('asph', (g, w, h) => noise(g, w, h, '#3b3d42', .18, 2600), [1, 1]),
+  walk:txMat('walk', (g, w, h) => { noise(g, w, h, '#b9b6ad', .12); g.strokeStyle = '#8f8c84'; g.lineWidth = 3; g.strokeRect(0, 0, w, h); }, [1, 1]),
+  wood:txMat('wood', (g, w, h) => { noise(g, w, h, '#a8743f', .15); g.strokeStyle = '#7a5028'; for(let y = 0; y < h; y += 16){ g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } }, [1, 1]),
+  carpet:txMat('carpet', (g, w, h) => noise(g, w, h, '#7d6a8a', .2, 3000), [1, 1]),
+  tile:txMat('tile', (g, w, h) => { g.fillStyle = '#e9e6dc'; g.fillRect(0, 0, w, h); g.fillStyle = '#cfcab9'; g.fillRect(0, 0, w / 2, h / 2); g.fillRect(w / 2, h / 2, w / 2, h / 2); }, [1, 1]),
+  kitchen:txMat('ktile', (g, w, h) => { g.fillStyle = '#f4f0e6'; g.fillRect(0, 0, w, h); g.fillStyle = '#b8352c'; g.fillRect(0, 0, w / 2, h / 2); g.fillRect(w / 2, h / 2, w / 2, h / 2); }, [1, 1]),
+  brick:txMat('brick', (g, w, h) => { g.fillStyle = '#9c4a36'; g.fillRect(0, 0, w, h); g.fillStyle = '#c9bfae';
+    for(let y = 0; y < h; y += 16){ g.fillRect(0, y, w, 2); for(let x = (y / 16) % 2 ? 0 : 16; x < w; x += 32) g.fillRect(x, y, 2, 16); } }, [1, 1]),
+  stucco:txMat('stucco', (g, w, h) => noise(g, w, h, '#d9d2c0', .1), [1, 1]),
+  ceiling:txMat('ceil', (g, w, h) => { g.fillStyle = '#efeee8'; g.fillRect(0, 0, w, h); g.strokeStyle = '#c9c7bd'; g.lineWidth = 3; g.strokeRect(0, 0, w, h); }, [1, 1]),
+};
+const siding = c => txMat('side' + c, (g, w, h) => { g.fillStyle = c; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.14)'; for(let y = 0; y < h; y += 12) g.fillRect(0, y, w, 2); }, [2, 2]);
+const roofM = c => txMat('roof' + c, (g, w, h) => { noise(g, w, h, c, .2); g.fillStyle = 'rgba(0,0,0,.2)'; for(let y = 0; y < h; y += 14) g.fillRect(0, y, w, 2); }, [3, 3]);
+const rep = (m, x, y) => { const c = m.clone(); c.map = m.map.clone(); c.map.needsUpdate = true; c.map.repeat.set(x, y); return c; };
+const glass = new THREE.MeshLambertMaterial({ color:0x9fc6e6, transparent:true, opacity:.55, emissive:0x223344 });
+G.M = M;
+
+// ---------- ground + roads ----------
+plane(1200, 1200, rep(M.grass, 160, 160), 200, 0, 200);
+function road(x0, z0, x1, z1, name){ plane(x1 - x0, z1 - z0, rep(M.asphalt, (x1 - x0) / 6, (z1 - z0) / 6), (x0 + x1) / 2, .02, (z0 + z1) / 2); mapRect(x0, z0, x1, z1, '#5a5d63');
+  const along = x1 - x0 > z1 - z0, dash = new THREE.MeshBasicMaterial({ color:0xf2d04a });
+  if(along){ for(let x = x0 + 2; x < x1; x += 6) plane(3, .18, dash, x, .03, (z0 + z1) / 2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z0 - 1.2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z1 + 1.2); }
+  else { for(let z = z0 + 2; z < z1; z += 6) plane(.18, 3, dash, (x0 + x1) / 2, .03, z); plane(2.4, z1 - z0, rep(M.walk, 1, (z1 - z0) / 3), x0 - 1.2, .06, (z0 + z1) / 2); plane(2.4, z1 - z0, rep(M.walk, 1, (z1 - z0) / 3), x1 + 1.2, .06, (z0 + z1) / 2); }
+  if(name) G.roads.push({ x0, z0, x1, z1, name }); }
+G.roads = [];
+road(-190, 20, 150, 28, 'Elm Street');            // main residential street
+road(96, 28, 104, 252, 'Maple Street');           // Maple Street (dog chase meet-up)
+road(-190, 252, 230, 260, 'Swansea Road');        // road to the plaza
+road(-112, 28, -104, 252, 'Lincoln Avenue');      // school road
+function streetSign(x, z, t, ry = 0){ cyl(.05, 3, mat('#777'), x, 0, z); const s = new THREE.Mesh(new THREE.BoxGeometry(1.8, .4, .05), new THREE.MeshBasicMaterial({ map:label(t, { bg:'#1d6b3a', fg:'#fff', size:52, w:512, h:110 }) }));
+  s.position.set(x, 3, z); s.rotation.y = ry; S.add(s); }
+streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSign(-102.5, 30, 'LINCOLN AVE', Math.PI / 2); streetSign(-1.5, 18.5, 'ELM ST');
+
+// ---------- trees / props ----------
+const leafM = [mat('#3f7a2e'), mat('#4d8a34'), mat('#5c7f2a'), mat('#b5651d'), mat('#c98a2a')];
+export function tree(x, z, s = 1, fall){ cyl(.22 * s, 2.6 * s, mat('#5a3d22'), x, 0, z, 7);
+  const l = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s, 0), leafM[fall ? 3 + (Math.random() * 2 | 0) : Math.random() * 3 | 0]); l.position.set(x, 3.4 * s, z); l.castShadow = true; S.add(l);
+  G.colliders.push({ x0:x - .3, x1:x + .3, z0:z - .3, z1:z + .3, y0:0, y1:3 }); }
+function bush(x, z){ const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.8, 0), leafM[1]); b.position.set(x, .5, z); b.scale.y = .7; b.castShadow = true; S.add(b); }
+function fence(x0, z0, x1, z1){ const len = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(x1 - x0, z1 - z0); const fm = mat('#e8e2d0');
+  box(x1 === x0 ? .12 : len, 1.3, x1 === x0 ? len : .12, fm, (x0 + x1) / 2, 0, (z0 + z1) / 2); }
+function lamp(x, z){ cyl(.08, 5, mat('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), new THREE.MeshBasicMaterial({ color:0xffe9a8 })); b.position.set(x, 5.05, z); S.add(b); }
+for(let x = -180; x < 150; x += 26){ lamp(x, 17.6); }
+
+// ---------- houses ----------
+const houseCols = ['#d9d4c3', '#b7c8d6', '#e2cfa3', '#c7d3b4', '#d6b8a8', '#9fb2c4', '#ece6da'];
+function house(x, z, face, col, o = {}){ // closed exterior house; face: 1 = door faces +z (south), -1 = faces -z
+  const w = o.w || 11, d = o.d || 9, h = o.h || 5.4, sm = siding(col), rm = roofM(o.roof || '#5b4a44');
+  box(w, h, d, sm, x, 0, z);
+  const r1 = new THREE.Mesh(new THREE.BoxGeometry(w + .8, .3, d / 2 + 1.2), rm); r1.position.set(x, h + 1.2, z - d / 4 - .1); r1.rotation.x = -.5; r1.castShadow = true;
+  const r2 = r1.clone(); r2.position.z = z + d / 4 + .1; r2.rotation.x = .5; S.add(r1, r2);
+  const gab = new THREE.Mesh(new THREE.CylinderGeometry(0, d / 2 + .1, 2.4, 3, 1), sm); gab.rotation.set(Math.PI / 2, 0, 0); gab.scale.set(1, 1, .0001);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.1, 2.2, .1), mat(o.door || '#6b2a22')); door.position.set(x, 1.1, z + face * (d / 2 + .05)); S.add(door);
+  [-1, 1].forEach(sd => { const wi = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, .1), glass); wi.position.set(x + sd * 3, 1.7, z + face * (d / 2 + .05)); S.add(wi);
+    const w2 = wi.clone(); w2.position.y = 4; S.add(w2); });
+  box(1.4, .3, 1.6, M.walk.clone ? mat('#b9b6ad') : mat('#bbb'), x, 0, z + face * (d / 2 + .8), { col:false });
+  if(o.garage){ box(5, 3, 6, sm, x + face * (w / 2 + 2.5), 0, z); const gd = new THREE.Mesh(new THREE.BoxGeometry(4, 2.4, .1), mat('#eee')); gd.position.set(x + face * (w / 2 + 2.5), 1.2, z + face * 3.05); S.add(gd); }
+  mapRect(x - w / 2, z - d / 2, x + w / 2, z + d / 2, '#b8a99a');
+  bush(x - w / 2 + 1, z + face * (d / 2 + 1)); bush(x + w / 2 - 1, z + face * (d / 2 + 1)); }
+// north side of Elm (doors face +z), south side (doors face -z)
+const north = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], south = [-170, -150, -130, -60, -40, -20, 0, 20, 40, 60, 80, 120, 140];
+north.forEach((x, i) => house(x, 6, 1, houseCols[i % 7], { garage:i % 3 === 0 }));
+south.forEach((x, i) => house(x, 42, -1, houseCols[(i + 3) % 7], { garage:i % 4 === 1, roof:['#5b4a44', '#3d4a5a', '#6a3a2a'][i % 3] }));
+[-30, -15, 30, 55, 85, 130, -115, -95, -165, -142].forEach((x, i) => { tree(x, 34 + (i % 2) * 2, 1, true); tree(x + 6, 14 - (i % 2) * 2, 1.1); });
+for(let z = 54; z < 245; z += 14){ house(84, z + 4, 1, houseCols[(z / 14 | 0) % 7], { w:9, d:8 }); house(116, z, 1, houseCols[(z / 14 + 2 | 0) % 7], { w:9, d:8 }); if(z % 28 === 12){ tree(92, z, 1.1, true); tree(108, z + 7, 1); } }
+// fill along Maple: rotate doors toward road is cosmetic; keep simple
+
+// ---------- Chris's house (enterable, 2 floors) ----------
+const CH = { x:0, z:-4 }; G.CH = CH;
+{ const wallM = siding('#e7e0c8'), inM = mat('#efe6cf'), trim = mat('#ffffff'), up = 3.2;
+  const W = (w, h, d, x, y, z, m = wallM) => box(w, h, d, m, x, y, z);
+  // ground floor shell x -8..8, z -12..4 ; front door gap x -.8..0.8 ; back door gap x 3..4.4 ; kitchen window on east wall (visual)
+  W(7.2, up, .25, -4.4, 0, 4); W(7.2, up, .25, 4.4, 0, 4); W(1.6, .9, .25, 0, 2.3, 4);
+  W(11, up, .25, -2.5, 0, -12); W(3.6, up, .25, 6.2, 0, -12); W(1.4, .9, .25, 3.7, 2.3, -12);
+  W(.25, up, 16, -8, 0, -4); W(.25, up, 5, 8, 0, 1.5); W(.25, up, 5.2, 8, 0, -9.4); W(.25, .9, 2.8, 8, 0, -5.4); W(.25, .9, 2.8, 8, 2.3, -5.4);
+  const kw = new THREE.Mesh(new THREE.BoxGeometry(.08, 1.4, 2.8), glass); kw.position.set(8.02, 1.6, -5.4); S.add(kw); G.kitchenWindow = kw;
+  // upstairs shell
+  W(16, 3, .25, 0, up, 4); W(16, 3, .25, 0, up, -12); W(.25, 3, 16, -8, up, -4); W(.25, 3, 16, 8, up, -4);
+  [-4, 4].forEach(x => { const w = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, .1), glass); w.position.set(x, up + 1.6, 4.1); S.add(w); });
+  [-5, 5].forEach(x => { const w = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, .1), glass); w.position.set(x, 1.6, 4.14); S.add(w); });
+  // roof
+  const rm = roofM('#4a3c38'); [[-1, -.55], [1, .55]].forEach(([s, a]) => { const r = new THREE.Mesh(new THREE.BoxGeometry(17, .3, 9.6), rm); r.position.set(0, up + 4.4, -4 + s * 4.1); r.rotation.x = a; r.castShadow = true; S.add(r); });
+  // floors
+  floor(-8, -12, 8, 4, 0, null); plane(9, 16, rep(M.carpet, 4, 6), -3.5, .02, -4); plane(7, 16, rep(M.kitchen, 5, 10), 4.5, .02, -4);
+  floor(-8, -12, 8, 4, up, null); plane(16, 10, rep(M.wood, 5, 4), 0, up + .02, -7); plane(10.4, 6, rep(M.wood, 4, 2), 2.8, up + .02, 1);
+  box(10.4, .2, 6, mat('#e8e4d8'), 2.8, up - .2, 1, { col:false }); box(16, .2, 10, mat('#e8e4d8'), 0, up - .2, -7, { col:false });
+  // stairs (west wall) from z=2 (bottom) up to z=-6 (top)
+  ramp(-7.8, -6, -5.4, 2.2, 'z', up, 0);
+  for(let i = 0; i < 12; i++){ box(2.4, .27, .67, M.wood, -6.6, i * .267, 1.8 - i * .67, { col:false }); }
+  box(.12, 1, 8, trim, -5.3, 0, -2, { col:false });
+  // upstairs rooms: hall x -8..0 ; bedroom x 0..8 (wall at x=0 with door gap z -2..-0.4)
+  W(.2, 3, 7.8, 0, up, -8.1, inM); W(.2, 3, 4.2, 0, up, 1.9, inM);
+  // railing around stairwell
+  box(2.4, 1, .1, trim, -6.6, up, -6.05, { col:false });
+  // ground floor furniture
+  box(3.6, .9, 1.2, mat('#6a4a7a'), -4.5, 0, -10.6); box(3.6, .5, .4, mat('#5a3a6a'), -4.5, .9, -11.2, { col:false }); G.sofa = { x:-4.5, z:-9.6 };
+  box(1.6, .7, .8, mat('#3a2a1a'), -4.5, 0, -2.6); const tv = box(1.2, 1, .9, mat('#2a2a2a'), -4.5, .7, -2.6);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1, .78), new THREE.MeshBasicMaterial({ color:0x4a6aa8 })); scr.position.set(-4.5, 1.2, -3.08); scr.rotation.y = Math.PI; S.add(scr); G.tvScreen = scr; G.tvPos = { x:-4.5, z:-4.2 };
+  box(2.2, .45, 1.2, mat('#7a5a3a'), -4.5, 0, -6.4, { col:false }); // coffee table
+  box(6.8, .95, .7, mat('#d8d0c0'), 4.5, 0, -11.5); box(.7, .95, 4, mat('#d8d0c0'), 7.5, 0, -9);
+  box(.9, 1.9, .8, mat('#e8e8e8'), 1.6, 0, -11.4); box(1.6, .8, 1.2, mat('#8a6a4a'), 4.2, 0, -6.5); G.window = { x:7, z:-5.4 };
+  const ph = box(.3, .4, .15, mat('#efe8d8'), 1.5, 1.3, -.2, { col:false }); G.phone = { x:1.5, z:-1.2 };
+  // bedroom furniture
+  box(2.2, .6, 3.4, mat('#3a5a8a'), 6.6, up, -9.8); box(2.2, .4, .5, mat('#e8e8e8'), 6.6, up + .6, -11.2, { col:false }); G.bedSpawn = { x:5, z:-8.6 };
+  box(2.4, .8, 1, mat('#6a4a2a'), 4, up, -11.4); const crt = box(.8, .7, .7, mat('#d8d0b8'), 4, up + .8, -11.5, { col:false });
+  const mon = new THREE.Mesh(new THREE.PlaneGeometry(.6, .45), new THREE.MeshBasicMaterial({ color:0x2a7a5a })); mon.position.set(4, up + 1.15, -11.14); S.add(mon); G.monitor = mon; G.desk = { x:4, z:-10.2 };
+  box(.6, .1, .8, mat('#c83'), 7, up + .6, -6.8, { col:false }); G.mags = { x:6.4, z:-6.6 };
+  box(.5, .5, .3, mat('#2a4a2a'), 1.2, up, -10.8, { col:false }); G.backpack = { x:1.6, z:-10.2 };
+  box(1.4, .5, .9, mat('#222'), 1.8, up, -5.6, { col:false }); G.console = { x:2.6, z:-5.6 }; box(.9, .7, .7, mat('#2a2a2a'), 1.8, up + .5, -5.6, { col:false });
+  // yard + fence + gate (east side, x=12, z -22..-18 is the gate)
+  fence(-14, -26, 14, -26); fence(-14, -26, -14, -12); fence(14, -26, 14, -22); fence(14, -18, 14, -12); const gate = box(.12, 1.3, 4, mat('#cfc6ad'), 14, 0, -20); G.gate = gate;
+  bush(-10, -24); tree(-10, -18, 1.1); box(.8, .9, .8, mat('#7a5a3a'), 10, 0, -24); // dog house
+  box(3, .4, 2.4, mat('#b9b6ad'), 0, 0, 5.4, { col:false }); mapRect(-8, -12, 8, 4, '#d8c8a8'); mapRect(-14, -26, 14, -12, '#6a9a4a');
+  for(let z = 6; z < 20; z += 2) plane(1.4, 1.8, mat('#b9b6ad'), 0, .05, z); // front walk
+  const car = makeCar('#2a5a9a'); car.position.set(10.5, 0, 9); S.add(car); G.colliders.push({ x0:9.5, x1:11.5, z0:6.8, z1:11.2, y0:0, y1:1.6 }); G.chrisCar = car;
+  plane(4, 14, rep(M.asphalt, 1, 3), 10.5, .03, 11); }
+
+// ---------- Elmwood Park (tutorial landmark) ----------
+const PK = { x:-80, z:70 }; G.PK = PK;
+plane(44, 34, rep(M.grass, 8, 6), -80, .03, 70); mapRect(-102, 53, -58, 87, '#4f8a3c');
+{ const wood = mat('#8a5a32'), wh = mat('#f3efe4'); cyl(4.2, .4, mat('#cfc6ad'), -80, 0, 70, 8); G.platforms.push({ x0:-84, z0:66, x1:-76, z1:74, y:.4 });
+  for(let i = 0; i < 8; i++){ const a = i / 8 * Math.PI * 2; cyl(.15, 3, wh, -80 + Math.cos(a) * 3.8, .4, 70 + Math.sin(a) * 3.8, 6); }
+  const rf = new THREE.Mesh(new THREE.ConeGeometry(5, 2.2, 8), mat('#3e6e8e')); rf.position.set(-80, 4.5, 70); rf.castShadow = true; S.add(rf);
+  const sg = new THREE.Mesh(new THREE.BoxGeometry(4, 1.2, .2), new THREE.MeshBasicMaterial({ map:label(['ELMWOOD PARK', 'BELLEVILLE, IL'], { bg:'#2f5a2a', fg:'#f3e9c6', size:44, w:512, h:150 }) }));
+  sg.position.set(-70, 1.2, 55); S.add(sg); box(.2, .7, .2, wood, -71.8, 0, 55, { col:false }); box(.2, .7, .2, wood, -68.2, 0, 55, { col:false });
+  [[-92, 60], [-68, 80], [-95, 82], [-62, 60]].forEach(([x, z]) => tree(x, z, 1.3, true));
+  box(2.2, .5, .6, wood, -86, 0, 61); box(2.2, .5, .6, wood, -74, 0, 61);
+  const sl = mat('#d33'); box(.2, 2.4, .2, sl, -96, 0, 68); box(.2, 2.4, .2, sl, -96, 0, 72); box(.15, .15, 4, sl, -96, 2.4, 70, { col:false }); }
+
+// ---------- Jax's spot ----------
+G.JX = { x:-40, z:33 };
+
+// ---------- School (Mrs. Sparks' computer class) ----------
+{ const x0 = -170, x1 = -124, z0 = 112, z1 = 160, bm = rep(M.brick, 10, 2), h = 7;
+  box(x1 - x0, h, .4, bm, (x0 + x1) / 2, 0, z0); box(x1 - x0, h, .4, bm, (x0 + x1) / 2, 0, z1); box(.4, h, z1 - z0, bm, x0, 0, (z0 + z1) / 2);
+  box(.4, h, 15, bm, x1, 0, z0 + 7.5); box(.4, h, 29, bm, x1, 0, z1 - 14.5); box(.4, 4.6, 4, bm, x1, 2.4, z0 + 17);
+  box(x1 - x0, .4, z1 - z0, mat('#7a6a5a'), (x0 + x1) / 2, h, (z0 + z1) / 2, { col:false });
+  plane(x1 - x0, z1 - z0, rep(M.tile, 18, 18), (x0 + x1) / 2, .02, (z0 + z1) / 2); floor(x0, z0, x1, z1, 0);
+  const sg = new THREE.Mesh(new THREE.BoxGeometry(14, 1.6, .2), new THREE.MeshBasicMaterial({ map:label('BELLEVILLE HIGH SCHOOL', { bg:'#1b2f5a', fg:'#f2d04a', size:58, w:1024, h:118 }) })); sg.position.set(x1 + .3, 5.4, z0 + 22); sg.rotation.y = Math.PI / 2; S.add(sg);
+  // classroom: computer rows
+  for(let r = 0; r < 4; r++) for(let c = 0; c < 4; c++){ const x = -164 + c * 6, z = 122 + r * 7; box(4.2, .75, 1.2, mat('#b89a6a'), x, 0, z);
+    box(.9, .75, .8, mat('#d8d0b8'), x - .8, .75, z - .1, { col:false }); box(.9, .75, .8, mat('#d8d0b8'), x + 1.1, .75, z - .1, { col:false });
+    [x - .8, x + 1.1].forEach(mx => { const s = new THREE.Mesh(new THREE.PlaneGeometry(.66, .5), new THREE.MeshBasicMaterial({ color:0x2a3a8a })); s.position.set(mx, 1.15, z + .31); S.add(s); }); }
+  box(8, 2.4, .1, mat('#2a4a2a'), -150, 1, 113, { col:false }); box(3, .8, 1.4, mat('#7a5a3a'), -150, 0, 116);
+  G.classroom = { jax:{ x:-158, z:136 }, chris:{ x:-152, z:143 }, sparks:{ x:-150, z:117 }, door:{ x:-122, z:129 } };
+  mapRect(x0, z0, x1, z1, '#a0604a'); plane(18, 30, rep(M.asphalt, 4, 6), -116, .02, 190); mapRect(-125, 175, -107, 205, '#5a5d63'); }
+
+// ---------- Schnucks Swansea ----------
+export const SCH = { x0:50, x1:170, z0:330, z1:402, mz:3.6 }; G.SCH = SCH;
+plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 330, '#4c4f55');
+{ const lineM = new THREE.MeshBasicMaterial({ color:0xeeeeee });
+  for(let x = 44; x < 200; x += 3.2){ plane(.12, 5, lineM, x, .04, 274); plane(.12, 5, lineM, x, .04, 323); plane(.12, 5, lineM, x, .04, 296); plane(.12, 5, lineM, x, .04, 306); }
+  plane(12, 6, txMat('xw', (g, w, h) => { g.fillStyle = '#3b3d42'; g.fillRect(0, 0, w, h); g.fillStyle = '#f0f0f0'; for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 8, h); }, [1, 1]), 105, .045, 327); }
+{ const { x0, x1, z0, z1, mz } = SCH, H = 8, wm = rep(M.stucco, 8, 1), wi = mat('#e9e4d6');
+  // front wall with entrance gap x 99..111, staff side door on east wall z 356..359, rear door north wall x 150..154, emergency exit west wall z 392..394
+  box(49, H, .5, wm, 74.5, 0, z0); box(59, H, .5, wm, 140.5, 0, z0); box(12, 3.6, .5, wm, 105, 4.4, z0);
+  const front = new THREE.Mesh(new THREE.BoxGeometry(124, 1.6, 1.2), mat('#c8102e')); front.position.set(110, H - .8, z0 - .4); S.add(front);
+  new THREE.TextureLoader().load('../../games/bc27/logos/schnucks.png', t => { t.colorSpace = THREE.SRGBColorSpace;
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(22, 2.7), new THREE.MeshBasicMaterial({ map:t, transparent:true })); sg.position.set(105, H + 1.7, z0 - .3); sg.rotation.y = Math.PI; S.add(sg);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(25, 3.6, .3), mat('#fff')); back.position.set(105, H + 1.7, z0 - .1); S.add(back); });
+  const sw = new THREE.Mesh(new THREE.BoxGeometry(10, 1.2, .3), new THREE.MeshBasicMaterial({ map:label('SWANSEA', { bg:'#c8102e', fg:'#fff', size:70 }) })); sw.position.set(105, H - .8, z0 - 1.1); sw.rotation.y = Math.PI; S.add(sw);
+  [80, 90, 120, 130].forEach(x => { const w = new THREE.Mesh(new THREE.BoxGeometry(8, 3, .1), glass); w.position.set(x, 1.8, z0 - .3); S.add(w); });
+  box(.5, H, 26, wm, x1, 0, 343); box(.5, H, 43, wm, x1, 0, 380.5); box(.5, 4.4, 3, wm, x1, 3.6, 357.5);
+  box(100, H, .5, wm, 100, 0, z1); box(16, H, .5, wm, 162, 0, z1); box(4, 4.4, .5, wm, 152, 3.6, z1);
+  box(.5, H, 62, wm, x0, 0, 361); box(.5, H, 8, wm, x0, 0, 398); box(.5, 5.6, 2, wm, x0, 2.4, 393);
+  box(x1 - x0, .4, z1 - z0, mat('#8a8a8a'), 110, H, 366, { col:false });
+  plane(x1 - x0, z1 - z0, rep(M.tile, 60, 36), 110, .02, 366); floor(x0, z0, x1, z1, 0);
+  plane(x1 - x0, z1 - z0, rep(M.ceiling, 30, 18), 110, H - .05, 366).rotation.x = Math.PI / 2;
+  // ceiling lights
+  for(let x = 62; x < 166; x += 12) for(let z = 340; z < 400; z += 10){ const l = new THREE.Mesh(new THREE.BoxGeometry(3, .1, .8), new THREE.MeshBasicMaterial({ color:0xfffbea })); l.position.set(x, H - .15, z); S.add(l); }
+  const pl = new THREE.PointLight(0xfff6e0, 60, 80, 1.6); pl.position.set(110, 7, 360); S.add(pl); const pl2 = pl.clone(); pl2.position.set(80, 7, 385); S.add(pl2); const pl3 = pl.clone(); pl3.position.set(150, 7, 385); S.add(pl3);
+  // cart bay (inside, right of entrance)
+  plane(12, 7, mat('#bdb9aa'), 112, .03, 334.5); box(.3, 1, 7, mat('#c8102e'), 106, 0, 334.5, { col:false });
+  const cb = new THREE.Mesh(new THREE.BoxGeometry(5, .8, .1), new THREE.MeshBasicMaterial({ map:label('CART RETURN', { bg:'#c8102e', fg:'#fff', size:60 }) })); cb.position.set(113, 3, 330.4); cb.rotation.y = Math.PI; S.add(cb);
+  G.cartBay = { x:113, z:335 };
+  // checklanes
+  G.lanes = []; for(let i = 0; i < 6; i++){ const x = 60 + i * 6 + (i > 2 ? 0 : 0); box(.9, 1, 5, mat('#4a4a52'), x, 0, 344); box(.6, 1.3, .6, mat('#2a2a2a'), x, 1, 342.6, { col:false });
+    const n = new THREE.Mesh(new THREE.BoxGeometry(.6, .6, .1), new THREE.MeshBasicMaterial({ map:label(String(i + 1), { bg:'#c8102e', fg:'#fff', size:90, w:128, h:128 }) })); n.position.set(x, 3, 344); S.add(n); G.lanes.push({ x:x + 1.4, z:344 }); }
+  box(10, 1.1, 2, mat('#5a5a66'), 145, 0, 338); const cs = new THREE.Mesh(new THREE.BoxGeometry(8, 1, .1), new THREE.MeshBasicMaterial({ map:label('CUSTOMER SERVICE', { bg:'#1b3a6a', fg:'#fff', size:44 }) })); cs.position.set(145, 3.4, 339.1); S.add(cs); G.custService = { x:145, z:341 };
+  // produce
+  const prod = ['#d4212a', '#f2c230', '#5aa832', '#ff8c1a', '#7a3a8a'];
+  for(let i = 0; i < 5; i++){ box(3, .9, 5, mat('#6a4a2a'), 54, 0, 338 + i * 5.5); const top = box(2.8, .3, 4.8, mat(prod[i]), 54, .9, 338 + i * 5.5, { col:false }); }
+  const ps = new THREE.Mesh(new THREE.BoxGeometry(6, 1, .1), new THREE.MeshBasicMaterial({ map:label('PRODUCE', { bg:'#2f7a2a', fg:'#fff', size:70 }) })); ps.position.set(57, 4.5, 336); ps.rotation.y = Math.PI / 2; S.add(ps); G.produce = { x:58, z:348 };
+  // aisles
+  const shelfCols = ['#e8463a', '#f4c430', '#4a8ad8', '#5ab04a', '#e88a2a', '#9a5ad8', '#d8d8d8'];
+  for(let i = 0; i < 9; i++){ const x = 70 + i * 8; box(1.6, 2.3, 22, mat('#9aa0a8'), x, 0, 366);
+    for(let k = 0; k < 3; k++){ box(1.7, .35, 21.6, mat(shelfCols[(i + k) % 7]), x, .4 + k * .7, 366, { col:false }); }
+    const a = new THREE.Mesh(new THREE.BoxGeometry(2.4, .9, .1), new THREE.MeshBasicMaterial({ map:label(String(i + 1), { bg:'#1b3a6a', fg:'#fff', size:90, w:256, h:128 }) })); a.position.set(x, 4.2, 354.5); S.add(a); }
+  // back room (z 388..402) separated by wall at z=388 with doors x 118..124 and 140..146
+  box(68, H, .4, wi, 84, 0, 388); box(16, H, .4, wi, 132, 0, 388); box(24, H, .4, wi, 158, 0, 388); box(6, 3.6, .4, wi, 121, 4.4, 388); box(6, 3.6, .4, wi, 143, 4.4, 388);
+  [[70, 395], [90, 396], [110, 395], [130, 396]].forEach(([x, z]) => { box(4, 2.6, 3, mat('#b8935a'), x, 0, z); box(3, 1.4, 2, mat('#a8834a'), x, 2.6, z, { col:false }); });
+  G.camerasBack = [];
+  [[60, 390], [100, 390], [140, 390], [160, 400], [75, 400]].forEach(([x, z]) => { const c = new THREE.Group(); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .3, .7), mat('#ddd')); const led = new THREE.Mesh(new THREE.SphereGeometry(.07), new THREE.MeshBasicMaterial({ color:0xff0000 }));
+    led.position.set(0, 0, .36); c.add(b, led); c.position.set(x, 6.6, z); c.rotation.x = .5; S.add(c); G.camerasBack.push(led); });
+  // rear door + dock
+  const rd = box(4, 3.6, .3, mat('#6a7a8a'), 152, 0, z1, { }); G.rearDoor = rd;
+  floor(140, 402, 166, 414, .5, mat('#9a9a92'), { slab:mat('#8a8a82') }); ramp(132, 402, 140, 414, 'x', 0, .5); G.dock = { x:152, z:408 };
+  const truck = makeCar('#e8e8e8', { suv:true }); truck.scale.set(1.4, 1.5, 2); truck.position.set(178, 0, 410); S.add(truck);
+  // emergency exit (west wall, z 392..394)
+  const ex = box(.3, 2.4, 2, mat('#c83a2a'), x0, 0, 393); G.exitDoor = ex;
+  const es = new THREE.Mesh(new THREE.BoxGeometry(.1, .5, 1.6), new THREE.MeshBasicMaterial({ map:label('EMERGENCY EXIT · ALARM WILL SOUND', { bg:'#c8102e', fg:'#fff', size:34 }) })); es.position.set(x0 + .3, 2.9, 393); es.rotation.y = Math.PI / 2; S.add(es);
+  // pharmacy (back-left) under mezzanine
+  box(12, 1.1, 1.2, mat('#2a5a8a'), 58, 0, 383); const pm = new THREE.Mesh(new THREE.BoxGeometry(10, 1, .1), new THREE.MeshBasicMaterial({ map:label('PHARMACY', { bg:'#2a5a8a', fg:'#fff', size:64 }) })); pm.position.set(58, 2.9, 382.3); S.add(pm);
+  // mezzanine above pharmacy (y = mz) x 50..82, z 366..388 ; stairs x 82..85 from z 350 (floor) to z 366 (mezz)
+  floor(50, 366, 83.5, 388, mz, mat('#9a9a92'), { slab:mat('#c9c5b8') }); ramp(80.5, 350, 83.5, 366, 'z', 0, mz);
+  for(let i = 0; i < 14; i++) box(3, .26, 1.15, mat('#8a8a8a'), 82, i * .257, 350.6 + i * 1.14, { col:false });
+  box(.12, 1.1, 16, mat('#555'), 80.4, 0, 358, { col:false }); box(.12, 1.1, 16, mat('#555'), 83.6, 0, 358, { col:false });
+  box(30.4, 1.1, .12, mat('#555'), 65.2, mz, 366.1); box(.12, 1.1, 22, mat('#555'), 83.6, mz, 377);
+  for(let i = 0; i < 10; i++){ box(1, 2.4, .6, mat(i % 2 ? '#5a7a9a' : '#4a6a8a'), 52 + i * 1.05 + (i > 4 ? 0 : 0), mz, 387.4, { col:false }); }
+  G.locker = { x:56, z:386, y:mz };
+  box(.2, 3, 10, wi, 66, mz, 382.5); // break room divider
+  box(3, .8, 1.6, mat('#7a6a5a'), 74, mz, 378); box(1, 1.6, .8, mat('#c8102e'), 81, mz, 384); // table, vending
+  const btv = box(1.4, 1, .6, mat('#222'), 79, mz + 1.4, 387.4, { col:false }); const bscr = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .8), new THREE.MeshBasicMaterial({ color:0x2a6a3a })); bscr.position.set(79, mz + 1.9, 387.05); bscr.rotation.y = Math.PI; S.add(bscr); G.breakTV = bscr;
+  G.breakRoom = { x:76, z:376, y:mz }; G.vending = { x:80, z:382, y:mz };
+  // staff corridor (east): time clock, vests, Eric's office x 150..170 z 366..388, restroom x 150..160 z 342..354
+  box(.3, H, 14, wi, 150, 0, 377); box(8, H, .3, wi, 154, 0, 366); box(8, H, .3, wi, 166, 0, 366);
+  box(2.5, .8, 1.2, mat('#5a3a2a'), 160, 0, 380); box(.6, 1.2, .6, mat('#333'), 160, 0, 382.4, { col:false }); G.office = { chair:{ x:160, z:377.6 }, eric:{ x:160, z:382 }, door:{ x:160, z:364 } };
+  const off = new THREE.Mesh(new THREE.BoxGeometry(3, .6, .1), new THREE.MeshBasicMaterial({ map:label('MANAGER', { bg:'#333', fg:'#fff', size:60 }) })); off.position.set(154, 3, 365.8); S.add(off);
+  box(.6, 1.2, .3, mat('#cfcfcf'), 169.6, 1, 362, { col:false }); G.timeClock = { x:168, z:362 }; box(.1, 1, 2, mat('#ff8c1a'), 169.7, 1.2, 365, { col:false }); G.vests = { x:168, z:365 };
+  box(.3, H, 12, wi, 150, 0, 348); box(10, H, .3, wi, 160, 0, 354); box(5, H, .3, wi, 152.5, 0, 342); box(.3, H, .1, wi, 150, 0, 342);
+  box(.8, .9, .8, mat('#9aa'), 166, 0, 344); box(1.2, .8, .5, mat('#fff'), 158, 0, 352.6); G.restroom = { x:160, z:347, can:{ x:166, z:344 } };
+  const rr = new THREE.Mesh(new THREE.BoxGeometry(2.4, .6, .1), new THREE.MeshBasicMaterial({ map:label('RESTROOM', { bg:'#2a5a8a', fg:'#fff', size:56 }) })); rr.position.set(153, 3, 342.2); rr.rotation.y = Math.PI; S.add(rr);
+  mapRect(x0, z0, x1, z1, '#d8d4c8'); mapRect(140, 402, 166, 414, '#a8a8a0');
+  G.storeEntrance = { x:105, z:328 }; G.staffDoor = { x:172, z:357.5 }; G.backDoorOutside = { x:152, z:405 }; }
+// 14 numbered cart corrals (C01–C14)
+G.corrals = [];
+for(let r = 0; r < 2; r++) for(let i = 0; i < 7; i++){ const x = 56 + i * 20, z = r ? 312 : 290, n = r * 7 + i + 1, rail = mat('#a8aab0');
+  box(.1, 1, 6, rail, x - 1.1, 0, z); box(.1, 1, 6, rail, x + 1.1, 0, z); box(2.3, .1, .1, rail, x, 1, z - 3, { col:false });
+  const sg = new THREE.Mesh(new THREE.BoxGeometry(1.4, .9, .05), new THREE.MeshBasicMaterial({ map:label('C' + String(n).padStart(2, '0'), { bg:'#c8102e', fg:'#fff', size:84, w:256, h:160 }) }));
+  sg.position.set(x, 2, z - 3.1); S.add(sg); cyl(.04, 2, rail, x, 0, z - 3.1, 6);
+  G.corrals.push({ n, x, z, carts:[] }); }
+// parked cars
+const pc = ['#a33', '#335', '#ddd', '#2a6a3a', '#888', '#d8b84a', '#222', '#6a2a6a'];
+for(let i = 0; i < 26; i++){ const x = 46 + (i * 7.3) % 150, z = [276, 302, 318][i % 3]; if(Math.abs(x - 105) < 7) continue; if(G.corrals.some(c => Math.abs(c.x - x) < 3.5 && Math.abs(c.z - z) < 6)) continue;
+  const c = makeCar(pc[i % 8], { suv:i % 4 === 0 }); c.position.set(x, 0, z); S.add(c); G.colliders.push({ x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3, y0:0, y1:1.6 }); }
+G.parkDoris = { x:150, z:302 };
+[40, 60, 180, 200].forEach(x => tree(x, 266, 1.1));
+
+// ---------- 1989 sets (far east, x ≈ 1000) ----------
+export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070, z:0 }, stadium:{ x:1120, z:0 } }; G.Y89 = Y89;
+{ const cx = 1000, bm = rep(M.brick, 6, 2);
+  plane(70, 70, rep(M.grass, 10, 10), cx, .03, 0); plane(6, 70, rep(M.walk, 2, 20), cx, .05, 0);
+  [[-14, -18], [14, -18], [-14, 14], [14, 14]].forEach(([dx, dz]) => { box(14, 9, 12, bm, cx + dx, 0, dz); for(let k = -2; k <= 2; k++){ const w = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.6, .1), glass); w.position.set(cx + dx + k * 2.6, 5, dz + (dz > 0 ? -6.06 : 6.06)); S.add(w); } });
+  const bt = new THREE.Mesh(new THREE.BoxGeometry(3, 16, 3), bm); bt.position.set(cx, 8, -30); S.add(bt);
+  const sg = new THREE.Mesh(new THREE.BoxGeometry(12, 1.4, .2), new THREE.MeshBasicMaterial({ map:label('NORTH CAROLINA STATE UNIVERSITY', { bg:'#cc0000', fg:'#fff', size:40, w:1024, h:118 }) })); sg.position.set(cx + 7, 1.6, 26); S.add(sg);
+  [[-6, -6], [6, 4], [-6, 22], [6, -26]].forEach(([dx, dz]) => tree(cx + dx, dz, 1.2));
+  // dorm room / University Towers apartment (simple rooms)
+  const room = (x, col, name) => { box(10, 3.2, .3, mat(col), x, 0, -5); box(10, 3.2, .3, mat(col), x, 0, 5); box(.3, 3.2, 10, mat(col), x - 5, 0, 0); box(.3, 3.2, 10, mat(col), x + 5, 0, 0);
+    plane(10, 10, rep(M.carpet, 4, 4), x, .02, 0); box(10, .2, 10, mat('#eee'), x, 3.2, 0, { col:false }); floor(x - 5, -5, x + 5, 5, 0);
+    const n = new THREE.Mesh(new THREE.BoxGeometry(4, .6, .1), new THREE.MeshBasicMaterial({ map:label(name, { bg:'#222', fg:'#ffd23f', size:46 }) })); n.position.set(x, 2.6, -4.8); S.add(n); };
+  room(1040, '#d8c8a0', 'DORM'); box(1.2, .6, 2.2, mat('#7a2a2a'), 1043, 0, 2); box(1.2, .6, 2.2, mat('#2a3a7a'), 1037, 0, 2); const pep = makeCar; // beds
+  room(1070, '#c8d0b8', 'UNIVERSITY TOWERS'); box(2.6, .8, 1, mat('#5a4a3a'), 1070, 0, 3.4); box(.3, .45, .15, mat('#c8b890'), 1074.6, 1.3, -2, { col:false }); G.aptPhone = { x:1073.5, z:-2 };
+  box(2.2, .5, 1, mat('#6a6a8a'), 1066, 0, -3); // couch
+  // stadium
+  const sx = 1120; plane(60, 34, rep(M.grass, 10, 6), sx, .03, 0);
+  for(let y = 0; y < 6; y++) box(70, .5, 1.2, mat(y % 2 ? '#bcbcbc' : '#a8a8a8'), sx, y * .5, 19 + y * 1.2, { col:y === 0 });
+  floor(sx - 35, 18.4, sx + 35, 26, 2.5); ramp(sx - 35, 12, sx - 30, 18.4, 'z', 0, 2.5);
+  for(let x = -24; x <= 24; x += 8){ plane(.3, 30, new THREE.MeshBasicMaterial({ color:0xffffff }), sx + x, .05, 0); }
+  const sb = new THREE.Mesh(new THREE.BoxGeometry(14, 4, .4), new THREE.MeshBasicMaterial({ map:label(['NC STATE  vs  UNC', 'HOME 14   VISITORS 10'], { bg:'#111', fg:'#ffd23f', size:50, w:1024, h:300 }) })); sb.position.set(sx, 8, -20); S.add(sb);
+  const crowdC = ['#cc0000', '#ffffff', '#7bafd4', '#cc0000', '#222'];
+  G.crowd = []; for(let i = 0; i < 46; i++){ const p = makePerson({ shirt:crowdC[i % 5], pants:'#334', hair:['#3a2414', '#c9a15a', '#111'][i % 3], scale:.95 }); const row = i % 5, x = sx - 30 + (i * 7.7) % 60;
+    p.position.set(x, row * .5 + .5, 19.6 + row * 1.2); p.rotation.y = Math.PI; S.add(p); G.crowd.push(p); }
+  G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
+// interior lights for Chris's house and the school classroom
+[[-3, 2.8, -4], [4.5, 2.8, -7], [3, 6, -7], [-4, 6, -2], [-150, 6, 135]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
