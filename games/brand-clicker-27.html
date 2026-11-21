@@ -113,13 +113,25 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 <div id="reveal" class="glass"><span class="chip" id="rvChip"></span><h2 id="rvName"></h2><p id="rvSub"></p><button class="btn" id="claim">Claim &amp; Apply</button></div>
 <div id="ask"><div class="glass"><h2>What's your username?</h2><input id="askIn" maxlength="20" placeholder="Username"><button class="btn" id="askOk" style="width:100%">Let's go</button></div></div>
 
-<script src="bc27/orig.js"></script>
-<script src="bc27/remaster.js"></script>
+<script>
+// Show any startup error on screen, and self-heal a stale offline cache once.
+addEventListener('error', e => { const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;left:10px;right:10px;top:80px;z-index:999;background:#b00020;color:#fff;padding:10px;border-radius:10px;font:13px monospace';
+  d.textContent = 'Brand Clicker error: ' + e.message + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')'; document.body.appendChild(d); });
+async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return false; sessionStorage.setItem('bcHealed', 1);
+  try{ for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); for(const k of await caches.keys()) await caches.delete(k); }catch(e){}
+  location.reload(); return true; }
+</script>
+<script src="bc27/orig.js?v=3"></script>
+<script src="bc27/remaster.js?v=3"></script>
+<script>if(!window.BC_ORIG || !window.BC_REMASTER) bcHeal();</script>
 <script>
 const O = BC_ORIG, ST = document.getElementById('stage'), $ = id => document.getElementById(id);
 const BR = Object.fromEntries(O.brands.map(b => [b.id, b]));
 const KEY = 'bc27_save';
 let S; try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
+if(S && S.saveVersion) S = null; // v0.1 test save had a different format
+if(S && !Array.isArray(S.owned)) S.owned = [];
 S = Object.assign({ bi:0, eth:0, bg:0, owned:[], up:0, name:'', boxes:0, remaster:true }, S || {});
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} };
 const file = f => 'bc27/orig/' + f;
