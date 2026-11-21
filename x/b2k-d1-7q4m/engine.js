@@ -417,7 +417,7 @@ function step(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; i
   (G.markers || []).forEach(m => { m.userData.ar.position.y = 3 + Math.sin(G.t * 3) * .25; m.userData.ar.rotation.y += dt * 2; });
   updateCam(dt);
   const fx = G.camOverride ? cam.position : P.p, sx = Math.round(fx.x / 4) * 4, sz = Math.round(fx.z / 4) * 4; sun.position.set(sx + G.sunDir.x * 120, G.sunDir.y * 120, sz + G.sunDir.z * 120); sun.target.position.set(sx, 0, sz);
-  G.frameN = (G.frameN || 0) + 1; if(G.frameN % 3 === 0 || G.shadowNow){ sun.shadow.needsUpdate = true; G.shadowNow = false; }
+  G.frameN = (G.frameN || 0) + 1; if((G.frameN % 3 === 0 && !G.indoors) || G.shadowNow){ sun.shadow.needsUpdate = true; G.shadowNow = false; }
   sky.position.copy(cam.position); hud(); R.render(scene, cam); }
 requestAnimationFrame(frame);
 G.advance = sec => { for(let i = 0; i < sec * 20; i++){ last = performance.now() - 50; step(performance.now()); } }; // debug/testing aid

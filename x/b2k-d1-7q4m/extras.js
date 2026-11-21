@@ -169,7 +169,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
     if(dc !== lastDay){ lastDay = dc; G.wx = weatherFor(dc); leaves(dc); buildDecor(dc); E.setTime(G.time || 'day'); G.dayShift = dateOf(dc).getMonth() >= 10 || (dateOf(dc).getMonth() === 9 && dateOf(dc).getDate() >= 26) ? 60 : 0;
       if(l.groundedDay === dc) E.toast('GROUNDED TODAY: no phone, no car.', 3600); }
     // rain / snow particles around the camera (hidden indoors)
-    const wet = G.wet, ind = indoors(); rain.visible = wet && !ind; if(rain.visible){ const a = rain.geometry.attributes.position.array, sp = G.wx === 'snow' ? 3 : 22, c = G.cam.position;
+    const wet = G.wet, ind = indoors(); G.indoors = ind; rain.visible = wet && !ind; if(rain.visible){ const a = rain.geometry.attributes.position.array, sp = G.wx === 'snow' ? 3 : 22, c = G.cam.position;
       for(let i = 0; i < a.length; i += 3){ a[i + 1] -= sp * dt; if(G.wx === 'snow') a[i] += Math.sin(G.t + i) * dt * .4; if(a[i + 1] < 0) a[i + 1] += 30; } rain.position.set(c.x, c.y - 12, c.z); rain.geometry.attributes.position.needsUpdate = true; }
     if(G.wx === 'storm' && !ind && (thunderT -= dt) <= 0){ thunderT = 15 + Math.random() * 25; const h = G.hemi, i0 = h.intensity; h.intensity = 2.4; setTimeout(() => h.intensity = i0, 120); E.tone(55, .4, 1.6, 'sawtooth', .06, 30); }
     // curfew: 11 PM Sun–Thu, 12:30 AM Fri/Sat
@@ -182,7 +182,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
     const want = {}; schedule(l).forEach(([n, at]) => want[n] = { at }); const pl = l.plan, now = absNow(l);
     if(pl && now >= pl.at - 15 && now <= pl.at + 90) want[pl.who] = { at:PLACES[pl.place], plan:true }; if(pl && now > pl.at + 90){ l.flaked = pl.who; l.fr = l.fr || {}; l.fr[pl.who] = (l.fr[pl.who] || 0) - 2; l.plan = null; E.toast(`You flaked on ${pl.who}. They noticed.`, 3000); }
     const rager = dow === 5 && (l.min >= 1260 || l.min < 60) || dow === 6 && l.min < 60; if(rager) want.__rager = { at:[110, 129] };
-    for(const k of Object.keys(spawned)) if(!want[k]){ spawned[k].forEach(x => x.remove ? x.remove() : E.delInter(x)); delete spawned[k]; }
+    for(const k of Object.keys(spawned)) if(!want[k] && !['__kids', '__busy', '__tot'].includes(k)){ spawned[k].forEach(x => x.remove ? x.remove() : E.delInter(x)); delete spawned[k]; }
     for(const [k, v] of Object.entries(want)) if(!spawned[k]){ const [x, z] = v.at; spawned[k] = [];
       if(k === '__rager'){ for(let i = 0; i < 7; i++){ const n = E.npc('Partygoer', api.randomLook(i % 2 === 0), x - 3 + (i % 4) * 2, z - 3 + (i / 4 | 0) * 3, { face:i }); n.townie = true; spawned[k].push(n); }
         spawned[k].push(E.addInter({ x, z, r:4, prompt:'JOIN THE RAGER', when:() => G.ctl && !G.mission, use:async () => { E.cut(true); await E.say([['Jax', 'You actually came. Chris came, everybody!'], ['Matt', 'CHRIIIIS!'], ['', 'Somebody is blasting music out of a car. Zeke is attempting a keg stand on a cooler of Capri Suns.'], ['Chris', 'This is the greatest night of my life.']]);
@@ -204,7 +204,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
   api.addTick(tick);
   // B = skateboard on/off
   const bk = e => { if(e.code === 'KeyB' && !G.mission && G.ctl && !G.driving && !G.uiOpen && l.owned.includes('board')){ P.board = !P.board; E.sfx('cart'); } };
-  addEventListener('keydown', bk); api.onOff(() => { removeEventListener('keydown', bk); P.board = false; Object.values(spawned).forEach(a => a.forEach(x => x.remove ? x.remove() : E.delInter(x))); spawned = {}; clearJob(); objs.forEach(o => G.scene.remove(o)); objs = []; if(rain) rain.visible = false; if(decor){ G.scene.remove(decor); decor = null; } G.onTime = null; G.wet = false; G.ext = null; G.scene.fog.near = 70; G.scene.fog.far = 330; leaves(0); windows('day'); }); }
+  addEventListener('keydown', bk); api.onOff(() => { removeEventListener('keydown', bk); P.board = false; Object.values(spawned).forEach(a => a.forEach(x => x.remove ? x.remove() : E.delInter(x))); spawned = {}; clearJob(); objs.forEach(o => G.scene.remove(o)); objs = []; if(rain) rain.visible = false; if(decor){ G.scene.remove(decor); decor = null; } G.onTime = null; G.wet = false; G.ext = null; G.indoors = false; G.scene.fog.near = 70; G.scene.fog.far = 330; leaves(0); windows('day'); }); }
 // rep changes from shifts (shift.js)
 export function repDelta(d){ const l = api && api.L(); if(!l) return; l.rep = Math.max(0, Math.min(100, (l.rep ?? 50) + d)); api.save(); }
 export const wage = () => { const r = api ? (api.L().rep ?? 50) : 50; return r >= 90 ? 8.25 : r >= 75 ? 7.75 : r < 25 ? 7 : 7.25; };
