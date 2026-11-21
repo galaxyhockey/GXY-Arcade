@@ -145,7 +145,8 @@ function remaster(id){ const acc = BC_REMASTER(id, $('rm'));
 function place(img, c, x, y, size){
   const k = size / 100 / c.res, go = () => { img.style.width = img.naturalWidth * k + 'px';
     img.style.left = 240 + x - c.rcx * k + 'px'; img.style.top = 180 - y - c.rcy * k + 'px'; };
-  if(img.dataset.f !== c.file){ img.dataset.f = c.file; img.onload = go; img.src = file(c.file); } else if(img.complete) go();
+  img._go = go; if(img.dataset.f !== c.file){ img.dataset.f = c.file; img.style.visibility = 'hidden'; img.onload = () => { img._go(); img.style.visibility = ''; }; img.src = file(c.file); } else if(img.complete) go();
+
 }
 const SP = {};
 for(const k of ['logo', 'boxStd', 'boxNhl', 'boxXmas', 'win', 'win2', 'win3']){
@@ -160,6 +161,7 @@ function backdrop(id){ const b = BR[id], c = O.backdrops.find(x => x.name === (b
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const anim = (k, from, to, ms) => new Promise(r => { const t0 = performance.now();
   (function f(t){ const a = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - a, 3), o = {};
+    for(const p in from) if(!(p in to)) o[p] = from[p];
     for(const p in to) o[p] = from[p] + (to[p] - from[p]) * e; show(k, o); a < 1 ? requestAnimationFrame(f) : r(); })(t0); });
 
 const fmt = n => Math.round(n).toLocaleString();
