@@ -19,7 +19,7 @@ t('exact group membership', () => {
 });
 t("Brand Clicker '27 is still a hidden placeholder", () => assert(S.byId('brand-clicker-27').hidden));
 t('Kraken2022 Archives is visible', () => assert(!S.byId('kraken2022-archives').hidden));
-t('nothing is released yet (no phantom inventory)', () => assert(S.CATALOG.every(x => x.releaseState === 'coming_soon')));
+t('only Kraken2022 Archives is released (no phantom inventory)', () => assert.deepStrictEqual(S.CATALOG.filter(x => x.releaseState === 'released').map(x => x.id), ['kraken2022-archives']));
 t('transit DLCs point at the real game id', () => ['metro-builder','vice-city-transit'].forEach(id => assert.strictEqual(S.byId(id).baseGameId, 'transit-tycoon')));
 
 /* daily rotation (brief table) */
