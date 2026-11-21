@@ -1,6 +1,6 @@
 // GXY Arcade service worker: precache the arcade so it installs and plays offline.
 // Bump VERSION whenever you change files so players get the update.
-const VERSION='arcade-v42';
+const VERSION='arcade-v43';
 const CORE=[
 './','index.html','manifest.webmanifest',
 'assets/aero-news.css',
@@ -56,6 +56,7 @@ const CORE=[
 'games/bc27/season1.js',
 'games/bc27/v03.js',
 'games/bc27/schnucks.js',
+'games/bc27/gta6.js',
 'games/bc27/v02.js',
 'covers/brand-clicker-27.svg',
 'covers/neon-siege.svg',

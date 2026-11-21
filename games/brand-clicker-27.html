@@ -202,6 +202,7 @@ async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return; sessionS
 <script src="bc27/season1.js?v=6"></script>
 <script src="bc27/v03.js?v=7"></script>
 <script src="bc27/schnucks.js?v=9"></script>
+<script src="bc27/gta6.js?v=10"></script>
 <script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT || !window.BC_EVENTS) bcHeal();</script>
 <script>
 const O = BC_ORIG, V = BC_V02, $ = id => document.getElementById(id);
@@ -616,7 +617,7 @@ function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && !
     S.counts[id]--; save(); renderTrade(); $('trOut').innerHTML = `<h4>Your code for ${BR[id].name}</h4><div class="row"><input readonly value="${code}" style="flex:1;padding:10px;border-radius:10px;border:0" id="trCode"><button class="btn" id="trCopy">Copy</button></div>`;
     $('trCopy').onclick = () => { $('trCode').select(); try{ navigator.clipboard.writeText(code); }catch(e){ document.execCommand('copy'); } toast('Code copied'); }; });
   $('trRedeem').onclick = () => { const raw = $('trIn').value.trim().toUpperCase(), sc = BC_CODES[raw];
-    if(sc){ if(S.owned.includes(sc.id)) return toast(`You already unlocked ${sc.name}`); gain(sc.id); S.bg = sc.id; save(); mon(); renderTrade(); sfx('chroma'); toast(`🔓 Code accepted: ${sc.name}!`); return; }
+    if(sc){ if(S.owned.includes(sc.id)) return toast(`You already unlocked ${sc.name}`); gain(sc.id); S.bg = sc.id; save(); home(); renderTrade(); sfx('chroma'); toast(`🔓 Code accepted: ${sc.name}!`); return; }
     try{ const [p1, p2, h] = atob($('trIn').value.trim().replace(/^BC27-/, '')).split('.'), payload = p1 + '.' + p2, id = +p1;
       if(hsh('bc27gift' + payload) !== h || !BR[id]) throw 0;
       if(S.redeemed.includes(p2)) return toast('That code was already used');
@@ -625,7 +626,7 @@ function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && !
 // ---------- passes: Season 1 + Season 2 ----------
 const PASSES = [{ def:BC_SEASON, st:() => S.pass }, { def:BC_SEASON2, st:() => S.pass2 }];
 for(const [id, nm, slug] of BC_SEASON2.brands) if(!BR[id]){ const b = { id, name:nm, rarity:'Exclusive', eth:0, exclusive:true, logo:`bc27/logos/${slug}.svg` }; ALL.push(b); BR[id] = b; COLLECT.push(b); }
-for(const [code, c] of Object.entries(BC_CODES)) if(!BR[c.id]){ const b = { id:c.id, name:c.name, rarity:'Secret', eth:5000, secret:true, is3d:!!c.is3d, retro:!!c.retro, logo:BC_CODE_LOGO }; ALL.push(b); BR[c.id] = b; COLLECT.push(b); }
+for(const [code, c] of Object.entries(BC_CODES)) if(!BR[c.id]){ const b = { id:c.id, name:c.name, rarity:'Secret', eth:5000, secret:true, is3d:!!c.is3d, retro:!!c.retro, logo:c.logo || BC_CODE_LOGO }; ALL.push(b); BR[c.id] = b; COLLECT.push(b); }
 for(const ev of BC_EVENTS) for(const [id, nm, slug] of ev.brands) if(!BR[id]){ const b = { id, name:nm, rarity:'Event', eth:2000, logo:`bc27/logos/${slug}.svg` }; ALL.push(b); BR[id] = b; COLLECT.push(b); }
 let curPass = 1;
 const tierP = i => Math.min(PASSES[i].def.tiers, Math.floor(PASSES[i].st().xp / PASSES[i].def.xpPerTier));
