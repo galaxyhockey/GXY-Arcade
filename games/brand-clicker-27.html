@@ -67,7 +67,7 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.note{font-size:12px;color:var(--mut);line-height:1.5}
 @media (max-width:520px){.db{min-width:56px;padding:7px 6px}.pill{padding:5px 9px}.pill b{font-size:13px}#hud{top:56px}#dock{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 52px)}#hint{bottom:150px}}
 </style></head><body>
-<div id="wrap"><div id="stage"><img id="bd" alt=""><div id="rm"><div class="glow"></div><div class="pat"></div><div class="tile"></div></div></div></div>
+<div id="wrap"><div id="stage"><img id="bd" alt=""><div id="rm"></div></div></div>
 
 <div id="top"><a class="ib" href="../index.html">‹ Library</a><button class="ib" id="rmBtn"></button></div>
 <div id="hud" class="glass">
@@ -114,6 +114,7 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 <div id="ask"><div class="glass"><h2>What's your username?</h2><input id="askIn" maxlength="20" placeholder="Username"><button class="btn" id="askOk" style="width:100%">Let's go</button></div></div>
 
 <script src="bc27/orig.js"></script>
+<script src="bc27/remaster.js"></script>
 <script>
 const O = BC_ORIG, ST = document.getElementById('stage'), $ = id => document.getElementById(id);
 const BR = Object.fromEntries(O.brands.map(b => [b.id, b]));
@@ -124,36 +125,9 @@ const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e)
 const file = f => 'bc27/orig/' + f;
 const cosOf = (s, name) => (typeof name === 'number' ? s.costumes[name] : s.costumes.find(c => c.name === name)) || s.costumes[0];
 
-// ---- Remastered backgrounds: a new scene per logo (brand colours + its own pattern + the logo tiled) ----
-const RM = { 0:['#0b0b0f','#ff6a00','grid'], 1:['#00632f','#c8e600','waves'], 2:['#ff7a00','#4a2311','stripes'], 3:['#00205b','#4fc3f7','waves'],
-  4:['#111','#ff6f00','rays'], 5:['#000','#00a77f','grid'], 6:['#d62300','#f5a623','dots'], 7:['#0a1a33','#1c69d4','rings'],
-  8:['#7a0019','#e8f5e9','snow'], 9:['#000','#5a5a5a','diamonds'], 10:['#120030','#b388ff','rays'], 11:['#002a5c','#0071c5','grid'],
-  12:['#002f87','#fcb514','ice'], 13:['#001628','#99d9d9','ice'], 14:['#1a1a1a','#ce1126','ice'], 15:['#005daa','#e31837','stripes'],
-  16:['#000','#e50914','rays'], 17:['#131921','#ff9900','waves'], 18:['#0b0c0f','#1ce783','dots'], 19:['#1d1d1f','#a1a1a6','rings'],
-  20:['#cc0000','#fff','rings'], 21:['#121212','#1db954','waves'], 22:['#da291c','#ffc72c','stripes'], 23:['#e60012','#fff','dots'],
-  24:['#003087','#00439c','diamonds'], 25:['#0a0a0a','#e5e7ff','rays'], 26:['#101820','#5b6dcd','dots'], 27:['#0b0b0b','#76b900','grid'],
-  28:['#00704a','#d4e9e2','rings'], 29:['#ed1c24','#ffde00','diamonds'], 30:['#451400','#a81612','stripes'], 31:['#000','#00b8fc','grid'],
-  32:['#4b0e1b','#a50034','waves'], 33:['#e2203d','#fff','dots'], 34:['#1a1f71','#f7b600','stripes'], 35:['#002d72','#e4002b','rays'],
-  36:['#1b4d2b','#c62828','snow'], 37:['#0d3b1e','#ffd54f','snow'], 38:['#081c10','#ff5252','snow'], 39:['#111','#fc4c02','ice'] };
-const PAT = {
-  rays:a => `repeating-conic-gradient(from 0deg at 50% 50%, ${a}33 0 10deg, transparent 10deg 20deg)`,
-  stripes:a => `repeating-linear-gradient(135deg, ${a}30 0 18px, transparent 18px 36px)`,
-  dots:a => `radial-gradient(${a}55 2.5px, transparent 3px) 0 0/22px 22px`,
-  grid:a => `linear-gradient(${a}40 1px, transparent 1px) 0 0/24px 24px, linear-gradient(90deg, ${a}40 1px, transparent 1px) 0 0/24px 24px`,
-  waves:a => `repeating-radial-gradient(circle at 0 100%, transparent 0 22px, ${a}30 22px 26px)`,
-  diamonds:a => `linear-gradient(45deg, ${a}25 25%, transparent 25% 75%, ${a}25 75%) 0 0/30px 30px, linear-gradient(45deg, ${a}25 25%, transparent 25% 75%, ${a}25 75%) 15px 15px/30px 30px`,
-  rings:a => `repeating-radial-gradient(circle at 50% 50%, transparent 0 18px, ${a}28 18px 20px)`,
-  ice:a => `linear-gradient(180deg, transparent 60%, #ffffff40 60% 61%, transparent 61% 80%, ${a}50 80% 82%, transparent 82%), repeating-linear-gradient(90deg, transparent 0 59px, ${a}35 59px 61px)`,
-  snow:a => `radial-gradient(#fff9 1.5px, transparent 2px) 0 0/27px 31px, radial-gradient(#fff6 1px, transparent 1.5px) 11px 13px/19px 23px, linear-gradient(180deg, transparent 75%, ${a}40 75%)` };
 const logoName = id => (BR[id] && BR[id].logo) || 'Linus Tech Tips';
-function remaster(id){
-  const [base, acc, pat] = RM[id] || RM[0], el = $('rm');
-  el.style.background = `linear-gradient(160deg, ${base}, #000 140%)`;
-  el.querySelector('.glow').style.background = acc;
-  el.querySelector('.pat').style.background = PAT[pat](acc);
-  el.querySelector('.tile').style.backgroundImage = `url(${file(cosOf(O.sprites.logo, logoName(id)).file)})`;
-  document.documentElement.style.setProperty('--acc', acc === '#fff' || acc === '#e8f5e9' || acc === '#d4e9e2' || acc === '#e5e7ff' ? base : acc);
-}
+function remaster(id){ const acc = BC_REMASTER(id, $('rm'));
+  document.documentElement.style.setProperty('--acc', /^#(fff|e8f5e9|e5e7ff|a1a1a6|ffde00|ffd54f|c8e600|f7b600|fcb514|99d9d9|f5a623|ffc72c)/.test(acc) ? '#222' : acc); }
 
 // ---- stage art at the original Scratch geometry (480x360, origin centre, y up), scaled to cover the screen ----
 function place(img, c, x, y, size){
@@ -169,7 +143,7 @@ for(const k of ['logo', 'boxStd', 'boxNhl', 'boxXmas', 'win', 'win2', 'win3']){
 function show(k, o = {}){ const p = SP[k]; Object.assign(p, o); p.im.style.display = ''; place(p.im, cosOf(p.s, p.cos), p.x, p.y, p.size); }
 const hideAll = () => Object.values(SP).forEach(p => p.im.style.display = 'none');
 function backdrop(id){ const b = BR[id], c = O.backdrops.find(x => x.name === (b ? b.backdrop : 'LTT Menu (Starter)')) || O.backdrops[0];
-  place($('bd'), c, 0, 0, 100); $('wrap').style.background = S.remaster ? `linear-gradient(160deg, ${(RM[id] || RM[0])[0]}, #000 140%)` : `url(${file(c.file)}) center/cover`; $('rm').style.display = S.remaster ? 'block' : 'none';
+  place($('bd'), c, 0, 0, 100); $('wrap').style.background = S.remaster ? BC_REMASTER_BASE(id) : `url(${file(c.file)}) center/cover`; $('rm').style.display = S.remaster ? 'block' : 'none';
   if(S.remaster) remaster(id); else document.documentElement.style.setProperty('--acc', '#ff8c1a'); }
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const anim = (k, from, to, ms) => new Promise(r => { const t0 = performance.now();
