@@ -3,6 +3,8 @@ import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRe
 import * as PR from './props.js';
 import * as BL from './buildings.js';
 import * as CHR from './chrishouse.js';
+import * as SC from './school.js';
+import * as PZ from './plaza.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
@@ -94,19 +96,7 @@ plane(44, 34, rep(M.grass, 8, 6), -80, .03, 70); mapRect(-102, 53, -58, 87, '#4f
 // ---------- Jax's spot ----------
 G.JX = { x:-40, z:33 };
 
-// ---------- School (Mrs. Sparks' computer class) ----------
-{ const x0 = -170, x1 = -124, z0 = 112, z1 = 160, bm = BL.brickM('#b58a5e', '#d8cbb2', [12, 2], 's'), h = 7;
-  box(x1 - x0, h, .4, bm, (x0 + x1) / 2, 0, z0); box(x1 - x0, h, .4, bm, (x0 + x1) / 2, 0, z1); box(.4, h, z1 - z0, bm, x0, 0, (z0 + z1) / 2);
-  box(.4, h, 15, bm, x1, 0, z0 + 7.5); box(.4, h, 29, bm, x1, 0, z1 - 14.5); box(.4, 4.6, 4, bm, x1, 2.4, z0 + 17);
-  box(x1 - x0, .4, z1 - z0, mat('#7a6a5a'), (x0 + x1) / 2, h, (z0 + z1) / 2, { col:false });
-  plane(x1 - x0, z1 - z0, rep(M.tile, 18, 18), (x0 + x1) / 2, .02, (z0 + z1) / 2); floor(x0, z0, x1, z1, 0);
-  // classroom: computer rows
-  for(let r = 0; r < 4; r++) for(let c = 0; c < 4; c++){ const x = -164 + c * 6, z = 122 + r * 7; box(4.2, .75, 1.2, mat('#b89a6a'), x, 0, z);
-    box(.9, .75, .8, mat('#d8d0b8'), x - .8, .75, z - .1, { col:false }); box(.9, .75, .8, mat('#d8d0b8'), x + 1.1, .75, z - .1, { col:false });
-    [x - .8, x + 1.1].forEach(mx => { const s = new THREE.Mesh(new THREE.PlaneGeometry(.66, .5), new THREE.MeshBasicMaterial({ color:0x2a3a8a })); s.position.set(mx, 1.15, z + .31); S.add(s); }); }
-  box(8, 2.4, .1, mat('#2a4a2a'), -150, 1, 113, { col:false }); box(3, .8, 1.4, mat('#7a5a3a'), -150, 0, 116);
-  G.classroom = { jax:{ x:-158, z:136 }, chris:{ x:-152, z:143 }, sparks:{ x:-150, z:117 }, door:{ x:-122, z:129 } }; BL.school();
-  mapRect(x0, z0, x1, z1, '#a0604a'); plane(18, 30, rep(M.asphalt, 4, 6), -116, .02, 190); mapRect(-125, 175, -107, 205, '#5a5d63'); }
+SC.buildSchool(); // Belleville West High School (school.js)
 
 // ---------- Schnucks Swansea ----------
 export const SCH = { x0:50, x1:170, z0:330, z1:402, mz:3.6 }; G.SCH = SCH;
@@ -178,7 +168,7 @@ plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 33
   box(.8, .9, .8, mat('#9aa'), 166, 0, 344); box(1.2, .8, .5, mat('#fff'), 158, 0, 352.6); G.restroom = { x:160, z:347, can:{ x:166, z:344 } };
   const rr = new THREE.Mesh(new THREE.BoxGeometry(2.4, .6, .1), new THREE.MeshBasicMaterial({ map:label('RESTROOM', { bg:'#2a5a8a', fg:'#fff', size:56 }) })); rr.position.set(153, 3, 342.2); rr.rotation.y = Math.PI; S.add(rr);
   mapRect(x0, z0, x1, z1, '#d8d4c8'); mapRect(140, 402, 166, 414, '#a8a8a0');
-  BL.schnucksExterior(SCH); BL.schnucksInterior(SCH);
+  BL.schnucksExterior(SCH); BL.schnucksInterior(SCH); PZ.plazaShops();
   G.storeEntrance = { x:105, z:328 }; G.staffDoor = { x:172, z:357.5 }; G.backDoorOutside = { x:152, z:405 }; }
 // 14 numbered cart corrals (C01–C14)
 G.corrals = [];

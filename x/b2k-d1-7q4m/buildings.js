@@ -116,10 +116,10 @@ export function schnucksExterior(SCH){ const { x0, x1, z0, z1 } = SCH, H = 8, f 
     for(let x = a + .7; x < b - .5; x += 1.4){ const grass = x % 4.2 < 1.4; const m = mesh(grass ? new THREE.ConeGeometry(.45, 1.4, 6) : new THREE.IcosahedronGeometry(.55, 0), M(grass ? '#a8a060' : '#3a6a2e'), x, grass ? 1.4 : 1.05, z0 - 1.8 + (x % 2.8 < 1.4 ? .3 : -.3)); if(!grass) m.scale.y = .8; } });
   // strip-plaza neighbours on both sides (brick, storefront glass, sign band)
   const shops = [[10, 'NAIL SPA', '#b23a6a'], [26, 'VIDEO WORLD', '#1f4aa8'], [42, 'LAUNDRY', '#2a7a5a']], shops2 = [[192, 'TAX SERVICE', '#2a5a2a'], [208, 'CHINA GARDEN', '#b8282a'], [224, 'HAIR CUTS', '#7a2a8a']];
-  [[2, 49, shops], [184, 232, shops2]].forEach(([a, b, list]) => { const zc = 362, d = 56, zf = zc - d / 2; B(b - a, 6, d, brickM('#8a4a34', '#c2b29c', [12, 1.4], 'p'), (a + b) / 2, 0, zc); col(a, zc - d / 2, b, zc + d / 2, 6);
+  [[2, 49, shops], [184, 232, shops2]].forEach(([a, b, list]) => { const zc = 362, d = 56, zf = zc - d / 2; B(b - a, 6, 40, brickM('#8a4a34', '#c2b29c', [12, 1.4], 'p'), (a + b) / 2, 0, 370); col(a, 350, b, 390, 6); // front 16 m = walk-in shops (plaza.js)
     B(b - a + .6, .5, d + .6, M('#cfc4b0'), (a + b) / 2, 6, zc); B(b - a, .3, 3, M('#5a5a5a'), (a + b) / 2, 3.6, zf - 1.5); // canopy
-    list.forEach(([x, name, c]) => { mesh(new THREE.PlaneGeometry(13, 3), new THREE.MeshLambertMaterial({ color:0x2a3a48, emissive:0x0c1a22 }), x, 1.7, zf - .05).rotation.y = Math.PI;
-      const s = mesh(new THREE.PlaneGeometry(11, 1.3), new THREE.MeshBasicMaterial({ map:label(name, { bg:'#f4efe4', fg:c, size:70, w:768, h:110 }) }), x, 4.9, zf - .06); s.rotation.y = Math.PI; }); });
+    list.forEach(([x, name, c]) => {
+      const s = mesh(new THREE.PlaneGeometry(11, 1.3), new THREE.MeshBasicMaterial({ map:label(name, { bg:'#f4efe4', fg:c, size:70, w:768, h:110 }) }), x, 4.9, zf - .12); s.rotation.y = Math.PI; }); });
   // lot: landscaped tree islands, light poles, cart-return signs
   [[44, 280], [44, 304], [196, 280], [196, 304], [120, 280], [120, 304], [82, 304], [158, 280]].forEach(([x, z]) => { B(3, .25, 5, M('#9a9a92'), x, 0, z); mesh(new THREE.PlaneGeometry(2.6, 4.6), M('#4f7a30'), x, .26, z).rotation.x = -Math.PI / 2; tree(x, z, .8); });
   for(let x = 60; x <= 160; x += 33) [288, 316].forEach(z => { mesh(new THREE.CylinderGeometry(.12, .16, 9, 8), M('#555'), x, 4.5, z); B(1.4, .3, .7, M('#3a3a3a'), x, 9, z); mesh(new THREE.PlaneGeometry(1.2, .5), new THREE.MeshBasicMaterial({ color:0xfff1c8 }), x, 8.98, z).rotation.x = Math.PI / 2; });
@@ -153,32 +153,3 @@ export function schnucksInterior(SCH){ const { x0, x1, z0, z1 } = SCH;
   const lightM = new THREE.MeshBasicMaterial({ color:0xfffdf2 }); for(let x = x0 + 6; x < x1; x += 8) for(let z = z0 + 6; z < 386; z += 8){ const l = mesh(new THREE.PlaneGeometry(1.4, 1.4), lightM, x, 7.9, z); l.rotation.x = Math.PI / 2; l.castShadow = false; }
   }
 
-// ---------- school (Belleville High) ----------
-export function school(){ const x0 = -170, x1 = -124, z0 = 112, z1 = 160, tan = brickM('#b58a5e', '#d8cbb2', [12, 2], 's'), band = M('#d8cbb2');
-  // taller two-band facade on the east (street) side with ribbon windows + entrance canopy
-  B(.4, 9.5, 127 - z0, tan, x1 + .25, 0, (z0 + 127) / 2); B(.4, 9.5, z1 - 131, tan, x1 + .25, 0, (131 + z1) / 2); B(.4, 6.7, 4, tan, x1 + .25, 2.8, 129);
-  B(.6, .4, z1 - z0 + .6, band, x1 + .4, 9.5, (z0 + z1) / 2);
-  [2.2, 5.8].forEach(y => { for(let z = z0 + 3; z < z1 - 2; z += 4.2){ if(z > 124 && z < 134) continue; const w = mesh(new THREE.PlaneGeometry(3.4, 1.8), new THREE.MeshLambertMaterial({ color:0x35505e, emissive:0x10202a }), x1 + .47, y, z + 1.7); w.rotation.y = Math.PI / 2;
-    B(.1, .12, 3.6, band, x1 + .5, y - 1, z + 1.7); } });
-  // entrance: recessed doors + flat canopy on columns + letters
-  B(6, .4, 9, M('#cfc8b8'), x1 + 3, 3.4, 129); [[x1 + 5.6, 125.2], [x1 + 5.6, 132.8]].forEach(([x, z]) => { mesh(new THREE.CylinderGeometry(.2, .2, 3.4, 10), white, x, 1.7, z); col(x - .25, z - .25, x + .25, z + .25); });
-  const letters = mesh(new THREE.PlaneGeometry(16, 1.3), new THREE.MeshBasicMaterial({ map:label('BELLEVILLE HIGH SCHOOL', { bg:'#b58a5e', fg:'#14213d', size:64, w:1400, h:110, font:'Arial Black' }), transparent:false }), x1 + .52, 8, 129);
-  letters.rotation.y = Math.PI / 2;
-  // flagpole, sign, bus loop, lawn trees
-  mesh(new THREE.CylinderGeometry(.07, .1, 11, 8), M('#ccc'), x1 + 12, 5.5, 140); const flag = mesh(new THREE.PlaneGeometry(2.2, 1.3), new THREE.MeshBasicMaterial({ map:label(['★★★  ═════', '═══════════'], { bg:'#b22234', fg:'#fff', size:40, w:256, h:150 }), side:THREE.DoubleSide }), x1 + 13.1, 10.2, 140);
-  const sign = new THREE.Group(); sign.position.set(x1 + 14, 0, 112); S.add(sign); B(5, .6, .8, brickM('#8a4a34'), 0, 0, 0, sign); B(4.4, 1.6, .3, M('#14213d'), 0, .6, 0, sign);
-  mesh(new THREE.PlaneGeometry(4.2, 1.4), new THREE.MeshBasicMaterial({ map:label(['BELLEVILLE HIGH', 'HOME OF THE MAROONS'], { bg:'#14213d', fg:'#f2d04a', size:36, w:512, h:170 }) }), 0, 1.4, .16, sign); col(x1 + 11.4, 111.5, x1 + 16.6, 112.5, 2);
-  [[x1 + 10, 152], [x1 + 10, 104], [x1 + 4, 166]].forEach(([x, z]) => tree(x, z, 1.1));
-  // interior: hallway with lockers + classroom walls (door to the classroom at z 134..137)
-  const wallM = M('#e6e1d2'); B(.3, 3.4, 22, wallM, -141, 0, 123); B(.3, 3.4, 23, wallM, -141, 0, 148.5); B(.3, .9, 3, wallM, -141, 2.5, 135.5);
-  col(-141.2, 112, -140.8, 134); col(-141.2, 137, -140.8, 160);
-  for(let z = 113; z < 159; z += .9){ if(z > 126 && z < 132) continue; B(.5, 2, .8, M(z % 1.8 < .9 ? '#7a1f2a' : '#6a1a24'), -124.6, 0, z + .45); }
-  B(.1, .7, 2.4, M('#2a4a2a'), -141.2, 1.3, 140, null);
-  mesh(new THREE.PlaneGeometry(14, 46), M('#d8d2c2'), -133, .03, 136).rotation.x = -Math.PI / 2;
-  const cl = mesh(new THREE.PlaneGeometry(46, 48), new THREE.MeshBasicMaterial({ color:0xe4e2da }), -147, 3.38, 136); cl.rotation.x = Math.PI / 2;
-  const sk = (w, x, z, ry) => { const p = mesh(new THREE.PlaneGeometry(w, 3.4), wallM, x, 1.7, z); p.rotation.y = ry; p.castShadow = false; };
-  sk(48, -169.75, 136, Math.PI / 2); sk(46, -147, 112.25, 0); sk(46, -147, 159.75, Math.PI); sk(15, -124.25, 119.5, -Math.PI / 2); sk(29, -124.25, 145.5, -Math.PI / 2);
-  B(29, 3.4, .3, wallM, -155.5, 0, 151); col(-170, 150.8, -141, 151.2); [[-160, 150.8, '#2a5a8a'], [-150, 150.8, '#8a2a2a']].forEach(([x, z, c]) => { const p = mesh(new THREE.PlaneGeometry(3, 2), M(c), x, 1.9, z - .02); p.rotation.y = Math.PI; });
-  for(let x = -166; x < -126; x += 6) for(let z = 116; z < 158; z += 6){ const l = mesh(new THREE.PlaneGeometry(1.2, 2.4), new THREE.MeshBasicMaterial({ color:0xfffdf2 }), x, 3.36, z); l.rotation.x = Math.PI / 2; }
-  B(.08, 1.2, 4, M('#f4f4f0'), -169.7, 1.2, 128); B(.08, 1.2, 4, M('#2a4a2a'), -169.7, 1.2, 140); // whiteboard + chalkboard
-  const clock = mesh(new THREE.CircleGeometry(.35, 20), M('#fff'), -169.75, 2.7, 134); clock.rotation.y = Math.PI / 2; }

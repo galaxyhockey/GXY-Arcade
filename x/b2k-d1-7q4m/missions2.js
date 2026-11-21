@@ -73,13 +73,13 @@ async function cartRun(corralIdx, need, prompt = 'GRAB CARTS'){
   E.obj('Push them inside to the cart return.'); await H.reach(G.cartBay.x, G.cartBay.z, 3); await H.interact(G.cartBay.x, G.cartBay.z, 'RETURN CARTS', 3.5); deliver(); E.sfx('ok'); G.blips = []; }
 
 // =================== M04 — OLD DUDE (BOOK: September 26, 2003) ===================
-export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Belleville High School', needs:'M03', start:{ x:-118, z:129 },
+export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front entrance of Belleville West High School', needs:'M03', start:{ x:-126, z:150 },
   setup(i){ E.setTime(i >= 6 ? 'night' : i >= 4 ? 'dusk' : 'day'); E.setOutfit(i >= 2 && i < 9 ? work : {}); clock(day4, ''); G.noTraffic = false; G.storeOpen = true; },
   stages:[
-    async () => { const cl = G.classroom; E.place(cl.chris.x, cl.chris.z, Math.PI); clock(day4, '2:45 PM');
-      const sp = mnpc('Mrs. Sparks', W.sparks, cl.sparks.x, cl.sparks.z, { face:0 }); const jax = mnpc('Jax', LOOK.jax, cl.jax.x, cl.jax.z, { face:Math.PI });
-      for(let i = 0; i < 6; i++) mnpc('student', { shirt:['#8a5a9a', '#3a7a6a', '#a8743a', '#5a6aa8', '#aa5544', '#557755'][i], hair:['#222', '#a87a4a', '#3a2414'][i % 3], long:i % 2 === 1 }, -164 + (i % 4) * 6, 125 + (i / 4 | 0) * 7 + 2.2, { face:Math.PI });
-      E.cut(true); await H.shot([-150, 3, 146], [-152, 1.2, 120], 0); await H.card(day4, '', 2200);
+    async () => { const cl = G.classroom; E.place(cl.chris.x, cl.chris.z, -Math.PI / 2); clock(day4, '2:45 PM');
+      const sp = mnpc('Mrs. Sparks', W.sparks, cl.sparks.x, cl.sparks.z, { face:Math.PI / 2 }); const jax = mnpc('Jax', LOOK.jax, cl.jax.x, cl.jax.z, { face:-Math.PI / 2 });
+      for(let i = 0; i < 6; i++) mnpc('student', { shirt:['#8a5a9a', '#3a7a6a', '#a8743a', '#5a6aa8', '#aa5544', '#557755'][i], hair:['#222', '#a87a4a', '#3a2414'][i % 3], long:i % 2 === 1 }, cl.seats[[0, 2, 7, 9, 12, 14][i]].x, cl.seats[[0, 2, 7, 9, 12, 14][i]].z, { face:-Math.PI / 2 });
+      E.cut(true); await H.shot(cl.cam[0], cl.cam[1], 0); await H.card(day4, '', 2200);
       await H.say([['Mrs. Sparks', 'That is all for class today, feel free to do whatever you want for the last 5 minutes'],
         ['', 'god she really dragged out those damn computer lessons, I wish she knew we weren\'t dumbasses. I walked over to Jax’s desk to talk to him.']]); E.cut(false);
       E.obj('Talk to Jax.'); await H.interact(() => jax.p.x, () => jax.p.z, 'TALK TO JAX', 2.6); E.cut(true); face(jax, P.p); faceP(jax); await two(P.p, jax);
@@ -89,7 +89,7 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'Bellevi
         ['Jax', 'Shouldn’t you do your job? Wouldn\'t that make you a good worker and you can get promoted'], [C, 'Why would i want to get promoted, that place sucks ass'], ['Jax', 'Fair point i guess']]);
       E.sfx('bell'); await H.card('SCHOOL BELL RINGS', '', 1400); await H.say([[C, 'Finally']]); E.cut(false);
       E.obj('LEAVE CLASS WHEN THE BELL RINGS.'); await H.reach(G.classroom.door.x, G.classroom.door.z, 2.6); },
-    async () => { park(-116, 186, Math.PI); E.place(-118.5, 183, Math.PI); E.cut(false); G.blips.push({ x:-116, z:186, c:'#4fc3ff' });
+    async () => { park(-134.5, 186.5, Math.PI / 2); E.place(-130.5, 186.5, -Math.PI / 2); E.cut(false); G.blips.push({ x:-134.5, z:186.5, c:'#4fc3ff' });
       E.say([['', 'i ran out of that building like it was on FIRE.']], { auto:true });
       E.obj('GET IN YOUR CAR. (E)'); await H.until(() => G.driving); G.noExit = true; E.obj('DRIVE TO WORK — SCHNUCKS SWANSEA. Park by the staff entrance.'); G.blips = [];
       await H.reach(180, 352, 5, { color:0x4fc3ff }); E.toast('Stop the car to park (S / SPACE)', 2500); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar(); clock(day4, '3:58 PM');

@@ -2,7 +2,7 @@
 import * as E from './engine.js';
 import './world.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-E.bakeStatic([G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
+E.bakeStatic([G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
 const KEY = 'b2k_draft1_save';
 export const SV = { done:{}, cp:null, flags:{}, pos:null, cam:'tp', filter:false, s01best:null, ver:1 };
 try{ Object.assign(SV, JSON.parse(localStorage.getItem(KEY)) || {}); }catch(e){}
