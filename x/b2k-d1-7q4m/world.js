@@ -271,4 +271,4 @@ export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070,
     p.position.set(x, row * .5 + .5, 19.6 + row * 1.2); p.rotation.y = Math.PI; S.add(p); G.crowd.push(p); }
   G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
 // interior lights for Chris's house and the school classroom
-[[-3, 2.8, -4], [4.5, 2.8, -7], [3, 6, -7], [-4, 6, -2], [-150, 6, 135]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
+[[0, 2.8, -6], [3, 6, -7]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });

@@ -148,7 +148,7 @@ export function schnucksInterior(SCH){ const { x0, x1, z0, z1 } = SCH;
     mesh(new THREE.CylinderGeometry(.08, .08, 2.6, 8), M('#bbb'), x - .3, 1.3, 346.8); B(.5, 1.4, 1.2, M('#c8102e'), x + .9, 0, 347.4); });
   // white ceiling panels with recessed square lights (bright, like the real store)
   const lightM = new THREE.MeshBasicMaterial({ color:0xfffdf2 }); for(let x = x0 + 6; x < x1; x += 8) for(let z = z0 + 6; z < 386; z += 8){ const l = mesh(new THREE.PlaneGeometry(1.4, 1.4), lightM, x, 7.9, z); l.rotation.x = Math.PI / 2; l.castShadow = false; }
-  [[70, 345], [110, 345], [150, 345], [90, 372], [130, 372]].forEach(([x, z]) => { const l = new THREE.PointLight(0xfff8ea, 45, 40, 1.5); l.position.set(x, 7, z); S.add(l); }); }
+  }
 
 // ---------- school (Belleville High) ----------
 export function school(){ const x0 = -170, x1 = -124, z0 = 112, z1 = 160, tan = brickM('#b58a5e', '#d8cbb2', [12, 2], 's'), band = M('#d8cbb2');

@@ -53,7 +53,7 @@ canvas#c{display:block;width:100%;height:100%}
 #toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);font-family:'Press Start 2P';font-size:12px;background:#000c;border:3px solid #ffd23f;padding:10px 14px;border-radius:8px;z-index:26;display:none;text-align:center;line-height:1.8}
 #tv{position:fixed;inset:0;z-index:23;display:none;background:#000;align-items:center;justify-content:center}
 </style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
 <canvas id="c"></canvas>
 <div class="hud" id="clock"></div><div class="hud" id="compass"></div><div class="hud" id="timer"></div>
@@ -79,5 +79,5 @@ canvas#c{display:block;width:100%;height:100%}
   <button id="pBug">COPY BUG REPORT</button><button id="pTitle">QUIT TO TITLE</button></div></div>
 <div id="mapv"><canvas id="mapc" width="900" height="900"></canvas><p class="note">M — close map</p></div>
 <div id="help"><h2>CONTROLS</h2><div class="keys">WASD · move &nbsp; MOUSE · look (click to lock)<br>SHIFT · run (uses stamina) &nbsp; SPACE · jump<br>E · interact / next text / get in a car<br>IN A CAR: W/S gas &amp; brake · A/D steer · SPACE handbrake<br>V · first / third person &nbsp; M · map<br>ESC / P · pause &nbsp; ARROWS · look (no mouse)</div><button class="btn" id="hClose">GOT IT</button></div>
-<script type="module" src="game.js?v=4"></script>
+<script type="module" src="game.js?v=5"></script>
 </body></html>

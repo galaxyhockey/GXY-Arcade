@@ -7,15 +7,15 @@ export const G = { flags:{}, colliders:[], platforms:[], ramps:[], inter:[], npc
 // ---------- renderer / scene ----------
 const canvas = $('c');
 const R = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
-R.setPixelRatio(Math.min(devicePixelRatio, 1.5)); R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+R.setPixelRatio(Math.min(devicePixelRatio, 1)); R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFShadowMap;
 R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.05;
 const scene = new THREE.Scene(); G.scene = scene;
-const cam = new THREE.PerspectiveCamera(62, 1, .1, 900); G.cam = cam;
+const cam = new THREE.PerspectiveCamera(62, 1, .1, 420); G.cam = cam;
 function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
 const hemi = new THREE.HemisphereLight(0xcfe6ff, 0x5a4a30, .75); scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff1d6, 1.6); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left:-60, right:60, top:60, bottom:-60, near:1, far:260 }); sun.shadow.bias = -.0006; sun.shadow.normalBias = .03;
+const sun = new THREE.DirectionalLight(0xfff1d6, 1.6); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left:-45, right:45, top:45, bottom:-45, near:1, far:240 }); sun.shadow.autoUpdate = true; sun.shadow.bias = -.0006; sun.shadow.normalBias = .03;
 scene.add(sun, sun.target);
 const skyU = { top:{ value:new THREE.Color(0x3d7fd8) }, bot:{ value:new THREE.Color(0xcfe6ff) } };
 const sky = new THREE.Mesh(new THREE.SphereGeometry(800, 24, 12), new THREE.ShaderMaterial({ side:THREE.BackSide, depthWrite:false, uniforms:skyU,
@@ -342,3 +342,23 @@ function step(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; i
 requestAnimationFrame(frame);
 G.advance = sec => { for(let i = 0; i < sec * 20; i++){ last = performance.now() - 50; step(performance.now()); } }; // debug/testing aid
 setInterval(() => { const n = performance.now(); if(n - last > 160) step(n); }, 40); // keeps running when rAF is throttled
+
+// ---------- performance: merge every static mesh that shares a material into one draw call ----------
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+export function bakeStatic(keepList = []){
+  const keep = new Set(keepList.filter(Boolean)); keep.add(sky); keep.add(P.model); G.npcs.forEach(n => keep.add(n.o));
+  scene.updateMatrixWorld(true); const groups = new Map(); let n0 = 0;
+  scene.traverse(o => { if(!o.isMesh || Array.isArray(o.material) || o.material.isShaderMaterial) return;
+    for(let p = o; p && p !== scene; p = p.parent) if(keep.has(p)) return;
+    const mt = o.material, k = (mt.map ? mt.uuid : mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.opacity + mt.transparent + mt.side) + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : ''); if(!groups.has(k)) groups.set(k, []); groups.get(k).push(o); n0++; });
+  let n1 = 0;
+  for(const list of groups.values()){ if(list.length < 2) continue;
+    const geos = list.map(o => { let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
+      for(const a of Object.keys(g.attributes)) if(!['position', 'normal', 'uv'].includes(a)) g.deleteAttribute(a);
+      if(!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+      if(!g.attributes.normal) g.computeVertexNormals(); g.clearGroups(); return g; });
+    const merged = mergeGeometries(geos, false); if(!merged) continue;
+    const m = new THREE.Mesh(merged, list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.matrixAutoUpdate = false; scene.add(m);
+    list.forEach(o => o.parent && o.parent.remove(o)); geos.forEach(g => g.dispose()); n1++; }
+  scene.traverse(o => { if(!o.isMesh) return; for(let p = o; p && p !== scene; p = p.parent) if(keep.has(p)) return; o.matrixAutoUpdate = false; o.updateMatrix(); });
+  G.perf = { before:n0, groups:n1 }; return G.perf; }
