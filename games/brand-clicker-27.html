@@ -4,7 +4,8 @@
 <title>Brand Clicker '27 (Test v0.3)</title>
 <style>
 :root{--glass:rgba(16,18,28,.62);--line:rgba(255,255,255,.14);--txt:#f4f6ff;--mut:#a9b0c7;--acc:#ff8c1a;
-  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600);--Exclusive:linear-gradient(90deg,#ff2d95,#7c4dff);--Event:#ff7043}
+  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600);--Exclusive:linear-gradient(90deg,#ff2d95,#7c4dff);--Event:#ff7043;--Secret:linear-gradient(90deg,#e21836,#ffd400)}
+.v-y2k{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 6px 10px #0b5fa5) saturate(1.4) contrast(1.1)!important}
 body.ice{--glass:rgba(200,235,255,.16);--line:rgba(160,225,255,.65);--mut:#d6f0ff}
 body.ice .glass{box-shadow:0 0 18px rgba(120,210,255,.45),inset 0 0 14px rgba(255,255,255,.18)}
 body.ice .pill b,body.ice .sh h2{text-shadow:0 0 8px #9be7ff}
@@ -200,6 +201,7 @@ async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return; sessionS
 <script src="bc27/remaster3d.js?v=5"></script>
 <script src="bc27/season1.js?v=6"></script>
 <script src="bc27/v03.js?v=7"></script>
+<script src="bc27/schnucks.js?v=8"></script>
 <script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT || !window.BC_EVENTS) bcHeal();</script>
 <script>
 const O = BC_ORIG, V = BC_V02, $ = id => document.getElementById(id);
@@ -215,7 +217,7 @@ for(const b of V.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b
 for(const [id, nm, slug] of BC_SEASON.brands) ALL.push({ id, name:nm, rarity:'Exclusive', eth:0, exclusive:true, logo:`bc27/logos/${slug}.svg` });
 for(const [id, base, nm] of BC_3D) ALL.push({ id, name:nm + ' 3D', rarity:'3D', eth:25000, is3d:true, logo:ALL.find(b => b.id === base).logo });
 const BR = Object.fromEntries(ALL.map(b => [b.id, b])), COLLECT = ALL.filter(b => b.id);
-const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Event', 'Chroma', '3D', 'Exclusive'];
+const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Event', 'Chroma', '3D', 'Exclusive', 'Secret'];
 
 // ---------- boxes ----------
 const origW = k => Object.fromEntries(Object.values(O.boxes[k].weights).map(e => [e.id, e.weight]));
@@ -268,7 +270,7 @@ const MKT = [
   { k:'boost', name:'Overclock', ico:'🚀', price:1500, desc:'×3 on everything for 3 minutes' },
   { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade Ethereum for Brand Items · 1 Ξ = 15 BI' }
 ];
-const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120, Exclusive:60, Event:40 };
+const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120, Exclusive:60, Event:40, Secret:80 };
 const boosted = () => Date.now() < S.boostUntil ? 3 : 1;
 const tapValue = () => (5 + 5 * lv('tap')) * (S.items.golden ? 2 : 1) * boosted() * gmult();
 function perSec(){
@@ -299,7 +301,7 @@ function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'
 const showUI = on => ['hud', 'dock', 'hint', 'stage'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
 let busy = false, pending = 0;
 function home(){ busy = false; $('reveal').classList.remove('on'); $('open').classList.remove('on'); showUI(true); $('logoBox').style.visibility = '';
-  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; $('logo').className = S.var && S.var[S.bg] ? 'v-' + S.var[S.bg] : ''; $('logoBox').classList.toggle('is3d', !!(BR[S.bg] || {}).is3d); mon(); }
+  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; $('logo').className = S.var && S.var[S.bg] ? 'v-' + S.var[S.bg] : (BR[S.bg] || {}).retro ? 'v-y2k' : ''; $('logoBox').classList.toggle('is3d', !!(BR[S.bg] || {}).is3d); mon(); }
 
 // ---------- tapping ----------
 function tap(e){ if(busy || document.querySelector('.sheet.on')) return;
@@ -391,7 +393,7 @@ function renderPC(){
 }
 
 // ---------- resell values ----------
-const SELL = { Starter:0, Common:60, Uncommon:150, Rare:400, Epic:1000, Legendary:2500, Chroma:6000, '3D':60000, Exclusive:0, Event:1500 };
+const SELL = { Starter:0, Common:60, Uncommon:150, Rare:400, Epic:1000, Legendary:2500, Chroma:6000, '3D':60000, Exclusive:0, Event:1500, Secret:0 };
 // ---------- Item Shop: 6 brands, rotates every day at local midnight ----------
 const ITPRICE = { Common:150, Uncommon:400, Rare:1000, Epic:2500, Legendary:6000, Chroma:15000 };
 function dayKey(){ const d = new Date(); return d.getFullYear() * 1e4 + (d.getMonth() + 1) * 100 + d.getDate(); }
@@ -446,8 +448,8 @@ S.st = Object.assign({ bi:0, eth:0, pulls:0, rare:0, best:0, battles:0, wins:0 }
 S.mast = S.mast || {}; for(const id of S.owned) S.mast[id] = Math.max(S.mast[id] || 0, S.counts[id] || 1);
 S.var = S.var || {}; S.stars = S.stars || 0; S.rebirths = S.rebirths || 0; S.run = S.run || 0;
 S.pass2 = S.pass2 || { xp:0, prem:0, got:{} }; S.redeemed = S.redeemed || []; if(S.sound === undefined) S.sound = 1;
-const RORD = ['Starter', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Event', 'Exclusive', 'Chroma', '3D'];
-const RARE = ['Rare', 'Epic', 'Legendary', 'Chroma', '3D', 'Event', 'Exclusive'];
+const RORD = ['Starter', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Event', 'Exclusive', 'Secret', 'Chroma', '3D'];
+const RARE = ['Rare', 'Epic', 'Legendary', 'Chroma', '3D', 'Event', 'Exclusive', 'Secret'];
 
 // ---------- mastery (copies ever pulled) + Gold/Diamond/Holo variants ----------
 const MT = [1, 2, 4, 7, 12];
@@ -580,7 +582,7 @@ function renderStats(){ const luck = S.st.pulls ? (S.st.rare / S.st.pulls) / .3 
   ].join('') + '</div>'; }
 
 // ---------- Brand Battles ----------
-const POW = { Starter:5, Common:10, Uncommon:16, Rare:25, Epic:40, Legendary:60, Event:55, Exclusive:80, Chroma:90, '3D':150 };
+const POW = { Starter:5, Common:10, Uncommon:16, Rare:25, Epic:40, Legendary:60, Event:55, Exclusive:80, Secret:100, Chroma:90, '3D':150 };
 const power = id => POW[BR[id].rarity] * (1 + .2 * Math.max(0, mastLv(id) - 1)) * (1 + (vMult(id) - 1) * .25);
 const DIFF = { easy:{ name:'Easy', pool:['Common', 'Uncommon', 'Rare'], eth:150 }, normal:{ name:'Normal', pool:['Rare', 'Epic', 'Legendary'], eth:500 }, hard:{ name:'Hard', pool:['Legendary', 'Event', 'Chroma', 'Exclusive', '3D'], eth:1500 } };
 let team = [], diff = 'easy';
@@ -604,8 +606,8 @@ function renderBattle(){ const cd = Math.max(0, Math.ceil(((S.bcd || 0) - Date.n
 
 // ---------- trade: gift codes ----------
 const hsh = s => { let h = 7; for(const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h.toString(36); };
-function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && BR[id].rarity !== 'Exclusive');
-  $('trBody').innerHTML = `<p class="note">Send a duplicate brand to a friend with a gift code. Creating a code removes one copy from your collection. Each code works once per player.</p>
+function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && !['Exclusive', 'Secret'].includes(BR[id].rarity));
+  $('trBody').innerHTML = `<p class="note">Got a secret code? Type it in Redeem. Send a duplicate brand to a friend with a gift code. Creating a code removes one copy from your collection. Each code works once per player.</p>
     <h4>Redeem a code</h4><div class="row"><input id="trIn" placeholder="BC27-…" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--txt)"><button class="btn" id="trRedeem">Redeem</button></div>
     <h4>Gift a duplicate</h4>${gifts.length ? `<div class="grid">${gifts.map(id => `<div class="cell" data-g="${id}"><span class="n">×${S.counts[id]}</span><img src="${BR[id].logo}" alt=""><b>${BR[id].name}</b><span class="lv">Make code</span></div>`).join('')}</div>` : '<p class="note">No duplicates to gift yet.</p>'}
     <div id="trOut"></div>`;
@@ -613,7 +615,9 @@ function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && B
     const payload = id + '.' + Math.random().toString(36).slice(2, 10), code = 'BC27-' + btoa(payload + '.' + hsh('bc27gift' + payload)).replace(/=+$/, '');
     S.counts[id]--; save(); renderTrade(); $('trOut').innerHTML = `<h4>Your code for ${BR[id].name}</h4><div class="row"><input readonly value="${code}" style="flex:1;padding:10px;border-radius:10px;border:0" id="trCode"><button class="btn" id="trCopy">Copy</button></div>`;
     $('trCopy').onclick = () => { $('trCode').select(); try{ navigator.clipboard.writeText(code); }catch(e){ document.execCommand('copy'); } toast('Code copied'); }; });
-  $('trRedeem').onclick = () => { try{ const [p1, p2, h] = atob($('trIn').value.trim().replace(/^BC27-/, '')).split('.'), payload = p1 + '.' + p2, id = +p1;
+  $('trRedeem').onclick = () => { const raw = $('trIn').value.trim().toUpperCase(), sc = BC_CODES[raw];
+    if(sc){ if(S.owned.includes(sc.id)) return toast(`You already unlocked ${sc.name}`); gain(sc.id); S.bg = sc.id; save(); mon(); renderTrade(); sfx('chroma'); toast(`🔓 Code accepted: ${sc.name}!`); return; }
+    try{ const [p1, p2, h] = atob($('trIn').value.trim().replace(/^BC27-/, '')).split('.'), payload = p1 + '.' + p2, id = +p1;
       if(hsh('bc27gift' + payload) !== h || !BR[id]) throw 0;
       if(S.redeemed.includes(p2)) return toast('That code was already used');
       S.redeemed.push(p2); gain(id); save(); mon(); renderTrade(); sfx('rare'); toast(`🎁 You received ${BR[id].name}!`); }catch(e){ toast('Invalid code'); } }; }
@@ -621,6 +625,7 @@ function renderTrade(){ const gifts = S.owned.filter(id => S.counts[id] > 1 && B
 // ---------- passes: Season 1 + Season 2 ----------
 const PASSES = [{ def:BC_SEASON, st:() => S.pass }, { def:BC_SEASON2, st:() => S.pass2 }];
 for(const [id, nm, slug] of BC_SEASON2.brands) if(!BR[id]){ const b = { id, name:nm, rarity:'Exclusive', eth:0, exclusive:true, logo:`bc27/logos/${slug}.svg` }; ALL.push(b); BR[id] = b; COLLECT.push(b); }
+for(const [code, c] of Object.entries(BC_CODES)) if(!BR[c.id]){ const b = { id:c.id, name:c.name, rarity:'Secret', eth:5000, secret:true, is3d:!!c.is3d, retro:!!c.retro, logo:BC_CODE_LOGO }; ALL.push(b); BR[c.id] = b; COLLECT.push(b); }
 for(const ev of BC_EVENTS) for(const [id, nm, slug] of ev.brands) if(!BR[id]){ const b = { id, name:nm, rarity:'Event', eth:2000, logo:`bc27/logos/${slug}.svg` }; ALL.push(b); BR[id] = b; COLLECT.push(b); }
 let curPass = 1;
 const tierP = i => Math.min(PASSES[i].def.tiers, Math.floor(PASSES[i].st().xp / PASSES[i].def.xpPerTier));
