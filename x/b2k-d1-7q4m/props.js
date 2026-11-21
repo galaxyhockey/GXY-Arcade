@@ -18,7 +18,7 @@ export function crtTV(x, y, z, ry = 0, scale = 1){ const g = new THREE.Group(); 
 export function tvStand(x, z, ry = 0){ const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g);
   B(1.6, .06, .6, wood, 0, .62, 0, g); B(1.6, .06, .6, wood, 0, .02, 0, g); [-.77, .77].forEach(dx => B(.06, .62, .6, wood, dx, 0, 0, g)); B(.5, .12, .35, black, -.3, .1, 0, g); return g; } // VCR on shelf
 export function wallPhone(x, y, z, ry = 0){ const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; S.add(g);
-  B(.22, .34, .08, cream, 0, 0, 0, g); B(.07, .3, .07, cream, -.13, .02, .06, g);                         // base + handset
+  B(.22, .34, .08, cream, 0, 0, 0, g); g.userData.hs = B(.07, .3, .07, cream, -.13, .02, .06, g);                         // base + handset
   for(let i = 0; i < 3; i++) for(let j = 0; j < 3; j++) B(.035, .03, .01, M('#999'), -.03 + j * .05, .12 + i * .05, .045, g);
   const cord = mesh(new THREE.TorusGeometry(.04, .008, 4, 10, Math.PI * 5), black, -.13, -.08, .07, g); cord.rotation.z = Math.PI / 2; return g; }
 export function microwave(x, y, z, ry = 0){ const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; S.add(g);

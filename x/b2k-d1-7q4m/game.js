@@ -2,7 +2,7 @@
 import * as E from './engine.js';
 import './world.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-E.bakeStatic([G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
+E.bakeStatic([G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
 const KEY = 'b2k_draft1_save';
 export const SV = { done:{}, cp:null, flags:{}, pos:null, cam:'tp', filter:false, s01best:null, ver:1 };
 try{ Object.assign(SV, JSON.parse(localStorage.getItem(KEY)) || {}); }catch(e){}
@@ -22,7 +22,7 @@ export function mnpc(name, look, x, z, o){ const n = E.npc(name, look, x, z, o);
 export function mtick(fn){ const t = E.tick(fn); mt.push(t); return t; }
 export function minter(o){ o.persist = true; mInter.push(o); return E.addInter(o); }
 export function fail(msg){ failRes && failRes(msg); }
-function cleanup(){ gen++; G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
+function cleanup(){ gen++; phoneUp(false); G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
   G.ticks = G.ticks.filter(t => t.amb); (G.markers || []).slice().forEach(E.clearMarker); E.setWay(); E.killDialog(); E.cut(false); E.obj('');
   G.carry = null; clearTrain(); G.camOverride = null; $('timer').style.display = 'none'; $('carts').style.display = 'none'; alarmFx(false); G.blips = []; }
 export let MIS = {}; export const setMissions = m => MIS = m;
@@ -71,8 +71,29 @@ export function deliver(){ const n = train.length; train.forEach(m => { m.userDa
 const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01'];
 let roamMarks = [];
 const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
+// Chris takes the kitchen wall phone off the hook (handset at his ear) / hangs it up
+export function phoneUp(on){ const hs = G.phoneObj && G.phoneObj.userData.hs; if(hs) hs.visible = !on; E.holdPhone(P.model, on ? 'handset' : null);
+  if(on){ E.place(G.phone.x, G.phone.z, Math.atan2(G.phoneLook.x - G.phone.x, G.phoneLook.z - G.phone.z)); P.model.rotation.y = P.yaw; } }
+// free-roam house interactions (GAME ORIGINAL flavour lines)
+const CHANNELS = [['Channel 4 — local news. Rain all week, apparently.', 0x6a8ab8], ['Channel 5 — the Blues are up 2–1 in the second period.', 0x4a8a5a], ['Channel 11 — an infomercial for a knife that cuts through a shoe.', 0xb88a3a], ['Channel 30 — the music video countdown.', 0x9a4ab8], ['Channel 41 — cartoons. Not bad, honestly.', 0xd86a3a]];
+const CALLS = { Zeke:[['Zeke (phone)', 'Yo! Can’t talk, I’m about to ollie a mailbox.']], Jax:[['Jax (phone)', 'What do you want.'], ['Chris', 'Nothing, just bored.'], ['Jax (phone)', '...cool. Bye.']],
+  Matt:[['Matt (phone)', 'YOOOO, Chris! What’s up!'], ['Chris', 'Nothin man.'], ['Matt (phone)', 'Same. Later dude.']], Milo:[['Milo (phone)', 'You know it’s rude to call without a reason.'], ['Chris', 'Love you too, Milo.']] };
+let chan = 0;
+async function useTV(){ E.place(G.sofa.x, G.sofa.z + .3, Math.PI); E.cut(true); await E.camShot([-4.5, 2.4, -11.6], [-4.5, 1.1, -3], 500); const scr = G.tvScreen.material, c0 = scr.color.getHex();
+  for(;;){ const [t, c] = CHANNELS[chan % CHANNELS.length]; scr.color.setHex(c); await E.say([['', t]]); if(await E.choose(['Change the channel', 'Get up'])) break; chan++; }
+  scr.color.setHex(c0); E.cut(false); }
+async function usePC(){ E.cut(true); const [x, y, z] = G.monitorPos; await E.camShot([x + .2, y + .3, z + 1.4], [x, y, z], 500); const scr = G.monitor.material, c0 = scr.color.getHex(); scr.color.set(0x2a5aa8);
+  for(;;){ const k = await E.choose(['Play RuneScape', 'Check email', 'Message the guys', 'Log off']); if(k === 3) break;
+    await E.say([[['', 'Logging in... an hour of chopping trees later: level 31 woodcutting. Worth it.']], [['', '1 new message: “U HAVE WON A FREE IPOD!!!” Delete.']], [['', 'Nobody’s online. Zeke’s away message just says “skating.”']]][k]); }
+  scr.color.setHex(c0); E.cut(false); }
+async function usePhone(){ E.cut(true); phoneUp(true); await E.camShot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 400); const names = Object.keys(CALLS);
+  const k = await E.choose([...names.map(n => 'Call ' + n), 'Hang up']); if(k < names.length){ for(let i = 0; i < 2; i++){ E.sfx('ring'); await E.wait(900); } await E.say(CALLS[names[k]]); }
+  phoneUp(false); E.cut(false); }
+function houseInters(){ const ok = () => !G.mission && G.ctl && !G.driving;
+  [[G.sofa.x, G.sofa.z, 0, 'WATCH TV', useTV], [G.desk.x, G.desk.z, 3.2, 'USE THE COMPUTER', usePC], [G.phone.x, G.phone.z, 0, 'USE THE PHONE', usePhone]].forEach(([x, z, y, prompt, fn]) =>
+    roamMarks.push({ it:E.addInter({ x, z, y, r:1.8, prompt, when:ok, use:fn }) })); }
 export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.delInter(r.it); r.stop && r.stop(); }); roamMarks = []; E.setWay(); G.blips = [];
-  if(!on) return; clock('BELLEVILLE, IL', '2003'); E.setTime(G.roamTime || 'after');
+  if(!on) return; clock('BELLEVILLE, IL', '2003'); E.setTime(G.roamTime || 'after'); houseInters();
   if(SV.needSleep){ const b = G.bed, mk = E.marker(b.x, b.z, 0x9a7cff, 3.2); G.blips.push({ x:b.x, z:b.z, c:'#9a7cff' }); E.setWay(b.x, b.z);
     const it = E.addInter({ x:b.x, z:b.z, y:3.2, r:2.2, prompt:'SLEEP UNTIL TOMORROW', use:async () => { freeRoam(false); E.cut(true); await E.fade(true, 900);
       const day = NEXT_DAY[SV.needSleep] || 'THE NEXT DAY'; SV.needSleep = false; G.roamTime = 'day'; save(); await E.card('THE NEXT MORNING', day, 2600);

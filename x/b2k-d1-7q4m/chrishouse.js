@@ -91,10 +91,10 @@ export function buildChrisHouse(){
   box(3, .95, .9, cab, 4.2, 0, -9.1); deco(3.1, .06, 1, top, 4.2, .95, -9.1); [3.2, 5.2].forEach(x => PR.chair(x, 0, -8.2, Math.PI, '#7a5a3a')); // island + stools
   PR.fridge(1.6, -11.4, 0); G.colliders.push({ x0:1.15, x1:2.05, z0:-11.8, z1:-11, y0:0, y1:1.9 });
   box(1.6, .78, 1.2, mat('#8a6a4a'), 4.2, 0, -5.6); [3.2, 5.2].forEach(x => PR.chair(x, 0, -5.6, x < 4 ? Math.PI / 2 : -Math.PI / 2, '#7a5a3a')); G.window = { x:7, z:-5.4 };
-  PR.wallPhone(7.84, 1.15, -1.2, -Math.PI / 2); G.phone = { x:7, z:-1.2 }; G.phoneLook = { x:7.84, z:-1.2 };
+  G.phoneObj = PR.wallPhone(7.84, 1.15, -1.2, -Math.PI / 2); G.phone = { x:7, z:-1.2 }; G.phoneLook = { x:7.84, z:-1.2 };
   // ---------- Chris's room ----------
   PR.bed(6.6, UP, -10.2, 0); G.colliders.push({ x0:5.85, x1:7.35, z0:-11.3, z1:-9.1, y0:UP, y1:UP + 1 }); G.bedSpawn = { x:5, z:-8.6 }; G.bed = { x:5.4, z:-9.8 };
-  PR.rug(4, UP, -7, 3, 2.4, '#3a6a8a'); box(2.4, .8, 1, wood, 3.6, UP, -11.4); const pc = PR.crtMonitor(3.4, UP + .8, -11.45, 0); G.monitor = pc.screen; PR.chair(3.5, UP, -10.3, Math.PI); G.desk = { x:3.6, z:-10.2 };
+  PR.rug(4, UP, -7, 3, 2.4, '#3a6a8a'); box(2.4, .8, 1, wood, 3.6, UP, -11.4); const pc = PR.crtMonitor(3.4, UP + .8, -11.45, 0); G.monitor = pc.screen; PR.chair(3.5, UP, -10.3, Math.PI); G.desk = { x:3.6, z:-10.2 }; G.monitorPos = [3.4, UP + 1.05, -11.45];
   [['#c83a3a', 2.2, -11.86, 0], ['#2a4a8a', 7.86, -6, -Math.PI / 2], ['#e8a020', 7.86, -3.5, -Math.PI / 2]].forEach(([c, x, z, ry]) => { const p = new THREE.Mesh(new THREE.PlaneGeometry(.8, 1.1), mat(c)); p.position.set(x, UP + 1.8, z); p.rotation.y = ry; S.add(p); }); // posters
   deco(.6, .08, .8, mat('#c83'), 7, UP + .62, -6.8); G.mags = { x:6.4, z:-6.6 }; deco(.5, .5, .3, mat('#2a4a2a'), 1.2, UP, -10.8); G.backpack = { x:1.6, z:-10.2 };
   box(1.2, 1, .55, wood, 7.5, UP, -1.5); deco(.15, .12, .5, mat('#ddd'), 7.5, UP + 1, -1.5); // dresser

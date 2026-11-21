@@ -100,8 +100,8 @@ export function makePerson(o = {}){
     const l = new THREE.Mesh(new THREE.BoxGeometry(.2 * wide, .82, .22), pa); l.position.y = -.41; const f = new THREE.Mesh(new THREE.BoxGeometry(.22 * wide, .1, .32), sho); f.position.set(0, -.86, .05);
     p.add(l, f); l.castShadow = f.castShadow = true; return p; };
   const arm = side => { const p = new THREE.Group(); p.position.set(side * (.32 * wide + .03), 1.5, 0);
-    const a = new THREE.Mesh(new THREE.BoxGeometry(.15, .38, .17), sh); a.position.y = -.19; const fa = new THREE.Mesh(new THREE.BoxGeometry(.13, .38, .14), o.sleeve === 'short' ? sk : sh); fa.position.y = -.55;
-    const h = new THREE.Mesh(new THREE.BoxGeometry(.13, .13, .13), sk); h.position.y = -.79; p.add(a, fa, h); [a, fa].forEach(m => m.castShadow = true); return p; };
+    const a = new THREE.Mesh(new THREE.BoxGeometry(.15, .38, .17), sh); a.position.y = -.19; const el = new THREE.Group(); el.position.y = -.38; const fa = new THREE.Mesh(new THREE.BoxGeometry(.13, .38, .14), o.sleeve === 'short' ? sk : sh); fa.position.y = -.17;
+    const h = new THREE.Mesh(new THREE.BoxGeometry(.13, .13, .13), sk); h.position.y = -.41; el.add(fa, h); p.add(a, el); p.userData.el = el; [a, fa].forEach(m => m.castShadow = true); return p; };
   const lL = leg(-1), lR = leg(1), aL = arm(-1), aR = arm(1);
   const torso = new THREE.Mesh(new THREE.BoxGeometry(.54 * wide, .64, .3 * Math.max(1, wide * .9)), sh); torso.position.y = 1.22; torso.castShadow = true;
   const neck = new THREE.Mesh(new THREE.BoxGeometry(.14, .08, .14), sk); neck.position.y = 1.57;
@@ -146,7 +146,7 @@ export class NPC {
   look(x, z){ this.face = Math.atan2(x - this.p.x, z - this.p.z); this.sync(); }
   at(x, z, f){ this.p.set(x, groundAt(x, z, this.p.y + .3), z); if(f !== undefined) this.face = f; this.path = null; this.sync(); }
   remove(){ scene.remove(this.o); G.npcs.splice(G.npcs.indexOf(this), 1); }
-  update(dt){ let moving = 0, tgt = null;
+  update(dt){ if(this.manual) return; let moving = 0, tgt = null;
     if(this.path && this.path.length){ tgt = this.path[0]; if(Math.hypot(tgt.x - this.p.x, tgt.z - this.p.z) < .35){ this.path.shift(); if(!this.path.length){ this.path = null; this.done && this.done(); } } }
     else if(this.fol){ let f = this.fol.p || this.fol;
       if(this.off){ const h = this.fol === P ? P.model.rotation.y : (this.fol.face || 0), [sx, bz] = this.off; f = { x:f.x + Math.cos(h) * sx - Math.sin(h) * bz, z:f.z - Math.sin(h) * sx - Math.cos(h) * bz, y:f.y }; }
@@ -159,7 +159,12 @@ export class NPC {
     animate(this.o, moving, dt); this.sync(); } }
 export function animate(o, speed, dt){ const u = o.userData; if(!u) return; u.phase += dt * (speed > 0 ? 3 + speed * 1.6 : 0); const s = speed > 0 ? Math.sin(u.phase) * Math.min(.8, .25 + speed * .1) : 0;
   if(u.dog){ u.legs.forEach((l, i) => l.rotation.x = (i % 3 ? 1 : -1) * s); u.tail.rotation.y = Math.sin(G.t * 12) * .5; return; }
-  u.lL.rotation.x = s; u.lR.rotation.x = -s; u.aL.rotation.x = -s * .8; u.aR.rotation.x = s * .8; }
+  u.lL.rotation.x = s; u.lR.rotation.x = -s; if(!u.pose){ u.aL.rotation.x = -s * .8; if(!u.phone) u.aR.rotation.x = s * .8; } }
+// phone in the right hand at the ear: kind 'nokia' | 'handset' | null (put it away)
+export function holdPhone(model, kind){ const u = model.userData, aR = u.aR, el = aR.userData.el; if(u.phone){ el.remove(u.phone); u.phone = null; } aR.rotation.set(0, 0, 0); el.rotation.set(0, 0, 0); if(!kind) return;
+  const g = new THREE.Group(); if(kind === 'nokia'){ const b = new THREE.Mesh(new THREE.BoxGeometry(.06, .13, .03), mat('#2c3a48')); const sc = new THREE.Mesh(new THREE.PlaneGeometry(.04, .035), new THREE.MeshBasicMaterial({ color:0x9fc25a })); sc.position.set(0, .03, .016); const an = new THREE.Mesh(new THREE.BoxGeometry(.015, .03, .015), mat('#222')); an.position.set(.018, .08, 0); g.add(b, sc, an); }
+  else { const b = new THREE.Mesh(new THREE.BoxGeometry(.06, .24, .06), mat('#efe6cf')); [-1, 1].forEach(s => { const c = new THREE.Mesh(new THREE.BoxGeometry(.08, .06, .08), mat('#efe6cf')); c.position.y = s * .12; g.add(c); }); g.add(b); }
+  g.position.set(-.06, -.47, .05); g.rotation.set(.2, 0, 0); el.add(g); u.phone = g; aR.rotation.set(-1.7, 0, .9); el.rotation.set(-2.5, -.5, 0); }
 export function npc(name, look, x, z, o){ return new NPC(name, look.dog ? makeDog(look.color, look) : makePerson(look), x, z, o); }
 
 // ---------- player ----------
