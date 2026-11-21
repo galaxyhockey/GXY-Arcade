@@ -15,7 +15,9 @@ const auth = getAuth(fbApp), db = getFirestore(fbApp);
 const ROOM = c => doc(db, 'trivia_rooms', c), PL = (c, u) => doc(db, 'trivia_rooms', c, 'players', u), PLS = c => collection(db, 'trivia_rooms', c, 'players');
 const COLS = ['#ef4444','#3b82f6','#22c55e','#eab308','#a855f7','#ec4899','#14b8a6','#f97316'];
 let unsub = [], hostTick = null, plTick = null, autoT = null;
-const stop = () => { unsub.forEach(f => f()); unsub = []; clearInterval(hostTick); clearInterval(plTick); clearTimeout(autoT); };
+let graceT = null; // after the host's timer ends, wait a few seconds for answers still travelling from far-away players
+const GRACE = 3500;
+const stop = () => { unsub.forEach(f => f()); unsub = []; clearInterval(hostTick); clearInterval(plTick); clearTimeout(autoT); clearTimeout(graceT); };
 
 /* ---------- settings ---------- */
 const FORMATS = {
@@ -178,7 +180,7 @@ window.hostStart = function(){
   H.facts = new Set(); H.deck = []; H.round = 0; hostNext();
 };
 window.hostNext = async function(){
-  clearInterval(hostTick); clearTimeout(autoT);
+  clearInterval(hostTick); clearTimeout(autoT); clearTimeout(graceT); H.overtime = false;
   if(H.round >= H.S.rounds || (H.S.format === 'survival' && H.round > 0 && alive().length <= (Object.keys(H.players).length > 1 ? 1 : 0))) return hostFinish();
   H.round++; H.answers = {}; H.state = 'question';
   const Q = H.Q = drawQ(); Q.secs = secsFor(H.S, Q.d); Q.double = H.S.final && H.round === H.S.rounds && H.S.format !== 'survival'; H.t0 = Date.now();
@@ -198,8 +200,8 @@ function hostQuestion(){
   hostTick = setInterval(() => {
     const left = Math.max(0, Q.secs - (Date.now() - H.t0) / 1000), pct = left / Q.secs * 100;
     if(!$('tl')) return clearInterval(hostTick);
-    $('tl').textContent = Math.ceil(left) + 's'; $('tb').style.width = pct + '%'; $('tb').style.background = pct < 25 ? 'var(--bad)' : pct < 50 ? 'var(--gold)' : 'var(--good)';
-    if(left <= 0) hostReveal();
+    $('tl').textContent = left > 0 ? Math.ceil(left) + 's' : 'collecting answers…'; $('tb').style.width = pct + '%'; $('tb').style.background = pct < 25 ? 'var(--bad)' : pct < 50 ? 'var(--gold)' : 'var(--good)';
+    if(left <= 0 && !H.overtime){ H.overtime = true; graceT = setTimeout(() => hostReveal(), GRACE); hostQuestionUpdate(); }
   }, 250);
 }
 window.hostAnswer = async function(){
@@ -211,7 +213,7 @@ function hostQuestionUpdate(){
   const ids = Object.keys(H.players), live = ids.filter(id => !H.players[id].out);
   $('locks').innerHTML = ids.map((id,i) => { const p = H.players[id];
     return `<div><span style="color:${COLS[i % 8]}">● ${esc(p.name)}${H.S.format === 'survival' ? ` <span class="dim">${p.out ? '💀' : '❤️'.repeat(p.lives)}</span>` : ''}</span><span>${p.out ? 'Out' : H.answers[id] ? '🔒 Locked in' : '⏳ Thinking…'}</span></div>`; }).join('');
-  if(H.S.early && live.length && live.every(id => H.answers[id])) hostReveal();
+  if((H.S.early || H.overtime) && live.length && live.every(id => H.answers[id])) hostReveal();
 }
 
 /* ---------- scoring ---------- */
@@ -238,7 +240,7 @@ function score(p, id, t, rank){
   p.score += pts; return pts;
 }
 window.hostReveal = async function(){
-  if(H.state !== 'question') return; H.state = 'reveal'; clearInterval(hostTick);
+  if(H.state !== 'question') return; H.state = 'reveal'; clearInterval(hostTick); clearTimeout(graceT); H.overtime = false;
   H.results = grade();
   await hostPublish(); hostRevealScreen(); buzz([30,40,30]);
   if(+H.S.auto) autoT = setTimeout(() => H.state === 'reveal' && hostNext(), +H.S.auto * 1000);
@@ -310,8 +312,8 @@ window.onlineJoin = async function(){
       if(r.state !== 'lobby' && !S.late) return nope('That game has already started and the host isn\'t allowing late joins.');
       if((await getDocs(PLS(code))).size >= S.max) return nope('That room is full.');
     }
-    await setDoc(PL(code, u.uid), { name, joined:Date.now() }, { merge:true });
-    P = { code, uid:u.uid, name, round:-1, answered:-1, shown:'' };
+    const tj = performance.now(); await setDoc(PL(code, u.uid), { name, joined:Date.now() }, { merge:true }); const rtt = Math.round(performance.now() - tj);
+    P = { rtt, code, uid:u.uid, name, round:-1, answered:-1, shown:'' };
     unsub.push(onSnapshot(ROOM(code), s => playerRender(s.data()), oops));
     if(window.GXY) GXY.event('trivia', 'online');
   }catch(e){ oops(e); }
@@ -319,7 +321,7 @@ window.onlineJoin = async function(){
 function playerRender(r){
   if(!r) return;
   const S = r.settings || DEFAULTS, surv = S.format === 'survival', mine = (r.scores || {})[P.uid];
-  const hud = `<div class="hud"><span>Room <b class="mono" style="color:var(--brand)">${P.code}</b> · ${esc(P.name)}${surv && mine ? ` ${mine.out ? '💀' : '❤️'.repeat(Math.max(0, mine.lives))}` : ''}</span><span>${r.round ? `Round ${r.round}/${r.rounds}` : ''}</span></div>`;
+  const hud = `<div class="hud"><span>Room <b class="mono" style="color:var(--brand)">${P.code}</b>${P.rtt ? ` <span class="dim" title="round trip to the game server">📶 ${P.rtt}ms</span>` : ''} · ${esc(P.name)}${surv && mine ? ` ${mine.out ? '💀' : '❤️'.repeat(Math.max(0, mine.lives))}` : ''}</span><span>${r.round ? `Round ${r.round}/${r.rounds}` : ''}</span></div>`;
   if(r.state === 'lobby'){
     app().innerHTML = `<div class="card pass">${hud}<div class="who">You're in!</div><p class="dim">Waiting for the host to start…</p>
       <div style="margin-top:1rem">${summary(S)}</div><p class="dim" style="font-size:.8rem;margin-top:.4rem">${FORMATS[S.format].desc}</p></div>`;
@@ -372,7 +374,8 @@ window.playerLock = async function(){
   if(P.answered === P.round) return; P.answered = P.round;
   const g = $('pg') ? $('pg').value : ''; if($('pf')) $('pf').innerHTML = '<div class="fb">🔒 Locked in. Waiting for everyone…</div>';
   buzz(15);
-  try{ await setDoc(PL(P.code, P.uid), { name:P.name, answer:{ round:P.round, g, t:(Date.now() - P.t0) / 1000 } }, { merge:true }); }catch(e){ oops(e); }
+  const t = (Date.now() - P.t0) / 1000, ts = performance.now();
+  try{ await setDoc(PL(P.code, P.uid), { name:P.name, answer:{ round:P.round, g, t } }, { merge:true }); P.rtt = Math.round(performance.now() - ts); }catch(e){ oops(e); }
 };
 
 // Opening trivia.html?room=ABCD jumps straight to the join screen.
