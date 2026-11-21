@@ -52,20 +52,47 @@ canvas#c{display:block;width:100%;height:100%}
 #mg{position:fixed;inset:0;z-index:22;display:none}
 #toast{position:fixed;left:50%;top:22%;transform:translateX(-50%);font-family:'Press Start 2P';font-size:12px;background:#000c;border:3px solid #ffd23f;padding:10px 14px;border-radius:8px;z-index:26;display:none;text-align:center;line-height:1.8}
 #tv{position:fixed;inset:0;z-index:23;display:none;background:#000;align-items:center;justify-content:center}
+/* ===== Draft 1.5 remodel: HUD ===== */
+#vig{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(ellipse at 50% 46%,transparent 56%,rgba(6,8,22,.4) 100%)}
+#obj{left:18px;bottom:20px;max-width:44vw;font-size:23px;background:rgba(10,14,30,.74);border:0;border-left:5px solid #ffd23f;border-radius:0 12px 12px 0;padding:24px 18px 9px 13px;text-shadow:1px 1px 0 #000}
+#obj::before{content:'OBJECTIVE';position:absolute;left:13px;top:8px;font-family:'Press Start 2P';font-size:8px;color:#ffd23f;letter-spacing:1px}
+#clock{left:16px;top:14px;background:rgba(10,14,30,.74);padding:10px 13px 7px;border-radius:12px;border-bottom:3px solid #ffd23f;font-size:10px}
+#clock:empty{display:none}
+#mini{border:3px solid #f4f1e6;box-shadow:0 0 0 3px rgba(10,14,30,.9),0 6px 18px #000a}
+#compass{display:none}
+#way{left:0;top:0;font-family:'Press Start 2P';font-size:10px;color:#ffd23f;text-shadow:2px 2px 0 #000;text-align:center;display:none;will-change:transform}
+#way i{display:block;width:13px;height:13px;margin:0 auto 7px;background:#ffd23f;border:2px solid #16244d;transform:rotate(45deg);box-shadow:0 0 10px #ffd23f}
+#prompt{bottom:128px;font-size:11px;background:rgba(10,14,30,.88);border:0;border-radius:12px;padding:9px 15px 9px 9px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
+#prompt kbd{display:inline-block;font-family:inherit;background:#ffd23f;color:#16244d;border-radius:7px;padding:6px 9px;margin-right:11px;box-shadow:0 3px 0 #a8861c}
+#stam{bottom:104px;width:170px;height:9px;background:rgba(10,14,30,.78);border:2px solid rgba(255,255,255,.88)}
+#speedo,#carts{background:rgba(10,14,30,.82);border:0;border-radius:12px;padding:10px 12px}
+#toast{background:rgba(10,14,30,.92);border:0;border-left:5px solid #ffd23f;border-radius:0 12px 12px 0;font-size:11px;padding:12px 16px}
+#timer{background:rgba(10,14,30,.74);padding:10px 16px 7px;border-radius:12px}
+#dlg{padding-left:122px;box-shadow:inset 0 0 0 4px #c8d0e8,0 8px 0 #0007,0 18px 40px #0008}
+#dlg .face{position:absolute;left:18px;top:50%;transform:translateY(-50%);width:86px;height:86px;border:4px solid #2a2a3a;border-radius:14px;image-rendering:pixelated;background:#bfd6ff}
+#dlg.noface{padding-left:26px}#dlg.noface .face{display:none}
+#dlg.auto{padding-left:88px}#dlg.auto .face{width:54px;height:54px;left:14px;border-width:3px}#dlg.auto.noface{padding-left:22px}
+#choices{box-shadow:0 6px 0 #0007,0 14px 30px #0007}#choices div.on{color:#b3202a}
+#title{background:radial-gradient(ellipse at 50% 28%,#4f86ee 0,#1b2c66 46%,#05070f);overflow:hidden}
+#title::before{content:'';position:absolute;inset:-40%;background:repeating-linear-gradient(115deg,transparent 0 60px,rgba(255,255,255,.035) 60px 120px);animation:drift 40s linear infinite}
+@keyframes drift{to{transform:translate(120px,70px)}}
+#title>*{position:relative}
+#title h1{text-shadow:0 5px 0 #1a2a6a,0 0 34px #7ec8ff}
+.menu button,.btn{transition:transform .08s,box-shadow .08s}.menu button:active{transform:translateY(4px);box-shadow:0 1px 0 #0b1430}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head><body>
-<canvas id="c"></canvas>
+<canvas id="c"></canvas><div id="vig"></div><div class="hud" id="way"><i></i><span></span></div>
 <div class="hud" id="clock"></div><div class="hud" id="compass"></div><div class="hud" id="timer"></div>
 <canvas class="hud" id="mini" width="360" height="360"></canvas><div class="hud" id="carts"></div>
 <div class="hud" id="obj"></div><div class="hud" id="stam"><i></i></div><div class="hud" id="speedo"></div><div class="hud" id="prompt"></div>
-<div id="dlg"><div class="who"></div><div class="txt"></div><div class="arrow">▼</div></div>
+<div id="dlg"><canvas class="face" width="64" height="64"></canvas><div class="who"></div><div class="txt"></div><div class="arrow">▼</div></div>
 <div id="choices"></div>
 <div id="fade"></div><div id="card"></div><div id="banner"></div><div id="toast"></div>
 <canvas id="mg"></canvas><div id="tv"></div>
 <div id="title">
   <h1>BACK IN THE 2000s<small>THE GAME</small></h1>
-  <div class="tag">DRAFT #1 · PRIVATE TEST BUILD · NOT FOR RELEASE</div>
+  <div class="tag">DRAFT #1.5 · REMODEL · PRIVATE TEST BUILD</div>
   <div class="menu">
     <button id="bCont" disabled>CONTINUE</button>
     <button id="bNew">NEW GAME</button>

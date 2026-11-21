@@ -33,7 +33,7 @@ function schedule(){ if(!started || !cur){ return; } const s = SONGS[cur], spb =
   while(nextT < A.currentTime + .25){ s.play(nextT, (step / 4 | 0), step % 4, musicG); nextT += spb; step++; } }
 
 // ---------- ambience ----------
-let ambT = 0, hum = null;
+let ambT = 0, hum = null, stepT = 0;
 function setHum(on, f = 58){ if(on && !hum){ hum = A.createOscillator(); const g = A.createGain(); g.gain.value = .025; hum.type = 'sine'; hum.frequency.value = f; hum.connect(g); g.connect(ambG); hum.start(); hum.g = g; }
   if(!on && hum){ hum.stop(); hum = null; } }
 function ambience(dt){ ambT -= dt; if(ambT > 0) return; const t = A.currentTime, night = G.time === 'night' || G.time === 'dusk';
@@ -56,5 +56,7 @@ G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH
   if(want !== cur){ cur = want; step = 0; nextT = A.currentTime + .1; }
   const tgt = cur ? (cur === 'car' ? .55 : .5) : 0; musicG.gain.value += (tgt - musicG.gain.value) * Math.min(1, dt * 2);
   ambG.gain.value += ((G.paused ? 0 : 1) - ambG.gain.value) * Math.min(1, dt * 2);
-  schedule(); ambience(dt); }, { amb:true }));
+  schedule(); ambience(dt);
+  // footsteps: pace follows speed; duller indoors, crunchier on wet ground
+  if(P.mv > .5 && !G.driving && !P.board && P.vy === 0 && !G.paused){ stepT -= dt * (P.mv > 8 ? 3.3 : 2.1); if(stepT <= 0){ stepT = 1; const t = A.currentTime, ind = z !== 'out' && z !== 'car'; noise(t, ind ? .07 : .09, ind ? .05 : .035, ambG, ind ? 520 : G.wet ? 2400 : 900, ind ? 1.2 : .7, 'bandpass'); osc('sine', ind ? 95 : 70, t, .05, .05, ambG, 40); } } else stepT = .25; }, { amb:true }));
 function isInside(p){ return (p.x > -270 && p.x < -140 && p.z > 100 && p.z < 128) || (p.x > -190 && p.x < -140 && p.z > 128 && p.z < 172) || (p.x > -322 && p.x < -272 && p.z > 100 && p.z < 150); }

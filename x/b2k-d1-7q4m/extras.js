@@ -22,6 +22,7 @@ function indoors(){ const p = P.p, S = G.SCH; return (p.x > -8 && p.x < 8 && p.z
 function makeRain(){ const n = 2600, g = new THREE.BufferGeometry(), a = new Float32Array(n * 3); for(let i = 0; i < n; i++){ a[i * 3] = (Math.random() - .5) * 60; a[i * 3 + 1] = Math.random() * 30; a[i * 3 + 2] = (Math.random() - .5) * 60; }
   g.setAttribute('position', new THREE.BufferAttribute(a, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color:0xa8bcd0, size:.09, transparent:true, opacity:.7, depthWrite:false })); p.frustumCulled = false; G.scene.add(p); return p; }
 function applyWeather(){ const w = G.wx || 'clear', wet = w === 'rain' || w === 'storm' || w === 'snow', dim = w === 'cloudy' ? .8 : wet ? .5 : 1;
+  G.cloud = w === 'clear' ? .36 : w === 'cloudy' ? .7 : .95; if(G.skyU && G.skyU.cloud) G.skyU.cloud.value = G.cloud;
   if(G.skyU){ G.skyU.top.value.multiplyScalar(dim); G.skyU.bot.value.lerp(new THREE.Color(0x8a9098), 1 - dim); }
   if(G.sun) G.sun.intensity *= wet ? .3 : w === 'cloudy' ? .6 : 1; G.scene.fog.near = wet ? 30 : 70; G.scene.fog.far = wet ? 170 : (G.fogFar || 330); if(wet) G.scene.fog.color.lerp(new THREE.Color(0x8a9098), .5);
   G.wet = wet; if(rain){ rain.material.color.set(w === 'snow' ? 0xffffff : 0xa8bcd0); rain.material.size = w === 'snow' ? .16 : .09; } }
@@ -204,7 +205,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
   api.addTick(tick);
   // B = skateboard on/off
   const bk = e => { if(e.code === 'KeyB' && !G.mission && G.ctl && !G.driving && !G.uiOpen && l.owned.includes('board')){ P.board = !P.board; E.sfx('cart'); } };
-  addEventListener('keydown', bk); api.onOff(() => { removeEventListener('keydown', bk); P.board = false; Object.values(spawned).forEach(a => a.forEach(x => x.remove ? x.remove() : E.delInter(x))); spawned = {}; clearJob(); objs.forEach(o => G.scene.remove(o)); objs = []; if(rain) rain.visible = false; if(decor){ G.scene.remove(decor); decor = null; } G.onTime = null; G.wet = false; G.ext = null; G.indoors = false; G.scene.fog.near = 70; G.scene.fog.far = G.fogFar || 330; leaves(0); windows('day'); }); }
+  addEventListener('keydown', bk); api.onOff(() => { removeEventListener('keydown', bk); P.board = false; Object.values(spawned).forEach(a => a.forEach(x => x.remove ? x.remove() : E.delInter(x))); spawned = {}; clearJob(); objs.forEach(o => G.scene.remove(o)); objs = []; if(rain) rain.visible = false; if(decor){ G.scene.remove(decor); decor = null; } G.onTime = null; G.wet = false; G.ext = null; G.cloud = .42; G.indoors = false; G.scene.fog.near = 70; G.scene.fog.far = G.fogFar || 330; leaves(0); windows('day'); }); }
 // rep changes from shifts (shift.js)
 export function repDelta(d){ const l = api && api.L(); if(!l) return; l.rep = Math.max(0, Math.min(100, (l.rep ?? 50) + d)); api.save(); }
 export const wage = () => { const r = api ? (api.L().rep ?? 50) : 50; return r >= 90 ? 8.25 : r >= 75 ? 7.75 : r < 25 ? 7 : 7.25; };

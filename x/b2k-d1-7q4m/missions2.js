@@ -5,7 +5,7 @@ import { LOOK, two, face, faceP, pos } from './missions.js';
 const { G, P } = E; const $ = id => document.getElementById(id);
 const C = 'Chris', day4 = 'SEPTEMBER 26TH 2003';
 const vest = '#c8102e';
-const W = { // 2003 work cast + 1989 cast
+const W = G.CAST = { // 2003 work cast + 1989 cast
   eric:{ shirt:'#e9e9e9', pants:'#30323a', hair:'#5d5d5d', beard:'#6a6a6a', wide:1.12, scale:1.04 }, jacob:{ shirt:'#d8dde6', pants:'#30323a', hair:'#8a8a8a', glasses:true, wide:1.08 },
   andrew:{ shirt:'#e8e0c8', pants:'#2a2a3a', hair:'#8a5a2a', vest, hairStyle:'sideswept', thin:true }, madison:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#3a2414', hairStyle:'pony', vest, lips:'#b5505a', scale:.95 },
   ryan:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#151515', skin:'#b07a52', vest, hairStyle:'afro' }, mia:{ shirt:'#f0f0f0', pants:'#2a2a3a', hair:'#c9a15a', hairStyle:'pigtails', vest, lips:'#b5505a', scale:.94 },

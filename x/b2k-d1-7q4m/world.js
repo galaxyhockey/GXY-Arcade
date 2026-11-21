@@ -9,8 +9,8 @@ import * as ST from './store.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
-  grass:txMat('grass', (g, w, h) => noise(g, w, h, '#5d8f3e', .22, 2600), [1, 1]),
-  asphalt:txMat('asph', (g, w, h) => noise(g, w, h, '#3b3d42', .18, 2600), [1, 1]),
+  grass:txMat('grass', (g, w, h) => { noise(g, w, h, '#62993f', .2, 2600); for(let i = 0; i < 420; i++){ g.strokeStyle = ['rgba(40,90,30,.5)', 'rgba(140,190,90,.45)', 'rgba(90,150,60,.5)'][i % 3]; const x = Math.random() * w, y = Math.random() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.random() * 3 - 1.5, y - 3 - Math.random() * 4); g.stroke(); } }, [1, 1]),
+  asphalt:txMat('asph', (g, w, h) => { noise(g, w, h, '#4b4d53', .2, 3400); g.strokeStyle = 'rgba(0,0,0,.22)'; g.lineWidth = 1; for(let i = 0; i < 3; i++){ let x = Math.random() * w, y = Math.random() * h; g.beginPath(); g.moveTo(x, y); for(let k = 0; k < 6; k++){ x += Math.random() * 16 - 8; y += Math.random() * 16 - 4; g.lineTo(x, y); } g.stroke(); } }, [1, 1]),
   walk:txMat('walk', (g, w, h) => { noise(g, w, h, '#b9b6ad', .12); g.strokeStyle = '#8f8c84'; g.lineWidth = 3; g.strokeRect(0, 0, w, h); }, [1, 1]),
   wood:txMat('wood', (g, w, h) => { noise(g, w, h, '#a8743f', .15); g.strokeStyle = '#7a5028'; for(let y = 0; y < h; y += 16){ g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } }, [1, 1]),
   carpet:txMat('carpet', (g, w, h) => noise(g, w, h, '#7d6a8a', .2, 3000), [1, 1]),
@@ -51,6 +51,7 @@ streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSi
 const leafM = [mat('#3f7a2e'), mat('#4d8a34'), mat('#5c7f2a'), mat('#b5651d'), mat('#c98a2a')];
 export function tree(x, z, s = 1, fall){ cyl(.22 * s, 2.6 * s, mat('#5a3d22'), x, 0, z, 7);
   const l = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s, 0), leafM[fall ? 3 + (Math.random() * 2 | 0) : Math.random() * 3 | 0]); l.position.set(x, 3.4 * s, z); l.castShadow = true; S.add(l);
+  [[.95, .75, .35, .62], [-.85, .45, -.55, .56], [.1, 1.25, -.2, .5]].forEach(([dx, dy, dz, sc]) => { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s * sc, 0), l.material); b.position.set(x + dx * s, 3.4 * s + dy * s, z + dz * s); b.rotation.y = dx * 3; b.castShadow = true; S.add(b); });
   G.colliders.push({ x0:x - .3, x1:x + .3, z0:z - .3, z1:z + .3, y0:0, y1:3 }); }
 function bush(x, z){ const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.8, 0), leafM[1]); b.position.set(x, .5, z); b.scale.y = .7; b.castShadow = true; S.add(b); }
 function fence(x0, z0, x1, z1){ const len = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(x1 - x0, z1 - z0); const fm = mat('#e8e2d0');
