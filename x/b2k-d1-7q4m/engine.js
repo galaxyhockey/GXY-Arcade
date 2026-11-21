@@ -15,7 +15,7 @@ function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = inner
 addEventListener('resize', resize); resize();
 const hemi = new THREE.HemisphereLight(0xcfe6ff, 0x5a4a30, .75); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff1d6, 1.6); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
-Object.assign(sun.shadow.camera, { left:-45, right:45, top:45, bottom:-45, near:1, far:240 }); sun.shadow.autoUpdate = true; sun.shadow.bias = -.0006; sun.shadow.normalBias = .03;
+Object.assign(sun.shadow.camera, { left:-45, right:45, top:45, bottom:-45, near:1, far:240 }); sun.shadow.autoUpdate = false; // re-rendered every 3rd frame (biggest per-frame cost around Schnucks) sun.shadow.bias = -.0006; sun.shadow.normalBias = .03;
 scene.add(sun, sun.target);
 const skyU = { top:{ value:new THREE.Color(0x3d7fd8) }, bot:{ value:new THREE.Color(0xcfe6ff) } };
 const sky = new THREE.Mesh(new THREE.SphereGeometry(390, 24, 12), new THREE.ShaderMaterial({ side:THREE.BackSide, depthWrite:false, uniforms:skyU,
@@ -210,6 +210,7 @@ export class NPC {
     animate(this.o, moving, dt); this.sync(); } }
 export function animate(o, speed, dt){ const u = o.userData; if(!u) return; u.phase += dt * (speed > 0 ? 3 + speed * 1.6 : 0); const s = speed > 0 ? Math.sin(u.phase) * Math.min(.8, .25 + speed * .1) : 0;
   if(u.dog){ u.legs.forEach((l, i) => l.rotation.x = (i % 3 ? 1 : -1) * s); u.tail.rotation.y = Math.sin(G.t * 12) * .5; return; }
+  if(u.sitting){ u.lL.rotation.x = u.lR.rotation.x = -1.45; u.aL.rotation.x = u.aR.rotation.x = -.35; if(u.torso) u.torso.scale.y = 1; o.position.y -= .42; if(u.head) u.head.rotation.y = Math.sin(G.t * .4) * .05; return; }
   u.lL.rotation.x = s; u.lR.rotation.x = -s; if(!u.pose){ u.aL.rotation.x = -s * .8; if(!u.phone) u.aR.rotation.x = s * .8; }
   // idle: breathing + glancing around; talking: nods + hand gestures
   const t = G.t + (u.seed || 0), still = speed <= 0;
@@ -217,6 +218,7 @@ export function animate(o, speed, dt){ const u = o.userData; if(!u) return; u.ph
   if(u.head && !u.pose){ u.head.rotation.y = u.talking ? Math.sin(t * 1.7) * .12 : still ? Math.sin(t * .45) * .22 * Math.max(0, Math.sin(t * .17)) : 0; u.head.rotation.x = u.talking ? Math.sin(t * 8) * .07 : 0; }
   if(u.talking && still && !u.pose && !u.phone){ const el = u.aR.userData.el; u.aR.rotation.x = -.45 + Math.sin(t * 3.1) * .25; u.aR.rotation.z = .12; if(el) el.rotation.x = -.7 + Math.sin(t * 4.3) * .2; u.aL.rotation.x = Math.sin(t * 2.3) * .12; }
   else if(!u.phone && !u.pose){ u.aR.rotation.z = 0; const el = u.aR.userData.el; if(el) el.rotation.x = 0; if(still){ u.aR.rotation.x = Math.sin(t * 1.1) * .04; u.aL.rotation.x = -Math.sin(t * 1.1) * .04; } } }
+export function sit(model, on){ model.userData.sitting = !!on; if(!on) model.position.y = P.p.y; }
 // phone in the right hand at the ear: kind 'nokia' | 'handset' | null (put it away)
 export function holdPhone(model, kind){ const u = model.userData, aR = u.aR, el = aR.userData.el; if(u.phone){ el.remove(u.phone); u.phone = null; } aR.rotation.set(0, 0, 0); el.rotation.set(0, 0, 0); if(!kind) return;
   const g = new THREE.Group(); if(kind === 'nokia'){ const b = new THREE.Mesh(new THREE.BoxGeometry(.06, .13, .03), mat('#2c3a48')); const sc = new THREE.Mesh(new THREE.PlaneGeometry(.04, .035), new THREE.MeshBasicMaterial({ color:0x9fc25a })); sc.position.set(0, .03, .016); const an = new THREE.Mesh(new THREE.BoxGeometry(.015, .03, .015), mat('#222')); an.position.set(.018, .08, 0); g.add(b, sc, an); }
@@ -230,7 +232,7 @@ P.model = makePerson({ shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#
 // Chris's everyday look (changed in his closet / at the barber); mission outfits layer on top
 G.chrisLook = { shirt:'#2f5d8a', pants:'#4a5a78', hair:'#5a3a1c', skin:'#efc29e', hairStyle:'spiky', tips:'#e8cf8a', top:'graphic', print:'SK8', bottom:'baggy', shoes:'#3a3a3a' };
 export function setOutfit(o){ scene.remove(P.model); P.model = makePerson({ ...G.chrisLook, ...o }); P.model.rotation.y = P.yaw; scene.add(P.model); }
-export function place(x, z, yaw = 0, y){ P.p.set(x, y ?? groundAt(x, z, .3), z); P.yaw = yaw; P.vy = 0; }
+export function place(x, z, yaw = 0, y){ if(P.model && P.model.userData.sitting){ P.model.userData.sitting = false; if(G.sofaCol) G.sofaCol.off = false; } P.p.set(x, y ?? groundAt(x, z, .3), z); P.yaw = yaw; P.vy = 0; }
 const camP = new THREE.Vector3(), camL = new THREE.Vector3();
 // ---------- driving (any car registered with makeDrivable) ----------
 export const CARS = [];
@@ -265,7 +267,7 @@ function updatePlayer(dt){
   if(G.carry) G.carry(dt, mv);
   collide(P.p, P.rad);
   const gy = groundAt(P.p.x, P.p.z, P.p.y); if(P.p.y > gy + .05){ P.vy -= 22 * dt; P.p.y = Math.max(gy, P.p.y + P.vy * dt); } else { P.p.y += (gy - P.p.y) * Math.min(1, dt * 15); P.vy = 0; }
-  P.model.userData.talking = G.speaking === 'Chris'; P.model.position.copy(P.p); animate(P.model, mv, dt); P.mv = mv; }
+  if(mv && P.model.userData.sitting){ P.model.userData.sitting = false; if(G.sofaCol) G.sofaCol.off = false; } P.model.userData.talking = G.speaking === 'Chris'; P.model.position.copy(P.p); animate(P.model, mv, dt); P.mv = mv; }
 function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between player and camera
   let t = 1; const steps = 12;
   for(let i = 1; i <= steps; i++){ const u = i / steps, x = a.x + (b.x - a.x) * u, z = a.z + (b.z - a.z) * u, y = a.y + (b.y - a.y) * u;
@@ -410,7 +412,8 @@ function step(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; i
   G.t += dt; updatePlayer(dt); for(const n of G.npcs.slice()) n.update(dt); for(const t of G.ticks.slice()) t(dt);
   (G.markers || []).forEach(m => { m.userData.ar.position.y = 3 + Math.sin(G.t * 3) * .25; m.userData.ar.rotation.y += dt * 2; });
   updateCam(dt);
-  const fx = G.camOverride ? cam.position : P.p; sun.position.set(fx.x + G.sunDir.x * 120, G.sunDir.y * 120, fx.z + G.sunDir.z * 120); sun.target.position.set(fx.x, 0, fx.z);
+  const fx = G.camOverride ? cam.position : P.p, sx = Math.round(fx.x / 4) * 4, sz = Math.round(fx.z / 4) * 4; sun.position.set(sx + G.sunDir.x * 120, G.sunDir.y * 120, sz + G.sunDir.z * 120); sun.target.position.set(sx, 0, sz);
+  G.frameN = (G.frameN || 0) + 1; if(G.frameN % 3 === 0 || G.shadowNow){ sun.shadow.needsUpdate = true; G.shadowNow = false; }
   sky.position.copy(cam.position); hud(); R.render(scene, cam); }
 requestAnimationFrame(frame);
 G.advance = sec => { for(let i = 0; i < sec * 20; i++){ last = performance.now() - 50; step(performance.now()); } }; // debug/testing aid

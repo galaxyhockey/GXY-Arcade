@@ -74,22 +74,28 @@ export function buildChrisHouse(){
   for(let z = -5.8; z < 2.2; z += .45) deco(.05, .9, .05, trim, -5.35, UP, z); deco(.1, .08, 8.2, mat('#6a4428'), -5.35, UP + .92, -1.9);
   [[-3.5, -6], [4.5, -7], [-3, UP, -2], [4, -8]].forEach(([x, z, zz]) => { const y = zz !== undefined ? UP + 2.92 : UP - .22, cz = zz !== undefined ? zz : z; const l = new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, .06, 14), new THREE.MeshBasicMaterial({ color:0xfff6dc })); l.position.set(x, y, cz); S.add(l); });
   // ---------- living room ----------
-  PR.sofa(-4.5, -10.7, 0); G.colliders.push({ x0:-5.8, x1:-3.2, z0:-11.2, z1:-10.2, y0:0, y1:1 }); G.sofa = { x:-4.5, z:-9.6 };
+  PR.sofa(-4.5, -10.7, 0); G.sofaCol = { x0:-5.8, x1:-3.2, z0:-11.2, z1:-10.2, y0:0, y1:1 }; G.colliders.push(G.sofaCol); G.sofa = { x:-4.5, z:-9.6 };
   PR.rug(-4.5, 0, -6.5, 4.4, 5, '#8a5a3a'); PR.lamp(-6.6, 0, -11.2); PR.picture(-7.85, 1.9, -5.5, Math.PI / 2, '#5a8ab8'); PR.picture(-2.4, 1.9, -11.85, 0, '#7a9a5a');
   PR.tvStand(-4.5, -2.6, Math.PI); const tvm = PR.crtTV(-4.5, .68, -2.6, Math.PI); G.colliders.push({ x0:-5.3, x1:-3.7, z0:-3, z1:-2.2, y0:0, y1:1.6 }); G.tvScreen = tvm.screen; G.tvPos = { x:-4.5, z:-4.2 };
   deco(2.2, .45, 1.2, mat('#7a5a3a'), -4.5, 0, -6.4); deco(.5, .04, .4, mat('#c83'), -4.2, .45, -6.4);            // coffee table + magazine
   const arm = PR.sofa(-7.1, -6.6, Math.PI / 2, '#5a6a4a'); arm.scale.set(.42, 1, 1); G.colliders.push({ x0:-7.6, x1:-6.6, z0:-7.2, z1:-6, y0:0, y1:1 });
   deco(.4, 2, 1.6, wood, -7.75, 0, -2.5); for(let k = 0; k < 4; k++) for(let j = 0; j < 5; j++) deco(.25, .32, .12, mat(['#a33', '#36a', '#3a6', '#cb3', '#835'][(j + k) % 5]), -7.6, .1 + k * .48, -3.1 + j * .28); // bookshelf
   // ---------- kitchen ----------
-  deco(5.6, .9, .65, cab, 5.05, 0, -11.5); deco(5.7, .06, .7, top, 5.05, .9, -11.48); box(5.6, .95, .65, cab, 5.05, 0, -11.5);
-  for(let x = 2.6; x < 7.8; x += .7){ deco(.6, .7, .02, mat('#b8895a'), x, .1, -11.17); deco(.12, .03, .02, mat('#ccc'), x, .72, -11.16); }
-  deco(.76, .92, .66, mat('#2a2a2a'), 3.2, 0, -11.5); deco(.7, .04, .6, mat('#111'), 3.2, .92, -11.5); [[-.17, -.15], [.17, -.15], [-.17, .15], [.17, .15]].forEach(([a, b]) => { const r = new THREE.Mesh(new THREE.TorusGeometry(.1, .015, 4, 12), mat('#555')); r.rotation.x = Math.PI / 2; r.position.set(3.2 + a, .97, -11.5 + b); S.add(r); });
-  deco(.7, .5, .03, mat('#333'), 3.2, .2, -11.16);                                                                // oven door
-  deco(.8, .08, .45, mat('#c8ccd0'), 5.6, .88, -11.5); const fau = new THREE.Mesh(new THREE.TorusGeometry(.14, .025, 6, 10, Math.PI), mat('#ccc')); fau.position.set(5.6, 1.08, -11.72); S.add(fau);
+  // base cabinets split around the stove (x 2.8..3.6) and a real sink basin (x 5.2..6.0) — no overlapping faces
+  box(.55, .9, .65, cab, 2.525, 0, -11.5); box(4.25, .9, .65, cab, 5.725, 0, -11.5);
+  [[2.25, 2.8], [3.6, 5.2], [6, 7.85]].forEach(([a, b]) => deco(b - a, .06, .7, top, (a + b) / 2, .9, -11.48)); deco(.8, .06, .1, top, 5.6, .9, -11.18); deco(.8, .06, .12, top, 5.6, .9, -11.77);
+  deco(.8, .03, .48, mat('#9aa0a6'), 5.6, .64, -11.47); deco(.03, .3, .48, mat('#b8bcc0'), 5.21, .64, -11.47); deco(.03, .3, .48, mat('#b8bcc0'), 5.99, .64, -11.47); deco(.8, .3, .03, mat('#b8bcc0'), 5.6, .64, -11.24); deco(.8, .3, .03, mat('#b8bcc0'), 5.6, .64, -11.71);
+  for(const x of [2.525, 3.95, 4.65, 5.6, 6.35, 7.05, 7.6]){ deco(x === 5.6 ? .7 : .55, .7, .02, mat('#b8895a'), x, .1, -11.16); deco(.12, .03, .02, mat('#ccc'), x, .72, -11.15); }
+  box(.8, .93, .68, mat('#2a2a2a'), 3.2, 0, -11.47); deco(.76, .03, .62, mat('#111'), 3.2, .93, -11.47); deco(.8, .22, .06, mat('#2a2a2a'), 3.2, .93, -11.79); // stove + backguard
+  [[-.17, -.15], [.17, -.15], [-.17, .15], [.17, .15]].forEach(([a, b]) => { const r = new THREE.Mesh(new THREE.TorusGeometry(.1, .015, 4, 12), mat('#555')); r.rotation.x = Math.PI / 2; r.position.set(3.2 + a, .975, -11.47 + b); S.add(r); });
+  deco(.7, .5, .02, mat('#3a3a3a'), 3.2, .2, -11.12); deco(.6, .03, .03, mat('#bbb'), 3.2, .74, -11.1);                     // oven door + handle
+  const fau = new THREE.Mesh(new THREE.TorusGeometry(.14, .025, 6, 10, Math.PI), mat('#ccc')); fau.position.set(5.6, 1.08, -11.72); S.add(fau);
+  G.dishes = new THREE.Group(); S.add(G.dishes); for(let i = 0; i < 5; i++){ const d = new THREE.Mesh(new THREE.CylinderGeometry(.13, .1, .025, 12), mat(['#f4f4f0', '#d8e4ee', '#f4f4f0'][i % 3])); d.position.set(5.45 + (i % 3) * .12, .68 + i * .03, -11.5 + (i % 2) * .08); d.rotation.x = .2; G.dishes.add(d); }
+  G.sink = { x:5.6, z:-10.6 };
   [[2.3, 4.5], [6.6, 7.85]].forEach(([a, b]) => { deco(b - a, .8, .38, cab, (a + b) / 2, 1.55, -11.7); for(let x = a + .35; x < b; x += .7) deco(.6, .7, .02, mat('#b8895a'), x, 1.6, -11.5); });
   box(.65, .95, 3, cab, 7.5, 0, -9.2); deco(.7, .06, 3, top, 7.5, .95, -9.2); PR.microwave(7.5, 1.01, -9.4, -Math.PI / 2); G.micro = { x:6.6, z:-9.4 };
   box(3, .95, .9, cab, 4.2, 0, -9.1); deco(3.1, .06, 1, top, 4.2, .95, -9.1); [3.2, 5.2].forEach(x => PR.chair(x, 0, -8.2, Math.PI, '#7a5a3a')); // island + stools
-  PR.fridge(1.6, -11.4, 0); G.colliders.push({ x0:1.15, x1:2.05, z0:-11.8, z1:-11, y0:0, y1:1.9 });
+  G.fridgeObj = PR.fridge(1.6, -11.4, 0); G.colliders.push({ x0:1.15, x1:2.05, z0:-11.8, z1:-11, y0:0, y1:1.9 });
   box(1.6, .78, 1.2, mat('#8a6a4a'), 4.2, 0, -5.6); [3.2, 5.2].forEach(x => PR.chair(x, 0, -5.6, x < 4 ? Math.PI / 2 : -Math.PI / 2, '#7a5a3a')); G.window = { x:7, z:-5.4 };
   G.phoneObj = PR.wallPhone(7.84, 1.15, -1.2, -Math.PI / 2); G.phone = { x:7, z:-1.2 }; G.phoneLook = { x:7.84, z:-1.2 };
   // ---------- Chris's room ----------

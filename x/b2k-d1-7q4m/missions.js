@@ -1,6 +1,6 @@
 // Back in the 2000s: The Game — Draft #1 missions M01–M03 (book dialogue is verbatim; GAME ORIGINAL scenes marked)
 import * as E from './engine.js';
-import { H, mnpc, mtick, minter, fail, clock, alarmFx, setMissions, SV, save, phoneUp } from './game.js';
+import { H, mnpc, mtick, minter, fail, clock, alarmFx, setMissions, SV, save, phoneUp, sitSofa, TV_SHOT } from './game.js';
 // close-up from the side the phone is on
 function phoneShot(n){ const f = n.face, p = n.p, X = [Math.cos(f), -Math.sin(f)], Z = [Math.sin(f), Math.cos(f)];
   return H.shot([p.x + X[0] * 1.5 + Z[0] * 1.6, p.y + 1.9, p.z + X[1] * 1.5 + Z[1] * 1.6], [p.x, p.y + 1.6, p.z], 500); }
@@ -80,8 +80,8 @@ const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the
     async () => { const pep = mnpc('Pepper', LOOK.pepper, -1, -7.5, { speed:1.2 }); pep.blip = '#fff';
       const roam = () => pep.go([[-1 + Math.random() * 4 - 2, -7 + Math.random() * 3]]).then(() => setTimeout(roam, 1200)); roam();
       E.obj('Check on Pepper.'); await H.interact(() => pep.p.x, () => pep.p.z, 'CHECK ON PEPPER', 2); E.sfx('bark'); await H.say([['', 'yip yip, yip yip.'], [C, '...bratty ass dog.']]);
-      E.obj('Watch some TV.'); await H.interact(G.sofa.x, G.sofa.z, 'SIT AND WATCH TV', 2.2); E.place(G.sofa.x, G.sofa.z + .3, Math.PI); E.cut(true);
-      await H.shot([-4.5, 2.4, -11.6], [-4.5, 1.1, -3], 600); const flick = mtick(() => G.tvScreen.material.color.setHSL((G.t * .3) % 1, .5, .45)); await H.wait(2200);
+      E.obj('Watch some TV.'); await H.interact(G.sofa.x, G.sofa.z, 'SIT AND WATCH TV', 2.2); sitSofa(true); E.cut(true);
+      await H.shot(...TV_SHOT, 600); const flick = mtick(() => G.tvScreen.material.color.setHSL((G.t * .3) % 1, .5, .45)); await H.wait(2200);
       E.sfx('bang'); await H.shot([5, 2, -4], [8, 1.6, -5.4], 300); await H.wait(400);
       const zeke = mnpc('Zeke', LOOK.zeke, 9.8, -5.4, { face:-Math.PI / 2 }); G.zeke = zeke; await H.shot([4.5, 1.9, -5.4], [9.8, 1.6, -5.4], 500);
       pep.stop(); pep.at(4.8, -6.4); E.sfx('bark'); flick(); G.tvScreen.material.color.set(0x4a6aa8);
@@ -173,8 +173,8 @@ const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the
     async () => { E.setTime('dusk'); clock(day1, '5:52 PM'); E.place(3, 15, Math.PI); P.model.visible = true;
       [['remy', -6, -20], ['levi', 6, -22], ['pepper', 2, -18]].forEach(([k, x, z]) => { const d = mnpc(k, LOOK[k], x, z); });
       E.obj('GO HOME AND WATCH TV.'); await H.say([['', 'god this shit sucks, im gonna be grounded when they get back, so I might as well watch some TV.']]);
-      await H.interact(G.sofa.x, G.sofa.z, 'WATCH MALCOLM IN THE MIDDLE', 2.2); E.place(G.sofa.x, G.sofa.z + .3, Math.PI); E.cut(true);
-      await H.shot([-4.5, 2.4, -11.6], [-4.5, 1.1, -3], 600); mtick(() => G.tvScreen.material.color.setHSL((G.t * .25) % 1, .45, .5));
+      await H.interact(G.sofa.x, G.sofa.z, 'WATCH MALCOLM IN THE MIDDLE', 2.2); sitSofa(true); E.cut(true);
+      await H.shot(...TV_SHOT, 600); mtick(() => G.tvScreen.material.color.setHSL((G.t * .25) % 1, .45, .5));
       await H.say([['', 'I walk into the house, it\'s starting to get dark inside cause it\'s like night or something. I sit down to watch TV. One of my favorite shows is Malcolm in the Middle, that Reese dude is hella smart.'],
         ['', 'However, that damn phone interrupts my episode.']]);
       const ring = setInterval(() => E.sfx('ring'), 1400); E.cut(false); E.obj('ANSWER THE PHONE.');

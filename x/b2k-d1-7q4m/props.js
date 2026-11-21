@@ -24,9 +24,12 @@ export function wallPhone(x, y, z, ry = 0){ const g = new THREE.Group(); g.posit
 export function microwave(x, y, z, ry = 0){ const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; S.add(g);
   B(.75, .42, .45, M('#e8e8e8'), 0, 0, 0, g); mesh(new THREE.PlaneGeometry(.48, .3), M('#222', { emissive:0x111111 }), -.1, .21, .226, g);
   B(.15, .3, .01, M('#555'), .25, .06, .226, g); mesh(new THREE.PlaneGeometry(.1, .04), new THREE.MeshBasicMaterial({ color:0x44ff66 }), .25, .32, .232, g); return g; }
-export function fridge(x, z, ry = 0){ const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g);
-  B(.85, 1.9, .75, M('#ecebe6'), 0, 0, 0, g); B(.86, .02, .76, M('#bbb'), 0, 1.28, 0, g); B(.04, .45, .05, M('#999'), .34, 1.4, .4, g); B(.04, .6, .05, M('#999'), .34, .55, .4, g);
-  [[-.2, 1.6, '#e44'], [.05, 1.5, '#4ae'], [-.1, 1.1, '#fd3']].forEach(([dx, dy, c]) => B(.08, .08, .01, M(c), dx, dy, .38, g)); return g; } // fridge magnets
+export function fridge(x, z, ry = 0){ const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g); const w = M('#ecebe6'), inn = M('#f6f6f2', { emissive:0x303028 });
+  B(.85, 1.9, .05, w, 0, 0, -.35, g); B(.05, 1.9, .75, w, -.4, 0, 0, g); B(.05, 1.9, .75, w, .4, 0, 0, g); B(.85, .05, .75, w, 0, 1.85, 0, g); B(.85, .05, .75, w, 0, 0, 0, g); B(.8, .03, .7, inn, 0, 1.25, 0, g);
+  [.45, .8, 1.5].forEach(y => B(.76, .02, .66, M('#cfd8dc'), 0, y, 0, g)); [['#c83a2a', -.2, .5], ['#f2d030', .1, .5], ['#f4f4f0', .25, .83], ['#3a8a3a', -.15, .83], ['#e8a020', 0, 1.53], ['#8a5a3a', .22, 1.53]].forEach(([c, dx, y]) => B(.14, .2, .14, M(c), dx, y, -.05, g));
+  const door = new THREE.Group(); door.position.set(-.425, 0, .375); g.add(door); B(.85, 1.9, .05, w, .425, 0, .025, door); B(.86, .02, .06, M('#bbb'), .425, 1.28, .03, door); B(.04, .45, .05, M('#999'), .76, 1.4, .07, door); B(.04, .6, .05, M('#999'), .76, .55, .07, door);
+  [[.225, 1.6, '#e44'], [.475, 1.5, '#4ae'], [.325, 1.1, '#fd3']].forEach(([dx, dy, c]) => B(.08, .08, .01, M(c), dx, dy, .055, door)); B(.76, .05, .1, M('#dfe6ea'), .425, .5, -.05, door); B(.76, .05, .1, M('#dfe6ea'), .425, 1.1, -.05, door);
+  g.userData.door = door; return g; } // door swings open on its hinge (fridge magnets on the front)
 export function sofa(x, z, ry = 0, col = '#6a4a7a'){ const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; S.add(g); const c = M(col), c2 = M(shade(col, -.15));
   B(2.4, .42, .9, c2, 0, 0, 0, g); [-1, 0, 1].forEach(k => B(.74, .16, .78, c, k * .76, .42, .04, g)); B(2.4, .6, .22, c, 0, .42, -.38, g); [-1.28, 1.28].forEach(dx => B(.24, .7, .92, c2, dx, 0, 0, g));
   [-.8, .8].forEach(dx => B(.34, .3, .12, M('#c9b27a'), dx, .62, -.24, g)); return g; }

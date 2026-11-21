@@ -4,7 +4,7 @@ import './world.js';
 import './audio.js';
 import * as LIFE from './life.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-E.bakeStatic([G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
+E.bakeStatic([G.fridgeObj, G.dishes, G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
 const KEY = 'b2k_draft1_save';
 export const SV = { done:{}, cp:null, flags:{}, pos:null, cam:'tp', filter:false, s01best:null, ver:1 };
 try{ Object.assign(SV, JSON.parse(localStorage.getItem(KEY)) || {}); }catch(e){}
@@ -24,7 +24,7 @@ export function mnpc(name, look, x, z, o){ const n = E.npc(name, look, x, z, o);
 export function mtick(fn){ const t = E.tick(fn); mt.push(t); return t; }
 export function minter(o){ o.persist = true; mInter.push(o); return E.addInter(o); }
 export function fail(msg){ failRes && failRes(msg); }
-function cleanup(){ gen++; phoneUp(false); G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
+function cleanup(){ gen++; phoneUp(false); sitSofa(false); G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
   G.ticks = G.ticks.filter(t => t.amb); (G.markers || []).slice().forEach(E.clearMarker); E.setWay(); E.killDialog(); E.cut(false); E.obj('');
   G.carry = null; clearTrain(); G.camOverride = null; $('timer').style.display = 'none'; $('carts').style.display = 'none'; alarmFx(false); G.blips = []; }
 export let MIS = {}; export const setMissions = m => MIS = m;
@@ -73,6 +73,9 @@ export function deliver(){ const n = train.length; train.forEach(m => { m.userDa
 const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01'];
 let roamMarks = [];
 const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
+// Chris sits on the living-room sofa facing the TV; the camera looks over his shoulder so he never blocks the screen
+export const TV_SHOT = [[-5.9, 2.3, -11.4], [-4.5, 1.1, -2.6]];
+export function sitSofa(on){ if(on){ E.place(-4.5, -10.45, 0); if(G.sofaCol) G.sofaCol.off = true; P.model.rotation.y = 0; E.sit(P.model, true); } else if(P.model.userData.sitting){ E.place(-4.5, -9.3, 0); } }
 // Chris takes the kitchen wall phone off the hook (handset at his ear) / hangs it up
 export function phoneUp(on){ const hs = G.phoneObj && G.phoneObj.userData.hs; if(hs) hs.visible = !on; E.holdPhone(P.model, on ? 'handset' : null);
   if(on){ E.place(G.phone.x, G.phone.z, Math.atan2(G.phoneLook.x - G.phone.x, G.phoneLook.z - G.phone.z)); P.model.rotation.y = P.yaw; } }

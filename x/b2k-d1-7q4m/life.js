@@ -3,7 +3,8 @@
 // home activities (TV, computer, phone, snacks, console, Pepper, sleep), townspeople you can talk to, street-name popups.
 // Flavour lines are GAME ORIGINAL.
 import * as E from './engine.js';
-import { SV, save, phoneUp } from './game.js';
+import { SV, save, phoneUp, sitSofa, TV_SHOT } from './game.js';
+import { playShift } from './shift.js';
 const { THREE, G, P, WARDROBE } = E; const $ = id => document.getElementById(id);
 const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:25, rentals:[], look:null });
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -68,11 +69,11 @@ const CALLS = { Zeke:[['Zeke (phone)', 'Yo! Can’t talk, I’m about to ollie a
   Matt:[['Matt (phone)', 'YOOOO, Chris! What’s up!'], ['Chris', 'Nothin man.'], ['Matt (phone)', 'Same. Later dude.']], Milo:[['Milo (phone)', 'You know it’s rude to call without a reason.'], ['Chris', 'Love you too, Milo.']],
   'China Garden':[['China Garden (phone)', 'China Garden, pick up or delivery?'], ['Chris', 'Uh... I’ll just come by.'], ['China Garden (phone)', 'Okay! Bye bye!']] };
 let chan = 0;
-async function useTV(){ E.place(G.sofa.x, G.sofa.z + .3, Math.PI); E.cut(true); await E.camShot([-4.5, 2.4, -11.6], [-4.5, 1.1, -3], 500); const scr = G.tvScreen.material, c0 = scr.color.getHex();
+async function useTV(){ sitSofa(true); E.cut(true); await E.camShot(...TV_SHOT, 500); const scr = G.tvScreen.material, c0 = scr.color.getHex();
   for(;;){ const [t, c] = CHANNELS[chan % CHANNELS.length]; scr.color.setHex(c); await E.say([['', t]]);
     const opts = ['Change the channel', ...(L().rentals.length ? ['Watch a rented movie'] : []), 'Get up'], k = await E.choose(opts);
     if(opts[k] === 'Get up') break; if(opts[k] === 'Watch a rented movie'){ await watchRental(); continue; } chan++; passTime(15); }
-  scr.color.setHex(c0); E.cut(false); }
+  scr.color.setHex(c0); sitSofa(false); E.cut(false); }
 async function usePC(){ E.cut(true); const [x, y, z] = G.monitorPos; await E.camShot([x + .2, y + .3, z + 1.4], [x, y, z], 500); const scr = G.monitor.material, c0 = scr.color.getHex(); scr.color.set(0x2a5aa8);
   for(;;){ const k = await E.choose(['Play RuneScape (1 hr)', 'Check email', 'Message the guys', 'Log off']); if(k === 3) break;
     if(k === 0){ passTime(60); } await E.say([[['', 'An hour of chopping trees later: level 31 woodcutting. Worth it.']], [['', '1 new message: “U HAVE WON A FREE IPOD!!!” Delete.']], [['', 'Nobody’s online. Zeke’s away message just says “skating.”']]][k]); }
@@ -104,9 +105,13 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   // home
   add({ x:G.sofa.x, z:G.sofa.z, y:0, r:1.8, prompt:'WATCH TV', use:useTV }); add({ x:G.desk.x, z:G.desk.z, y:3.2, r:1.8, prompt:'USE THE COMPUTER', use:usePC }); add({ x:G.phone.x, z:G.phone.z, y:0, r:1.8, prompt:'USE THE PHONE', use:usePhone });
   add({ x:G.closet.x, z:G.closet.z, y:3.2, r:1.6, prompt:'OPEN YOUR CLOSET', use:async () => { E.sfx('door'); await editor("CHRIS'S CLOSET", closetRows(), 0, { x:5.2, z:-5, yaw:-Math.PI / 2 }); } });
-  add({ x:1.6, z:-10.3, y:0, r:1.4, prompt:'GRAB A SNACK', use:async () => { E.sfx('door'); passTime(10); E.toast(['Bagel Bites. A classic.', 'Last Hot Pocket. Sorry, Dad.', 'Gushers. Breakfast of champions.', 'Cold pizza from Friday.'][Math.random() * 4 | 0], 2600); } });
+  add({ x:1.6, z:-10.3, y:0, r:1.4, prompt:'GRAB A SNACK', use:async () => { const d = G.fridgeObj && G.fridgeObj.userData.door; E.cut(true); E.place(1.75, -10.25, Math.PI); P.model.rotation.y = Math.PI; E.camShot([3.4, 1.9, -9.2], [1.5, 1.1, -11.2], 400); E.sfx('door');
+    for(let i = 1; i <= 10; i++){ if(d) d.rotation.y = -1.75 * i / 10; await E.wait(30); } await E.wait(900); for(let i = 9; i >= 0; i--){ if(d) d.rotation.y = -1.75 * i / 10; await E.wait(25); } E.sfx('door'); E.cut(false); passTime(10); E.toast(['Bagel Bites. A classic.', 'Last Hot Pocket. Sorry, Dad.', 'Gushers. Breakfast of champions.', 'Cold pizza from Friday.'][Math.random() * 4 | 0], 2600); } });
   add({ x:G.console.x, z:G.console.z, y:3.2, r:1.6, prompt:'PLAY VIDEO GAMES (1 HR)', use:async () => { E.cut(true); await E.fade(true, 500); passTime(60); await E.card('1 HOUR LATER', '', 1200); await E.fade(false, 500); E.cut(false);
     E.toast(['Beat my high score in the skate game. Untouchable.', 'Lost every race. The controller is broken. Definitely the controller.', 'Finally beat that boss. Took 40 tries.'][Math.random() * 3 | 0], 3200); } });
+  add({ x:G.sink.x, z:G.sink.z, r:1.3, prompt:'DO THE DISHES', when:() => !G.mission && G.ctl && !G.uiOpen && G.dishes && G.dishes.visible, use:async () => { E.cut(true); E.place(G.sink.x, -10.95, Math.PI); P.model.rotation.y = Math.PI; await E.fade(true, 500); passTime(20); G.dishes.visible = false; l.dishesDay = l.dayCount || 0; await E.fade(false, 500); E.cut(false);
+    l.cash += 3; save(); E.toast('Dishes done. Mom left $3 on the counter. Allowance, baby.', 3000); } });
+  if(G.dishes) G.dishes.visible = (l.dishesDay ?? -1) !== (l.dayCount || 0);
   if(!SV.needSleep) add({ x:G.bed.x, z:G.bed.z, y:3.2, r:2, prompt:'SLEEP', use:async () => { const late = l.min >= 21 * 60 || l.min < 5 * 60; E.cut(true); await E.fade(true, 800);
     if(late){ const add = (24 * 60 - l.min + 8 * 60) % 1440 || 1440; passTime(add); await E.card('THE NEXT MORNING', `${DAYS[l.day]} · 8:00 AM`, 2000); } else { passTime(120); await E.card('NAP TIME', '2 HOURS LATER', 1500); }
     E.place(G.bedSpawn.x, G.bedSpawn.z, Math.PI, 3.2); await E.fade(false, 700); E.cut(false); } });
@@ -120,7 +125,8 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   add({ x:40, z:340, r:1.8, prompt:'DO LAUNDRY ($1.50)', use:async () => { if(!pay(1.5)) return; E.cut(true); await E.fade(true, 400); passTime(45); await E.card('45 MINUTES LATER', 'SMELLS LIKE DRYER SHEETS', 1500); await E.fade(false, 400); E.cut(false); } });
   add({ x:10, z:337, r:1.8, prompt:'NAIL SPA', use:async () => { E.cut(true); await E.say([['Nail Tech', 'You want a manicure, honey?'], ['Chris', 'I’m... good. Thanks.']]); E.cut(false); } });
   // Schnucks: pick up a shift, vending machine
-  add({ x:G.timeClock.x, z:G.timeClock.z, r:1.6, prompt:'WORK A SHIFT (5 HRS)', when:() => !G.mission && G.ctl && !G.uiOpen && l.min >= 6 * 60 && l.min < 18 * 60, use:async () => { E.cut(true); await E.fade(true, 600); passTime(300); l.cash += 36.25; save();
+  add({ x:G.timeClock.x, z:G.timeClock.z, r:1.6, prompt:'WORK A SHIFT (5 HRS)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.onShift && l.min >= 6 * 60 && l.min < 18 * 60, use:async () => { E.cut(true); const pick = await E.choose(['Play the shift (carts, bagging, carryouts)', 'Skip it — work the 5 hours (6.25)', 'Never mind']);
+    if(pick === 2){ E.cut(false); return; } if(pick === 0){ E.cut(false); return playShift({ L, passTime }, randomLook); } await E.fade(true, 600); passTime(300); l.cash += 36.25; save();
     await E.card('SHIFT DONE', `+${money(36.25)}  ·  5 HRS @ $7.25`, 2200); await E.fade(false, 600); E.cut(false); E.toast('Pushed carts for 5 hours. Eric only yelled twice. Personal best.', 3400); } });
   add({ x:G.vending.x, z:G.vending.z, y:3.6, r:1.6, prompt:'BUY A SODA ($0.75)', use:async () => { if(pay(.75)) E.toast('*clunk* Ice cold.', 1800); } });
   // townspeople: sidewalks, plaza, Schnucks shoppers, school courtyard kids
@@ -134,5 +140,5 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
     const k = tod(l.min); if(k !== lastT){ lastT = k; E.setTime(k); } hud();
     const r = (G.roads || []).find(r => P.p.x >= r.x0 && P.p.x <= r.x1 && P.p.z >= r.z0 && P.p.z <= r.z1); const name = r ? r.name : '';
     if(name && name !== lastRoad){ sn.textContent = name.toUpperCase(); sn.style.opacity = 1; st = 3; } lastRoad = name || lastRoad; if(st > 0 && (st -= dt) <= 0) sn.style.opacity = 0;
-    for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < 95; } };
+    for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < 70; } };
   f.amb = true; G.ticks.push(f); ticks.push(() => { const i = G.ticks.indexOf(f); if(i >= 0) G.ticks.splice(i, 1); sn.style.opacity = 0; }); }

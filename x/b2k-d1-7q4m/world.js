@@ -103,7 +103,9 @@ SC.buildSchool(); // Belleville West High School (school.js)
 
 // ---------- Schnucks Swansea ----------
 export const SCH = { x0:50, x1:170, z0:330, z1:402, mz:3.6 }; G.SCH = SCH;
-plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 330, '#4c4f55');
+// expanded lot: spans the whole plaza frontage (x -6..246) with painted stall rows
+plane(252, 70, rep(M.asphalt, 44, 12), 120, .025, 295); mapRect(-6, 262, 246, 330, '#4c4f55');
+{ const ln = new THREE.MeshBasicMaterial({ color:0xe8e8e0 }); for(const [z0, z1] of [[271, 281], [297, 307], [313, 323]]) for(let x = -4; x <= 244; x += 2.8){ if(Math.abs(x - 105) < 7) continue; plane(.12, z1 - z0, ln, x, .04, (z0 + z1) / 2); } }
 { const lineM = new THREE.MeshBasicMaterial({ color:0xeeeeee });
   for(let x = 44; x < 200; x += 3.2){ plane(.12, 5, lineM, x, .04, 274); plane(.12, 5, lineM, x, .04, 323); plane(.12, 5, lineM, x, .04, 296); plane(.12, 5, lineM, x, .04, 306); }
   plane(12, 6, txMat('xw', (g, w, h) => { g.fillStyle = '#3b3d42'; g.fillRect(0, 0, w, h); g.fillStyle = '#f0f0f0'; for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 8, h); }, [1, 1]), 105, .045, 327); }
@@ -118,7 +120,7 @@ plane(170, 70, rep(M.asphalt, 30, 12), 120, .025, 295); mapRect(36, 262, 206, 33
   plane(x1 - x0, z1 - z0, rep(M.ceiling, 30, 18), 110, H - .05, 366).rotation.x = Math.PI / 2;
   // ceiling lights
   for(let x = 62; x < 166; x += 12) for(let z = 340; z < 400; z += 10){ const l = new THREE.Mesh(new THREE.BoxGeometry(3, .1, .8), new THREE.MeshBasicMaterial({ color:0xfffbea })); l.position.set(x, H - .15, z); S.add(l); }
-  const pl = new THREE.PointLight(0xfff6e0, 60, 80, 1.6); pl.position.set(110, 7, 360); S.add(pl); const pl2 = pl.clone(); pl2.position.set(80, 7, 385); S.add(pl2); const pl3 = pl.clone(); pl3.position.set(150, 7, 385); S.add(pl3);
+  const pl = new THREE.PointLight(0xfff6e0, 60, 80, 1.6); pl.position.set(110, 7, 360); S.add(pl); pl.distance = 110; // one light for the whole store (each point light costs every pixel on screen)
   // cart bay (inside, right of entrance)
   plane(12, 7, mat('#bdb9aa'), 112, .03, 334.5); box(.3, 1, 7, mat('#c8102e'), 106, 0, 334.5, { col:false });
   const cb = new THREE.Mesh(new THREE.BoxGeometry(5, .8, .1), new THREE.MeshBasicMaterial({ map:label('CART RETURN', { bg:'#c8102e', fg:'#fff', size:60 }) })); cb.position.set(113, 3, 330.4); cb.rotation.y = Math.PI; S.add(cb);
@@ -183,7 +185,7 @@ for(let r = 0; r < 2; r++) for(let i = 0; i < 7; i++){ const x = 56 + i * 20, z 
   G.corrals.push({ n, x, z, carts:[] }); }
 // parked cars
 const pc = ['#a33', '#335', '#ddd', '#2a6a3a', '#888', '#d8b84a', '#222', '#6a2a6a'];
-for(let i = 0; i < 26; i++){ const x = 46 + (i * 7.3) % 150, z = [276, 302, 318][i % 3]; if(Math.abs(x - 105) < 7) continue; if(G.corrals.some(c => Math.abs(c.x - x) < 3.5 && Math.abs(c.z - z) < 6)) continue;
+for(let i = 0; i < 46; i++){ const x = -2.6 + ((i * 7) % 88) * 2.8 + 1.4, z = [276, 302, 318][i % 3]; if(Math.abs(x - 105) < 7) continue; if([[44, 280], [44, 304], [196, 280], [196, 304], [120, 280], [120, 304], [82, 304], [158, 280], [150, 302], [60, 316], [93, 316], [126, 316], [159, 316], [60, 288], [93, 288], [126, 288], [159, 288]].some(([px, pz]) => Math.abs(px - x) < 3 && Math.abs(pz - z) < 5)) continue; if(G.corrals.some(c => Math.abs(c.x - x) < 3.5 && Math.abs(c.z - z) < 6)) continue;
   const c = makeCar(pc[i % 8], { suv:i % 4 === 0 }); c.position.set(x, 0, z); S.add(c); G.colliders.push({ x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3, y0:0, y1:1.6 }); }
 G.parkDoris = { x:150, z:302 };
 [40, 60, 180, 200].forEach(x => tree(x, 266, 1.1));
