@@ -4,7 +4,7 @@
 <title>Brand Clicker '27 (Test v0.2)</title>
 <style>
 :root{--glass:rgba(16,18,28,.62);--line:rgba(255,255,255,.14);--txt:#f4f6ff;--mut:#a9b0c7;--acc:#ff8c1a;
-  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6}
+  --Starter:#9aa3b5;--Common:#b8c0cc;--Uncommon:#4ade80;--Rare:#38bdf8;--Epic:#a78bfa;--Legendary:#fbbf24;--Chroma:#f472b6;--3D:linear-gradient(90deg,#00e5ff,#ff00e5,#ffe600)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 #wrap{position:fixed;inset:0;background:#05060a;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -69,6 +69,18 @@ html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:sy
 @keyframes shake{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-7deg) scale(1.08)}75%{transform:rotate(7deg) scale(1.08)}}
 @keyframes grow{to{transform:scale(1.8);opacity:0}}
 @keyframes pop{from{transform:scale(.2);opacity:0}}
+#open .bxw:has(.cube){transform:scale(2.4)}
+.cube{position:relative;transform-style:preserve-3d;animation:cubeSpin 4s linear infinite}
+.cube i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 20px sans-serif;font-style:normal;color:#fff;background:linear-gradient(135deg,#00e5ffcc,#ff00e5cc,#ffe600cc);border:2px solid #fff;box-shadow:0 0 18px #ff00e5}
+@keyframes cubeSpin{to{transform:rotateX(360deg) rotateY(720deg)}}
+.art{perspective:300px}
+#open{perspective:600px}
+#open .bxw:has(.cube){animation:grow3 .3s 1.44s ease-in forwards}
+@keyframes grow3{from{transform:scale(2.4)}to{transform:scale(4);opacity:0}}
+#open .bxw .cube{animation-duration:.5s}
+#logoBox.is3d img{animation:spin3d 4s ease-in-out infinite}
+@keyframes spin3d{0%,100%{transform:perspective(400px) rotateY(-25deg)}50%{transform:perspective(400px) rotateY(25deg)}}
+.chip.r3d{color:#111}
 #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:44;transition:opacity .4s}
 #ask{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
 #ask>div{width:min(360px,90%);border-radius:18px;padding:18px}#ask h2{margin:0 0 10px;font-size:18px}
@@ -141,6 +153,7 @@ async function bcHeal(){ if(sessionStorage.getItem('bcHealed')) return; sessionS
 <script src="bc27/v02.js?v=4"></script>
 <script src="bc27/remaster.js?v=4"></script>
 <script src="bc27/remaster2.js?v=4"></script>
+<script src="bc27/remaster3d.js?v=5"></script>
 <script>if(!window.BC_ORIG || !window.BC_V02 || !window.BC_RM_KIT) bcHeal();</script>
 <script>
 const O = BC_ORIG, V = BC_V02, $ = id => document.getElementById(id);
@@ -153,8 +166,9 @@ const ALL = [{ id:0, name:'Linus Tech Tips', rarity:'Starter', eth:0, logo:'bc27
 for(const b of O.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b.eth, backdrop:b.backdrop,
   logo:HQ[b.id] ? `bc27/hq/${b.id}.${HQ[b.id]}` : file(cosOf(O.sprites[winKey(b)], b.reveal.costume).file) });
 for(const b of V.brands) ALL.push({ id:b.id, name:b.name, rarity:b.rarity, eth:b.eth, logo:'bc27/' + b.logoFile });
+for(const [id, base, nm] of BC_3D) ALL.push({ id, name:nm + ' 3D', rarity:'3D', eth:25000, is3d:true, logo:ALL.find(b => b.id === base).logo });
 const BR = Object.fromEntries(ALL.map(b => [b.id, b])), COLLECT = ALL.filter(b => b.id);
-const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Chroma'];
+const RAR = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Chroma', '3D'];
 
 // ---------- boxes ----------
 const origW = k => Object.fromEntries(Object.values(O.boxes[k].weights).map(e => [e.id, e.weight]));
@@ -170,8 +184,11 @@ const BOXES = [
   { k:'car', name:'Car Box', desc:'Ford to Ferrari', price:3000, emoji:'🏎️', bg:'linear-gradient(135deg,#e53935,#212121)' },
   { k:'money', name:'Money Box', desc:'PayPal, Amex, Mastercard, VISA… paid in Ethereum', price:2500, eth:true, emoji:'💳', bg:'linear-gradient(135deg,#ffd54f,#6c5ce7)' }
 ];
+BOXES.push({ k:'d3', name:'3D Box', desc:'Legendary & Chroma brands, with an ultra-rare chance of a 3D edition', price:60000, cube:true,
+  w:Object.fromEntries([...ALL.filter(b => ['Legendary', 'Chroma'].includes(b.rarity)).map(b => [b.id, 10]), ...BC_3D.map(([id]) => [id, 1])]) });
 for(const b of BOXES) if(!b.w) b.w = V.boxes[b.k].weights;
-const boxArt = b => b.art ? `<img src="${b.art}" alt="">` : `<div class="bx" style="background:${b.bg}">${b.emoji}<small>${b.name.toUpperCase()}</small></div>`;
+const cube = (s = 70) => `<div class="cube" style="width:${s}px;height:${s}px">${['', 'rotateY(90deg)', 'rotateY(180deg)', 'rotateY(-90deg)', 'rotateX(90deg)', 'rotateX(-90deg)'].map(t => `<i style="transform:${t} translateZ(${s / 2}px)">3D</i>`).join('')}</div>`;
+const boxArt = b => b.cube ? cube() : b.art ? `<img src="${b.art}" alt="">` : `<div class="bx" style="background:${b.bg}">${b.emoji}<small>${b.name.toUpperCase()}</small></div>`;
 
 // ---------- save ----------
 const KEY = 'bc27_save';
@@ -204,7 +221,7 @@ const MKT = [
   { k:'boost', name:'Overclock', ico:'🚀', price:1500, desc:'×3 on everything for 3 minutes' },
   { k:'cash', name:'Cash Out', ico:'💱', price:100, desc:'Trade 100 Ethereum for 1,500 Brand Items' }
 ];
-const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30 };
+const RBONUS = { Starter:0, Common:1, Uncommon:2, Rare:4, Epic:8, Legendary:15, Chroma:30, '3D':120 };
 const boosted = () => Date.now() < S.boostUntil ? 3 : 1;
 const tapValue = () => (5 + 5 * lv('tap')) * (S.items.golden ? 2 : 1) * boosted();
 function perSec(){
@@ -235,7 +252,7 @@ function toast(t){ const e = $('toast'); e.textContent = t; e.classList.add('on'
 const showUI = on => ['hud', 'dock', 'hint', 'stage'].forEach(i => $(i).style.visibility = on ? '' : 'hidden');
 let busy = false, pending = 0;
 function home(){ busy = false; $('reveal').classList.remove('on'); $('open').classList.remove('on'); showUI(true); $('logoBox').style.visibility = '';
-  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; mon(); }
+  backdrop(S.bg); $('logo').src = (BR[S.bg] || BR[0]).logo; $('logoBox').classList.toggle('is3d', !!(BR[S.bg] || {}).is3d); mon(); }
 
 // ---------- tapping ----------
 function tap(e){ if(busy || document.querySelector('.sheet.on')) return;
@@ -251,7 +268,7 @@ setInterval(save, 2000); addEventListener('pagehide', save);
 // ---------- shop ----------
 function weights(b){ const L = 1 + .15 * lv('luck'), w = {};
   const deny = lv('nodupe') && Object.keys(b.w).some(id => !S.owned.includes(+id));
-  for(const [id, x] of Object.entries(b.w)) if(!(deny && S.owned.includes(+id))) w[id] = x * (['Rare', 'Epic', 'Legendary', 'Chroma'].includes(BR[id].rarity) ? L : 1); return w; }
+  for(const [id, x] of Object.entries(b.w)) if(!(deny && S.owned.includes(+id))) w[id] = x * (['Rare', 'Epic', 'Legendary', 'Chroma', '3D'].includes(BR[id].rarity) ? L : 1); return w; }
 function oddsList(b){ const w = weights(b), tot = Object.values(w).reduce((a, x) => a + x, 0);
   return Object.entries(w).sort((a, c) => c[1] - a[1]).map(([id, x]) => `${BR[id].name} ${(x / tot * 100).toFixed(1)}%`).join(' · '); }
 const openOdds = new Set();
