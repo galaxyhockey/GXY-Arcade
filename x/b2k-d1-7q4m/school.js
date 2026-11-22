@@ -44,7 +44,7 @@ const tiles = (lx, lz) => new THREE.MeshBasicMaterial({ map:tex('bwceil', (g, w,
 const brickOnly = (nx, ny) => new THREE.MeshLambertMaterial({ map:tex('bwbrick', brick, 128, 128, [nx, ny]) });
 const block = (nx, ny) => new THREE.MeshLambertMaterial({ map:tex('bwblock', (g, w, h) => { g.fillStyle = '#ece6d6'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.08)';
   for(let y = 0, r = 0; y < h; y += 16, r++){ g.fillRect(0, y, w, 1); for(let x = r % 2 ? 16 : 0; x < w; x += 32) g.fillRect(x, y, 1, 16); } }, 128, 128, [nx, ny]), emissive:0x6a665c });
-const tan = (nx, ny) => new THREE.MeshLambertMaterial({ map:tex('bwtan', (g, w, h) => { g.fillStyle = '#cdbb98'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.07)'; for(let y = 0; y < h; y += 8) g.fillRect(0, y, w, 1); for(let x = 0; x < w; x += 32) g.fillRect(x, 0, 1, h); }, 128, 128, [nx, ny]) });
+const tan = (nx, ny) => new THREE.MeshLambertMaterial({ map:tex('bwtan', (g, w, h) => { g.fillStyle = '#cdbb98'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.07)'; for(let y = 0; y < h; y += 8) g.fillRect(0, y, w, 1); for(let x = 0; x < w; x += 32) g.fillRect(x, 0, 1, h); }, 128, 128, [nx, ny]), emissive:0x3a3426 });
 const terr = (nx, nz) => new THREE.MeshLambertMaterial({ map:tex('bwterr', (g, w, h) => { g.fillStyle = '#ddd6c8'; g.fillRect(0, 0, w, h); for(let i = 0; i < 2500; i++){ g.fillStyle = ['#bfb3a0', '#efe9dd', '#a89a88', '#cfc6b6', '#bfb3a0', '#efe9dd', '#a89a88', '#8a4a4a'][Math.random() * 8 | 0]; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(0, 0, w, 1); g.fillRect(0, 0, 1, h); }, 128, 128, [nx, nz]), emissive:0x2a2824 });
 const sign = (text, o) => new THREE.MeshBasicMaterial({ map:label(text, o), transparent:!!o.clear });
 
@@ -57,7 +57,7 @@ function wingFacades(x0, z0, x1, z1, faces){ const L = x1 - x0, D = z1 - z0;
   plane(L, D, M('#c9c7c0'), (x0 + x1) / 2, HW, (z0 + z1) / 2); // flat roof
   deco(L + .6, .6, .5, cream, (x0 + x1) / 2, HW, z0); deco(L + .6, .6, .5, cream, (x0 + x1) / 2, HW, z1); deco(.5, .6, D, cream, x0, HW, (z0 + z1) / 2); deco(.5, .6, D, cream, x1, HW, (z0 + z1) / 2);
   mapRect(x0, z0, x1, z1, '#9a4a3a'); }
-function letters(text, w, h, x, y, z, ry, fg = '#efe6cf', bg = '#8e3b2c'){ vp(w, h, sign(text, { bg, fg, size:Math.round(Math.min(h * 120 * .75, w * 64 * 1.55 / text.length)), w:Math.round(w * 64), h:Math.round(h * 120), font:'Arial Black' }), x, y, z, ry); }
+function letters(text, w, h, x, y, z, ry, fg = '#efe6cf', bg = '#8e3b2c'){ vp(w, h, sign(text, { bg, fg, size:Math.round(Math.min(h * 120 * .75, w * 64 * 1.12 / text.length)), w:Math.round(w * 64), h:Math.round(h * 120), font:'Arial Black' }), x, y, z, ry); }
 // glass curtain wall along z at x (two storeys), optional door gap [a,b]
 function curtainZ(x, z0, z1, h, gap, faceOut){ vp(z1 - z0, h, glass, x, h / 2, (z0 + z1) / 2, Math.PI / 2);
   const sage = M('#5f7f6a'); for(let z = z0; z <= z1 + .01; z += 3) deco(.18, h, .18, sage, x, 0, z); [0, 3.3, h / 2 + 1, h - .2].forEach(y => deco(.2, .2, z1 - z0, sage, x, y, (z0 + z1) / 2));
@@ -187,9 +187,16 @@ export function buildSchool(){
     vp(6, 2.4, sign(['HOME  42  GUEST  38', 'PERIOD 4   0:47'], { bg:'#111', fg:'#ff4a3a', size:46, w:512, h:200 }), cx, 8.5, z1 - .3, Math.PI);
     ['2003 REGIONAL CHAMPS', 'SOUTHWESTERN CONF.', 'MAROONS BASKETBALL', 'STATE QUALIFIERS'].forEach((t, i) => vp(3.2, 4.4, sign(['BELLEVILLE WEST', t], { bg:'#6e1a26', fg:'#fff', size:26, w:256, h:350 }), x0 + .3, 8.2, z0 + 9 + i * 10, Math.PI / 2));
     G.gym = { door:{ x:-308, z:z0 - 1.5 }, center:{ x:cx, z:cz } };
-    letters('MAROONS', 14, 2.2, x1 + .2, 7.2, (z0 + z1) / 2, Math.PI / 2, '#6e1a26', '#cdbb98'); letters('MAROONS', 14, 2.2, (x0 + x1) / 2, 7.2, z0 - .2, Math.PI, '#6e1a26', '#cdbb98'); mapRect(x0, z0, x1, z1, '#b8a888');
+    letters('MAROONS', 14, 2.2, x0 - .2, 7.2, (z0 + z1) / 2, -Math.PI / 2, '#6e1a26', '#cdbb98');
+    // gym entrance (north): double doors in a maroon frame, sign, high windows
+    deco(4.4, .25, .3, maroon, -308, 2.55, z0 - .1); [-310.2, -305.8].forEach(x => deco(.25, 2.8, .3, maroon, x, 0, z0 - .1)); letters('GYMNASIUM', 6, .8, -308, 3.6, z0 - .26, Math.PI, '#efe6cf', '#6e1a26');
+    for(let x = x0 + 5; x < x1 - 3; x += 6){ if(Math.abs(x + 308) < 5) continue; vp(3.6, 1.4, glass, x, 9.2, z0 - .22, Math.PI); deco(3.8, .12, .1, white, x, 8.45, z0 - .22); } for(let z = z0 + 5; z < z1 - 3; z += 6) vp(3.6, 1.4, glass, x0 - .22, 9.2, z, -Math.PI / 2); letters('MAROONS', 14, 2.2, (x0 + x1) / 2, 7.2, z0 - .2, Math.PI, '#6e1a26', '#cdbb98'); mapRect(x0, z0, x1, z1, '#b8a888');
     [x0, z0, x1, z1] = PAC; box(x1 - x0, 10, z1 - z0, brickOnly(12, 3), (x0 + x1) / 2, 0, (z0 + z1) / 2); box(20, 18, 24, tan(5, 4), -296, 0, 176); plane(20, 24, M('#c9c7c0'), -296, 18.02, 176);
-    plane(x1 - x0, z1 - z0, M('#c9c7c0'), (x0 + x1) / 2, 10.02, (z0 + z1) / 2); letters('PERFORMING ARTS CENTER', 16, 1, x1 + .2, 8.4, (z0 + z1) / 2, Math.PI / 2, '#efe6cf', '#8e3b2c'); mapRect(x0, z0, x1, z1, '#a06050');
+    plane(x1 - x0, z1 - z0, M('#c9c7c0'), (x0 + x1) / 2, 10.02, (z0 + z1) / 2); letters('PERFORMING ARTS CENTER', 18, 1.1, (x0 + x1) / 2, 8.5, z1 + .2, 0, '#efe6cf', '#8e3b2c');
+    // lobby on the south face: glass wall, white canopy on posts, doors, show poster cases
+    vp(20, 4.6, glass, (x0 + x1) / 2, 2.5, z1 + .12, 0); for(let x = -307; x <= -287; x += 2.5) deco(.14, 4.8, .14, white, x, 0, z1 + .14); [0, 2.6, 4.7].forEach(y => deco(20.2, .14, .16, white, -297, y, z1 + .14));
+    deco(22, .4, 3.4, white, -297, 5.1, z1 + 1.8); [-307.4, -286.6].forEach(x => { deco(.3, 5.1, .3, white, x, 0, z1 + 3.2); col(x - .2, z1 + 3, x + .2, z1 + 3.4, 5); });
+    [-311, -283].forEach(x => { deco(1.6, 2.2, .12, M('#2a2a2a'), x, .9, z1 + .1); vp(1.3, 1.9, sign(['FALL PLAY', 'OUR TOWN', 'NOV 14-16'], { bg:'#6e1a26', fg:'#f1e3c3', size:34, w:256, h:374 }), x, 2, z1 + .18, 0); }); mapRect(x0, z0, x1, z1, '#a06050');
     box(2, 9, 48, M('#8e3b2c'), -271, 0, 150, { col:true }); } // link
   // ===== courtyard between the wings =====
   // (author's photo from a 3rd-floor window): concrete plaza, precast concrete picnic tables + benches, lamp posts

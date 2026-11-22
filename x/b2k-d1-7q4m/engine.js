@@ -183,6 +183,7 @@ export function makePerson(o = {}){
   if(hat === 'bandana'){ H(.39, .08, .37, 0, .43, 0, mat(o.hatColor || '#2a3a8a')); }
   if(o.vest){ const v = new THREE.Mesh(new THREE.BoxGeometry(.56 * wide, .5, .32 * Math.max(1, wide * .9)), mat(o.vest)); v.position.y = 1.2; g.add(v); }
   g.add(lL, lR, aL, aR, torso, neck, head, ...extra, blob(.62 * wide)); g.scale.setScalar(s);
+  [g, lL, lR, aL, aR, aL.userData.el, aR.userData.el, head].forEach(compact);
   g.userData = { lL, lR, aL, aR, head, torso, phase:0, seed:Math.random() * 6, look:o }; return g; }
 export function makeDog(color = '#c9a26b', o = {}){
   const g = new THREE.Group(), m = mat(color), d = mat(o.dark || '#3a2a1a'), s = o.size || 1;
@@ -192,7 +193,7 @@ export function makeDog(color = '#c9a26b', o = {}){
   const ears = [-1, 1].map(sd => { const e = new THREE.Mesh(new THREE.BoxGeometry(.06, .12, .06), d); e.position.set(sd * .09, .7, .36); return e; });
   const tail = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, .22), m); tail.position.set(0, .48, -.36); tail.rotation.x = .6;
   const legs = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([a, b]) => { const p = new THREE.Group(); p.position.set(a * .1, .28, b * .22); const l = new THREE.Mesh(new THREE.BoxGeometry(.07, .28, .07), m); l.position.y = -.14; p.add(l); return p; });
-  g.add(body, head, snout, ...ears, tail, ...legs); g.scale.setScalar(s); g.userData = { dog:true, legs, tail, phase:0 }; return g; }
+  tail.userData.keep = true; g.add(body, head, snout, ...ears, tail, ...legs); compact(g); g.scale.setScalar(s); g.userData = { dog:true, legs, tail, phase:0 }; return g; }
 export function makeCar(color = '#b23', o = {}){
   const g = new THREE.Group(), m = mat(color), gl = mat('#9fc6e6', { emissive:0x111a22 }), dk = mat('#151515'), L = o.suv ? 4.7 : 4.3, H = o.suv ? .95 : .7;
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.85, H, L), m); body.position.y = .35 + H / 2; body.castShadow = true;
@@ -202,10 +203,17 @@ export function makeCar(color = '#b23', o = {}){
   [[-.9, 1.4], [.9, 1.4], [-.9, -1.4], [.9, -1.4]].forEach(([x, z]) => { const w = new THREE.Mesh(new THREE.CylinderGeometry(.36, .36, .26, 12), dk); w.rotation.z = Math.PI / 2; w.position.set(x, .36, z * (L / 4.3)); g.add(w); });
   [-.6, .6].forEach(x => { const hl = new THREE.Mesh(new THREE.BoxGeometry(.32, .14, .04), mat('#fff8d0', { emissive:0x777755 })); hl.position.set(x, .62, L / 2 + .01);
     const tl = new THREE.Mesh(new THREE.BoxGeometry(.3, .12, .04), mat('#c00', { emissive:0x550000 })); tl.position.set(x, .66, -L / 2 - .01); g.add(hl, tl); });
-  mergeChildren(g); g.add(blob(1.5, L * .62)); g.userData.len = L; return g; }
-function mergeChildren(g){ const by = new Map(); g.children.slice().forEach(c => { if(!c.isMesh || Array.isArray(c.material)) return; const k = c.material.uuid; if(!by.has(k)) by.set(k, []); by.get(k).push(c); });
-  for(const list of by.values()){ if(list.length < 2) continue; const geos = list.map(c => { const gg = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone(); c.updateMatrix(); gg.applyMatrix4(c.matrix); for(const a of Object.keys(gg.attributes)) if(!['position', 'normal', 'uv'].includes(a)) gg.deleteAttribute(a); gg.clearGroups(); return gg; });
-    const m = mergeGeometries(geos, false); if(!m) continue; const me = new THREE.Mesh(m, list[0].material); me.castShadow = list.some(c => c.castShadow); me.receiveShadow = true; g.add(me); list.forEach(c => g.remove(c)); } }
+  compact(g); g.add(blob(1.5, L * .62)); g.userData.len = L; return g; }
+// Plain-coloured parts are merged into ONE mesh per rigid piece using per-vertex colours (a person: ~28 draw calls -> ~10).
+const vcOK = mt => mt && !Array.isArray(mt) && !mt.map && !mt.transparent && mt.opacity === 1 && !mt.vertexColors && (mt.type === 'MeshLambertMaterial' || mt.type === 'MeshBasicMaterial')
+  && (!mt.emissive || mt.emissive.getHex() === 0) && mt.side === THREE.FrontSide && !mt.polygonOffset && !(G.noVC && G.noVC.has(mt));
+const vcMats = {}, vcMat = type => vcMats[type] || (vcMats[type] = type === 'MeshBasicMaterial' ? new THREE.MeshBasicMaterial({ vertexColors:true }) : new THREE.MeshLambertMaterial({ vertexColors:true }));
+function paint(g, c){ const n = g.attributes.position.count, a = new Float32Array(n * 3); for(let i = 0; i < n; i++){ a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); }
+function prep(c, matrix, vc){ const gg = c.geometry.index ? c.geometry.toNonIndexed() : c.geometry.clone(); gg.applyMatrix4(matrix); for(const a of Object.keys(gg.attributes)) if(!['position', 'normal', 'uv'].includes(a) && !(a === 'color' && vc && c.material.vertexColors)) gg.deleteAttribute(a);
+  if(!gg.attributes.uv) gg.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(gg.attributes.position.count * 2), 2)); if(!gg.attributes.normal) gg.computeVertexNormals(); if(vc && !gg.attributes.color) paint(gg, c.material.color); gg.clearGroups(); return gg; }
+function compact(g){ const by = new Map(); g.children.slice().forEach(c => { if(!c.isMesh || Array.isArray(c.material) || c.userData.keep || c.userData.blob) return; const k = vcOK(c.material) ? 'VC' + c.material.type : c.material.uuid; if(!by.has(k)) by.set(k, []); by.get(k).push(c); });
+  for(const [k, list] of by){ if(list.length < 2) continue; const vc = k.startsWith('VC'), geos = list.map(c => { c.updateMatrix(); return prep(c, c.matrix, vc); });
+    const m = mergeGeometries(geos, false); if(!m) continue; const me = new THREE.Mesh(m, vc ? vcMat(list[0].material.type) : list[0].material); me.castShadow = list.some(c => c.castShadow); me.receiveShadow = true; g.add(me); list.forEach(c => g.remove(c)); geos.forEach(x => x.dispose()); } }
 
 // ---------- NPCs ----------
 export class NPC {
@@ -487,15 +495,12 @@ export function bakeStatic(keepList = []){
     for(let p = o; p && p !== scene; p = p.parent) if(keep.has(p)) return;
     if(!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); const bs = o.geometry.boundingSphere, c = bs.center.clone().applyMatrix4(o.matrixWorld), big = bs.radius * o.matrixWorld.getMaxScaleOnAxis() > 80;
     const cell = big ? 'big' : Math.floor(c.x / 140) + ',' + Math.floor(c.z / 140);
-    const mt = o.material, k = (mt.map ? 'T' + (mt.map.source ? mt.map.source.uuid : mt.map.uuid) + mt.map.repeat.x.toFixed(3) + ',' + mt.map.repeat.y.toFixed(3) + ',' + mt.map.offset.x.toFixed(3) + ',' + mt.map.offset.y.toFixed(3) + mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.transparent + mt.opacity + mt.side : mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.opacity + mt.transparent + mt.side) + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : '') + '|' + cell; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(o); n0++; });
+    const mt = o.material, k = (vcOK(mt) || mt === vcMats[mt.type]) ? 'VC' + mt.type + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : '') + '|' + cell : (mt.map ? 'T' + (mt.map.source ? mt.map.source.uuid : mt.map.uuid) + mt.map.repeat.x.toFixed(3) + ',' + mt.map.repeat.y.toFixed(3) + ',' + mt.map.offset.x.toFixed(3) + ',' + mt.map.offset.y.toFixed(3) + mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.transparent + mt.opacity + mt.side : mt.type + (mt.color ? mt.color.getHexString() : '') + (mt.emissive ? mt.emissive.getHexString() : '') + mt.opacity + mt.transparent + mt.side) + (o.castShadow ? 'c' : '') + (o.receiveShadow ? 'r' : '') + '|' + cell; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(o); n0++; });
   let n1 = 0;
   for(const list of groups.values()){ if(list.length < 2) continue;
-    const geos = list.map(o => { let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
-      for(const a of Object.keys(g.attributes)) if(!['position', 'normal', 'uv'].includes(a)) g.deleteAttribute(a);
-      if(!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
-      if(!g.attributes.normal) g.computeVertexNormals(); g.clearGroups(); return g; });
+    const vc = vcOK(list[0].material) || list[0].material === vcMats[list[0].material.type], geos = list.map(o => prep(o, o.matrixWorld, vc));
     const merged = mergeGeometries(geos, false); if(!merged) continue;
-    merged.computeBoundingSphere(); const m = new THREE.Mesh(merged, list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.matrixAutoUpdate = false; scene.add(m);
+    merged.computeBoundingSphere(); const m = new THREE.Mesh(merged, vc ? vcMat(list[0].material.type) : list[0].material); m.castShadow = list[0].castShadow; m.receiveShadow = list[0].receiveShadow; m.matrixAutoUpdate = false; scene.add(m);
     list.forEach(o => o.parent && o.parent.remove(o)); geos.forEach(g => g.dispose()); n1++; }
   scene.traverse(o => { if(!o.isMesh) return; for(let p = o; p && p !== scene; p = p.parent) if(keep.has(p)) return; o.matrixAutoUpdate = false; o.updateMatrix(); });
   // small leftover static pieces (signs, labels, props) are hidden when far from the camera

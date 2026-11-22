@@ -43,8 +43,8 @@ function door(p, x, z, col = '#6b2a22', o = {}){ B(1.25, 2.35, .14, trim, x, 0, 
   mesh(new THREE.SphereGeometry(.045, 8, 6), M('#d4af37'), x + .36, 1.05, z + .16, p); if(o.light){ B(.14, .26, .1, M('#222'), x + .85, 1.7, z + .1, p); } }
 function steps(p, x, z, w = 1.8){ B(w, .18, .9, M('#b9b3a8'), x, 0, z + .45, p); B(w, .18, .5, M('#b9b3a8'), x, .18, z + .25, p); }
 const tree = (x, z, s = 1, p) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.scale.setScalar(s); (p || S).add(g);
-  mesh(new THREE.CylinderGeometry(.18, .3, 3.2, 7), M('#4a3322'), 0, 1.6, 0, g); const leaf = [M('#3d6e2a'), M('#4f7f30'), M('#5e7a2a')][Math.random() * 3 | 0];
-  [[0, 4.4, 0, 2.2], [1.2, 3.8, .4, 1.5], [-1.1, 3.9, -.3, 1.6], [.2, 5.4, -.4, 1.4], [-.4, 4.2, 1, 1.4]].forEach(([a, b, c, r]) => mesh(new THREE.IcosahedronGeometry(r, 1), leaf, a, b, c, g));
+  mesh(new THREE.CylinderGeometry(.18, .3, 4.8, 7), M('#4a3322'), 0, 2.4, 0, g); const leaf = [M('#3d6e2a'), M('#4f7f30'), M('#5e7a2a')][Math.random() * 3 | 0];
+  [[0, 6, 0, 2.1], [1.2, 5.4, .4, 1.45], [-1.1, 5.5, -.3, 1.5], [.2, 7, -.4, 1.35], [-.4, 5.8, 1, 1.35]].forEach(([a, b, c, r]) => mesh(new THREE.IcosahedronGeometry(r, 1), leaf, a, b, c, g));
   if(!p) G.colliders.push({ x0:x - .35, x1:x + .35, z0:z - .35, z1:z + .35, y0:0, y1:3 }); return g; };
 export { tree as bigTree };
 
@@ -87,8 +87,22 @@ export function house(cx, cz, facing, seed = 0, o = {}){ const g = new THREE.Gro
   const wk = mesh(new THREE.PlaneGeometry(1.1, drv - 1.2), M('#bdb9b0'), style === 'colonial' ? 0 : style === 'ranch' ? -1.5 : -1.6, .032, fz + 1.2 + (drv - 1.2) / 2, g); wk.rotation.x = -Math.PI / 2; wk.castShadow = false;
   for(let i = 0; i < 4; i++){ const sx = -w / 2 + 1.2 + i * (w - 2.4) / 3; if(Math.abs(sx - front.drive) < 2.4) continue; mesh(new THREE.IcosahedronGeometry(.6, 0), M(['#2f5a2a', '#3d6a2e'][i % 2]), sx, .45, fz + .7, g).scale.y = .75; }
   const mb = new THREE.Group(); mb.position.set(front.drive - 2.2, 0, fz + drv - .2); g.add(mb); B(.08, 1.05, .08, M('#5a3d22'), 0, 0, 0, mb); B(.24, .22, .48, M(['#222', '#1d3a5a', '#3a2a1a'][seed % 3]), 0, 1.0, 0, mb);
-  tree(front.drive + 6.5 * (seed % 2 ? 1 : -1) * 0 + (seed % 2 ? -w / 2 - 1 : w / 2 + 1.5), fz + 6.5, .9 + r(3) * .4, g);
+  tree(-w / 2 - 1.6, fz + drv - 1.6, .85 + r(3) * .3, g);
+  // ---- house upgrades: garage-door windows, detached garage at the end of the driveway, back patio + A/C, chimney, TV antenna, porch rails
+  const gdoor = (x, z, gw) => { for(let i = 0; i < 4; i++) mesh(new THREE.PlaneGeometry(gw / 4 - .25, .34), glassM, x - gw / 2 + gw / 8 + i * gw / 4, 1.85, z + .06, g); B(.3, .05, .05, M('#888'), x, .95, z + .08, g); };
+  let det = null;
+  if(style === 'ranch') gdoor(4.9, d / 2 + .04, 5.2); else if(style === 'colonial' && seed % 3 === 0) gdoor(w / 2 + 2.8, 4.15, 4.4);
+  else { const gx = front.drive, gz = -d / 2 - 1.5, gm = sidingM(SIDING[(seed + 3) % 6]); B(3.8, 2.7, 6, gm, gx, 0, gz, g); const gr = gableRoof(6, 3.8, 1.3, roofM, gm, .3); gr.rotation.y = Math.PI / 2; gr.position.set(gx, 2.7, gz); g.add(gr);
+    B(3, 2.2, .1, M('#efefea'), gx, 0, gz + 3.04, g); for(let i = 1; i < 4; i++) B(2.9, .05, .02, M('#cfcfc8'), gx, i * .55, gz + 3.1, g); gdoor(gx, gz + 3.04, 2.9);
+    const ext = mesh(new THREE.PlaneGeometry(3.4, d - 1.4), M('#aaa69c'), gx, .03, .75, g); ext.rotation.x = -Math.PI / 2; ext.castShadow = false; det = [gx, gz]; }
+  B(3.6, .1, 2.6, M('#b9b3a8'), -1, 0, -d / 2 - 1.35, g); B(1, 2.1, .1, M('#e8e4da'), -1, 0, -d / 2 - .04, g); B(.8, .75, .8, M('#b8bcc0'), -w / 2 + 1.3, 0, -d / 2 - .55, g);
+  if(style === 'ranch') B(1, h + 2.7, .9, brickM('#7a3a2c'), -w / 2 + 2.6, 0, -1.6, g);
+  if(seed % 3 === 1){ const ay = h + (style === 'ranch' ? 1.6 : style === 'colonial' ? 2.4 : 3); B(.05, 2.4, .05, M('#9aa0a6'), w / 4, ay, -1, g); [0, .35, .7].forEach((dy, i) => B(1.3 - i * .3, .03, .03, M('#9aa0a6'), w / 4, ay + 1.5 + dy, -1, g)); }
+  if(style === 'bungalow') [[-w / 2 + .1, -2.5], [-1.1, 1.1], [1.1, w / 2 - .1]].forEach(([a, b]) => { [1.05, 1.5].forEach(y => B(b - a, .07, .07, trim, (a + b) / 2, y, d / 2 + 2.55, g)); for(let x = a + .3; x < b - .1; x += .32) B(.05, .45, .05, trim, x, 1.05, d / 2 + 2.55, g); });
   const rot = { s:0, n:Math.PI, e:Math.PI / 2, w:-Math.PI / 2 }[facing]; g.rotation.y = rot; g.position.set(cx, 0, cz); S.add(g);
+  const toW = (lx, lz) => [cx + lx * Math.cos(rot) + lz * Math.sin(rot), cz - lx * Math.sin(rot) + lz * Math.cos(rot)];
+  { const [dx, dz] = toW(front.drive, fz + drv * .5); (G.driveways = G.driveways || []).push({ x:dx, z:dz, ry:rot }); }
+  if(det){ const [gx2, gz2] = toW(det[0], det[1]), s2 = facing === 'e' || facing === 'w'; col(gx2 - (s2 ? 3 : 1.9), gz2 - (s2 ? 1.9 : 3), gx2 + (s2 ? 3 : 1.9), gz2 + (s2 ? 1.9 : 3), 3); }
   const sw = facing === 'e' || facing === 'w', hw = (sw ? d : w) / 2 + (style === 'colonial' && seed % 3 === 0 ? 0 : 0), hd = (sw ? w : d) / 2;
   G.colliders.push({ x0:cx - hw, x1:cx + hw, z0:cz - hd, z1:cz + hd, y0:0, y1:h + 3 });
   if(style === 'colonial' && seed % 3 === 0){ const lx = w / 2 + 2.8, lz = .6, wx = cx + lx * Math.cos(rot) + lz * Math.sin(rot), wz = cz - lx * Math.sin(rot) + lz * Math.cos(rot); col(wx - 3.2, wz - 3.2, wx + 3.2, wz + 3.2); }

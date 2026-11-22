@@ -50,9 +50,10 @@ streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSi
 
 // ---------- trees / props ----------
 const leafM = [mat('#3f7a2e'), mat('#4d8a34'), mat('#5c7f2a'), mat('#b5651d'), mat('#c98a2a')];
-export function tree(x, z, s = 1, fall){ cyl(.22 * s, 2.6 * s, mat('#5a3d22'), x, 0, z, 7);
-  const l = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s, 0), leafM[fall ? 3 + (Math.random() * 2 | 0) : Math.random() * 3 | 0]); l.position.set(x, 3.4 * s, z); l.castShadow = true; S.add(l);
-  [[.95, .75, .35, .62], [-.85, .45, -.55, .56], [.1, 1.25, -.2, .5]].forEach(([dx, dy, dz, sc]) => { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s * sc, 0), l.material); b.position.set(x + dx * s, 3.4 * s + dy * s, z + dz * s); b.rotation.y = dx * 3; b.castShadow = true; S.add(b); });
+G.noVC = new Set(leafM.slice(0, 3)); // seasonal leaf colours change at run time, so these keep their own materials
+export function tree(x, z, s = 1, fall){ cyl(.22 * s, 4.4 * s, mat('#5a3d22'), x, 0, z, 7);
+  const l = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s, 0), leafM[fall ? 3 + (Math.random() * 2 | 0) : Math.random() * 3 | 0]); l.position.set(x, 5.2 * s, z); l.castShadow = true; S.add(l);
+  [[.95, .75, .35, .62], [-.85, .45, -.55, .56], [.1, 1.25, -.2, .5]].forEach(([dx, dy, dz, sc]) => { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s * sc, 0), l.material); b.position.set(x + dx * s, 5.2 * s + dy * s, z + dz * s); b.rotation.y = dx * 3; b.castShadow = true; S.add(b); });
   G.colliders.push({ x0:x - .3, x1:x + .3, z0:z - .3, z1:z + .3, y0:0, y1:3 }); }
 function bush(x, z){ const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.8, 0), leafM[1]); b.position.set(x, .5, z); b.scale.y = .7; b.castShadow = true; S.add(b); }
 function fence(x0, z0, x1, z1){ const len = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(x1 - x0, z1 - z0); const fm = mat('#e8e2d0');
