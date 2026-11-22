@@ -103,14 +103,15 @@ canvas#c{display:block;width:100%;height:100%}
 #title .menu button:hover,#title .menu button:focus{background:#ffd23f;color:#16244d;border-left-color:#fff;padding-left:28px;outline:none}
 #title .menu button:disabled{opacity:.35;background:rgba(255,255,255,.04);color:#fff;padding-left:18px}
 .tfoot{position:absolute;left:7vw;right:3vw;bottom:22px;display:flex;justify-content:space-between;font-size:9px;color:#9bb4ff;letter-spacing:1px}
-#intro{position:fixed;inset:0;z-index:60;background:#000;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';transition:opacity .5s;cursor:pointer}
+#intro{position:fixed;inset:0;z-index:60;background:radial-gradient(ellipse at 50% 50%,rgba(5,8,22,.62) 0,rgba(5,8,22,.82) 55%,rgba(3,5,14,.94) 100%);text-shadow:3px 3px 0 #000;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P';transition:opacity .5s;cursor:pointer}
 .icard{position:absolute;opacity:0;transition:opacity .7s;text-align:center}.icard.on{opacity:1}
 .logo1{display:flex;flex-direction:column;align-items:center;gap:14px}
 .logo1 i{font-style:normal;font-size:clamp(46px,9vw,110px);color:#fff;letter-spacing:8px;text-shadow:0 0 30px #5aa0ff,6px 6px 0 #2a4ad8}
 .logo1 b{font-size:clamp(12px,2vw,22px);letter-spacing:14px;color:#ffd23f}
 .logo2{font-size:clamp(12px,1.8vw,20px);line-height:2.2;color:#cbd6ff}.logo2 b{color:#fff}.logo2 span{display:block;font-family:'VT323';font-size:1.5em;color:#ffd23f}
 .warn{font-family:'VT323';font-size:clamp(18px,2vw,26px);line-height:1.5;color:#e8ecff;max-width:760px}.warn b{display:block;font-family:'Press Start 2P';font-size:.62em;color:#ffd23f;margin-bottom:18px;letter-spacing:3px}.warn em{color:#9bb4ff}
-.iskip{position:absolute;bottom:26px;font-size:9px;color:#5a6a9a;letter-spacing:2px}
+.iskip{position:absolute;bottom:26px;font-size:9px;color:#b8c6f0;letter-spacing:2px}
+body:has(#intro:not([style*="none"])) #title{visibility:hidden}
 #settings,#about{position:fixed;inset:0;z-index:45;background:#05070fee;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;font-family:'Press Start 2P'}
 #settings h2,#about h2{font-size:18px;color:#ffd23f;margin:0 0 6px}
 #setBody{display:flex;flex-direction:column;gap:8px;width:min(720px,92vw)}

@@ -52,10 +52,10 @@ function drawSlots(){ const el = $('slotBody'); el.innerHTML = [1, 2, 3].map(n =
 
 // ---------- intro ----------
 let introT = [], introDone = false;
-function skipIntro(){ if(introDone) return; introDone = true; introT.forEach(clearTimeout); const el = $('intro'); el.style.opacity = 0; setTimeout(() => { el.style.display = 'none'; focusFirst(); }, 500); try{ sessionStorage.setItem('b2k_intro', '1'); }catch(e){} }
+function skipIntro(){ if(introDone) return; introDone = true; introT.forEach(clearTimeout); $('title').style.visibility = ''; const el = $('intro'); el.style.opacity = 0; setTimeout(() => { el.style.display = 'none'; focusFirst(); }, 500); try{ sessionStorage.setItem('b2k_intro', '1'); }catch(e){} }
 function intro(){ const el = $('intro'), cards = [...el.querySelectorAll('.icard')]; let seen = false; try{ seen = sessionStorage.getItem('b2k_intro') === '1'; }catch(e){}
   if(seen || new URLSearchParams(location.search).has('nointro')){ el.style.display = 'none'; introDone = true; focusFirst(); return; }
-  el.onclick = skipIntro; let t = 300; cards.forEach((c, i) => { const hold = +c.dataset.ms || 2600; introT.push(setTimeout(() => { cards.forEach(x => x.classList.remove('on')); c.classList.add('on'); }, t)); t += hold; }); introT.push(setTimeout(skipIntro, t)); }
+  $('title').style.visibility = 'hidden'; el.onclick = skipIntro; let t = 300; cards.forEach((c, i) => { const hold = +c.dataset.ms || 2600; introT.push(setTimeout(() => { cards.forEach(x => x.classList.remove('on')); c.classList.add('on'); }, t)); t += hold; }); introT.push(setTimeout(skipIntro, t)); }
 
 // ---------- main menu over the live town ----------
 export function initUI(){ let a = 0; E.setTime('after'); E.camTrack(dt => { a += dt * .045; return [[Math.cos(a) * 62, 24 + Math.sin(a * .7) * 5, 14 + Math.sin(a) * 62], [0, 4, 10]]; });
