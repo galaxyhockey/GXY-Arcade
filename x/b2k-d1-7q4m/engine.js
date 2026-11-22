@@ -487,7 +487,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 // graphics quality (pause menu): LOW = no shadows, 75% resolution, shorter draw distance; HIGH = sharper shadows + resolution
 export function setQuality(q){ G.quality = q; const dpr = Math.min(devicePixelRatio, q === 'HIGH' ? 1.5 : 1) * (q === 'LOW' ? .75 : 1); R.setPixelRatio(dpr); resize();
   sun.castShadow = q !== 'LOW'; sun.shadow.mapSize.set(q === 'HIGH' ? 2048 : 1024, q === 'HIGH' ? 2048 : 1024); if(sun.shadow.map){ sun.shadow.map.dispose(); sun.shadow.map = null; }
-  G.fogFar = q === 'LOW' ? 210 : 330; scene.fog.far = Math.min(scene.fog.far, G.fogFar); cam.far = q === 'LOW' ? 260 : 420; cam.updateProjectionMatrix(); G.npcDist = q === 'LOW' ? 45 : q === 'HIGH' ? 95 : 70; G.detailDist = q === 'LOW' ? 60 : q === 'HIGH' ? 140 : 95; G.shadowNow = true; }
+  G.fogFar = q === 'LOW' ? 210 : 330; scene.fog.far = Math.min(scene.fog.far, G.fogFar); cam.far = q === 'LOW' ? 260 : 420; cam.updateProjectionMatrix(); sky.scale.setScalar(q === 'LOW' ? .6 : 1); G.npcDist = q === 'LOW' ? 45 : q === 'HIGH' ? 95 : 70; G.detailDist = q === 'LOW' ? 60 : q === 'HIGH' ? 140 : 95; G.shadowNow = true; }
 export function bakeStatic(keepList = []){
   const keep = new Set(keepList.filter(Boolean)); keep.add(sky); keep.add(P.model); G.npcs.forEach(n => keep.add(n.o));
   scene.updateMatrixWorld(true); const groups = new Map(); let n0 = 0;
