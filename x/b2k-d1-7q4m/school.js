@@ -2,7 +2,7 @@
 // three-storey red-brick academic wings with cream stone bands and paired teal windows, "BELLEVILLE WEST" lettering,
 // a two-storey glass commons entry under a deep white canopy frame, courtyard between the wings, gym + performing arts centre,
 // front lot on Lincoln Ave, maroon/black sign pylon, turf stadium with a maroon track. Playable inside: commons, wing B hallway, computer lab.
-import { THREE, G, box, plane, floor, mat, label, mapRect, tex } from './engine.js';
+import { THREE, G, box, plane, floor, mat, label, mapRect, tex, lampGlow } from './engine.js';
 import * as PR from './props.js';
 import { bigTree as tree } from './buildings.js';
 const S = G.scene, M = mat, HW = 12.6, HC = 9; // wing height (3 storeys), commons height
@@ -82,7 +82,7 @@ function ledClock(x, y, z, ry){ const g = new THREE.Group(); g.position.set(x, y
 const lockers = (n, c = '#6a1b2a') => new THREE.MeshLambertMaterial({ map:tex('bwlock' + c, (g, w, h) => { g.fillStyle = c; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.45)';
   for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 1, h); g.fillRect(0, h / 2, w, 1); g.fillStyle = 'rgba(0,0,0,.35)'; for(let x = 4; x < w; x += 16) for(let k = 0; k < 4; k++){ g.fillRect(x, 6 + k * 3, 8, 1); g.fillRect(x, h / 2 + 6 + k * 3, 8, 1); }
   g.fillStyle = '#c9c9c9'; for(let x = 12; x < w; x += 16){ g.fillRect(x, h / 2 - 14, 2, 6); g.fillRect(x, h - 14, 2, 6); } }, 128, 64, [n, 1]), emissive:new THREE.Color(c).multiplyScalar(.45) });
-function lamp(x, z){ const p = new THREE.Mesh(new THREE.CylinderGeometry(.07, .1, 4.2, 8), black); p.position.set(x, 2.1, z); S.add(p); const h = new THREE.Mesh(new THREE.CylinderGeometry(.22, .14, .5, 8), black); h.position.set(x, 4.4, z); S.add(h); const b = new THREE.Mesh(new THREE.SphereGeometry(.16, 8, 6), basic(0xfff3cf)); b.position.set(x, 4.2, z); S.add(b); }
+function lamp(x, z){ const p = new THREE.Mesh(new THREE.CylinderGeometry(.07, .1, 4.2, 8), black); p.position.set(x, 2.1, z); S.add(p); const h = new THREE.Mesh(new THREE.CylinderGeometry(.22, .14, .5, 8), black); h.position.set(x, 4.4, z); S.add(h); const b = new THREE.Mesh(new THREE.SphereGeometry(.16, 8, 6), G.lampM); b.position.set(x, 4.2, z); S.add(b); lampGlow(x, z, 5); }
 
 export function buildSchool(){
   // ===== footprint =====

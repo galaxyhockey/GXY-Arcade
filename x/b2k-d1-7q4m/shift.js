@@ -12,7 +12,7 @@ function addCart(c){ const m = newCart(); m.position.set(c.x, 0, c.z + 2.2 - c.c
 export async function playShift(life, randomLook){ const { L, passTime } = life, l = L(); if(G.onShift) return; G.onShift = true;
   const S = { el:0, stock:16, pat:70, tips:0, carts:0, bags:0, outs:0, req:null, run:null, out:null, nextCust:4, nextBag:12, lastHour:Math.floor(l.min / 60), warned:{} };
   const inters = [], marks = []; const addI = o => { inters.push(E.addInter(o)); return o; };
-  E.setOutfit({ vest:'#c8102e' }); emptyCorrals(); clearTrain(); startPushing();
+  G.shiftStarted = true; E.setOutfit({ vest:'#c8102e' }); emptyCorrals(); clearTrain(); startPushing();
   G.corrals.slice().sort(() => Math.random() - .5).slice(0, 5).forEach(c => { fillCorral(c, 3 + (Math.random() * 5 | 0)); });
   E.cut(true); await E.card('CLOCKED IN', '5 HOUR SHIFT · CARTS · BAGGING · CARRYOUTS', 2200);
   await E.say([['Eric', 'Keep the cart bay stocked, help the lanes when they call, and stay OUT of the break room.'], ['Chris', 'Define "stay out."']]); E.cut(false);

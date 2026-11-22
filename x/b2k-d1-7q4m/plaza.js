@@ -77,8 +77,34 @@ function hairCuts(u){ const { x0, x1, cx } = u, mirror = new THREE.MeshLambertMa
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(.13, .13, 1, 12), new THREE.MeshBasicMaterial({ map:tex('pole', (g, w, h) => { g.fillStyle = '#fff'; g.fillRect(0, 0, w, h); for(let i = -4; i < 8; i++){ g.fillStyle = i % 2 ? '#c8202a' : '#2040a8'; g.beginPath(); g.moveTo(0, i * 16); g.lineTo(w, i * 16 + 32); g.lineTo(w, i * 16 + 40); g.lineTo(0, i * 16 + 8); g.fill(); } }, 64, 128) }));
   pole.position.set(u.d1 + .4, 2, ZF - .25); S.add(pole); G.barberPole = pole; G.ticks.push(Object.assign(() => { pole.rotation.y += .03; }, { amb:true })); }
 
+function shopExtras(){ const deco = (w, h, d, c, x, y, z) => box(w, h, d, typeof c === 'string' ? M(c) : c, x, y, z, { col:false }); const fr = (t, bg, fg, w, h, x, y, z, ry) => vp(w, h, sign(t, bg, fg, 34, 256, Math.round(256 * h / w)), x, y, z, ry), plant = (x, z) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(.24, .18, .45, 8), M('#8a5a3a')); p.position.set(x, .22, z); S.add(p); const l = new THREE.Mesh(new THREE.IcosahedronGeometry(.45, 0), M('#3d7a2e')); l.position.set(x, .95, z); l.scale.y = 1.35; S.add(l); };
+  const fan = (x, z) => { deco(.06, .4, .06, '#ccc', x, H - .4, z); for(let i = 0; i < 4; i++){ const b = new THREE.Mesh(new THREE.BoxGeometry(1.1, .02, .16), M('#8a6a44')); b.position.set(x + Math.cos(i * 1.57) * .6, H - .42, z + Math.sin(i * 1.57) * .6); b.rotation.y = -i * 1.57; S.add(b); } };
+  // nail spa (2..18)
+  plant(3, 335.2); plant(16.8, 348.8); fr(['SPA PEDICURE $25', 'MANICURE $12', 'ACRYLIC SET $30'], '#f7f1ee', '#b23a6a', 3, 1.3, 9, 2.1, ZB - .07, Math.PI); fan(7, 341); fan(13, 341);
+  deco(.9, .4, .9, '#e8e0d8', 13.2, 0, 336); deco(.5, .03, .35, '#c83', 13.2, .4, 336); [12.2, 14.2].forEach(x => PR.chair(x, 0, 336, x < 13 ? Math.PI / 2 : -Math.PI / 2, '#d77aa0'));
+  // video world (18..34): standee, candy rack, gumball machine, posters
+  deco(.9, 1.9, .05, '#f2d030', 19.6, 0, 336.2); vp(.8, 1.6, sign(['NOW', 'RENTING', '★★★★'], '#c8202a', '#fff', 40, 128, 256), 19.6, 1, 336.24, 0);
+  deco(1.2, 1.1, .4, '#8a8f96', 32.6, 0, 337.6); for(let i = 0; i < 12; i++) deco(.16, .1, .3, ['#c8202a', '#f2d030', '#2a8a3a', '#e88a2a'][i % 4], 32.15 + (i % 4) * .28, .2 + (i / 4 | 0) * .32, 337.5);
+  { const gm = new THREE.Mesh(new THREE.SphereGeometry(.22, 10, 8), new THREE.MeshLambertMaterial({ color:0xf2a0a0, transparent:true, opacity:.7 })); gm.position.set(31.2, 1.25, 334.7); S.add(gm); deco(.28, 1, .28, '#c8202a', 31.2, 0, 334.7); }
+  [[20, '#2a4a8a', 'SEQUEL II'], [23, '#8a2a2a', 'FAST CARS'], [26, '#2a6a3a', 'SWAMP GUY']].forEach(([x, c, t]) => fr([t, 'COMING SOON'], c, '#fff', 1.2, 1.7, x, 2.3, ZF + .12, 0));
+  // laundry (34..49): carts, change machine, clock, bulletin board
+  [[38, 345], [44, 340.5]].forEach(([x, z]) => { deco(.9, .5, .6, '#e8e8e8', x, .35, z); [[-.4, -.25], [.4, -.25], [-.4, .25], [.4, .25]].forEach(([a, b]) => deco(.04, .35, .04, '#999', x + a, 0, z + b)); deco(.7, .2, .5, ['#d8a0a0', '#a0b8d8'][x % 2 | 0], x, .6, z); });
+  deco(.7, 1.6, .5, '#8a8f96', 35, 0, 349.4); fr(['CHANGE', '$1 → 4 QTRS'], '#f2d030', '#111', .6, .5, 35, 1.2, 349.12, Math.PI); fr(['LOST SOCK?', 'ROOM FOR RENT', 'GUITAR LESSONS', 'BAND NEEDS DRUMMER'], '#c8a26a', '#1a1a1a', 2, 1.4, 41, 2, ZB - .07, Math.PI); fan(41.5, 342);
+  // tax service (184..200): water cooler, plants, certificates, wall clock
+  deco(.4, 1, .4, '#e8e8e8', 185, 0, 349.2); deco(.3, .45, .3, '#9fd0f2', 185, 1, 349.2); plant(198.8, 335.4); plant(185.2, 335.4);
+  [[188, 'CERTIFIED'], [190.2, 'SINCE 1987'], [192.4, 'BBB A+']].forEach(([x, t]) => fr([t], '#f4f1e6', '#2a5a2a', .9, .7, x, 2.2, ZB - .07, Math.PI));
+  // china garden (200..216): booths, soda cooler, lucky cat, photo menu
+  [[201.4, 346], [201.4, 348.4]].forEach(([x, z]) => { deco(1, .45, .5, '#8a2a22', x, 0, z - .8); deco(1, .5, .12, '#8a2a22', x, .45, z - 1.02); deco(1, .45, .5, '#8a2a22', x, 0, z + .8); deco(1, .5, .12, '#8a2a22', x, .45, z + 1.02); deco(1.1, .06, .9, '#3a2a1a', x + .1, .72, z); });
+  G.colliders.push({ x0:200.8, x1:202, z0:344.8, z1:349.6, y0:0, y1:1 }); deco(.8, 1.9, .7, '#e8e8e8', 214.9, 0, 349.3); vp(.6, 1.4, new THREE.MeshLambertMaterial({ color:0xbfe3ff, emissive:0x2a4a5a, transparent:true, opacity:.6 }), 214.9, 1, 348.94, Math.PI);
+  { const cat = new THREE.Mesh(new THREE.SphereGeometry(.16, 8, 6), M('#f2d030')); cat.position.set(209, 1.28, 346); cat.scale.y = 1.3; S.add(cat); deco(.05, .2, .05, '#f2d030', 209.14, 1.36, 346); }
+  fr(['LUNCH SPECIAL', '11–3 · $4.95'], '#2a0a0a', '#ffd36a', 2.2, .8, 205, 2.4, ZF + .12, 0);
+  // hair cuts (216..232): shampoo sink, product shelf, wall TV, price board, checker strip
+  deco(.9, .9, .7, '#2a2a2a', 229.4, 0, 349.2); deco(.6, .2, .5, '#f4f4f0', 229.4, .9, 349.1); deco(1.6, .05, .25, '#8a6a44', 223, 1.4, ZB - .2); for(let i = 0; i < 7; i++) deco(.12, .26, .12, ['#2a8ad8', '#e8457a', '#3a8a3a', '#f2d030'][i % 4], 222.4 + i * .2, 1.45, ZB - .2);
+  PR.crtTV(231.2, 2.2, 342, -Math.PI / 2, .8); fr(['HAIRCUT $12', 'BUZZ $8', 'FROSTED TIPS $20', 'KIDS $9'], '#f4f1e6', '#7a2a8a', 2, 1.3, 226, 2.2, ZB - .07, Math.PI);
+  for(let i = 0; i < 16; i++){ const t = new THREE.Mesh(new THREE.PlaneGeometry(.5, .5), M(i % 2 ? '#1a1a1a' : '#f4f4f0')); t.rotation.x = -Math.PI / 2; t.position.set(216.5 + (i % 2) * .5, .045, 335 + i * .9 % 14); S.add(t); } }
 export function plazaShops(){
   const groups = [[[2, 18, nailSpa, '#f3e3ea', '#ece6e0'], [18, 34, videoWorld, '#e8ecf4', '#d8d4cc'], [34, 49, laundry, '#eef2ec', '#dcd8cc']],
     [[184, 200, taxService, '#ece9e0', '#d8d4cc'], [200, 216, chinaGarden, '#f2e6d6', '#c8b49a'], [216, 232, hairCuts, '#f0eaf2', '#e4e0d8']]];
+  shopExtras();
   for(const g of groups){ g.forEach(([a, b, fn, wall, fl]) => { const u = shell(a, b, wall, M(fl)); fn(u); }); partition(g[0][0]); g.forEach(([, b]) => partition(b)); }
 }

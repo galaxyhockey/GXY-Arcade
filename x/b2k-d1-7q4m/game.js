@@ -62,7 +62,7 @@ export function clearTrain(){ train.forEach(c => G.scene.remove(c)); train.lengt
 export function fillCorral(c, n){ c.carts.forEach(m => G.scene.remove(m)); c.carts = []; c.initial = n; c.delivered = 0;
   for(let i = 0; i < n; i++){ const m = newCart(); m.position.set(c.x, 0, c.z + 2.2 - i * .55); m.rotation.y = Math.PI; G.scene.add(m); c.carts.push(m); } }
 export function emptyCorrals(){ G.corrals.forEach(c => fillCorral(c, 0)); }
-export function startPushing(){ G.carry = (dt, mv) => { // carts nest into a line Chris pushes IN FRONT of him
+export function startPushing(){ G.carry = (dt, mv) => { G.pushN = train.length; // carts nest into a line Chris pushes IN FRONT of him
     if(!train.length) return; const a = P.model.rotation.y, fx = Math.sin(a), fz = Math.cos(a);
     for(let i = 0; i < train.length; i++){ const d = 1.05 + i * .5; train[i].position.set(P.p.x + fx * d, P.p.y, P.p.z + fz * d); train[i].rotation.y = a + Math.PI; } }; }
 export function park(x, z, ry){ const c = G.chrisDrive; c.car.position.set(x, 0, z); c.car.rotation.y = ry; c.head = ry; c.car.visible = true; const sw = Math.abs(Math.sin(ry)) > .7;
@@ -100,7 +100,7 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
     { ax:'z', c:98, a0:30, a1:250, dir:1 }, { ax:'z', c:102, a0:250, a1:30, dir:-1 },
     { ax:'z', c:-110, a0:30, a1:250, dir:1 }, { ax:'z', c:-106, a0:250, a1:30, dir:-1 } ];
   const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
-  lanes.forEach((l, i) => { const n = l.ax === 'x' ? 4 : 3; for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0 }); G.scene.add(car);
+  lanes.forEach((l, i) => { const n = l.ax === 'x' ? 4 : 3; for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0, lights:true }); G.scene.add(car);
     const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let a = l.a0 + (l.a1 - l.a0) * ((k + (i % 2) * .5) / n), v = 12;
     const t = dt => { const px = l.ax === 'x' ? a : l.c, pz = l.ax === 'x' ? l.c : a, fx = l.ax === 'x' ? l.dir : 0, fz = l.ax === 'z' ? l.dir : 0;
       const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx);

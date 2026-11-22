@@ -6,6 +6,8 @@ const S = G.scene, M = mat;
 const deco = (w, h, d, m, x, y, z) => box(w, h, d, m, x, y, z, { col:false });
 function vp(w, h, m, x, y, z, ry){ const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); p.position.set(x, y, z); p.rotation.y = ry; S.add(p); return p; }
 const sign = (t, o) => new THREE.MeshBasicMaterial({ map:label(t, o), transparent:!!o.clear });
+function cylP(x, z, pot, leaf){ const p = new THREE.Mesh(new THREE.CylinderGeometry(.22, .17, .4, 8), M(pot)); p.position.set(x, .2, z); S.add(p); const l = new THREE.Mesh(new THREE.IcosahedronGeometry(.4, 0), M(leaf)); l.position.set(x, .85, z); l.scale.y = 1.3; S.add(l); }
+export { cylP as pottedPlant };
 
 export function storeDetail(SCH){ const { x0, x1, z0 } = SCH;
   // ---- perimeter soffit (beige band, dark trim) — west wall, back partition (z 388), staff wall (x 150)
@@ -50,6 +52,22 @@ export function storeDetail(SCH){ const { x0, x1, z0 } = SCH;
   [[92, 391.5], [104, 391.8]].forEach(([x, z]) => { deco(1.6, .1, .6, M('#555'), x, .3, z); [-.75, .75].forEach(dx => deco(.06, 1.4, .06, M('#777'), x + dx, .3, z)); deco(1.5, .9, .5, M('#b8935a'), x, .4, z); });
   for(let i = 0; i < 6; i++) deco(.5, .3, .4, M(i % 2 ? '#2a5aa8' : '#c8202a'), 140 + (i % 2) * .55, (i / 2 | 0) * .3, 398);
   vp(3.6, 3.2, new THREE.MeshLambertMaterial({ map:tex('rollup', (g, w, h) => { g.fillStyle = '#9aa0a6'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(0,0,0,.18)'; for(let y = 0; y < h; y += 6) g.fillRect(0, y, w, 2); }, 64, 64) }), 160, 1.6, 401.7, Math.PI);
+  // ---- Eric's office (x 150..170, z 366..388): filing cabinets, PC, safe, schedule board, visitor chairs, plant
+  { const fc = M('#8a8f96'); for(let i = 0; i < 3; i++){ box(.6, 1.4, .7, fc, 169.4, 0, 370 + i * .75); for(let d2 = 0; d2 < 3; d2++) deco(.02, .08, .3, M('#555'), 169.08, .3 + d2 * .42, 370 + i * .75); }
+    deco(.5, .42, .45, M('#d8d0b8'), 160.6, .8, 380.1); deco(.4, .3, .02, M('#2a6a8a'), 160.6, .86, 379.86); deco(.5, .03, .2, M('#d8d0b8'), 159.9, .8, 379.7); deco(.3, .04, .3, M('#222'), 159.2, .8, 380);
+    box(.8, .9, .7, M('#3a3a3a'), 151, 0, 387); deco(.12, .12, .02, M('#c9c9c9'), 151, .45, 386.64);
+    vp(2.6, 1.5, sign(['WEEK OF 9/22', 'CHRIS — CARTS', 'MADISON — CARTS', 'RYAN — LANE 3', 'ANDREW — BREAK??'], { bg:'#f4f4f0', fg:'#1a1a1a', size:26, w:384, h:220 }), 160, 2, 387.82, Math.PI);
+    vp(1.2, .9, sign(['EMPLOYEE', 'OF THE MONTH', '(NOT CHRIS)'], { bg:'#c8a23a', fg:'#2a1a0a', size:24, w:256, h:190 }), 154.5, 2, 387.82, Math.PI);
+    [158.6, 161.4].forEach(x => { deco(.5, .45, .5, M('#4a3a5a'), x, 0, 376.2); deco(.5, .5, .08, M('#4a3a5a'), x, .45, 375.95); });
+    cylP(169, 387, '#6a4a2a', '#3d7a2e'); const rug = new THREE.Mesh(new THREE.PlaneGeometry(6, 4), M('#5a2a2a')); rug.rotation.x = -Math.PI / 2; rug.position.set(160, .035, 378.5); S.add(rug); }
+  // ---- restroom (x 150..170, z 342..354): stalls, sinks + mirror, hand dryer, wet-floor sign
+  { const st = M('#9aa8b0'); [162, 164.4, 166.8].forEach(x => { deco(.06, 1.9, 2, st, x, .2, 343.2); deco(1, 1.8, .05, st, x + 1.2, .25, 344.2); });
+    [[163.2, 343], [165.6, 343]].forEach(([x, z]) => { deco(.45, .4, .6, M('#f4f4f0'), x, 0, z); deco(.45, .5, .2, M('#f4f4f0'), x, .4, z - .25); });
+    deco(3.2, .12, .5, M('#e8e4da'), 153.4, .82, 352.4); [152.4, 153.4, 154.4].forEach(x => deco(.4, .1, .32, M('#f4f4f0'), x, .86, 352.4)); vp(3.2, .9, new THREE.MeshLambertMaterial({ color:0xcfe0ea, emissive:0x40505a }), 153.4, 1.75, 353.82, Math.PI);
+    deco(.3, .35, .2, M('#e8e8e8'), 150.4, 1.2, 349); const wf = new THREE.Mesh(new THREE.ConeGeometry(.3, .7, 4), M('#f2d030')); wf.position.set(157, .35, 348); S.add(wf); }
+  // ---- staff corridor by the time clock: bulletin board, water cooler, mop bucket, lockers
+  vp(2, 1.2, sign(['STAFF NOTICES', 'WASH YOUR HANDS', 'CART RUNS ON THE HOUR', 'NO SKATEBOARDS'], { bg:'#c8a26a', fg:'#1a1a1a', size:26, w:320, h:190 }), 169.72, 1.9, 359.5, -Math.PI / 2);
+  deco(.4, 1, .4, M('#e8e8e8'), 151.2, 0, 362.6); deco(.3, .45, .3, M('#9fd0f2'), 151.2, 1, 362.6); deco(.5, .4, .5, M('#e8c832'), 152.4, 0, 355.2); deco(.04, 1.3, .04, M('#8a6a44'), 152.5, .2, 355.2);
   // a couple of coworkers stocking (static)
   [[106, 352.5, Math.PI / 2, { shirt:'#f0f0f0', pants:'#2a2a3a', vest:'#c8102e', hairStyle:'buzz', hair:'#6a4a2a' }], [56, 352, -Math.PI / 2, { shirt:'#f0f0f0', pants:'#2a2a3a', vest:'#c8102e', hairStyle:'pony', hair:'#c9a15a', lips:'#b5505a' }]].forEach(([x, z, ry, l]) => { const p = makePerson(l); p.position.set(x, 0, z); p.rotation.y = ry; S.add(p); G.colliders.push({ x0:x - .3, x1:x + .3, z0:z - .3, z1:z + .3, y0:0, y1:1.8 }); (G.storeStaff = G.storeStaff || []).push(p); });
 }

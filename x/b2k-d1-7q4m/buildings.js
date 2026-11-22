@@ -2,7 +2,7 @@
 // Houses: Belleville/Swansea styles (brick ranch, two-story colonial, brick bungalow). Schnucks Swansea (2665 N Illinois St):
 // red-brown brick, darker upper band with light trim stripes, red script sign on brick, glass bays between piers,
 // landscaped planters, strip-plaza neighbours, tree islands in the lot, woods + service drive behind.
-import { THREE, G, mat, txMat, noise, label } from './engine.js';
+import { THREE, G, mat, txMat, noise, label, lampGlow } from './engine.js';
 import { glassM, trashCan } from './props.js';
 const S = G.scene;
 const M = (c, o) => mat(c, o);
@@ -136,7 +136,7 @@ export function schnucksExterior(SCH){ const { x0, x1, z0, z1 } = SCH, H = 8, f 
       const s = mesh(new THREE.PlaneGeometry(11, 1.3), new THREE.MeshBasicMaterial({ map:label(name, { bg:'#f4efe4', fg:c, size:70, w:768, h:110 }) }), x, 4.9, zf - .12); s.rotation.y = Math.PI; }); });
   // lot: landscaped tree islands, light poles, cart-return signs
   [[44, 280], [44, 304], [196, 280], [196, 304], [120, 280], [120, 304], [82, 304], [158, 280]].forEach(([x, z]) => { B(3, .25, 5, M('#9a9a92'), x, 0, z); mesh(new THREE.PlaneGeometry(2.6, 4.6), M('#4f7a30'), x, .26, z).rotation.x = -Math.PI / 2; tree(x, z, .8); });
-  for(let x = 60; x <= 160; x += 33) [288, 316].forEach(z => { mesh(new THREE.CylinderGeometry(.12, .16, 9, 8), M('#555'), x, 4.5, z); B(1.4, .3, .7, M('#3a3a3a'), x, 9, z); mesh(new THREE.PlaneGeometry(1.2, .5), new THREE.MeshBasicMaterial({ color:0xfff1c8 }), x, 8.98, z).rotation.x = Math.PI / 2; });
+  for(let x = 60; x <= 160; x += 33) [288, 316].forEach(z => { mesh(new THREE.CylinderGeometry(.12, .16, 9, 8), M('#555'), x, 4.5, z); B(1.4, .3, .7, M('#3a3a3a'), x, 9, z); mesh(new THREE.PlaneGeometry(1.2, .5), G.lampM, x, 8.98, z).rotation.x = Math.PI / 2; lampGlow(x, z, 13); });
   // behind: service drive + woods
   mesh(new THREE.PlaneGeometry(200, 14), M('#4a4c50'), 110, .025, z1 + 16).rotation.x = -Math.PI / 2;
   for(let i = 0; i < 70; i++){ const x = -20 + (i * 37) % 260, z = z1 + 26 + (i * 13) % 40 + Math.random() * 6; tree(x, z, 1 + Math.random() * .6); }

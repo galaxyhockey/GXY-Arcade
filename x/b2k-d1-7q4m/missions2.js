@@ -78,7 +78,7 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
   stages:[
     async () => { const cl = G.classroom; E.place(cl.chris.x, cl.chris.z, -Math.PI / 2); clock(day4, '2:45 PM');
       const sp = mnpc('Mrs. Sparks', W.sparks, cl.sparks.x, cl.sparks.z, { face:Math.PI / 2 }); const jax = mnpc('Jax', LOOK.jax, cl.jax.x, cl.jax.z, { face:-Math.PI / 2 });
-      for(let i = 0; i < 6; i++) mnpc('student', { shirt:['#8a5a9a', '#3a7a6a', '#a8743a', '#5a6aa8', '#aa5544', '#557755'][i], hair:['#222', '#a87a4a', '#3a2414'][i % 3], long:i % 2 === 1 }, cl.seats[[0, 2, 7, 9, 12, 14][i]].x, cl.seats[[0, 2, 7, 9, 12, 14][i]].z, { face:-Math.PI / 2 });
+      for(let i = 0; i < 6; i++) E.sit(mnpc('student', { shirt:['#8a5a9a', '#3a7a6a', '#a8743a', '#5a6aa8', '#aa5544', '#557755'][i], hair:['#222', '#a87a4a', '#3a2414'][i % 3], long:i % 2 === 1 }, cl.seats[[0, 2, 7, 9, 12, 14][i]].x, cl.seats[[0, 2, 7, 9, 12, 14][i]].z, { face:-Math.PI / 2 }).o, true);
       E.cut(true); await H.shot(cl.cam[0], cl.cam[1], 0); await H.card(day4, '', 2200);
       await H.say([['Mrs. Sparks', 'That is all for class today, feel free to do whatever you want for the last 5 minutes'],
         ['', 'god she really dragged out those damn computer lessons, I wish she knew we weren\'t dumbasses. I walked over to Jax’s desk to talk to him.']]); E.cut(false);

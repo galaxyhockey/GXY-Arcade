@@ -6,8 +6,9 @@ import * as E from './engine.js';
 import { SV, save, phoneUp, sitSofa, TV_SHOT } from './game.js';
 import { playShift } from './shift.js';
 import { extrasOn, repDelta, wage } from './extras.js';
+import { beatsOn } from './beats.js';
 const { THREE, G, P, WARDROBE } = E; const $ = id => document.getElementById(id);
-const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:25, rentals:[], look:null });
+const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:40, rentals:[], look:null });
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 export const fmt = m => { m = ((m % 1440) + 1440) % 1440; const h = m / 60 | 0, mm = m % 60 | 0; return `${(h + 11) % 12 + 1}:${String(mm).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
 const money = n => '$' + n.toFixed(2);
@@ -128,9 +129,9 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   add({ x:40, z:340, r:1.8, prompt:'DO LAUNDRY ($1.50)', use:async () => { if(!pay(1.5)) return; E.cut(true); await E.fade(true, 400); passTime(45); await E.card('45 MINUTES LATER', 'SMELLS LIKE DRYER SHEETS', 1500); await E.fade(false, 400); E.cut(false); } });
   add({ x:10, z:337, r:1.8, prompt:'NAIL SPA', use:async () => { E.cut(true); await E.say([['Nail Tech', 'You want a manicure, honey?'], ['Chris', 'I’m... good. Thanks.']]); E.cut(false); } });
   // Schnucks: pick up a shift, vending machine
-  add({ x:G.timeClock.x, z:G.timeClock.z, r:1.6, prompt:'WORK A SHIFT (5 HRS)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.onShift && l.min >= 6 * 60 && l.min < 18 * 60, use:async () => { E.cut(true); const pick = await E.choose(['Play the shift (carts, bagging, carryouts)', `Skip it — work the 5 hours (${money(wage() * 5)})`, 'Never mind']);
-    if(pick === 2){ E.cut(false); return; } if(pick === 0){ E.cut(false); return playShift({ L, passTime }, randomLook); } await E.fade(true, 600); passTime(300); const pay5 = Math.round(wage() * 5 * 100) / 100; l.cash += pay5; repDelta(1); save();
-    await E.card('SHIFT DONE', `+${money(pay5)}  ·  5 HRS @ ${money(wage())}`, 2200); await E.fade(false, 600); E.cut(false); E.toast('Pushed carts for 5 hours. Eric only yelled twice. Personal best.', 3400); } });
+  add({ x:G.timeClock.x, z:G.timeClock.z, r:1.6, prompt:'WORK A SHIFT (5 HRS)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.onShift && l.min >= 6 * 60 && l.min < 18 * 60, use:async () => { E.cut(true); const pick = await E.choose(['Play the shift (carts, bagging, carryouts)', `Skip it — coast through 5 hours (${money(wage() * 4)}, no tips)`, 'Never mind']);
+    if(pick === 2){ E.cut(false); return; } if(pick === 0){ E.cut(false); G.shiftStarted = true; return playShift({ L, passTime }, randomLook); } await E.fade(true, 600); passTime(300); const pay5 = Math.round(wage() * 5 * .8 * 100) / 100; l.cash += pay5; G.shiftStarted = true; save();
+    await E.card('SHIFT DONE', `+${money(pay5)}  ·  COASTED THROUGH 5 HRS`, 2200); await E.fade(false, 600); E.cut(false); E.toast('Pushed carts for 5 hours. Eric only yelled twice. Personal best.', 3400); } });
   add({ x:G.vending.x, z:G.vending.z, y:3.6, r:1.6, prompt:'BUY A SODA ($0.75)', use:async () => { if(pay(.75)) E.toast('*clunk* Ice cold.', 1800); } });
   // townspeople: sidewalks, plaza, Schnucks shoppers, school courtyard kids
   [[-60, 31, [[-60, 31], [60, 31]], false], [80, 17, [[80, 17], [-40, 17]], true], [96, 120, [[94, 120], [94, 210]], false], [60, 318, [[60, 318], [170, 318]], true], [30, 331, [[10, 331], [45, 331]], false],
@@ -139,10 +140,12 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   // clock, lighting, street names, far NPCs hidden
   let lastRoad = '', lastT = '', st = 0; const sn = $('street') || Object.assign(document.body.appendChild(document.createElement('div')), { id:'street' });
   sn.style.cssText = 'position:fixed;right:22px;bottom:150px;font-family:"Press Start 2P",monospace;font-size:13px;color:#fff;text-shadow:2px 2px 0 #000;z-index:12;transition:opacity .6s;opacity:0';
-  const f = dt => { if(!on || G.mission) return; if(G.ctl && !G.paused && !G.uiOpen){ l.min += dt; if(l.min >= 1440){ l.min -= 1440; l.day = (l.day + 1) % 7; l.dayCount = (l.dayCount || 0) + 1; } }
+  const f = dt => { if(!on || G.mission) return; if(G.ctl && !G.paused && !G.uiOpen){ l.min += dt * .8; if(l.min >= 1440){ l.min -= 1440; l.day = (l.day + 1) % 7; l.dayCount = (l.dayCount || 0) + 1; } }
     const k = tod(l.min); if(k !== lastT){ lastT = k; E.setTime(k); } hud();
     const r = (G.roads || []).find(r => P.p.x >= r.x0 && P.p.x <= r.x1 && P.p.z >= r.z0 && P.p.z <= r.z1); const name = r ? r.name : '';
     if(name && name !== lastRoad){ sn.textContent = name.toUpperCase(); sn.style.opacity = 1; st = 3; } lastRoad = name || lastRoad; if(st > 0 && (st -= dt) <= 0) sn.style.opacity = 0;
-    for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < (G.npcDist || 70); } };
+    for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < (G.npcDist || 70) && !(G.hidePepper && n.name === 'Pepper'); } };
   f.amb = true; G.ticks.push(f); ticks.push(() => { const i = G.ticks.indexOf(f); if(i >= 0) G.ticks.splice(i, 1); sn.style.opacity = 0; });
+  G.SVdone = SV.done; const tk = fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); };
+  beatsOn({ L, passTime, pay, money, save, phoneUp, rep:repDelta, friend:(n, d) => { l.fr = l.fr || {}; l.fr[n] = (l.fr[n] || 0) + d; }, addTick:tk, onOff:fn => ticks.push(fn) });
   extrasOn({ L, passTime, add, pay, money, randomLook, save, addTick:fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); }, onOff:fn => ticks.push(fn) }); }

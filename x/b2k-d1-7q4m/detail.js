@@ -3,7 +3,7 @@
 // (walkways, benches, payphone, newspaper boxes, soda + ice machines, bollards, bike rack, accessible stalls, lot arrows),
 // school buses + bike racks, and the store's aisle category signs, end caps and frozen-food doors.
 // Everything here is static, so it is merged per map cell at start-up and costs almost nothing per frame.
-import { THREE, G, box, cyl, plane, mat, label } from './engine.js';
+import { THREE, G, box, cyl, plane, mat, label, lampGlow } from './engine.js';
 const S = G.scene, M = mat;
 const D = (w, h, d, c, x, y, z) => box(w, h, d, typeof c === 'string' ? M(c) : c, x, y, z, { col:false });
 const col = (x0, z0, x1, z1, y1 = 2) => G.colliders.push({ x0, x1, z0, z1, y0:0, y1 });
@@ -34,7 +34,7 @@ export function worldDetail(){
   [[-140, 20.5], [-20, 27.5], [70, 20.5], [96.5, 90], [103.5, 190], [10, 252.5], [140, 259.5]].forEach(([x, z]) => flat(.9, .5, '#1c1c1e', x, z, .05));
   [[-30, 24], [60, 24], [100, 120], [100, 210], [-60, 256], [160, 256]].forEach(([x, z]) => { const m = new THREE.Mesh(new THREE.CircleGeometry(.42, 12), M('#33353a')); m.rotation.x = -Math.PI / 2; m.position.set(x, .04, z); S.add(m); });
   // extra street lamps on Maple + N Illinois
-  const lamp = (x, z) => { cyl(.08, 5, M('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), new THREE.MeshBasicMaterial({ color:0xffe9a8 })); b.position.set(x, 5.05, z); S.add(b); };
+  const lamp = (x, z) => { cyl(.08, 5, M('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), G.lampM); b.position.set(x, 5.05, z); S.add(b); lampGlow(x, z, 8); };
   for(let z = 66; z < 240; z += 44) lamp(93.4, z); for(let x = -170; x < 220; x += 46) if(Math.abs(x - 100) > 8 && Math.abs(x + 108) > 8) lamp(x, 262.6);
   // ---------- yards on Oakmont: kerbside bins, side fences, lawn clutter ----------
   const NORTH = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], SOUTH = [-170, -150, -130, -60, -40, -20, 20, 40, 60, 80, 120, 140];

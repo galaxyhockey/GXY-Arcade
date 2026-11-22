@@ -1,5 +1,5 @@
 // Back in the 2000s: The Game — world: Belleville/Swansea 2003 slice + 1989 sets
-import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRect, makeCar, makePerson } from './engine.js';
+import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRect, makeCar, makePerson, lampGlow } from './engine.js';
 import * as PR from './props.js';
 import * as BL from './buildings.js';
 import * as CHR from './chrishouse.js';
@@ -50,7 +50,7 @@ streetSign(94.5, 30, 'MAPLE ST'); streetSign(105.5, 249.5, 'MAPLE ST'); streetSi
 
 // ---------- trees / props ----------
 const leafM = [mat('#3f7a2e'), mat('#4d8a34'), mat('#5c7f2a'), mat('#b5651d'), mat('#c98a2a')];
-G.noVC = new Set(leafM.slice(0, 3)); // seasonal leaf colours change at run time, so these keep their own materials
+leafM.slice(0, 3).forEach(m => G.noVC.add(m)); // seasonal leaf colours change at run time, so these keep their own materials
 export function tree(x, z, s = 1, fall){ cyl(.22 * s, 4.4 * s, mat('#5a3d22'), x, 0, z, 7);
   const l = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s, 0), leafM[fall ? 3 + (Math.random() * 2 | 0) : Math.random() * 3 | 0]); l.position.set(x, 5.2 * s, z); l.castShadow = true; S.add(l);
   [[.95, .75, .35, .62], [-.85, .45, -.55, .56], [.1, 1.25, -.2, .5]].forEach(([dx, dy, dz, sc]) => { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(1.9 * s * sc, 0), l.material); b.position.set(x + dx * s, 5.2 * s + dy * s, z + dz * s); b.rotation.y = dx * 3; b.castShadow = true; S.add(b); });
@@ -58,7 +58,7 @@ export function tree(x, z, s = 1, fall){ cyl(.22 * s, 4.4 * s, mat('#5a3d22'), x
 function bush(x, z){ const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.8, 0), leafM[1]); b.position.set(x, .5, z); b.scale.y = .7; b.castShadow = true; S.add(b); }
 function fence(x0, z0, x1, z1){ const len = Math.hypot(x1 - x0, z1 - z0), ry = Math.atan2(x1 - x0, z1 - z0); const fm = mat('#e8e2d0');
   box(x1 === x0 ? .12 : len, 1.3, x1 === x0 ? len : .12, fm, (x0 + x1) / 2, 0, (z0 + z1) / 2); }
-function lamp(x, z){ cyl(.08, 5, mat('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), new THREE.MeshBasicMaterial({ color:0xffe9a8 })); b.position.set(x, 5.05, z); S.add(b); }
+function lamp(x, z){ cyl(.08, 5, mat('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), G.lampM); b.position.set(x, 5.05, z); S.add(b); lampGlow(x, z + 2, 8); }
 for(let x = -180; x < 150; x += 26){ lamp(x, 17.6); }
 
 // ---------- houses ----------
