@@ -19,7 +19,7 @@ const { THREE, G, P } = E; const C = 'Chris', ZK = 'Zeke', MT = 'Matt', JX = 'Ja
 const day6 = 'OCTOBER 1ST 2003', day7 = 'OCTOBER 3RD 2003', ME = 'chrisscape88', SAM = 'CaptainSammi06';
 
 // ---------- Draft #2 cast ----------
-export const CAST2 = { sam:{ shirt:'#c9a0e8', pants:'#3f5f9a', shoes:'#f4f4f0', hair:'#8a3f1e', hairStyle:'long', fringe:true, lash:true, glasses:true, lips:'#d0506e', top:'tee', bottom:'flare', chain:'puka', thin:true, scale:.9 },
+export const CAST2 = { sam:{ shirt:'#c9a0e8', pants:'#3f5f9a', shoes:'#f4f4f0', hair:'#8a3f1e', hairStyle:'long', fringe:true, lash:true, fem:true, glasses:'round', lips:'#d0506e', top:'tee', bottom:'flare', scale:.93 },
   emily:{ shirt:'#d86a8a', pants:'#2b3550', hair:'#c9a15a', long:true, lips:'#b5505a', scale:.95 }, abby:{ shirt:'#e8c84a', pants:'#3a4a7a', hair:'#3a2414', hairStyle:'pigtails', lips:'#b5505a', scale:.94 },
   debra:{ shirt:'#7aa8a0', pants:'#5a5a6a', hair:'#e4e4e4', hairStyle:'bun', glasses:true, lips:'#a05060', scale:.9 }, innocent:{ shirt:'#5a7a4a', pants:'#4a4a4a', hair:'#3a2a1a', beard:'#3a2a1a', wide:1.1 },
   thief:{ shirt:'#1a1a1a', pants:'#2a2a2a', hair:'#111', top:'hoodie', hat:'beanie', hatColor:'#111' }, attendant:{ shirt:'#1c3d6e', pants:'#1c2a44', hair:'#3a2414', hairStyle:'bun', lips:'#b5505a', collar:'#f4f4f0', top:'polo' },
