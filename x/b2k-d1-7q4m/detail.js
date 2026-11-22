@@ -37,7 +37,7 @@ export function worldDetail(){
   const lamp = (x, z) => { cyl(.08, 5, M('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), G.lampM); b.position.set(x, 5.05, z); S.add(b); lampGlow(x, z, 8); };
   for(let z = 66; z < 240; z += 44) lamp(93.4, z); for(let x = -170; x < 220; x += 46) if(Math.abs(x - 100) > 8 && Math.abs(x + 108) > 8) lamp(x, 262.6);
   // ---------- yards on Oakmont: kerbside bins, side fences, lawn clutter ----------
-  const NORTH = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], SOUTH = [-170, -150, -130, -60, -40, -20, 20, 40, 60, 80, 120, 140];
+  const NORTH = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], SOUTH = [-170, -150, -130, -60, -40, -20, 20, 40, 60, 80, 140];
   const bin = (x, z, c) => { D(.5, .85, .55, c, x, 0, z); D(.54, .06, .6, '#222', x, .85, z); };
   const clutter = (x, z, k) => { const m = k % 7;
     if(m === 0){ [[-.25, '#f06aa0'], [.25, '#f48ab8']].forEach(([dx, c]) => { D(.03, .5, .03, '#222', x + dx, 0, z); D(.2, .16, .08, c, x + dx, .5, z); }); }                          // flamingos

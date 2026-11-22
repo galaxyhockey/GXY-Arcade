@@ -6,15 +6,16 @@ import { sidingM, brickM } from './buildings.js';
 const S = G.scene, UP = 3.2, T = .22;
 const paint = mat('#efe7d6'), trim = mat('#ffffff'), wood = mat('#8a5a32'), cab = mat('#a8794a'), top = mat('#d8d0c0');
 const glassM = new THREE.MeshLambertMaterial({ color:0x9fc6e6, transparent:true, opacity:.35, emissive:0x223344 });
-const sid = sidingM('#e4ddc8', [6, 2]);
+const sid0 = sidingM('#e4ddc8', [6, 2]); let sid = sid0;
+export function setSiding(m){ sid = m || sid0; }
 const deco = (w, h, d, m, x, y, z) => box(w, h, d, m, x, y, z, { col:false });
 // wall along X at z (out = +1 means the +z face is outside), with openings [{a, b, lo, hi}] in x
-function wallX(x0, x1, z, y0, h, out, ops = []){ const mats = [paint, paint, paint, paint, out > 0 ? sid : paint, out > 0 ? paint : sid];
+export function wallX(x0, x1, z, y0, h, out, ops = []){ const mats = [paint, paint, paint, paint, out > 0 ? sid : paint, out > 0 ? paint : sid];
   const cuts = [...ops].sort((p, q) => p.a - q.a); let x = x0;
   const seg = (a, b, lo, hi) => { if(b - a > .01 && hi - lo > .01) box(b - a, hi - lo, T, mats, (a + b) / 2, lo, z); };
   for(const o of cuts){ seg(x, o.a, y0, y0 + h); seg(o.a, o.b, y0, y0 + o.lo); seg(o.a, o.b, y0 + o.hi, y0 + h); frameX(o, z, y0, out); x = o.b; }
   seg(x, x1, y0, y0 + h); }
-function wallZ(z0, z1, x, y0, h, out, ops = []){ const mats = [out > 0 ? sid : paint, out > 0 ? paint : sid, paint, paint, paint, paint];
+export function wallZ(z0, z1, x, y0, h, out, ops = []){ const mats = [out > 0 ? sid : paint, out > 0 ? paint : sid, paint, paint, paint, paint];
   const cuts = [...ops].sort((p, q) => p.a - q.a); let z = z0;
   const seg = (a, b, lo, hi) => { if(b - a > .01 && hi - lo > .01) box(T, hi - lo, b - a, mats, x, lo, (a + b) / 2); };
   for(const o of cuts){ seg(z, o.a, y0, y0 + h); seg(o.a, o.b, y0, y0 + o.lo); seg(o.a, o.b, y0 + o.hi, y0 + h); frameZ(o, x, y0, out); z = o.b; }

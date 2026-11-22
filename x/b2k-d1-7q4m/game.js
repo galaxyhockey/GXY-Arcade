@@ -6,7 +6,7 @@ import * as LIFE from './life.js';
 import { initUI } from './ui.js';
 import { initPlanner } from './planner.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-E.bakeStatic([G.fridgeObj, G.dishes, G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
+E.bakeStatic([G.fridgeObj, G.dishes, G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.m05Keep || []), G.jax && G.jax.bfridgeObj, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
 let SLOT = 1; try{ SLOT = Math.min(3, Math.max(1, +localStorage.getItem('b2k_slot') || 1)); const old = localStorage.getItem('b2k_draft1_save'); if(old && !localStorage.getItem('b2k_save_1')){ localStorage.setItem('b2k_save_1', old); } }catch(e){}
 const KEY = 'b2k_save_' + SLOT; G.slot = SLOT;
 export const SV = { done:{}, cp:null, flags:{}, pos:null, cam:'tp', filter:false, s01best:null, ver:1 };
@@ -27,13 +27,13 @@ export function mnpc(name, look, x, z, o){ const n = E.npc(name, look, x, z, o);
 export function mtick(fn){ const t = E.tick(fn); mt.push(t); return t; }
 export function minter(o){ o.persist = true; mInter.push(o); return E.addInter(o); }
 export function fail(msg){ failRes && failRes(msg); }
-function cleanup(){ gen++; phoneUp(false); sitSofa(false); G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
+function cleanup(){ gen++; (G.cleanups || []).splice(0).forEach(f => { try{ f(); }catch(e){} }); phoneUp(false); sitSofa(false); G.noExit = false; if(G.driving) E.exitCar(); mNpcs.forEach(n => G.npcs.includes(n) && n.remove()); mNpcs = []; mt.forEach(t => t()); mt = []; mInter.forEach(E.delInter); mInter = [];
   G.ticks = G.ticks.filter(t => t.amb); (G.markers || []).slice().forEach(E.clearMarker); E.setWay(); E.killDialog(); E.cut(false); E.obj('');
   G.carry = null; clearTrain(); G.camOverride = null; $('timer').style.display = 'none'; $('carts').style.display = 'none'; alarmFx(false); G.blips = []; }
 export let MIS = {}; export const setMissions = m => MIS = m;
 G.mission = null;
 export async function play(id, i = 0){
-  cleanup(); G.mission = id; const m = MIS[id]; freeRoam(false);
+  cleanup(); G.mission = id; const m = MIS[id]; freeRoam(false); G.m05World && G.m05World(false);
   if(i === 0){ await E.fade(true, 400); await E.card(m.title.toUpperCase(), m.sub || '', 2400); }
   while(i < m.stages.length){
     SV.cp = { id, i }; save(); cleanup(); G.mission = id;
@@ -73,7 +73,7 @@ export function grabFrom(c, max){ const n = Math.min(max - train.length, c.carts
 export function deliver(){ const n = train.length; train.forEach(m => { m.userData.from.delivered++; G.scene.remove(m); }); train.length = 0; return n; }
 
 // ---------- free roam: mission markers, ambient life ----------
-const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01'];
+const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01', 'M05'];
 let roamMarks = [];
 const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
 // Chris sits on the living-room sofa facing the TV; the camera looks over his shoulder so he never blocks the screen
@@ -83,7 +83,7 @@ export function sitSofa(on){ if(on){ E.place(-4.5, -10.45, 0); if(G.sofaCol) G.s
 export function phoneUp(on){ const hs = G.phoneObj && G.phoneObj.userData.hs; if(hs) hs.visible = !on; E.holdPhone(P.model, on ? 'handset' : null);
   if(on){ E.place(G.phone.x, G.phone.z, Math.atan2(G.phoneLook.x - G.phone.x, G.phoneLook.z - G.phone.z)); P.model.rotation.y = P.yaw; } }
 export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.delInter(r.it); r.stop && r.stop(); }); roamMarks = []; E.setWay(); G.blips = [];
-  LIFE.lifeOn(false); if(!on) return; if(G.roamTime){ G.roamFrom = G.roamTime; G.roamTime = null; } if(SV.needSleep) G.roamFrom = 'night'; LIFE.lifeOn(true);
+  LIFE.lifeOn(false); if(!on) return; G.m05World && G.m05World(!!SV.done.M05); if(G.roamTime){ G.roamFrom = G.roamTime; G.roamTime = null; } if(SV.needSleep) G.roamFrom = 'night'; LIFE.lifeOn(true);
   if(SV.needSleep){ const b = G.bed, mk = E.marker(b.x, b.z, 0x9a7cff, 3.2); G.blips.push({ x:b.x, z:b.z, c:'#9a7cff' }); E.setWay(b.x, b.z);
     const it = E.addInter({ x:b.x, z:b.z, y:3.2, r:2.2, prompt:'SLEEP UNTIL TOMORROW', use:async () => { freeRoam(false); E.cut(true); await E.fade(true, 900);
       const day = NEXT_DAY[SV.needSleep] || 'THE NEXT DAY'; SV.needSleep = false; G.roamFrom = 'morning'; G.roamTime = null; LIFE.passTime(0); SV.life && (SV.life.dayCount = (SV.life.dayCount || 0) + 1, SV.life.day = (SV.life.day + 1) % 7); save(); await E.card('THE NEXT MORNING', day, 2600);
@@ -129,9 +129,13 @@ $('pResume').onclick = () => openPause(false);
 { let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); }
 $('pRestart').onclick = () => { openPause(false); restartCP(); };
 
-$('pMissions').onclick = async () => { const list = ORDER.filter(id => SV.done[id]); if(!list.length){ E.toast('Finish a mission first.'); return; } openPause(false);
-  if(G.mission) cleanup(); G.mission = 'menu'; E.cut(true); const k = await E.choose([...list.map(id => `${id} · ${MIS[id].title}`), 'Cancel']); E.cut(false); G.mission = null;
-  if(k < list.length) play(list[k], 0); else freeRoam(true); };
+// mission select: finished missions only, or (ADMIN MODE in settings) every mission and any of its checkpoints
+async function pickMission(){ const admin = !!G.set.admin, list = ORDER.filter(id => MIS[id] && (admin || SV.done[id])); if(!list.length){ E.toast('Finish a mission first.'); return; } openPause(false);
+  if(G.mission) cleanup(); G.mission = 'menu'; E.cut(true); const k = await E.choose([...list.map(id => `${id} · ${MIS[id].title}${admin && !SV.done[id] ? ' (not played yet)' : ''}`), 'Cancel']); let st = 0, go = k < list.length;
+  if(go && admin){ const n = MIS[list[k]].stages.length; st = await E.choose(['From the start', ...Array.from({ length:n - 1 }, (_, i) => `Checkpoint ${i + 2} of ${n}`), 'Cancel']); if(st >= n) go = false; }
+  E.cut(false); G.mission = null; if(go) play(list[k], st); else freeRoam(true); }
+$('pMissions').onclick = pickMission; $('bAdmin').onclick = () => { startGame(); pickMission(); };
+G.onAdmin = () => { $('bAdmin').style.display = G.set.admin ? '' : 'none'; $('pMissions').textContent = G.set.admin ? 'MISSION SELECT (ADMIN)' : 'REPLAY A MISSION'; }; G.onAdmin();
 $('pExport').onclick = () => { save(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(SV, null, 1)], { type:'application/json' })); a.download = 'b2k-draft1-save.json'; a.click(); };
 $('pImport').onclick = () => { const i = document.createElement('input'); i.type = 'file'; i.accept = '.json'; i.onchange = async () => { try{ const d = JSON.parse(await i.files[0].text()); localStorage.setItem(KEY, JSON.stringify(d)); location.reload(); }catch(e){ E.toast('That file is not a save.'); } }; i.click(); };
 $('pBug').onclick = () => { const r = { build:'Draft #1', mission:G.mission, checkpoint:SV.cp, pos:[+P.p.x.toFixed(1), +P.p.y.toFixed(1), +P.p.z.toFixed(1)], done:SV.done, cam:G.camMode, ua:navigator.userAgent, time:new Date().toISOString() };

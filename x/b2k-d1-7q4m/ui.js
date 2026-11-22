@@ -12,6 +12,7 @@ const ROWS = [
   { k:'music', label:'MUSIC VOLUME', type:'range', min:0, max:1, step:.05 },
   { k:'amb', label:'AMBIENCE VOLUME', type:'range', min:0, max:1, step:.05 },
   { k:'sfx', label:'EFFECTS + TEXT BLIPS', type:'range', min:0, max:1, step:.05 },
+  { k:'admin', label:'ADMIN MODE (PLAY ANY MISSION)', type:'bool' },
   { k:'filter', label:'STRONG LANGUAGE', type:'pick', opts:['SHOWN', 'FILTERED'], get:() => G.filter ? 'FILTERED' : 'SHOWN', set:v => { G.filter = v === 'FILTERED'; G.saveNow && G.saveNow(); } },
 ];
 const saveSet = () => { try{ localStorage.setItem('b2k_settings', JSON.stringify(G.set)); }catch(e){} };
@@ -19,7 +20,7 @@ function drawSettings(){ const el = $('setBody'); el.innerHTML = ROWS.map((r, i)
   const ctl = r.type === 'range' ? `<input type="range" data-i="${i}" min="${r.min}" max="${r.max}" step="${r.step}" value="${v}"><b>${r.max <= 1 ? Math.round(v * 100) + '%' : (+v).toFixed(1) + '×'}</b>`
     : `<button data-i="${i}">◀ ${r.type === 'bool' ? (v ? 'ON' : 'OFF') : v} ▶</button>`; return `<div class="srow"><span>${r.label}</span>${ctl}</div>`; }).join('');
   el.querySelectorAll('input').forEach(inp => inp.oninput = () => { const r = ROWS[+inp.dataset.i]; G.set[r.k] = +inp.value; saveSet(); inp.nextElementSibling.textContent = r.max <= 1 ? Math.round(inp.value * 100) + '%' : (+inp.value).toFixed(1) + '×'; if(r.k === 'sfx') E.sfx('ok'); });
-  el.querySelectorAll('button').forEach(b => b.onclick = () => { const i = +b.dataset.i, r = ROWS[i]; if(r.type === 'bool'){ G.set[r.k] = !G.set[r.k]; saveSet(); } else { const cur = r.get(), n = r.opts[(r.opts.indexOf(cur) + 1) % r.opts.length]; r.set(n); }
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { const i = +b.dataset.i, r = ROWS[i]; if(r.type === 'bool'){ G.set[r.k] = !G.set[r.k]; saveSet(); G.onAdmin && G.onAdmin(); } else { const cur = r.get(), n = r.opts[(r.opts.indexOf(cur) + 1) % r.opts.length]; r.set(n); }
     drawSettings(); const nb = el.querySelector(`[data-i="${i}"]`); nb && nb.focus(); if($('pGfx')) $('pGfx').textContent = 'GRAPHICS: ' + G.quality; }); }
 export function openSettings(on){ $('settings').style.display = on ? 'flex' : 'none'; if(on){ drawSettings(); const f = $('setBody').querySelector('button,input'); f && f.focus(); } else focusFirst(); }
 

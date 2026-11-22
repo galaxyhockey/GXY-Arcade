@@ -3,6 +3,7 @@ import { THREE, G, box, plane, floor, ramp, cyl, mat, txMat, noise, label, mapRe
 import * as PR from './props.js';
 import * as BL from './buildings.js';
 import * as CHR from './chrishouse.js';
+import { buildJaxHouse } from './jaxhouse.js';
 import * as SC from './school.js';
 import * as PZ from './plaza.js';
 import * as ST from './store.js';
@@ -77,11 +78,12 @@ function house(x, z, face, col, o = {}){ // closed exterior house; face: 1 = doo
   mapRect(x - w / 2, z - d / 2, x + w / 2, z + d / 2, '#b8a99a');
   bush(x - w / 2 + 1, z + face * (d / 2 + 1)); bush(x + w / 2 - 1, z + face * (d / 2 + 1)); }
 // north side of Elm (doors face +z), south side (doors face -z)
-const north = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], south = [-170, -150, -130, -60, -40, -20, 0, 20, 40, 60, 80, 120, 140];
+const north = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], south = [-170, -150, -130, -60, -40, -20, 0, 20, 40, 60, 80, 140];
 north.forEach((x, i) => BL.house(x, 6, 's', i * 7 + 3, { curb:14 }));
 south.forEach((x, i) => BL.house(x, 42, 'n', i * 5 + 11, { curb:14 }));
 [-30, -15, 30, 55, 85, 130, -115, -95, -165, -142].forEach((x, i) => { tree(x, 34 + (i % 2) * 2, 1, true); tree(x + 6, 14 - (i % 2) * 2, 1.1); });
-for(let z = 54, k = 0; z < 245; z += 15, k++){ const sd = [1, 2, 4, 5]; BL.house(83, z + 4, 'e', sd[k % 4] + 6 * k, { curb:13 }); BL.house(117, z, 'w', sd[(k + 2) % 4] + 6 * (k + 3), { curb:13 }); }
+for(let z = 54, k = 0; z < 245; z += 15, k++){ const sd = [1, 2, 4, 5]; BL.house(83, z + 4, 'e', sd[k % 4] + 6 * k, { curb:13 }); if(k) BL.house(117, z, 'w', sd[(k + 2) % 4] + 6 * (k + 3), { curb:13 }); }
+buildJaxHouse(); // Jax's house on the corner of Oakmont and Maple (jaxhouse.js)
 // fill along Maple: rotate doors toward road is cosmetic; keep simple
 
 // ---------- Chris's house (enterable, 2 floors) ----------
