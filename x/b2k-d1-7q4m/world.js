@@ -6,6 +6,7 @@ import * as CHR from './chrishouse.js';
 import * as SC from './school.js';
 import * as PZ from './plaza.js';
 import * as ST from './store.js';
+import { worldDetail } from './detail.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
@@ -218,3 +219,4 @@ export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070,
   G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
 // interior lights for Chris's house and the school classroom
 [[0, 2.6, -6], [3, 5.8, -7]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
+worldDetail(); // curbs, poles, yard + park + plaza + store detail (detail.js)
