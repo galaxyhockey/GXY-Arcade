@@ -142,7 +142,7 @@ $('pImport').onclick = () => { const i = document.createElement('input'); i.type
 $('pBug').onclick = () => { const r = { build:'Draft #1', mission:G.mission, checkpoint:SV.cp, pos:[+P.p.x.toFixed(1), +P.p.y.toFixed(1), +P.p.z.toFixed(1)], done:SV.done, cam:G.camMode, ua:navigator.userAgent, time:new Date().toISOString() };
   const t = 'BUG REPORT — Back in the 2000s Draft #1\nWhat happened: \nWhat I expected: \n\n' + JSON.stringify(r, null, 1);
   navigator.clipboard?.writeText(t).then(() => E.toast('Bug report copied. Paste it into a message with what went wrong.'), () => prompt('Copy this:', t)); };
-$('pTitle').onclick = () => { save(); location.reload(); };
+$('pTitle').onclick = () => { save(); try{ sessionStorage.setItem('b2k_skip', '1'); }catch(e){} location.reload(); };
 $('bHelp').onclick = () => $('help').style.display = 'flex'; $('hClose').onclick = () => $('help').style.display = 'none';
 if(SV.done.M01 || SV.cp) $('bCont').disabled = false;
 function startGame(){ $('title').style.display = 'none'; E.sfx('ok'); E.cut(false); }

@@ -47,13 +47,13 @@ function drawSlots(){ const el = $('slotBody'); el.innerHTML = [1, 2, 3].map(n =
     const used = d && (d.cp || Object.keys(d.done || {}).length || d.life), l = d && d.life, when = l ? new Date(2003, 8, 26 + (l.dayCount || 0)).toDateString().slice(0, 10) : 'Sep 26';
     const info = used ? `${Object.keys(d.done || {}).length} MISSIONS · ${when} 2003${l ? ' · $' + (l.cash || 0).toFixed(2) : ''}${d.savedAt ? '<br>LAST PLAYED ' + new Date(d.savedAt).toLocaleDateString() : ''}` : 'EMPTY';
     return `<div class="slot${n === G.slot ? ' cur' : ''}"><button data-n="${n}"><b>SLOT ${n}${n === G.slot ? ' · IN USE' : ''}</b><small>${info}</small></button>${used ? `<button class="del" data-del="${n}">ERASE</button>` : ''}</div>`; }).join('');
-  el.querySelectorAll('[data-n]').forEach(b => b.onclick = () => { const n = +b.dataset.n; if(n === G.slot){ $('slots').style.display = 'none'; focusFirst(); return; } try{ localStorage.setItem('b2k_slot', n); }catch(e){} location.reload(); });
+  el.querySelectorAll('[data-n]').forEach(b => b.onclick = () => { const n = +b.dataset.n; if(n === G.slot){ $('slots').style.display = 'none'; focusFirst(); return; } try{ localStorage.setItem('b2k_slot', n); sessionStorage.setItem('b2k_skip', '1'); }catch(e){} location.reload(); });
   el.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const n = +b.dataset.del; if(!confirm('Erase save slot ' + n + '? This cannot be undone.')) return; try{ localStorage.removeItem(slotKey(n)); }catch(e){} if(n === G.slot) location.reload(); else drawSlots(); }); }
 
 // ---------- intro ----------
 let introT = [], introDone = false;
-function skipIntro(){ if(introDone) return; introDone = true; introT.forEach(clearTimeout); $('title').style.visibility = ''; const el = $('intro'); el.style.opacity = 0; setTimeout(() => { el.style.display = 'none'; focusFirst(); }, 500); try{ sessionStorage.setItem('b2k_intro', '1'); }catch(e){} }
-function intro(){ const el = $('intro'), cards = [...el.querySelectorAll('.icard')]; let seen = false; try{ seen = sessionStorage.getItem('b2k_intro') === '1'; }catch(e){}
+function skipIntro(){ if(introDone) return; introDone = true; introT.forEach(clearTimeout); $('title').style.visibility = ''; const el = $('intro'); el.style.opacity = 0; setTimeout(() => { el.style.display = 'none'; focusFirst(); }, 500); }
+function intro(){ const el = $('intro'), cards = [...el.querySelectorAll('.icard')]; let seen = false; try{ seen = sessionStorage.getItem('b2k_skip') === '1'; sessionStorage.removeItem('b2k_skip'); }catch(e){} // skipped only after the game reloads itself (quit to title, slot change)
   if(seen || new URLSearchParams(location.search).has('nointro')){ el.style.display = 'none'; introDone = true; focusFirst(); return; }
   $('title').style.visibility = 'hidden'; el.onclick = skipIntro; let t = 300; cards.forEach((c, i) => { const hold = +c.dataset.ms || 2600; introT.push(setTimeout(() => { cards.forEach(x => x.classList.remove('on')); c.classList.add('on'); }, t)); t += hold; }); introT.push(setTimeout(skipIntro, t)); }
 
@@ -63,4 +63,4 @@ export function initUI(){ let a = 0; E.setTime('after'); E.camTrack(dt => { a +=
   $('bSlots').textContent = 'SAVE SLOT ' + G.slot; $('bSlots').onclick = () => { $('slots').style.display = 'flex'; drawSlots(); }; $('slotClose').onclick = () => { $('slots').style.display = 'none'; focusFirst(); };
   $('bAbout').onclick = () => { $('about').style.display = 'flex'; }; $('aboutClose').onclick = () => { $('about').style.display = 'none'; focusFirst(); };
   addEventListener('gamepadconnected', () => E.toast('Controller connected.', 2200));
-  document.body.classList.add('inmenu'); intro(); }
+  document.body.classList.add('inmenu'); intro(); window.__b2kStarted = true; const le = $('loaderr'); le && le.remove(); }

@@ -166,5 +166,15 @@ body:has(#intro:not([style*="none"])) #title{visibility:hidden}
   <button id="pBug">COPY BUG REPORT</button><button id="pTitle">QUIT TO TITLE</button></div></div>
 <div id="mapv"><div class="maprow"><canvas id="mapc" width="900" height="900"></canvas><div id="mapside"></div></div><p class="note">M — close</p></div>
 <div id="help"><h2>CONTROLS</h2><div class="keys">WASD · move &nbsp; MOUSE · look (click to lock)<br>SHIFT · run (uses stamina) &nbsp; SPACE · jump<br>E · interact / next text / get in a car<br>IN A CAR: W/S gas &amp; brake · A/D steer · SPACE handbrake<br>V · first / third person &nbsp; M · map + planner &nbsp; N · music on/off &nbsp; B · skateboard<br>FREE ROAM: time passes (a game day is about 30 minutes) · earn cash working shifts at Schnucks<br>ESC / P · pause &nbsp; ARROWS · look (no mouse)<br><br>CONTROLLER: left stick move · right stick look · Ⓐ jump / confirm · Ⓧ interact<br>RT run / gas · LT brake · Ⓑ skateboard · Ⓨ camera · START pause · BACK map</div><button class="btn" id="hClose">GOT IT</button></div>
+<script>
+// If the game code fails to load or crashes while starting, say so on screen instead of leaving a blank intro.
+(function(){ var shown = 0; function show(msg){ if(shown++ > 3) return; var d = document.getElementById('loaderr'); if(!d){ d = document.createElement('div'); d.id = 'loaderr'; d.style.cssText = 'position:fixed;left:12px;right:12px;top:12px;z-index:99999;background:#7a0f16;color:#fff;font:14px/1.5 monospace;padding:12px 14px;border:2px solid #fff;border-radius:8px;white-space:pre-wrap'; d.textContent = 'THE GAME HIT A PROBLEM WHILE LOADING. Send this to Claude:
+'; document.body.appendChild(d); var i = document.getElementById('intro'); if(i && !window.__b2kStarted) i.style.display = 'none'; }
+    d.textContent += msg + '
+'; }
+  addEventListener('error', function(e){ if(window.__b2kStarted) return; show((e.message || 'Could not load ' + ((e.target && (e.target.src || e.target.href)) || 'a file')) + (e.filename ? '  (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '')); }, true);
+  addEventListener('unhandledrejection', function(e){ if(window.__b2kStarted) return; show(String(e.reason && (e.reason.stack || e.reason.message) || e.reason).slice(0, 400)); });
+  setTimeout(function(){ if(!window.__b2kStarted) show('The game code did not start after 25 seconds (still loading, or blocked).'); }, 25000); })();
+</script>
 <script type="module" src="game.js"></script>
 </body></html>
