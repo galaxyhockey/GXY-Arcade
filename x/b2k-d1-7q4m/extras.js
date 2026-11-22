@@ -3,6 +3,7 @@
 // gas + a station, PS2 + games, skateboard, friends' hangout schedule, phone plans, Friday ragers, AIM chat, side jobs, job reputation,
 // kids at the park after school, busier Schnucks on weekends, lit windows at night.
 import * as E from './engine.js';
+import { playRunner, playDodge, playMeter } from './minigames.js';
 import { glassM } from './props.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
 let api = null, decor = null, rain = null, lastDay = -1, thunderT = 10, spawned = {}, objs = [];
@@ -135,7 +136,8 @@ async function shopGames(){ const l = api.L(); l.owned = l.owned || []; const li
   if(list[k][2] !== 'ps2' && !l.owned.includes('ps2')) await E.say([['Clerk', 'You know you need a PS2 for that, right?']]);
   if(api.pay(list[k][1])){ l.owned.push(list[k][2]); api.save(); await E.say([['Clerk', list[k][2] === 'ps2' ? 'Welcome to the future, man.' : 'Good pick.']]); } }
 async function playPS2(){ const l = api.L(), games = GAMES.filter(g => g[2] !== 'ps2' && l.owned.includes(g[2])); if(!games.length){ await E.say([['', 'A PS2 and zero games. Smart.']]); return false; }
-  const k = await E.choose([...games.map(g => g[0]), 'Never mind']); if(k >= games.length) return false; E.cut(true); await E.fade(true, 500); api.passTime(60); await E.card('1 HOUR LATER', games[k][0].toUpperCase(), 1300); await E.fade(false, 500); E.cut(false); E.toast(PLAY[games[k][2]], 3400); return true; }
+  const k = await E.choose([...games.map(g => g[0]), 'Never mind']); if(k >= games.length) return false; const id = games[k][2], sc = await ({ thps4:() => playRunner({ title:'SKATE JAM' }), ssx:() => playRunner({ title:'SNOW JAM', skin:'snow' }), nfs:() => playDodge({ title:'HIGHWAY RUN' }), vc:() => playDodge({ title:'CITY CRUISE' }), madden:() => playMeter({ kind:'kick' }) })[id]();
+  l.hi = l.hi || {}; const best = sc > (l.hi[id] || 0); if(best) l.hi[id] = sc; api.passTime(60); api.save(); E.toast(`${PLAY[id]}<br>SCORE ${sc}${best ? ' · NEW BEST' : ' · best ' + l.hi[id]} · an hour went by`, 4200); return true; }
 
 // ---------- gas station (west end of the plaza lot) ----------
 function gasStation(){ const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), E.mat('#9a9890')); pad.rotation.x = -Math.PI / 2; pad.position.set(-28, .03, 276); addObj(pad); E.mapRect(-43, 264, -13, 288, '#7a7870');

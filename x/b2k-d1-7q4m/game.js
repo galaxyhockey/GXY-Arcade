@@ -4,12 +4,14 @@ import './world.js';
 import './audio.js';
 import * as LIFE from './life.js';
 import { initUI } from './ui.js';
+import { initPlanner } from './planner.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
 E.bakeStatic([G.fridgeObj, G.dishes, G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
-const KEY = 'b2k_draft1_save';
+let SLOT = 1; try{ SLOT = Math.min(3, Math.max(1, +localStorage.getItem('b2k_slot') || 1)); const old = localStorage.getItem('b2k_draft1_save'); if(old && !localStorage.getItem('b2k_save_1')){ localStorage.setItem('b2k_save_1', old); } }catch(e){}
+const KEY = 'b2k_save_' + SLOT; G.slot = SLOT;
 export const SV = { done:{}, cp:null, flags:{}, pos:null, cam:'tp', filter:false, s01best:null, ver:1 };
 try{ Object.assign(SV, JSON.parse(localStorage.getItem(KEY)) || {}); }catch(e){}
-export function save(){ SV.pos = [P.p.x, P.p.z, P.yaw]; SV.cam = G.camMode; SV.filter = G.filter; try{ localStorage.setItem(KEY, JSON.stringify(SV)); }catch(e){} }
+export function save(){ SV.pos = [P.p.x, P.p.z, P.yaw]; SV.cam = G.camMode; SV.filter = G.filter; SV.savedAt = Date.now(); try{ localStorage.setItem(KEY, JSON.stringify(SV)); }catch(e){} }
 G.flags = SV.flags; G.filter = !!SV.filter; G.camMode = SV.cam || 'tp';
 
 // ---------- mission plumbing: stale-safe helpers, checkpoint retry ----------
@@ -122,7 +124,7 @@ G.chrisCarCol = G.colliders.find(c => c.x0 === 9.5 && c.z0 === 6.8); G.chrisDriv
 // ---------- menus ----------
 function openPause(on){ G.paused = on; $('pause').style.display = on ? 'flex' : 'none'; if(on){ E.unlock(); $('pRestart').disabled = !SV.cp; } }
 G.hotkey = e => { if(['Escape', 'KeyP'].includes(e.code) && !$('title').offsetParent){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; return; } openPause(!G.paused); }
-  if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, 20, 195, 1.9); } } };
+  if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, -20, 195, 1.5); G.onMap && G.onMap($('mapc').getContext('2d'), -20, 195, 1.5, 900); } } };
 $('pResume').onclick = () => openPause(false);
 { let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); }
 $('pRestart').onclick = () => { openPause(false); restartCP(); };
@@ -142,7 +144,7 @@ function startGame(){ $('title').style.display = 'none'; E.sfx('ok'); E.cut(fals
 $('bNew').onclick = () => { if((SV.done.M01 || SV.cp) && !confirm('Start a new game? Your current save will be replaced.')) return;
   Object.assign(SV, { done:{}, cp:null, flags:{}, pos:null, s01best:null }); G.flags = SV.flags; save(); startGame(); play('M01', 0); };
 $('bCont').onclick = () => { startGame(); if(SV.cp) play(SV.cp.id, SV.cp.i); else { const p = SV.pos || [0, 9, 0]; E.place(p[0], p[1], p[2]); freeRoam(true); } };
-E.place(0, 9, Math.PI); E.cut(true); G.noLock = false; G.saveNow = save; initUI();
+E.place(0, 9, Math.PI); E.cut(true); G.noLock = false; G.saveNow = save; initUI(); initPlanner();
 setInterval(() => { if(!G.paused && !G.mission && $('title').style.display === 'none') save(); }, 5000);
 $('bNew').disabled = $('bCont').disabled = true;
 import('./missions.js').then(() => { $('bNew').disabled = false; if(SV.done.M01 || SV.cp) $('bCont').disabled = false; }, e => alert('Game failed to load: ' + e.message));

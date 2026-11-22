@@ -25,7 +25,7 @@ export function openSettings(on){ $('settings').style.display = on ? 'flex' : 'n
 
 // ---------- menu navigation (keyboard + controller) ----------
 const open = id => { const e = $(id); return e && e.style.display !== 'none' && getComputedStyle(e).display !== 'none'; };
-const top = () => ['intro', 'settings', 'about', 'help', 'pause', 'title'].find(open);
+const top = () => ['intro', 'slots', 'settings', 'about', 'help', 'pause', 'title'].find(open);
 function items(){ const t = top(); return t && t !== 'intro' ? [...$(t).querySelectorAll('button:not(:disabled),input[type=range]')].filter(e => e.offsetParent) : []; }
 function focusFirst(){ const it = items(); if(it.length && !it.includes(document.activeElement)) it[0].focus(); }
 addEventListener('keydown', e => { const t = top(); if(!t) return;
@@ -35,10 +35,19 @@ addEventListener('keydown', e => { const t = top(); if(!t) return;
   else if(['ArrowUp', 'KeyW'].includes(e.code)){ it[(i + it.length - 1) % it.length]?.focus(); e.preventDefault(); e.stopImmediatePropagation(); }
   else if(['ArrowLeft', 'ArrowRight', 'KeyA', 'KeyD'].includes(e.code) && document.activeElement?.type === 'range'){ const a = document.activeElement, d = ['ArrowRight', 'KeyD'].includes(e.code) ? 1 : -1; if(!e.isTrusted || e.code.startsWith('Key')){ a.value = +a.value + d * +a.step; a.dispatchEvent(new Event('input')); e.preventDefault(); } e.stopImmediatePropagation(); }
   else if(['Space', 'Enter', 'KeyE'].includes(e.code)){ if(!e.isTrusted || e.code === 'KeyE'){ document.activeElement?.click?.(); } e.stopImmediatePropagation(); }
-  else if(e.code === 'Escape' && ['settings', 'about', 'help'].includes(t)){ if(t === 'settings') openSettings(false); else { $(t).style.display = 'none'; focusFirst(); } e.stopImmediatePropagation(); }
+  else if(e.code === 'Escape' && ['settings', 'about', 'help', 'slots'].includes(t)){ if(t === 'settings') openSettings(false); else { $(t).style.display = 'none'; focusFirst(); } e.stopImmediatePropagation(); }
   else if(t !== 'pause') e.stopImmediatePropagation();
 }, true);
 new MutationObserver(() => { document.body.classList.toggle('inmenu', open('title')); setTimeout(focusFirst, 30); }).observe(document.body, { attributes:true, subtree:true, attributeFilter:['style'] });
+
+// ---------- save slots ----------
+const slotKey = n => 'b2k_save_' + n;
+function drawSlots(){ const el = $('slotBody'); el.innerHTML = [1, 2, 3].map(n => { let d = null; try{ d = JSON.parse(localStorage.getItem(slotKey(n))); }catch(e){}
+    const used = d && (d.cp || Object.keys(d.done || {}).length || d.life), l = d && d.life, when = l ? new Date(2003, 8, 26 + (l.dayCount || 0)).toDateString().slice(0, 10) : 'Sep 26';
+    const info = used ? `${Object.keys(d.done || {}).length} MISSIONS · ${when} 2003${l ? ' · $' + (l.cash || 0).toFixed(2) : ''}${d.savedAt ? '<br>LAST PLAYED ' + new Date(d.savedAt).toLocaleDateString() : ''}` : 'EMPTY';
+    return `<div class="slot${n === G.slot ? ' cur' : ''}"><button data-n="${n}"><b>SLOT ${n}${n === G.slot ? ' · IN USE' : ''}</b><small>${info}</small></button>${used ? `<button class="del" data-del="${n}">ERASE</button>` : ''}</div>`; }).join('');
+  el.querySelectorAll('[data-n]').forEach(b => b.onclick = () => { const n = +b.dataset.n; if(n === G.slot){ $('slots').style.display = 'none'; focusFirst(); return; } try{ localStorage.setItem('b2k_slot', n); }catch(e){} location.reload(); });
+  el.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { const n = +b.dataset.del; if(!confirm('Erase save slot ' + n + '? This cannot be undone.')) return; try{ localStorage.removeItem(slotKey(n)); }catch(e){} if(n === G.slot) location.reload(); else drawSlots(); }); }
 
 // ---------- intro ----------
 let introT = [], introDone = false;
@@ -50,6 +59,7 @@ function intro(){ const el = $('intro'), cards = [...el.querySelectorAll('.icard
 // ---------- main menu over the live town ----------
 export function initUI(){ let a = 0; E.setTime('after'); E.camTrack(dt => { a += dt * .045; return [[Math.cos(a) * 62, 24 + Math.sin(a * .7) * 5, 14 + Math.sin(a) * 62], [0, 4, 10]]; });
   $('bSet').onclick = () => openSettings(true); $('pSet').onclick = () => openSettings(true); $('setClose').onclick = () => openSettings(false);
+  $('bSlots').textContent = 'SAVE SLOT ' + G.slot; $('bSlots').onclick = () => { $('slots').style.display = 'flex'; drawSlots(); }; $('slotClose').onclick = () => { $('slots').style.display = 'none'; focusFirst(); };
   $('bAbout').onclick = () => { $('about').style.display = 'flex'; }; $('aboutClose').onclick = () => { $('about').style.display = 'none'; focusFirst(); };
   addEventListener('gamepadconnected', () => E.toast('Controller connected.', 2200));
   document.body.classList.add('inmenu'); intro(); }

@@ -7,6 +7,7 @@ import { SV, save, phoneUp, sitSofa, TV_SHOT } from './game.js';
 import { playShift } from './shift.js';
 import { extrasOn, repDelta, wage } from './extras.js';
 import { beatsOn } from './beats.js';
+import { upgradesOn } from './planner.js';
 const { THREE, G, P, WARDROBE } = E; const $ = id => document.getElementById(id);
 const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:40, rentals:[], look:null });
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -78,7 +79,7 @@ async function useTV(){ sitSofa(true); E.cut(true); await E.camShot(...TV_SHOT, 
     if(opts[k] === 'Get up') break; if(opts[k] === 'Watch a rented movie'){ await watchRental(); continue; } chan++; passTime(15); }
   scr.color.setHex(c0); sitSofa(false); E.cut(false); }
 async function usePC(){ E.cut(true); const [x, y, z] = G.monitorPos; await E.camShot([x + .2, y + .3, z + 1.4], [x, y, z], 500); const scr = G.monitor.material, c0 = scr.color.getHex(); scr.color.set(0x2a5aa8);
-  for(;;){ const k = await E.choose(['Play RuneScape (1 hr)', 'Check email', 'Instant Messenger', 'Log off']); if(k === 3) break; if(k === 2 && G.ext){ await G.ext.aim(); continue; }
+  for(;;){ const k = await E.choose(['Play RuneScape (1 hr)', 'Check email', 'Instant Messenger', 'Shop online', 'Log off']); if(k === 4) break; if(k === 2 && G.ext){ await G.ext.aim(); continue; } if(k === 3){ if(G.shopOnline) await G.shopOnline(); continue; }
     if(k === 0){ passTime(60); } await E.say([[['', 'An hour of chopping trees later: level 31 woodcutting. Worth it.']], [['', '1 new message: “U HAVE WON A FREE IPOD!!!” Delete.']], [['', 'Nobody’s online. Zeke’s away message just says “skating.”']]][k]); }
   scr.color.setHex(c0); E.cut(false); }
 async function usePhone(){ if(G.ext && G.ext.grounded()){ E.toast('Dad took the phone. Grounded.', 2400); return; } E.cut(true); phoneUp(true); await E.camShot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 400); const names = Object.keys(CALLS);
@@ -148,4 +149,5 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   f.amb = true; G.ticks.push(f); ticks.push(() => { const i = G.ticks.indexOf(f); if(i >= 0) G.ticks.splice(i, 1); sn.style.opacity = 0; });
   G.SVdone = SV.done; const tk = fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); };
   beatsOn({ L, passTime, pay, money, save, phoneUp, rep:repDelta, friend:(n, d) => { l.fr = l.fr || {}; l.fr[n] = (l.fr[n] || 0) + d; }, addTick:tk, onOff:fn => ticks.push(fn) });
+  upgradesOn({ L, passTime, add, pay, save, addTick:tk });
   extrasOn({ L, passTime, add, pay, money, randomLook, save, addTick:fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); }, onOff:fn => ticks.push(fn) }); }
