@@ -200,5 +200,5 @@ export const M05 = { title:'Hair of the Dog', sub:day5, where:'Jax’s house, co
       // wrap
       await H.fade(true, 500); [dj, dz].forEach(n => n.remove()); present(); await H.shot(...WIDE, 0); await H.fade(false, 600); await H.say(D.wrap.slice(0, 2)); await H.shot(...ONMILO, 400); await H.say(D.wrap.slice(2, 4)); await H.shot(...ONSOFA, 400); await H.say(D.wrap.slice(4, 8)); await H.shot(...WIDE, 600); await H.say(D.wrap.slice(8));
       await H.shot([113.6, 1.25, 40.5], [115.35, 1.2, 40.5], 900); await H.say(D.last); await H.wait(1400); await H.fade(true, 700);
-      E.sit(P.model, false); E.place(114.2, 40.5, -Math.PI / 2); await H.banner('MISSION PASSED', 'HAIR OF THE DOG'); Object.assign(G.flags, { M05_complete:true, M06_available_when_installed:true }); } ],
+      E.sit(P.model, false); E.place(114.2, 40.5, -Math.PI / 2); await H.banner('MISSION PASSED', 'HAIR OF THE DOG'); Object.assign(G.flags, { M05_complete:true, M06_available_when_installed:true }); E.cut(false); await H.fade(false, 700); } ],
   done(){ G.roamTime = 'after'; G.noTraffic = false; G.storeOpen = true; undo.splice(0).forEach(f => f()); } };
