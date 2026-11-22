@@ -134,6 +134,7 @@ async function pickMission(){ const admin = !!G.set.admin, list = ORDER.filter(i
   if(G.mission) cleanup(); G.mission = 'menu'; E.cut(true); const k = await E.choose([...list.map(id => `${id} · ${MIS[id].title}${admin && !SV.done[id] ? ' (not played yet)' : ''}`), 'Cancel']); let st = 0, go = k < list.length;
   if(go && admin){ const n = MIS[list[k]].stages.length; st = await E.choose(['From the start', ...Array.from({ length:n - 1 }, (_, i) => `Checkpoint ${i + 2} of ${n}`), 'Cancel']); if(st >= n) go = false; }
   E.cut(false); G.mission = null; if(go) play(list[k], st); else freeRoam(true); }
+if(!$('bAdmin')){ const b = document.createElement('button'); b.id = 'bAdmin'; b.textContent = 'MISSION SELECT (ADMIN)'; $('bNew').after(b); } // page markup may be an older cached copy
 $('pMissions').onclick = pickMission; $('bAdmin').onclick = () => { startGame(); pickMission(); };
 G.onAdmin = () => { $('bAdmin').style.display = G.set.admin ? '' : 'none'; $('pMissions').textContent = G.set.admin ? 'MISSION SELECT (ADMIN)' : 'REPLAY A MISSION'; }; G.onAdmin();
 $('pExport').onclick = () => { save(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(SV, null, 1)], { type:'application/json' })); a.download = 'b2k-draft1-save.json'; a.click(); };
