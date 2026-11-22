@@ -12,6 +12,9 @@ async function crawl(n, wx, dir, z){ n.stop(); n.manual = true; const o = n.o, u
   o.rotation.x = 0; u.aL.rotation.x = u.aR.rotation.x = u.lL.rotation.x = u.lR.rotation.x = 0; u.pose = false; n.manual = false; n.sync(); }
 import { M04, S01 } from './missions2.js';
 import { M05 } from './missions3.js';
+import { M06, M07 } from './missions4.js';
+import { M08, M09 } from './missions5.js';
+import { S02, S03, S04, S05, S06, S07 } from './missions6.js';
 const { G, P } = E;
 export const LOOK = G.LOOK = {
   zeke:{ shirt:'#d8a020', pants:'#3a4a6a', wide:1.32, hat:'capback', cap:'#1d1d1d', hair:'#3a2414', hairStyle:'buzz', top:'jersey', print:'23', bottom:'baggy', chain:'silver', shoes:'#f2f2f2' },
@@ -283,4 +286,4 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
       await H.banner('MISSION PASSED', "ZEKE'S IDEA"); Object.assign(G.flags, { M03_complete:true, retrieved_wrong_homework:true, missed_shift_eric:true, M04_available:true }); } ],
   done(){ G.roamTime = 'after'; G.noTraffic = false; } };
 
-setMissions({ M01, M02, M03, M04, S01, M05 });
+setMissions({ M01, M02, M03, M04, S01, M05, M06, M07, M08, M09, S02, S03, S04, S05, S06, S07 });

@@ -97,7 +97,7 @@ export function startJob(j){ if(job){ E.toast('Finish your current job first.', 
 // ---------- friends: schedule, hangouts, plans, ragers, AIM ----------
 const FRIENDS = { Zeke:'sk8rzeke03', Jax:'jaxattack', Matt:'mattdaman15', Milo:'m1lo_the_brain' };
 const PLACES = { 'Elmwood Park':[-80, 72], 'the plaza (Video World)':[26, 331.5], 'the Schnucks lot':[96, 286], 'your house':[0, 9] };
-function schedule(l){ const d = dateOf(l.dayCount).getDay(), wk = d > 0 && d < 6, t = l.min, wet = G.wet, out = [];
+function schedule(l){ const d = dateOf(l.dayCount).getDay(), wk = d > 0 && d < 6, t = l.min, wet = G.wet, out = []; if(G.flags.GROUNDING_ACTIVE) return out; // Draft #2: grounded after M08 — school, home, work only
   if(wk && t >= 930 && t < 1110) out.push(['Zeke', wet ? [26, 331.5] : [-82, 68]]); if(!wk && t >= 720 && t < 1020) out.push(['Jax', [24, 331.5]]); if(wk && t >= 1080 && t < 1200) out.push(['Jax', [-78, 72]]);
   if(!wk && t >= 840 && t < 1080) out.push(['Matt', [96, 286]]); if(wk && t >= 1020 && t < 1140) out.push(['Milo', [205, 340.5]]); return out; }
 const TALK = { Zeke:[['Zeke', 'Bro I almost landed a kickflip today. Almost.'], ['Zeke', 'Journeys made me wear the shirt tucked in. TUCKED IN, Chris.'], ['Zeke', 'You think if I eat enough Hot Pockets I get powers?']],
@@ -106,13 +106,13 @@ const TALK = { Zeke:[['Zeke', 'Bro I almost landed a kickflip today. Almost.'], 
   Milo:[['Milo', 'Do you even know what a DBQ is?'], ['Milo', 'I already finished next week’s homework. Don’t ask.'], ['Milo', 'General Tso’s chicken is the only thing keeping me sane.']] };
 const ACT = { Zeke:['Skate with Zeke (needs your board)', 45, 'We skated until Zeke ate it on the curb. He says it didn’t hurt. It hurt.'], Jax:['Grab food at China Garden ($5.95)', 40, 'Jax ordered the spiciest thing on the menu to prove a point. He cried. Point not proven.'],
   Matt:['Cart surf the Schnucks lot', 20, 'Matt rode a cart into a light pole. Ryan saw. Nobody tell Eric.'], Milo:['Get homework help', 60, 'Milo explained DBQs. I understood about 30 percent. That’s a personal best.'] };
-async function hangout(name, bonus){ const l = api.L(); l.fr = l.fr || {}; E.cut(true); if(bonus) await E.say([[name, 'Oh you actually showed up. Look at you.']]); const t = TALK[name][Math.random() * 3 | 0]; await E.say([t, ['Chris', ['Classic.', 'Dude.', 'No way.', 'Sure, man.'][Math.random() * 4 | 0]]]);
+async function hangout(name, bonus){ const l = api.L(); if(G.flags.GROUNDING_ACTIVE){ await E.say([['', 'Dad would kill me if I left...']]); return; } l.fr = l.fr || {}; E.cut(true); if(bonus) await E.say([[name, 'Oh you actually showed up. Look at you.']]); const t = TALK[name][Math.random() * 3 | 0]; await E.say([t, ['Chris', ['Classic.', 'Dude.', 'No way.', 'Sure, man.'][Math.random() * 4 | 0]]]);
   const a = ACT[name], k = await E.choose([a[0], 'Just talk', 'Catch you later']);
   if(k === 0){ if(name === 'Zeke' && !l.owned?.includes('board')){ await E.say([['Zeke', 'Where’s your board, bro? Grab it off your porch.']]); }
     else if(name === 'Jax' && !api.pay(5.95)){ } else { await E.fade(true, 400); api.passTime(a[1]); await E.fade(false, 400); await E.say([['', a[2]]]); l.fr[name] = (l.fr[name] || 0) + 3; } }
   else if(k === 1){ api.passTime(15); l.fr[name] = (l.fr[name] || 0) + 1; await E.say([TALK[name][(Math.random() * 3 | 0)]]); }
   api.save(); E.cut(false); }
-async function makePlans(){ const l = api.L(); if(grounded(l)){ await E.say([['', 'Dad took the phone. Grounded. Great.']]); return; } const names = Object.keys(FRIENDS); const w = await E.choose([...names.map(n => 'Call ' + n), 'Never mind']); if(w >= names.length) return;
+async function makePlans(){ const l = api.L(); if(G.flags.GROUNDING_ACTIVE){ await E.say([['', 'Dad would kill me if I left...']]); return; } if(grounded(l)){ await E.say([['', 'Dad took the phone. Grounded. Great.']]); return; } const names = Object.keys(FRIENDS); const w = await E.choose([...names.map(n => 'Call ' + n), 'Never mind']); if(w >= names.length) return;
   const places = Object.keys(PLACES); const p = await E.choose(places); const tms = [['In an hour', 60], ['Tonight at 7', null], ['Tomorrow at 4 PM', 'tmr']], t = await E.choose(tms.map(x => x[0]));
   const now = absNow(l); let at = t === 0 ? now + 60 : t === 1 ? (l.dayCount || 0) * 1440 + 19 * 60 : ((l.dayCount || 0) + 1) * 1440 + 16 * 60; if(t === 1 && at < now) at += 1440;
   l.plan = { who:names[w], place:places[p], at }; api.save(); for(let i = 0; i < 2; i++){ E.sfx('ring'); await E.wait(700); } await E.say([[names[w] + ' (phone)', ['Bet. See you there.', 'Fine. Don’t be late.', 'YES. Okay. Yes.', 'If I must.'][w]]]); }

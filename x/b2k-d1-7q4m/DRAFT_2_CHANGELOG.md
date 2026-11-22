@@ -1,0 +1,63 @@
+# DRAFT_2_CHANGELOG — Back in the 2000s: The Game (private author build)
+
+Draft 2 adds M06–M09 and S02–S07 on top of Draft 1.75. Nothing from M01–M05 or S01 was removed.
+This file lists every place the game departs from, re-orders, or fills in the source material, so the author can approve or change each one.
+Book text is used word for word (spelling as printed). Side missions are GAME ORIGINAL, as the Draft 2 Bible says.
+
+## Adaptation decisions in the main missions (book canon)
+
+| # | Mission | What the game does | Why | Author action |
+|---|---|---|---|---|
+| 1 | all | No weekday is shown on the HUD. Chapters are dated the way the book dates them (OCTOBER 1ST 2003, etc.). | Standing rule: the weekday labels do not match 2003. | none unless you want weekdays |
+| 2 | M06 | At lunch, "movie night" and "King of the Hill" can be raised in either order. Every line is still spoken once. | The Bible asks for a topic choice. | approve or make it linear |
+| 3 | M06 | The drive to work and the drive home after the shift are cuts, not playable drives. The drive home from school is playable. | Pacing. The 4-hour shift is shown as three tasks with a shift clock. | approve |
+| 4 | M06 | Sam's screen name is shown as `CaptainSammi06` everywhere. | The book later prints `CaptianSammi06` and `CaptianSammi08`. | pick one spelling |
+| 5 | M07 | Scene order follows the BOOK: park walk → Friday → yesterday's messages → bowling at 8:30 PM → the project. | The Bible lists bowling before Friday; the book puts the messages first. | say if you want the Bible order |
+| 6 | M07 | "Fair." is spoken by Zeke. | The book prints `"Fair." i said` directly after Chris's own line. | confirm who says it |
+| 7 | M07 | The project puzzle (Publisher / Excel / PowerPoint screens) is GAME ORIGINAL. It cannot be failed and never changes the ending: Sam's USB drive is the one turned in. | Bible rule. | approve the puzzle content |
+| 8 | M08 | Chesterfield, Lambert and San Antonio are small sets reached by a card. Milo drives; the player rides. | Bible: not one continuous map. | approve |
+| 9 | M08 | The ticket counter and security are scripted exactly as written. There is nothing to sneak past. | Bible rule. | approve |
+| 10 | M08 | Zeke's jump into the river is a cutscene. | Bible rule. | approve |
+| 11 | M08 | The phone screen shows `10 / 06 / 2003` and `Columbus Day: 10 / 13 / 2003` (no weekday). The narration line with "Monday" is the book's own text. | Rule 1. | approve |
+| 12 | M09 | The November 1987 passage is narrated in the first person ("me and Eric"), so those lines are spoken by "Jacob (2003)". | Book wording. | confirm the narrator |
+| 13 | M09 | The radio beat is narration only. No song plays. | No licensed music in the build. | none |
+| 14 | M09 | Debra's order is re-bagged until the bread is on top. | The book says the bread was not squished. | approve |
+| 15 | M09 | Chris tackles the innocent customer; the real thief leaves during the scene. Nothing is scored. | Book canon. | none |
+
+## Side missions (GAME ORIGINAL)
+
+Quoted lines are the Bible's lines. Where the Bible describes a beat but gives no line, the game uses a one-line stand-in. Please replace these:
+
+| Mission | Stand-in text now in the game |
+|---|---|
+| S02 ending | "I asked what the job paid. Mom called it family work." |
+| S03 time's up | "The screen goes dark. Dad needs the phone line." |
+| S04 ending | Andrew: "How many did you get through?" / Chris: (inflated number) / Mia: "It was (real number)." |
+| S05 losing | A results banner and "Go again / Call it a day". |
+| S06 ending | "Milo read out the final scores like a tax return. Jax took it personally. I asked if we could all just go eat." |
+| S07 opening | "The landline crackled. The repair company was delayed. Again." |
+| S07 ending | "Dad said thanks. Barely. Even my grounding has side quests." |
+
+Also GAME ORIGINAL: the encyclopedia passages in S03, the recovery / printer screens in S02, and the wrong-answer messages in both.
+
+## Availability (from the Bible's time-lock grid)
+
+- S02 Computer Troubles: after M05, until M08. Family computer by the front door.
+- S06 Pickup Game: after M05, until M08. Elmwood Park court. First to 11 against Jax, then Milo. Passes win or lose.
+- S03 Midnight Research: after M06, until M07 starts. 10:00 timer (15:00 option). Gives notes only, plus one hint in M07.
+- S07 Phone Troubles: after M08. Optional; nothing later depends on it.
+- S04 Pickup Shift and S05 The Longest Train: after M09, at Schnucks. Replayable for a best score.
+- The next main mission is always offered even if a side mission is unfinished.
+
+## Grounding (after M08)
+
+- Flags set: GROUNDING_ACTIVE, RESTRICTED_TRAVEL, NIGHTLY_CALL_REQUIRED.
+- In free roam, friends are no longer at their hangout spots and making plans by phone is refused with "Dad would kill me if I left...".
+- The car still works (school, home, work). There is no wanted level or chase.
+- NOT built yet: an actual nightly check-in call, and an end to the grounding. Both wait for the next chapters.
+
+## Numbers that are proposals, not canon
+
+- S04 shift length: 8 real minutes for the four hours. No cash reward.
+- S05: Madison's train is 12 carts; the most you can build is 20; long trains are slower and lose carts on sharp turns. No cash reward.
+- M06 bagging: three orders. M08 arcade: 8 hoop shots, air hockey to 3. M09 paper towels: 8 throws with a very small target.

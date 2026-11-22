@@ -73,7 +73,7 @@ export function grabFrom(c, max){ const n = Math.min(max - train.length, c.carts
 export function deliver(){ const n = train.length; train.forEach(m => { m.userData.from.delivered++; G.scene.remove(m); }); train.length = 0; return n; }
 
 // ---------- free roam: mission markers, ambient life ----------
-const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01', 'M05'];
+const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01', 'M05', 'S02', 'S06', 'M06', 'S03', 'M07', 'M08', 'S07', 'M09', 'S04', 'S05'];
 let roamMarks = [];
 const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
 // Chris sits on the living-room sofa facing the TV; the camera looks over his shoulder so he never blocks the screen
@@ -89,8 +89,10 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
       const day = NEXT_DAY[SV.needSleep] || 'THE NEXT DAY'; SV.needSleep = false; G.roamFrom = 'morning'; G.roamTime = null; LIFE.passTime(0); SV.life && (SV.life.dayCount = (SV.life.dayCount || 0) + 1, SV.life.day = (SV.life.day + 1) % 7); save(); await E.card('THE NEXT MORNING', day, 2600);
       E.place(G.bedSpawn.x, G.bedSpawn.z, Math.PI, 3.2); E.cut(false); await E.fade(false, 700); freeRoam(true); } });
     roamMarks.push({ mk, it }); E.obj("It's late. Go home and sleep — your bed is upstairs."); return; }
-  const next = ORDER.find(id => !SV.done[id] && MIS[id] && (!MIS[id].needs || SV.done[MIS[id].needs]));
-  const avail = ORDER.filter(id => MIS[id] && (id === next || (id === 'S01' && SV.done.M04)));
+  // main story: the next unfinished M mission. Side missions: blue markers while their window is open (m.avail), score-attack ones stay up
+  const next = ORDER.find(id => id[0] === 'M' && !SV.done[id] && MIS[id] && (!MIS[id].needs || SV.done[MIS[id].needs]));
+  const side = id => { const m = MIS[id]; return id[0] === 'S' && (m.avail ? m.avail(SV.done) && !SV.done[id] : !!SV.done[m.needs]); };
+  const avail = ORDER.filter(id => MIS[id] && (id === next || side(id)));
   avail.forEach(id => { const m = MIS[id], s = m.start, mk = E.marker(s.x, s.z, id[0] === 'S' ? 0x4fc3ff : 0xffd23f, s.y);
     const stop = E.tick(() => { if(!G.mission && G.ctl && !G.driving && Math.hypot(P.p.x - s.x, P.p.z - s.z) < 1.4 && Math.abs(P.p.y - (s.y || 0)) < 2){ freeRoam(false); play(id, 0); } });
     roamMarks.push({ mk, stop }); G.blips.push({ x:s.x, z:s.z, c:id[0] === 'S' ? '#4fc3ff' : '#ffd23f' }); });

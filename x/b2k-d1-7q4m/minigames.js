@@ -5,14 +5,15 @@
 // Each returns a Promise of the final score. Space/E/Enter (Ⓐ/Ⓧ) = action, A/D or arrows = left/right, Esc = quit.
 import * as E from './engine.js';
 const { G } = E; const W = 960, H = 540;
-function open(title, hint){ const cv = document.getElementById('mg'), dpr = Math.min(devicePixelRatio || 1, 2); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cv.style.display = 'block'; cv.style.background = '#05070f';
+export function open(title, hint){ const cv = document.getElementById('mg'), dpr = Math.min(devicePixelRatio || 1, 2); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cv.style.display = 'block'; cv.style.width = '100vw'; cv.style.height = '100vh'; cv.style.background = '#05070f';
   const g = cv.getContext('2d'), sc = Math.min(cv.width / W, cv.height / H); g.setTransform(sc, 0, 0, sc, (cv.width - W * sc) / 2, (cv.height - H * sc) / 2); g.beginPath(); g.rect(0, 0, W, H); g.clip();
   const keys = {}, press = [], kd = e => { if(['Space', 'KeyE', 'Enter'].includes(e.code)) press.push('act'); else if(['KeyA', 'ArrowLeft'].includes(e.code)) press.push('left'); else if(['KeyD', 'ArrowRight'].includes(e.code)) press.push('right'); else if(e.code === 'Escape') press.push('quit'); keys[e.code] = true; e.stopImmediatePropagation(); e.preventDefault(); };
   const ku = e => { keys[e.code] = false; }; addEventListener('keydown', kd, true); addEventListener('keyup', ku, true); cv.onclick = () => press.push('act');
   G.uiOpen = true; E.cut(true); const text = (t, x, y, size = 16, c = '#fff', al = 'left') => { g.font = `${size}px "Press Start 2P", monospace`; g.textAlign = al; g.fillStyle = '#000'; g.fillText(t, x + 2, y + 2); g.fillStyle = c; g.fillText(t, x, y); };
   const frame = () => { text(title, 24, 40, 18, '#ffd23f'); text(hint, W / 2, H - 16, 10, '#9bb4ff', 'center'); };
-  return { g, press, keys, text, frame, close(){ removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); cv.onclick = null; cv.style.display = 'none'; G.uiOpen = false; E.cut(false); } }; }
-function run(ui, step){ return new Promise(res => { let done = false; const stop = E.tick(dt => { if(done) return; const r = step(Math.min(dt, .05)); if(r !== undefined){ done = true; stop(); ui.close(); res(r); } }); }); }
+  const ui = { g, press, keys, text, frame, open:true, close(){ if(!ui.open) return; ui.open = false; removeEventListener('keydown', kd, true); removeEventListener('keyup', ku, true); cv.onclick = null; cv.style.display = 'none'; G.uiOpen = false; E.cut(false); } };
+  (G.cleanups = G.cleanups || []).push(() => ui.close()); return ui; } // a checkpoint restart also closes the mini-game
+export function run(ui, step){ return new Promise(res => { let done = false; const stop = E.tick(dt => { if(done) return; const r = step(Math.min(dt, .05)); if(r !== undefined){ done = true; stop(); ui.close(); res(r); } }); }); }
 async function results(ui, title, lines){ return run(ui, () => { const { g, text } = ui; g.fillStyle = 'rgba(5,7,15,.86)'; g.fillRect(0, 0, W, H); text(title, W / 2, 200, 28, '#ffd23f', 'center'); lines.forEach((l, i) => text(l, W / 2, 262 + i * 36, 14, '#fff', 'center')); text('PRESS SPACE', W / 2, 440, 12, '#9bb4ff', 'center');
   if(ui.press.splice(0).some(p => p === 'act' || p === 'quit')) return true; }); }
 
@@ -48,10 +49,10 @@ export async function playDodge(o = {}){ const ui = open(o.title || 'STREET DODG
 
 // kind: 'hoops' (park) or 'kick' (console football)
 export async function playMeter(o = {}){ const hoops = o.kind !== 'kick', n = o.shots || 10, ui = open(o.title || (hoops ? 'HOOPS' : 'FIELD GOAL'), 'SPACE to stop the marker in the green - ESC quit'), { g, press, text } = ui;
-  let i = 0, made = 0, m = 0, dir = 1, state = 'aim', anim = 0, good = false, zone = [.42, .18], off = 0;
+  let i = 0, made = 0, m = 0, dir = 1, state = 'aim', anim = 0, good = false, zone = [.42, o.zw || .18], off = 0;
   const r = await run(ui, dt => { const sp = .75 + i * .09; for(const p of press.splice(0)){ if(p === 'quit') return made; if(p === 'act' && state === 'aim'){ off = m - (zone[0] + zone[1] / 2); good = Math.abs(off) <= zone[1] / 2; state = 'fly'; anim = 0; E.sfx('cart'); } }
     if(state === 'aim'){ m += dir * sp * dt; if(m > 1){ m = 1; dir = -1; } if(m < 0){ m = 0; dir = 1; } }
-    else { anim += dt / .9; if(anim >= 1){ if(good){ made++; E.sfx('ok'); } else E.sfx('miss'); i++; state = 'aim'; m = Math.random() * .2; dir = 1; const w = Math.max(.07, .18 - i * .012); zone = [.25 + Math.random() * (.6 - w), w]; if(i >= n) return made; } }
+    else { anim += dt / .9; if(anim >= 1){ if(good){ made++; E.sfx('ok'); } else E.sfx('miss'); i++; state = 'aim'; m = Math.random() * .2; dir = 1; const w = o.zw || Math.max(.07, .18 - i * .012); zone = [.25 + Math.random() * (.6 - w), w]; if(i >= n) return made; } }
     // scene
     g.fillStyle = hoops ? '#7fb6ea' : '#1c3d1c'; g.fillRect(0, 0, W, H); g.fillStyle = hoops ? '#7d7f86' : '#2f7a2f'; g.fillRect(0, 380, W, 160);
     if(hoops){ g.fillStyle = '#9aa0a6'; g.fillRect(760, 150, 10, 230); g.fillStyle = '#f4f4f0'; g.fillRect(700, 130, 70, 90); g.strokeStyle = '#e05a1a'; g.lineWidth = 6; g.beginPath(); g.ellipse(672, 222, 34, 9, 0, 0, 7); g.stroke(); }

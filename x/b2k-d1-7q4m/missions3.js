@@ -77,8 +77,8 @@ const GUEST = { emma:{ shirt:'#e88ab0', pants:'#3a4a7a', hair:'#c9a15a', hairSty
   mac:{ shirt:'#e8e8e8', pants:'#5a5a4a', hair:'#8a5a2a', hairStyle:'shaggy', bottom:'cargo', wide:1.15 }, charise:{ shirt:'#7a3a9a', pants:'#2b3550', hair:'#1a1a1a', skin:'#a8704a', long:true, lips:'#a04060', scale:.94 } };
 const rndLook = i => ({ shirt:['#3a7a6a', '#a8743a', '#5a6aa8', '#aa5544', '#557755', '#d8a020', '#8a5a9a', '#2a2a2a'][i % 8], pants:['#2b3550', '#3a3a3a', '#5a5a4a'][i % 3], hair:['#222', '#a87a4a', '#3a2414', '#c9a15a'][i % 4], long:i % 3 === 1, skin:['#efc29e', '#c48a5e', '#8a5a3a'][i % 3], hairStyle:['short', 'shaggy', 'buzz', 'pony'][i % 4] });
 let fxEl = null, undo = [];
-const later = fn => { undo.push(fn); (G.cleanups = G.cleanups || []).push(fn); };
-function film(mode){ const cv = G.R.domElement; cv.style.filter = mode === 'fb' ? 'sepia(.3) saturate(.8) contrast(1.05)' : mode === 'tape' ? 'saturate(.6) contrast(1.2) brightness(1.08)' : '';
+export const later = fn => { undo.push(fn); (G.cleanups = G.cleanups || []).push(fn); };
+export function film(mode){ const cv = G.R.domElement; cv.style.filter = mode === 'fb' ? 'sepia(.3) saturate(.8) contrast(1.05)' : mode === 'tape' ? 'saturate(.6) contrast(1.2) brightness(1.08)' : '';
   if(!fxEl){ fxEl = document.createElement('div'); fxEl.style.cssText = 'position:fixed;inset:0;z-index:4;pointer-events:none;display:none;font-family:"VT323",monospace;color:#fff;font-size:34px;text-shadow:2px 2px 0 #000';
     fxEl.innerHTML = '<div style="position:absolute;inset:0;background:repeating-linear-gradient(rgba(0,0,0,.14) 0 2px,transparent 2px 4px)"></div><div style="position:absolute;left:0;top:0;bottom:0;width:calc((100vw - 133.33vh)/2);min-width:0;background:#000"></div><div style="position:absolute;right:0;top:0;bottom:0;width:calc((100vw - 133.33vh)/2);background:#000"></div>'
       + '<div style="position:absolute;left:calc(max(0px,(100vw - 133.33vh)/2) + 28px);top:15vh">PLAY ▶</div><div id="fxT" style="position:absolute;right:calc(max(0px,(100vw - 133.33vh)/2) + 28px);top:15vh">SP 0:00:00</div><div id="fxN" style="position:absolute;inset:0;background:#0a0a0c;display:none;align-items:center;justify-content:center;font-size:44px">- - - - -</div>'; document.body.appendChild(fxEl); }
@@ -96,11 +96,11 @@ const WIDE = [[118.4, 2.1, 43.2], [113.4, 1, 39.9]], ONMILO = [[115, 1.5, 40.2],
 async function night(big, small, mode = 'fb'){ await H.fade(true, 600); await H.card(big, small, 2200); E.setTime('night'); film(mode); E.sit(P.model, false); }
 function guests(n, from = 0){ const spots = [[112.2, 42.6], [113.6, 38.4], [116.4, 42.9], [111.4, 39.4], [121, 38.6], [123.4, 39.2], [120.6, 42.8], [124, 42.6], [111.2, 41.6], [122.6, 43.2], [122.4, 38.2], [120.2, 40.2], [116.8, 38.2], [123.8, 37.9], [112.9, 43.4], [124.6, 41]];
   return spots.slice(from, from + n).map(([x, z], i) => mnpc('guest', rndLook(i + from), x, z, { face:(i * 2.4) % 6.28 })); }
-function drive(car, pts, speed, cam){ let i = 0, done = false; mtick(dt => { if(done) return; const p = car.position, [tx, tz] = pts[i], dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz), st = speed * dt;
+export function drive(car, pts, speed, cam){ let i = 0, done = false; mtick(dt => { if(done) return; const p = car.position, [tx, tz] = pts[i], dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz), st = speed * dt;
     if(d <= st){ p.x = tx; p.z = tz; if(++i >= pts.length) done = true; } else { p.x += dx / d * st; p.z += dz / d * st; const a = Math.atan2(dx, dz); let da = a - car.rotation.y; while(da > Math.PI) da -= 6.283; while(da < -Math.PI) da += 6.283; car.rotation.y += da * Math.min(1, dt * 4); }
     (car.userData.wheels || []).forEach(w => w.rotation.x += st / .36); });
   E.camTrack(() => { const p = car.position, a = car.rotation.y; return cam ? cam(p, a) : [[p.x - Math.sin(a) * 9, 4.2, p.z - Math.cos(a) * 9], [p.x + Math.sin(a) * 4, 1.2, p.z + Math.cos(a) * 4]]; }); return H.until(() => done); }
-function miloCar(x, z, ry){ const car = E.makeCar('#7a8088', { type:'sedan', spin:true, lights:true }); car.position.set(x, 0, z); car.rotation.y = ry; G.scene.add(car); later(() => G.scene.remove(car)); return car; }
+export function miloCar(x, z, ry){ const car = E.makeCar('#7a8088', { type:'sedan', spin:true, lights:true }); car.position.set(x, 0, z); car.rotation.y = ry; G.scene.add(car); later(() => G.scene.remove(car)); return car; }
 
 export const M05 = { title:'Hair of the Dog', sub:day5, where:'Jax’s house, corner of Oakmont and Maple', needs:'M04', start:{ x:117.9, z:34.6 },
   setup(i){ undo.splice(0).forEach(f => f()); E.setTime('day'); E.setOutfit({}); clock(day5, ''); G.noTraffic = false; G.storeOpen = false; G.m05World(true); const j = J(); j.sofaCol.off = false; j.stash.visible = false; j.bfridgeObj.userData.door.rotation.y = 0;
