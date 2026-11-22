@@ -54,8 +54,8 @@ G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH
   G.inGym = z === 'school' && p.x < -272;
   const want = !music || G.mission === 'S01' ? null : z === 'car' ? 'car' : z === 'store' ? 'store' : z === 'home' && !G.mission ? 'home' : null;
   if(want !== cur){ cur = want; step = 0; nextT = A.currentTime + .1; }
-  const tgt = cur ? (cur === 'car' ? .55 : .5) : 0; musicG.gain.value += (tgt - musicG.gain.value) * Math.min(1, dt * 2);
-  ambG.gain.value += ((G.paused ? 0 : 1) - ambG.gain.value) * Math.min(1, dt * 2);
+  const tgt = (cur ? (cur === 'car' ? .55 : .5) : 0) * G.set.music / .8; musicG.gain.value += (tgt - musicG.gain.value) * Math.min(1, dt * 2);
+  ambG.gain.value += ((G.paused ? 0 : G.set.amb / .8) - ambG.gain.value) * Math.min(1, dt * 2);
   schedule(); ambience(dt);
   // footsteps: pace follows speed; duller indoors, crunchier on wet ground
   if(P.mv > .5 && !G.driving && !P.board && P.vy === 0 && !G.paused){ stepT -= dt * (P.mv > 8 ? 3.3 : 2.1); if(stepT <= 0){ stepT = 1; const t = A.currentTime, ind = z !== 'out' && z !== 'car'; noise(t, ind ? .07 : .09, ind ? .05 : .035, ambG, ind ? 520 : G.wet ? 2400 : 900, ind ? 1.2 : .7, 'bandpass'); osc('sine', ind ? 95 : 70, t, .05, .05, ambG, 40); } } else stepT = .25; }, { amb:true }));

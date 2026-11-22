@@ -3,6 +3,7 @@ import * as E from './engine.js';
 import './world.js';
 import './audio.js';
 import * as LIFE from './life.js';
+import { initUI } from './ui.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
 E.bakeStatic([G.fridgeObj, G.dishes, G.barberPole, G.phoneObj, G.rearDoor, G.exitDoor, G.kitchenWindow, G.tvScreen, G.monitor, G.breakTV, G.gate, G.chrisCar, ...(G.crowd || []), ...(G.camerasBack || []).map(l => l.parent)]);
 const KEY = 'b2k_draft1_save';
@@ -119,14 +120,13 @@ G.chrisCarCol = G.colliders.find(c => c.x0 === 9.5 && c.z0 === 6.8); G.chrisDriv
     const t = dt => { cd -= dt; n.o.visible = !G.mission || G.mission === 'M01'; if(cd <= 0 && !G.dialogOn && n.o.visible && Math.hypot(P.p.x - n.p.x, P.p.z - n.p.z) < 3){ cd = 25; E.toast(barks[i], 2000); } }; t.amb = true; G.ticks.push(t); }); }
 
 // ---------- menus ----------
-function openPause(on){ G.paused = on; $('pause').style.display = on ? 'flex' : 'none'; if(on){ E.unlock(); $('pLang').textContent = 'STRONG LANGUAGE: ' + (G.filter ? 'FILTERED' : 'SHOWN'); $('pRestart').disabled = !SV.cp; } }
+function openPause(on){ G.paused = on; $('pause').style.display = on ? 'flex' : 'none'; if(on){ E.unlock(); $('pRestart').disabled = !SV.cp; } }
 G.hotkey = e => { if(['Escape', 'KeyP'].includes(e.code) && !$('title').offsetParent){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; return; } openPause(!G.paused); }
   if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, 20, 195, 1.9); } } };
 $('pResume').onclick = () => openPause(false);
-{ const QS = ['LOW', 'MEDIUM', 'HIGH']; let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); const lab = () => $('pGfx').textContent = 'GRAPHICS: ' + G.quality;
-  lab(); $('pGfx').onclick = () => { const n = QS[(QS.indexOf(G.quality) + 1) % 3]; E.setQuality(n); try{ localStorage.setItem('b2k_gfx', n); }catch(e){} lab(); }; }
+{ let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); }
 $('pRestart').onclick = () => { openPause(false); restartCP(); };
-$('pLang').onclick = () => { G.filter = !G.filter; save(); $('pLang').textContent = 'STRONG LANGUAGE: ' + (G.filter ? 'FILTERED' : 'SHOWN'); };
+
 $('pMissions').onclick = async () => { const list = ORDER.filter(id => SV.done[id]); if(!list.length){ E.toast('Finish a mission first.'); return; } openPause(false);
   if(G.mission) cleanup(); G.mission = 'menu'; E.cut(true); const k = await E.choose([...list.map(id => `${id} · ${MIS[id].title}`), 'Cancel']); E.cut(false); G.mission = null;
   if(k < list.length) play(list[k], 0); else freeRoam(true); };
@@ -142,7 +142,7 @@ function startGame(){ $('title').style.display = 'none'; E.sfx('ok'); E.cut(fals
 $('bNew').onclick = () => { if((SV.done.M01 || SV.cp) && !confirm('Start a new game? Your current save will be replaced.')) return;
   Object.assign(SV, { done:{}, cp:null, flags:{}, pos:null, s01best:null }); G.flags = SV.flags; save(); startGame(); play('M01', 0); };
 $('bCont').onclick = () => { startGame(); if(SV.cp) play(SV.cp.id, SV.cp.i); else { const p = SV.pos || [0, 9, 0]; E.place(p[0], p[1], p[2]); freeRoam(true); } };
-E.place(0, 9, Math.PI); E.camShot([40, 30, 70], [0, 2, 0], 0); E.cut(true); G.noLock = false;
+E.place(0, 9, Math.PI); E.cut(true); G.noLock = false; G.saveNow = save; initUI();
 setInterval(() => { if(!G.paused && !G.mission && $('title').style.display === 'none') save(); }, 5000);
 $('bNew').disabled = $('bCont').disabled = true;
 import('./missions.js').then(() => { $('bNew').disabled = false; if(SV.done.M01 || SV.cp) $('bCont').disabled = false; }, e => alert('Game failed to load: ' + e.message));

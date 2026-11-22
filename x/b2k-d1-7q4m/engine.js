@@ -10,6 +10,7 @@ const R = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'hig
 R.setPixelRatio(Math.min(devicePixelRatio, 1)); R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFShadowMap;
 R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = 1.12;
 const scene = new THREE.Scene(); G.scene = scene; G.R = R; G.skyU = null;
+G.set = { sens:1, invY:false, shoulder:true, music:.8, amb:.8, sfx:.8 }; try{ Object.assign(G.set, JSON.parse(localStorage.getItem('b2k_settings') || '{}')); }catch(e){}
 const cam = new THREE.PerspectiveCamera(62, 1, .1, 420); G.cam = cam;
 function resize(){ R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
@@ -275,11 +276,11 @@ export function exitCar(){ const c = G.driving; if(!c) return; G.driving = null;
   if(c.col){ const x = c.car.position.x, z = c.car.position.z, sw = Math.abs(Math.sin(c.head)) > .7; Object.assign(c.col, sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3 }); c.col.off = false; } sfx('door'); }
 const carP = new THREE.Vector3();
 function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.paused;
-  let th = ctl ? (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0) : 0;
+  let th = ctl ? (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0) : 0; if(ctl && Math.abs(PAD.gas) > .05) th = PAD.gas;
   if(G.gas != null && !G.mission){ G.gas = Math.max(0, G.gas - Math.abs(c.speed) * dt * 6e-4); if(G.gas <= 0 && th > 0){ th = 0; if(!G.gasWarn){ G.gasWarn = 1; toast('Out of gas. Should have stopped at the station.', 3000); } } } else G.gasWarn = 0;
-  const st = ctl ? (k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) : 0;
+  const st = ctl ? ((k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) || PAD.steer) : 0;
   if(th > 0) c.speed += (c.speed < 0 ? 26 : 11) * dt; else if(th < 0) c.speed -= (c.speed > 0 ? 24 : 7) * dt; else c.speed *= Math.pow(.45, dt);
-  if(k.Space && ctl) c.speed *= Math.pow(.05, dt); c.speed = Math.max(-7, Math.min(24, c.speed));
+  if((k.Space || PAD.brake) && ctl) c.speed *= Math.pow(.05, dt); c.speed = Math.max(-7, Math.min(24, c.speed));
   c.head += st * dt * Math.min(1, Math.abs(c.speed) / 6) * 1.7 * Math.sign(c.speed || 1);
   carP.copy(c.car.position); carP.x += Math.sin(c.head) * c.speed * dt; carP.z += Math.cos(c.head) * c.speed * dt; carP.y = 0;
   const bx = carP.x, bz = carP.z; collide(carP, 1.25); if(Math.hypot(carP.x - bx, carP.z - bz) > .01){ c.speed *= .4; }
@@ -288,13 +289,13 @@ function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.p
 function updatePlayer(dt){
   if(G.driving){ updateDriving(dt); return; }
   const k = G.keys; let f = 0, s = 0;
-  if(G.ctl && !G.paused){ if(k.KeyW) f++; if(k.KeyS) f--; if(k.KeyA) s--; if(k.KeyD) s++;
+  if(G.ctl && !G.paused){ if(k.KeyW) f++; if(k.KeyS) f--; if(k.KeyA) s--; if(k.KeyD) s++; if(!f && !s){ f = PAD.f; s = PAD.s; }
     if(k.ArrowLeft){ P.yaw += dt * 2.2; P.rotated += dt * 2.2; } if(k.ArrowRight){ P.yaw -= dt * 2.2; P.rotated += dt * 2.2; }
     if(k.ArrowUp) P.pitch = Math.min(.9, P.pitch + dt); if(k.ArrowDown) P.pitch = Math.max(-1.1, P.pitch - dt); }
-  const want = (k.ShiftLeft || k.ShiftRight) && G.ctl && Math.hypot(f, s);
+  const want = (k.ShiftLeft || k.ShiftRight || PAD.run) && G.ctl && Math.hypot(f, s);
   if(P.stam <= 0) P.tired = true; if(P.stam > .3) P.tired = false;
   const run = want && !P.tired && !P.board; P.stam = Math.max(0, Math.min(1, P.stam + (run ? -.16 : .22) * dt));
-  const sp = (P.board ? 13.5 : run ? P.sprint : P.speed) * (G.carry && G.wet ? .8 : 1), mv = Math.hypot(f, s) ? sp : 0;
+  const sp = (P.board ? 13.5 : run ? P.sprint : P.speed) * (G.carry && G.wet ? .8 : 1), mag = Math.min(1, Math.hypot(f, s)), mv = mag > .12 ? sp * Math.max(.35, mag) : 0;
   if(P.board && !P.model.userData.board){ const b = new THREE.Group(), dk = new THREE.Mesh(new THREE.BoxGeometry(.26, .04, .82), mat('#2a2a2a')); dk.position.y = .1; b.add(dk); [-.3, .3].forEach(z => [-.09, .09].forEach(x => { const w = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .04, 8), mat('#f2f2e8')); w.rotation.z = Math.PI / 2; w.position.set(x, .04, z); b.add(w); })); P.model.add(b); P.model.userData.board = b; }
   if(!P.board && P.model.userData.board){ P.model.remove(P.model.userData.board); P.model.userData.board = null; }
   const ta = P.yaw + Math.atan2(-s, f), kk = Math.min(1, dt * (mv ? 13 : 10)); P.vx = (P.vx || 0) + ((mv ? Math.sin(ta) * mv : 0) - (P.vx || 0)) * kk; P.vz = (P.vz || 0) + ((mv ? Math.cos(ta) * mv : 0) - (P.vz || 0)) * kk;
@@ -319,7 +320,7 @@ function updateCam(dt){
   const fp = G.camMode === 'fp'; P.model.visible = !fp;
   const head = new THREE.Vector3(P.p.x, P.p.y + 1.62, P.p.z), dir = new THREE.Vector3(Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), Math.cos(P.yaw) * Math.cos(P.pitch));
   if(fp){ cam.position.copy(head).addScaledVector(dir, .12); cam.lookAt(head.clone().add(dir)); return; }
-  const sh = .5, rx = -Math.cos(P.yaw) * sh, rz = Math.sin(P.yaw) * sh; // shoulder offset: Chris sits left of centre so he never hides what he's facing
+  const sh = G.set.shoulder ? .5 : 0, rx = -Math.cos(P.yaw) * sh, rz = Math.sin(P.yaw) * sh; // shoulder offset: Chris sits left of centre so he never hides what he's facing
   const want = head.clone().addScaledVector(dir, -4.3); want.y += .55; want.x += rx; want.z += rz;
   if((G.frameN || 0) % 4 === 0){ const hit = clearShot(want.clone(), head); rayT = Math.min(1, hit.distanceTo(head) / Math.max(.01, want.distanceTo(head))); }
   const t = Math.min(camBlocked(head, want), rayT < .999 ? Math.max(.14, rayT) : 1); want.lerpVectors(head, want, t);
@@ -331,8 +332,20 @@ addEventListener('keydown', e => { G.keys[e.code] = true; if(['Space', 'ArrowUp'
 addEventListener('keyup', e => G.keys[e.code] = false);
 addEventListener('blur', () => G.keys = {});
 canvas.addEventListener('click', () => { if(G.ctl && !G.paused && !G.noLock) canvas.requestPointerLock?.(); });
-addEventListener('mousemove', e => { if(document.pointerLockElement !== canvas || !G.ctl || G.paused) return;
-  P.yaw -= e.movementX * .0024; P.pitch = Math.max(-1.1, Math.min(.9, P.pitch - e.movementY * .0022)); P.rotated += Math.abs(e.movementX) * .0024; });
+addEventListener('mousemove', e => { PAD.on = false; if(document.pointerLockElement !== canvas || !G.ctl || G.paused) return;
+  const sn = G.set.sens; P.yaw -= e.movementX * .0024 * sn; P.pitch = Math.max(-1.1, Math.min(.9, P.pitch - e.movementY * .0022 * sn * (G.set.invY ? -1 : 1))); P.rotated += Math.abs(e.movementX) * .0024; });
+// ---------- controller (standard gamepad): left stick move, right stick look, A jump/confirm, X interact, B skateboard, Y camera, RT run/gas, LT brake, START pause, BACK map ----------
+const PAD = G.pad = { f:0, s:0, run:false, gas:0, steer:0, brake:false, on:false }, padPrev = [], padNav = { t:0 };
+const padKey = code => { for(const type of ['keydown', 'keyup']) document.body.dispatchEvent(new KeyboardEvent(type, { code, bubbles:true })); };
+const PADMAP = { 0:'Space', 1:'KeyB', 2:'KeyE', 3:'KeyV', 8:'KeyM', 9:'Escape', 12:'ArrowUp', 13:'ArrowDown', 14:'ArrowLeft', 15:'ArrowRight' };
+function pollPad(dt){ const gp = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find(g => g && g.connected && g.buttons.length >= 10); if(!gp){ PAD.f = PAD.s = PAD.gas = PAD.steer = 0; PAD.run = PAD.brake = false; return; }
+  const dz = v => Math.abs(v) < .18 ? 0 : (v - Math.sign(v) * .18) / .82, ax = gp.axes, lx = dz(ax[0] || 0), ly = dz(ax[1] || 0), rx = dz(ax[2] || 0), ry = dz(ax[3] || 0), b = i => !!(gp.buttons[i] && gp.buttons[i].pressed), bv = i => gp.buttons[i] ? gp.buttons[i].value : 0;
+  if(lx || ly || rx || ry || gp.buttons.some(x => x.pressed)) PAD.on = true;
+  PAD.f = -ly; PAD.s = lx; PAD.run = b(7) || b(10) || b(5); PAD.gas = bv(7) - bv(6); PAD.steer = -lx; PAD.brake = b(0);
+  if(G.ctl && !G.paused && (rx || ry)){ const sn = G.set.sens; P.yaw -= rx * dt * 2.6 * sn; P.pitch = Math.max(-1.1, Math.min(.9, P.pitch - ry * dt * 1.7 * sn * (G.set.invY ? -1 : 1))); P.rotated += Math.abs(rx) * dt * 2.6; }
+  for(const i of Object.keys(PADMAP)){ const p = b(+i); if(p && !padPrev[i]) padKey(PADMAP[i]); padPrev[i] = p; }
+  // stick up/down also steps through menus and choices
+  padNav.t -= dt; const menu = G.paused || G.choiceOn || !G.ctl; if(menu && Math.abs(ax[1] || 0) > .6){ if(padNav.t <= 0){ padKey(ax[1] < 0 ? 'ArrowUp' : 'ArrowDown'); padNav.t = .28; } } else if(menu && Math.abs(ax[0] || 0) > .6){ if(padNav.t <= 0){ padKey(ax[0] < 0 ? 'ArrowLeft' : 'ArrowRight'); padNav.t = .2; } } else padNav.t = 0; }
 export const unlock = () => document.pointerLockElement && document.exitPointerLock();
 
 // ---------- interactions / markers / blips ----------
@@ -422,7 +435,7 @@ export function camTrack(fn){ G.camOverride = dt => { const [p, l] = fn(dt); cam
 
 // ---------- audio (all generated, original) ----------
 let AC; const ac = () => AC || (AC = new (window.AudioContext || window.webkitAudioContext)());
-export function tone(f, t0, d, type = 'square', v = .05, slide){ try{ const a = ac(), o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.setValueAtTime(f, a.currentTime + t0);
+export function tone(f, t0, d, type = 'square', v = .05, slide){ v *= G.set.sfx / .8; if(v <= 0) return; try{ const a = ac(), o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.setValueAtTime(f, a.currentTime + t0);
   if(slide) o.frequency.linearRampToValueAtTime(slide, a.currentTime + t0 + d); g.gain.setValueAtTime(v, a.currentTime + t0); g.gain.exponentialRampToValueAtTime(.0001, a.currentTime + t0 + d);
   o.connect(g).connect(a.destination); o.start(a.currentTime + t0); o.stop(a.currentTime + t0 + d + .02); }catch(e){} }
 let lastBlip = 0; function blip(w){ const n = performance.now(); if(n - lastBlip < 55) return; lastBlip = n; tone(w ? 520 + (w.charCodeAt(0) % 7) * 40 : 380, 0, .04, 'square', .025); }
@@ -462,7 +475,7 @@ function hud(){
   const sb = $('stam'); if(sb){ sb.style.display = P.stam < .99 && !G.driving ? 'block' : 'none'; sb.firstChild.style.width = P.stam * 100 + '%'; sb.firstChild.style.background = P.tired ? '#ff5252' : '#7ee07e'; }
   $('speedo') && ($('speedo').style.display = G.driving ? 'block' : 'none', G.driving && ($('speedo').textContent = Math.round(Math.abs(G.driving.speed) * 2.24) + ' MPH' + (G.gas != null && !G.mission ? '  ·  GAS ' + G.gas.toFixed(1) + ' gal' : '') + '  ·  E — EXIT (when stopped)'));
   if(G.driving && !G.dialogOn){ pr.style.display = 'none'; return; }
-  if(it){ if(pr._t !== it.prompt){ pr._t = it.prompt; pr.innerHTML = '<kbd>E</kbd>' + it.prompt; } pr.style.display = 'block'; } else pr.style.display = 'none'; }
+  if(it){ if(pr._t !== it.prompt + PAD.on){ pr._t = it.prompt + PAD.on; pr.innerHTML = '<kbd>' + (PAD.on ? 'X' : 'E') + '</kbd>' + it.prompt; } pr.style.display = 'block'; } else pr.style.display = 'none'; }
 function nearestInter(){ let best = null, bd = 1e9;
   for(const it of G.inter){ if(it.when && !it.when()) continue; const x = typeof it.x === 'function' ? it.x() : it.x, z = typeof it.z === 'function' ? it.z() : it.z;
     const d = Math.hypot(P.p.x - x, P.p.z - z); if(d < (it.r || 2.2) && d < bd && (it.y == null || Math.abs(P.p.y - it.y) < 2.2)){ bd = d; best = it; } }
@@ -471,7 +484,7 @@ function nearestInter(){ let best = null, bd = 1e9;
 // ---------- main loop ----------
 let last = performance.now();
 function frame(now){ requestAnimationFrame(frame); step(now); }
-function step(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; if(G.paused){ R.render(scene, cam); return; }
+function step(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; pollPad(dt); if(G.paused){ R.render(scene, cam); return; }
   G.t += dt; updatePlayer(dt); for(const n of G.npcs.slice()) n.update(dt); for(const t of G.ticks.slice()) t(dt);
   (G.markers || []).forEach(m => { m.userData.ar.position.y = 3 + Math.sin(G.t * 3) * .25; m.userData.ar.rotation.y += dt * 2; });
   updateCam(dt);
