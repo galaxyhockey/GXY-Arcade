@@ -132,3 +132,4 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 - The songs are NOT in the game's files or the repository. They are read from a folder on the player's own computer (remembered by the browser; on phones, Firefox and Safari you pick the song files once and the browser keeps its own copy), or from a git-ignored `radio/z1077/` folder when running a local copy.
 - While the radio plays, the old generated car tune is silent; with the radio off (or no folder) it plays as before. Radio follows the Music volume setting and pauses with the game.
 - Not built yet: the other two stations, a station dial on the HUD.
+- Streaming from any device: `radio/encrypt.js` (local only) locks each song with a passcode (AES-256-GCM) into `radiox/`; the game asks for the passcode once per device (R in the car), then downloads and unlocks one song at a time. Without the passcode the files are unreadable.

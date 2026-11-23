@@ -59,19 +59,28 @@ const idb = (mode, fn) => new Promise(res => { const o = indexedDB.open('b2k-rad
 const shuffle = () => { order = st.tracks.map((_, i) => i).sort(() => Math.random() - .5); at = -1; };
 const url = t => `radio/${st.id}/${encodeURIComponent(t[0])}`;
 const useFiles = list => { files = new Map([...list].map(f => [f.name, f])); src = 'files'; };
-(async () => { dir = await idb('readonly', s => s.get(st.id)); if(Array.isArray(dir)){ useFiles(dir); dir = null; } try{ if((await fetch(url(st.tracks[0]), { method:'HEAD' })).ok && !src) src = 'url'; }catch(e){} })();
+// Streaming from any device: ./radiox/ holds the songs locked with a passcode (AES-256, made by radio/encrypt.js). The passcode is typed once per device and kept in that browser.
+let key = null, locked = false;
+const open = async u => { const r = await fetch(u); if(!r.ok) throw 0; const b = new Uint8Array(await r.arrayBuffer()); return crypto.subtle.decrypt({ name:'AES-GCM', iv:b.subarray(0, 12) }, key, b.subarray(12)); };
+async function unlock(pass){ pass = pass.toLowerCase().replace(/[^a-z0-9]/g, ''); const te = new TextEncoder(), raw = await crypto.subtle.importKey('raw', te.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  key = await crypto.subtle.deriveKey({ name:'PBKDF2', salt:te.encode('b2k-radio-v1'), iterations:150000, hash:'SHA-256' }, raw, { name:'AES-GCM', length:256 }, false, ['decrypt']);
+  try{ await open('radiox/check.bin'); localStorage.b2kRadioKey = pass; src = 'enc'; return true; }catch(e){ key = null; return false; } }
+(async () => { dir = await idb('readonly', s => s.get(st.id)); if(Array.isArray(dir)){ useFiles(dir); dir = null; }
+  try{ locked = (await fetch('radiox/check.bin', { method:'HEAD' })).ok; if(locked && !src && localStorage.b2kRadioKey) await unlock(localStorage.b2kRadioKey); }catch(e){}
+  try{ if((await fetch(url(st.tracks[0]), { method:'HEAD' })).ok && !src) src = 'url'; }catch(e){} })();
 
 let busy = false;
 async function next(){ if(!src || busy) return; busy = true; try{ await load(); } finally{ busy = false; } }
 async function load(){ if(at + 1 >= order.length) shuffle(); const t = st.tracks[order[++at]];
-  try{ if(src === 'url') au.src = url(t); else { const f = files ? files.get(t[0]) : await (await dir.getFileHandle(t[0])).getFile(); if(!f) throw 0; if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(f); } }
+  try{ if(src === 'url') au.src = url(t); else if(src === 'enc'){ const b = new Blob([await open(`radiox/${st.id}/${String(order[at]).padStart(2, '0')}.bin`)], { type:'audio/mpeg' }); if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(b); } else { const f = files ? files.get(t[0]) : await (await dir.getFileHandle(t[0])).getFile(); if(!f) throw 0; if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(f); } }
   catch(e){ if(next.miss = (next.miss || 0) + 1, next.miss < st.tracks.length) return load(); src = null; toast('📻 No songs found in that folder'); return; }
   next.miss = 0; au.onloadedmetadata = () => { if(!tuned){ tuned = true; au.currentTime = Math.random() * au.duration * .6; } };   // first song: you tune in part-way through, like a real station
   toast(`📻 ${st.name} &nbsp;·&nbsp; ${t[1]} — ${t[2]}`, 4200); }
 au.onended = next; au.onerror = () => { if(src && au.src) next(); };
 
 // R needs a click/key press anyway (browser rule) both to pick the folder and to re-open it on a later visit
-async function power(){ if(!src){
+async function power(){ if(!src && locked){ const p = prompt('Radio passcode'); if(p && !(await unlock(p))) return toast('📻 Wrong passcode'); if(src) on = false; }
+  if(!src){
     try{ if(dir && await dir.requestPermission({ mode:'read' }) === 'granted') src = 'dir';
       else if(window.showDirectoryPicker){ dir = await showDirectoryPicker({ id:'b2kradio', mode:'read' }); await idb('readwrite', s => s.put(dir, st.id)); src = 'dir'; }
       else { const list = await new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.multiple = true; i.accept = 'audio/*'; i.onchange = () => res([...i.files]); i.click(); }); if(!list.length) return; useFiles(list); idb('readwrite', s => s.put(list, st.id)); } }catch(e){ return; }
@@ -83,6 +92,6 @@ let hinted = false;
 G.ticks.push(Object.assign(() => { const play = !!(G.driving && on && src && !G.paused && G.set.music > 0 && G.mission !== 'S01' && !G.radioMute);
   G.radioOn = play; au.volume = Math.min(1, G.set.music * .75);
   if(play){ if(!au.src){ if(!busy) next(); } else if(au.paused && au.readyState > 1) au.play().catch(() => {}); } else if(!au.paused) au.pause();
-  if(G.driving && !src && !hinted && G.ctl){ hinted = true; toast(dir ? '📻 Press R to turn the radio on' : '📻 Press R to pick your music for the radio', 5200); } }, { amb:true }));
+  if(G.driving && !src && !hinted && G.ctl){ hinted = true; toast(dir ? '📻 Press R to turn the radio on' : locked ? '📻 Press R and type the radio passcode' : '📻 Press R to pick your music for the radio', 5200); } }, { amb:true }));
 au.oncanplay = () => { if(G.radioOn) au.play().catch(() => {}); };
 G.radio = { st, au, next, power, get src(){ return src; } };
