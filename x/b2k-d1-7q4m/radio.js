@@ -1,6 +1,7 @@
 // BACK IN THE 2000s — the car radio. Real songs are NEVER part of the game's files: they are read from a music folder
 // on the player's own computer (picked once with R, remembered by the browser), or from ./radio/<station>/ when the
-// game runs from a local copy that has that folder (it is git-ignored). In the car: R = radio on/off, T = next song.
+// game runs from a local copy that has that folder (it is git-ignored). In the car: R = radio on/off. Like a real station, songs cannot be skipped.
+// Browsers without a folder picker (phones, Firefox, Safari) pick the song files instead; the browser keeps its own copy of them.
 import { G, toast } from './engine.js';
 
 const STATIONS = [{ id:'z1077', name:'Z107.7', tracks:[ // [file name in the folder, artist, title]
@@ -51,18 +52,19 @@ const STATIONS = [{ id:'z1077', name:'Z107.7', tracks:[ // [file name in the fol
 ] }];
 
 const st = STATIONS[0], au = new Audio(); au.preload = 'auto';
-let on = localStorage.b2kRadio !== '0', dir = null, src = null, order = [], at = -1, tuned = false, blob = null;
+let on = localStorage.b2kRadio !== '0', dir = null, src = null, order = [], at = -1, tuned = false, blob = null, files = null;
 // the remembered music folder lives in the browser's own storage (IndexedDB), never on a server
 const idb = (mode, fn) => new Promise(res => { const o = indexedDB.open('b2k-radio', 1); o.onupgradeneeded = () => o.result.createObjectStore('kv'); o.onerror = () => res(null);
   o.onsuccess = () => { const r = fn(o.result.transaction('kv', mode).objectStore('kv')); r.onsuccess = () => res(r.result); r.onerror = () => res(null); }; });
 const shuffle = () => { order = st.tracks.map((_, i) => i).sort(() => Math.random() - .5); at = -1; };
 const url = t => `radio/${st.id}/${encodeURIComponent(t[0])}`;
-(async () => { dir = await idb('readonly', s => s.get(st.id)); try{ if((await fetch(url(st.tracks[0]), { method:'HEAD' })).ok) src = 'url'; }catch(e){} })();
+const useFiles = list => { files = new Map([...list].map(f => [f.name, f])); src = 'files'; };
+(async () => { dir = await idb('readonly', s => s.get(st.id)); if(Array.isArray(dir)){ useFiles(dir); dir = null; } try{ if((await fetch(url(st.tracks[0]), { method:'HEAD' })).ok && !src) src = 'url'; }catch(e){} })();
 
 let busy = false;
 async function next(){ if(!src || busy) return; busy = true; try{ await load(); } finally{ busy = false; } }
 async function load(){ if(at + 1 >= order.length) shuffle(); const t = st.tracks[order[++at]];
-  try{ if(src === 'url') au.src = url(t); else { const f = await (await dir.getFileHandle(t[0])).getFile(); if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(f); } }
+  try{ if(src === 'url') au.src = url(t); else { const f = files ? files.get(t[0]) : await (await dir.getFileHandle(t[0])).getFile(); if(!f) throw 0; if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(f); } }
   catch(e){ if(next.miss = (next.miss || 0) + 1, next.miss < st.tracks.length) return load(); src = null; toast('📻 No songs found in that folder'); return; }
   next.miss = 0; au.onloadedmetadata = () => { if(!tuned){ tuned = true; au.currentTime = Math.random() * au.duration * .6; } };   // first song: you tune in part-way through, like a real station
   toast(`📻 ${st.name} &nbsp;·&nbsp; ${t[1]} — ${t[2]}`, 4200); }
@@ -72,15 +74,15 @@ au.onended = next; au.onerror = () => { if(src && au.src) next(); };
 async function power(){ if(!src){
     try{ if(dir && await dir.requestPermission({ mode:'read' }) === 'granted') src = 'dir';
       else if(window.showDirectoryPicker){ dir = await showDirectoryPicker({ id:'b2kradio', mode:'read' }); await idb('readwrite', s => s.put(dir, st.id)); src = 'dir'; }
-      else return toast('📻 The radio needs Chrome or Edge to read your music folder'); }catch(e){ return; }
+      else { const list = await new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.multiple = true; i.accept = 'audio/*'; i.onchange = () => res([...i.files]); i.click(); }); if(!list.length) return; useFiles(list); idb('readwrite', s => s.put(list, st.id)); } }catch(e){ return; }
     on = true; } else on = !on;
   localStorage.b2kRadio = on ? '1' : '0'; if(!on) toast('📻 Radio off'); else if(au.src) toast(`📻 ${st.name}`); }
-addEventListener('keydown', e => { if(!G.driving || G.paused || G.dialogOn || e.repeat) return; if(e.code === 'KeyR') power(); else if(e.code === 'KeyT' && on && src) next(); });
+addEventListener('keydown', e => { if(!G.driving || G.paused || G.dialogOn || e.repeat) return; if(e.code === 'KeyR') power(); });
 
 let hinted = false;
 G.ticks.push(Object.assign(() => { const play = !!(G.driving && on && src && !G.paused && G.set.music > 0 && G.mission !== 'S01' && !G.radioMute);
   G.radioOn = play; au.volume = Math.min(1, G.set.music * .75);
   if(play){ if(!au.src){ if(!busy) next(); } else if(au.paused && au.readyState > 1) au.play().catch(() => {}); } else if(!au.paused) au.pause();
-  if(G.driving && !src && !hinted && G.ctl){ hinted = true; toast(dir ? '📻 Press R to turn the radio on' : '📻 Press R to pick your music folder for the radio', 5200); } }, { amb:true }));
+  if(G.driving && !src && !hinted && G.ctl){ hinted = true; toast(dir ? '📻 Press R to turn the radio on' : '📻 Press R to pick your music for the radio', 5200); } }, { amb:true }));
 au.oncanplay = () => { if(G.radioOn) au.play().catch(() => {}); };
 G.radio = { st, au, next, power, get src(){ return src; } };

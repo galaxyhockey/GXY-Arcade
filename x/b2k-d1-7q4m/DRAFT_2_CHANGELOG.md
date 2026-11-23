@@ -128,7 +128,7 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 
 ## Draft 2.10 — the car radio, first station (GAME ORIGINAL feature)
 
-- New `radio.js`. In the car: **R** = radio on/off (first press picks the music folder), **T** = next song. First station: **Z107.7** (44 songs, shuffled; you tune in part-way through the first one). The song name shows as a toast.
-- The songs are NOT in the game's files or the repository. They are read from a folder on the player's own computer (remembered by the browser, Chrome/Edge), or from a git-ignored `radio/z1077/` folder when running a local copy.
+- New `radio.js`. In the car: **R** = radio on/off (first press picks the music). Songs cannot be skipped, like a real station. First station: **Z107.7** (44 songs, shuffled; you tune in part-way through the first one). The song name shows as a toast.
+- The songs are NOT in the game's files or the repository. They are read from a folder on the player's own computer (remembered by the browser; on phones, Firefox and Safari you pick the song files once and the browser keeps its own copy), or from a git-ignored `radio/z1077/` folder when running a local copy.
 - While the radio plays, the old generated car tune is silent; with the radio off (or no folder) it plays as before. Radio follows the Music volume setting and pauses with the game.
 - Not built yet: the other two stations, a station dial on the HUD.
