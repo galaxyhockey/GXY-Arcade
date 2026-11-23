@@ -80,7 +80,7 @@ export function cyl(r, h, m, x, y, z, seg = 12, rt){ const me = new THREE.Mesh(n
 export function mapRect(x0, z0, x1, z1, c){ G.mapShapes.push({ x0, z0, x1, z1, c }); }
 
 export function groundAt(x, z, y){
-  let best = 0;
+  let best = 0; if(G.pits) for(const p of G.pits) if(x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1){ best = -99; break; }
   for(const p of G.platforms) if(x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1 && p.y <= y + .7 && p.y > best) best = p.y;
   for(const r of G.ramps) if(x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1){
     const t = r.axis === 'x' ? (x - r.x0) / (r.x1 - r.x0) : (z - r.z0) / (r.z1 - r.z0), h = r.ya + (r.yb - r.ya) * t;

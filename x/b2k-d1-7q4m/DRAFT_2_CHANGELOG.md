@@ -72,7 +72,7 @@ Also GAME ORIGINAL: the encyclopedia passages in S03, the recovery / printer scr
 - Upstairs: Chris's bedroom on the driveway side, bathroom in the middle with the hallway wrapping round it, second bedroom at the other end.
 - The driveway and car moved to the sunroom side. Zeke now comes through the kitchen window on that side.
 - Modern items in the reference photos were swapped for 2003 ones. The house number is left off.
-- NOT built yet: the basement (the door is there but shut), so the desk corner with the tube TV and push-button phone is still to come.
+- Basement (added in Draft 2.7): the big L-shaped room along the street side and the far end, the laundry room with a bathroom and the laundry chute, the small empty room under the stairs, and the desk corner with white panelling, gray carpet, the tube TV and the push-button phone. The furniture other than the desk corner is game dressing. No story scene uses the basement yet.
 - Furniture inside each room keeps its old arrangement so the story scenes still line up; it has not been matched to the photos piece by piece.
 
 Still to do in this pass: the town rebuilt on real street shapes, hills and street detail, pedestrians and traffic lights.

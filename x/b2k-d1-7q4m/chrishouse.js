@@ -83,7 +83,7 @@ export function buildChrisHouse(){
   [[-12.4, .3], [-8.7, -.8]].forEach(([x, z]) => { cylp(x, z); });
   function cylp(x, z){ const p = new THREE.Mesh(new THREE.CylinderGeometry(.22, .17, .4, 10), mat('#f4f4f0')); p.position.set(x, .2, z); S.add(p); const l = new THREE.Mesh(new THREE.IcosahedronGeometry(.42, 0), mat('#3f8a3a')); l.position.set(x, .72, z); S.add(l); }
   // ---------- floors / ceilings / stairs ----------
-  floor(-8, -12, 8, 4, 0, null); floor(-13, -1.4, -8, 4, 0, null);
+  [[-8, -12, .8, 4], [2, -12, 8, 4], [.8, -7.2, 2, 4]].forEach(r => floor(...r, 0, null)); floor(-13, -1.4, -8, 4, 0, null);   // the main floor, minus the basement stairwell
   const oak = txMat('choak', (g, w, h) => { noise(g, w, h, '#b07a44', .12); g.strokeStyle = '#8a5a2c'; g.lineWidth = 1; for(let y = 0; y < h; y += 16){ g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); for(let x = (y * 7) % 40; x < w; x += 44){ g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 16); g.stroke(); } } }, [1, 1]);
   const rp = (m, x, y) => { const c = m.clone(); c.map = m.map.clone(); c.map.needsUpdate = true; c.map.repeat.set(x, y); return c; };
   const stone = txMat('chstone', (g, w, h) => { noise(g, w, h, '#a8a6a0', .12, 2600); g.strokeStyle = '#8a8882'; g.lineWidth = 2; g.strokeRect(0, 0, w, h); g.beginPath(); g.moveTo(w / 2, 0); g.lineTo(w / 2, h); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke(); }, [1, 1]);
@@ -100,8 +100,7 @@ export function buildChrisHouse(){
   deco(.06, .06, 5.4, mat('#6a4428'), -.28, 1.9, -9.2).rotation.x = -Math.atan2(3.2, 4.4);                                         // handrail
   // ---------- ground-floor partitions ----------
   iwX(-8, 3.6, -5, 0, UP, [[-7.7, -6.5], [.2, 1.8]]); iwX(3.6, 8, -5, 0, UP, [[5.6, 6.6]]); iwZ(-5, 4, 3.6, 0, UP);
-  iwZ(-12, -5, -.4, 0, UP, [[-6.6, -5.4]]); iwX(.8, 8, -7, 0, UP, [[2.7, 3.6], [6, 7]]); iwZ(-12, -7, .8, 0, UP); iwZ(-12, -7, 2, 0, UP); iwZ(-12, -7, 4.4, 0, UP);
-  deco(.9, 2.1, .06, mat('#f1eee6'), 1.4, 0, -6.9); deco(.08, .08, .08, mat('#b8963a'), 1.72, 1, -6.84);                               // the basement door (kept shut for now)
+  iwZ(-12, -5, -.4, 0, UP, [[-6.6, -5.4]]); iwX(.8, 8, -7, 0, UP, [[.95, 1.85], [2.7, 3.6], [6, 7]]); iwZ(-12, -7, .8, 0, UP); iwZ(-12, -7, 2, 0, UP); iwZ(-12, -7, 4.4, 0, UP);
   deco(5.9, .95, .03, trim, -3.45, 0, -5.09);                                               // kitchen wainscot
   // ---------- upstairs partitions (bath in the middle, hall wraps round it) ----------
   slopeZ(-12, 4, -.4, [[-1, .1]]); slopeZ(-12, 4, 4.4, [[-5, -4]]); slopeZ(-10.6, -7, .8); slopeZ(-10.6, -1.4, 3, [[-4.6, -3.7]]);
@@ -109,6 +108,33 @@ export function buildChrisHouse(){
   box(.1, 1, .8, trim, .8, UP, -11); deco(.06, .9, .06, trim, .8, UP, -11.4);                                                          // rail at the top of the stairs
   [[-3, 2.95, -1], [-4.2, 2.95, -8.5], [4, 2.95, -6], [5.8, 2.95, -1], [-4.2, UP + 2.93, -4], [3.7, UP + 2.93, -6], [6.2, UP + 2.93, -4]].forEach(([x, y, z]) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, .06, 14), new THREE.MeshBasicMaterial({ color:0xfff6dc })); l.position.set(x, y, z); S.add(l); });
 
+
+  // ---------- basement (from the author's sketch): one big L along the street side and the east end, a laundry room with a
+  //            bathroom in the back-west corner, a small empty room under the stairs. Chris's desk corner is the street-side
+  //            east corner: white panelling, gray carpet, the tube TV and the push-button phone. ----------
+  { const BY = -2.9, BH = 2.7, pan = txMat('chpanel', (g, w, h) => { g.fillStyle = '#ecebe6'; g.fillRect(0, 0, w, h); g.fillStyle = '#cfcec8'; for(let x = 0; x < w; x += 16) g.fillRect(x, 0, 2, h); }, [1, 1]), PN = n => rp(pan, Math.max(1, Math.round(n)), 1), wh = mat('#f1eee6');
+    G.pits = [{ x0:-8, z0:-12, x1:8, z1:4 }]; floor(-8, -12, 8, 4, BY, null); plane(16, 16, rp(carpet, 10, 10), 0, BY + .02, -4); plane(8.6, 8.8, rp(stone, 6, 6), -3.7, BY + .025, -7.5);
+    [[-8, -12, .8, 4], [2, -12, 8, 4], [.8, -7.2, 2, 4]].forEach(([x0, z0, x1, z1]) => deco(x1 - x0, .1, z1 - z0, ceil, (x0 + x1) / 2, -.34, (z0 + z1) / 2));
+    box(16.4, BH, .2, PN(10), 0, BY, 4.06); box(16.4, BH, .2, PN(10), 0, BY, -12.06); box(.2, BH, 16, PN(10), -8.06, BY, -4); box(.2, BH, 16, PN(10), 8.06, BY, -4);
+    const bwX = (x0, x1, z, doors = []) => { let x = x0; for(const [a, b] of doors){ if(a - x > .01) box(a - x, BH, .12, PN((a - x) / 1.6), (x + a) / 2, BY, z); box(b - a, BH - 2.1, .12, PN(1), (a + b) / 2, BY + 2.1, z, { col:false }); x = b; } if(x1 - x > .01) box(x1 - x, BH, .12, PN((x1 - x) / 1.6), (x + x1) / 2, BY, z); };
+    const bwZ = (z0, z1, x, doors = []) => { let z = z0; for(const [a, b] of doors){ if(a - z > .01) box(.12, BH, a - z, PN((a - z) / 1.6), x, BY, (z + a) / 2); box(.12, BH - 2.1, b - a, PN(1), x, BY + 2.1, (a + b) / 2, { col:false }); z = b; } if(z1 - z > .01) box(.12, BH, z1 - z, PN((z1 - z) / 1.6), x, BY, (z + z1) / 2); };
+    bwX(-8, .8, -3, [[-3.2, -2.2]]); bwZ(-12, -3, .8); bwZ(-10.8, -7.2, 2); bwX(.8, 2, -7.2, [[.95, 1.85]]); box(1.2, .95, .12, PN(1), 1.4, BY, -9.7); bwZ(-12, -3, -5.2, [[-8, -7]]);
+    // stairs down from the hall: open treads, so the little room underneath stays empty
+    ramp(.8, -11.4, 2, -7, 'z', BY, 0); for(let i = 0; i < 12; i++){ const z = -7 - (i + .5) * (4.4 / 12); deco(1.2, .07, 4.4 / 12 + .05, wood, 1.4, -(i + 1) * (2.9 / 12), z); } deco(.06, .06, 5.3, mat('#6a4428'), 1.9, -.55, -9.2).rotation.x = Math.atan2(2.9, 4.4);
+    // laundry room: washer + dryer, water heater, furnace, sink, the chute and its basket; bathroom at the west end
+    box(.75, .95, .7, wh, -.1, BY, -11.5); box(.75, .95, .7, wh, -1, BY, -11.5); deco(.5, .06, .5, mat('#9aa0a6'), -.1, BY + .95, -11.5); deco(.3, .3, .02, mat('#26384a'), -1, BY + .5, -11.14);
+    { const wt = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, 1.6, 12), mat('#d8d8d4')); wt.position.set(-2.4, BY + .8, -11.5); S.add(wt); } box(.9, 1.5, .8, mat('#9aa0a6'), -3.8, BY, -11.4); deco(.3, 1.2, .3, mat('#b8bcc0'), -3.8, BY + 1.5, -11.4);
+    box(.7, .85, .55, wh, -4.7, BY, -3.5); deco(.5, .5, .5, mat('#b8bcc0'), -4.6, -.82, -6); deco(.7, .5, .7, mat('#c9b48a'), -4.6, BY, -6);
+    box(.45, .42, .6, mat('#f4f4f0'), -7.4, BY, -11.4); box(.55, .85, .4, wh, -7.6, BY, -8.6); box(.9, 2, .9, mat('#cfe0ea'), -7.4, BY, -3.7);
+    // the big L: old couch + TV, storage shelves and boxes
+    PR.sofa(-4.6, 3.3, Math.PI, '#6a5a4a').position.y = BY; col(-5.9, 2.8, -3.3, 3.8, BY, BY + 1); PR.rug(-4.6, BY, 1, 3.4, 2.6, '#5a4a4a'); box(1.2, .5, .6, mat('#3a2a1a'), -4.6, BY, -2.5); PR.crtTV(-4.6, BY + .5, -2.5, 0, .8);
+    [[-7.6, 0], [-7.6, -1.6]].forEach(([x, z]) => { box(.6, 1.9, 1.4, mat('#8a8f96'), x, BY, z); for(let k = 0; k < 3; k++) deco(.5, .36, .5, mat(['#b8935a', '#a8834a', '#c9a878'][k]), x + .05, BY + .2 + k * .6, z + (k % 2 ? .3 : -.3)); });
+    [[6.9, -11.2], [7.4, -10.1], [6.2, -11.3]].forEach(([x, z], i) => { box(.9, .7, .8, mat(i % 2 ? '#a8834a' : '#b8935a'), x, BY, z); }); deco(.8, .5, .7, mat('#b8935a'), 6.9, BY + .7, -11.2);
+    // Chris's desk corner
+    box(3.2, .76, .9, mat('#6a3328'), 5.9, BY, 3.4); PR.crtTV(4.9, BY + .76, 3.45, Math.PI, .8); deco(.42, .08, .34, mat('#16181a'), 6.1, BY + .76, 3.5); deco(.2, .07, .09, mat('#16181a'), 6.1, BY + .86, 3.5); deco(.12, .12, .2, mat('#16181a'), 5.93, BY + .82, 3.42); deco(.12, .12, .2, mat('#16181a'), 6.27, BY + .82, 3.42);
+    deco(1, .04, .34, mat('#1a1a1c'), 5.7, BY + .76, 3.05); deco(.5, .12, .9, mat('#2a2a2e'), 6.9, BY + .76, 3.5); PR.chair(5.8, BY, 2.4, Math.PI, '#333'); box(.6, 1.2, .8, mat('#b8a890'), 7.6, BY, 3.4); deco(.44, .03, .04, mat('#888'), 7.6, BY + .9, 2.98); deco(.44, .03, .04, mat('#888'), 7.6, BY + .4, 2.98);
+    PR.rug(6, BY, 1.6, 2.6, 1.8, '#3a4a6a'); G.bdesk = { x:5.8, z:2.2, y:BY };
+    [[-4, BY + BH - .06, 1], [5.5, BY + BH - .06, 0], [5, BY + BH - .06, -8], [-2, BY + BH - .06, -7.5]].forEach(([x, y, z]) => { const l = new THREE.Mesh(new THREE.BoxGeometry(1.4, .06, .3), new THREE.MeshBasicMaterial({ color:0xfffbe8 })); l.position.set(x, y, z); S.add(l); }); }
   // ---------- living room (gray walls, oak floor; the old TV sits on the antique dresser) ----------
   const LEA = '#7a5a3c', CRM = '#d8cfb8';
   PR.sofa(-4.5, L(-10.7) - .05, 0, LEA); G.sofaCol = { x0:-5.8, x1:-3.2, z0:L(-11.2), z1:L(-10.2), y0:0, y1:1 }; G.colliders.push(G.sofaCol); G.sofa = { x:-4.5, z:L(-9.6) };
