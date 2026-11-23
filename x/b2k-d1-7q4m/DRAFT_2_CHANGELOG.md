@@ -125,3 +125,10 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 - Every house, shop, landmark and field stands on a level pad at the height of the street it faces, so driveways and parking lots meet the road.
 - Junctions are level, with their asphalt patch above the road surface.
 - The hills themselves are a little gentler, and the terrain is drawn on a finer grid.
+
+## Draft 2.10 — the car radio, first station (GAME ORIGINAL feature)
+
+- New `radio.js`. In the car: **R** = radio on/off (first press picks the music folder), **T** = next song. First station: **Z107.7** (44 songs, shuffled; you tune in part-way through the first one). The song name shows as a toast.
+- The songs are NOT in the game's files or the repository. They are read from a folder on the player's own computer (remembered by the browser, Chrome/Edge), or from a git-ignored `radio/z1077/` folder when running a local copy.
+- While the radio plays, the old generated car tune is silent; with the radio off (or no folder) it plays as before. Radio follows the Music volume setting and pauses with the game.
+- Not built yet: the other two stations, a station dial on the HUD.

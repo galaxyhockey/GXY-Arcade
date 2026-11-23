@@ -3,6 +3,7 @@ import * as E from './engine.js';
 import { initTraffic } from './traffic.js';
 import './world.js';
 import './audio.js';
+import './radio.js';
 import * as LIFE from './life.js';
 import { initUI } from './ui.js';
 import { initPlanner } from './planner.js';

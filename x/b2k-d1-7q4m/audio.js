@@ -64,7 +64,7 @@ G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH
     : p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4 ? 'home' : 'out';
   if(z !== zone){ zone = z; setHum(z === 'store' || z === 'home', z === 'store' ? 60 : 52); }
   G.inGym = z === 'school' && sp.x < -272;
-  const want = !music || G.mission === 'S01' ? null : z === 'car' ? 'car' : z === 'store' ? 'store' : z === 'home' && !G.mission ? 'home' : null;
+  const want = !music || G.mission === 'S01' ? null : z === 'car' ? (G.radioOn ? null : 'car') : z === 'store' ? 'store' : z === 'home' && !G.mission ? 'home' : null;
   if(want !== cur){ cur = want; step = 0; nextT = A.currentTime + .1; }
   const tgt = (cur ? (cur === 'car' ? .55 : .5) : 0) * G.set.music / .8; musicG.gain.value += (tgt - musicG.gain.value) * Math.min(1, dt * 2);
   ambG.gain.value += ((G.paused ? 0 : G.set.amb / .8) - ambG.gain.value) * Math.min(1, dt * 2);
