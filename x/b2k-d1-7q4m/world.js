@@ -33,7 +33,7 @@ const glass = new THREE.MeshLambertMaterial({ color:0x9fc6e6, transparent:true, 
 G.M = M;
 
 // ---------- ground + roads ----------
-plane(2500, 2500, rep(M.grass, 333, 333), 150, 0, -100);
+plane(2500, 2500, rep(M.grass, 333, 333), 150, -.12, -100); plane(560, 150, rep(M.grass, 75, 20), 620, 0, -400); plane(260, 110, rep(M.grass, 35, 15), 1060, 0, 0);
 function road(x0, z0, x1, z1, name){ plane(x1 - x0, z1 - z0, rep(M.asphalt, (x1 - x0) / 6, (z1 - z0) / 6), (x0 + x1) / 2, .02, (z0 + z1) / 2); mapRect(x0, z0, x1, z1, '#5a5d63');
   const along = x1 - x0 > z1 - z0, dash = new THREE.MeshBasicMaterial({ color:0xf2d04a });
   if(along){ for(let x = x0 + 2; x < x1; x += 6) plane(3, .18, dash, x, .03, (z0 + z1) / 2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z0 - 1.2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z1 + 1.2); }

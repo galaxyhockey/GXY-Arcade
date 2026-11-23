@@ -26,10 +26,10 @@ export const LINES = [];   // { n, k, p:[[x, z]...] }
 const CORE = [['Oakmont Drive', [[-190, 24], [470, 24]]], ['Maple Street', [[100, 28], [100, 252]]], ['Westhaven Road', [[-108, 28], [-108, 252]]], ['N Illinois Street', [[-190, 256], [460, 256]]], ['Frank Scott Parkway West', [[-218, -742], [-218, -518]]]];
 export const SQ = { x:0, z:0, r:26 };
 // distance from a point to the nearest street centre line (searches a coarse grid of segments)
-const SEG = new Map(), CELL = 48, sk = (i, j) => i + ',' + j;
-function addSegs(p, ref){ for(let i = 1; i < p.length; i++){ const a = p[i - 1], b = p[i], i0 = Math.floor(Math.min(a[0], b[0]) / CELL), i1 = Math.floor(Math.max(a[0], b[0]) / CELL), j0 = Math.floor(Math.min(a[1], b[1]) / CELL), j1 = Math.floor(Math.max(a[1], b[1]) / CELL);
+const SEG = new Map(), SEGW = new Map(), CELL = 48, sk = (i, j) => i + ',' + j;
+function addSegs(p, ref, SEG_ = SEG){ const SEG = SEG_; for(let i = 1; i < p.length; i++){ const a = p[i - 1], b = p[i], i0 = Math.floor(Math.min(a[0], b[0]) / CELL), i1 = Math.floor(Math.max(a[0], b[0]) / CELL), j0 = Math.floor(Math.min(a[1], b[1]) / CELL), j1 = Math.floor(Math.max(a[1], b[1]) / CELL);
     for(let u = i0; u <= i1; u++) for(let v = j0; v <= j1; v++){ const k = sk(u, v); if(!SEG.has(k)) SEG.set(k, []); SEG.get(k).push([a[0], a[1], b[0], b[1], ref]); } } }
-export function roadNear(x, z, R = 60){ let best = R, ref = null, px = x, pz = z; const c = Math.ceil(R / CELL), ci = Math.floor(x / CELL), cj = Math.floor(z / CELL);
+export function roadNear(x, z, R = 60, SEG_ = SEG){ const SEG = SEG_; let best = R, ref = null, px = x, pz = z; const c = Math.ceil(R / CELL), ci = Math.floor(x / CELL), cj = Math.floor(z / CELL);
   for(let u = ci - c; u <= ci + c; u++) for(let v = cj - c; v <= cj + c; v++){ const a = SEG.get(sk(u, v)); if(!a) continue;
     for(const s of a){ const dx = s[2] - s[0], dz = s[3] - s[1], L = dx * dx + dz * dz || 1e-9, t = Math.max(0, Math.min(1, ((x - s[0]) * dx + (z - s[1]) * dz) / L)), qx = s[0] + dx * t, qz = s[1] + dz * t, d = Math.hypot(x - qx, z - qz); if(d < best){ best = d; ref = s[4]; px = qx; pz = qz; } } }
   return { d:best, line:ref, x:px, z:pz }; }
@@ -40,7 +40,7 @@ const used = []; let OX = 0, OZ = 0;   // OX/OZ: where the block being built wil
 const take = (x0, z0, x1, z1) => used.push([x0, z0, x1, z1]);
 const free = (x0, z0, x1, z1) => { x0 += OX; x1 += OX; z0 += OZ; z1 += OZ; return !used.some(u => x0 < u[2] && x1 > u[0] && z0 < u[3] && z1 > u[1]); };
 const inWorld = (x0, z0, x1, z1, m = 14) => x0 > WORLD.x0 + m && x1 < WORLD.x1 - m && z0 > WORLD.z0 + m && z1 < WORLD.z1 - m;
-const offRoad = (x0, z0, x1, z1, gap = 7) => { x0 += OX; x1 += OX; z0 += OZ; z1 += OZ; const sx = Math.max(4, Math.min(9, (x1 - x0) / 2)), sz = Math.max(4, Math.min(9, (z1 - z0) / 2)); for(let x = x0; x <= x1 + .01; x += sx) for(let z = z0; z <= z1 + .01; z += sz) if(roadNear(x, z, gap + 1).d < gap) return false; return true; };
+const offRoad = (x0, z0, x1, z1, gap = 7) => { x0 += OX; x1 += OX; z0 += OZ; z1 += OZ; const sx = Math.max(4, Math.min(9, (x1 - x0) / 2)), sz = Math.max(4, Math.min(9, (z1 - z0) / 2)); for(let x = x0; x <= x1 + .01; x += sx) for(let z = z0; z <= z1 + .01; z += sz) if(roadNear(x, z, gap + 1).d < gap || roadNear(x, z, 8, SEGW).d < 7) return false; return true; };
 // build something at the coordinates it was written in, then slide the whole thing by (ox, oz)
 function block(ox, oz, fn){ const c0 = S.children.length, k0 = G.colliders.length, p0 = G.platforms.length, m0 = G.mapShapes.length, d0 = (G.driveways || []).length; OX = ox; OZ = oz; fn(); OX = OZ = 0;
   for(let i = c0; i < S.children.length; i++){ S.children[i].position.x += ox; S.children[i].position.z += oz; }
@@ -49,36 +49,52 @@ function block(ox, oz, fn){ const c0 = S.children.length, k0 = G.colliders.lengt
 // the nearest clear w x d patch of land to (nx, nz): off the streets, inside the map, not on anything else
 function findSpot(w, d, nx, nz, gap = 8){ for(let r = 0; r <= 560; r += 10){ const n = r ? Math.ceil(2 * Math.PI * r / 14) : 1; for(let i = 0; i < n; i++){ const a = i / n * Math.PI * 2 + r * .37, cx = nx + Math.cos(a) * r, cz = nz + Math.sin(a) * r, x0 = cx - w / 2, z0 = cz - d / 2, x1 = cx + w / 2, z1 = cz + d / 2;
       if(inWorld(x0, z0, x1, z1) && free(x0, z0, x1, z1) && offRoad(x0, z0, x1, z1, gap)) return [Math.round(cx), Math.round(cz)]; } } return null; }
+const ZONES = [];   // patches of land kept level: { x0, z0, x1, z1, m (blend distance), lv (height, filled in later) }
+const zone = (x0, z0, x1, z1, m = 46) => ZONES.push({ x0, z0, x1, z1, m });
 const PLACED = {};   // name -> [x, z] of what got built (for the map screen)
 export const placed = () => PLACED;
 
 export function buildTown({ road, tree, M, rep, leafM }){
-  const d0 = (G.driveways || []).length;
+  const d0 = (G.driveways || []).length, C0 = S.children.length, K0 = G.colliders.length, PL0 = G.platforms.length;
   // ---------- 1. story streets extended to the edge of the old neighbourhood, then stitched to the real network ----------
   road(230, 252, 460, 260, 'N Illinois Street'); road(150, 20, 470, 28, 'Oakmont Drive'); road(-222, -742, -214, -518, 'Frank Scott Parkway West');
   ROADS.forEach(r => LINES.push({ n:r.n, k:r.k, p:P2(r.p) })); LINES.forEach(l => addSegs(l.p, l));
   const stitches = []; for(const [n, port] of [['N Illinois Street', [460, 256]], ['S Illinois Street', [-190, 256]], ['Oakmont Drive', [470, 24]], ['Oakmont Drive', [-190, 24]], ['Frank Scott Parkway West', [-218, -742]], ['Frank Scott Parkway West', [-218, -518]]]){
     const hit = roadNear(port[0], port[1], 260); if(hit.line) stitches.push({ n, k:2, p:[port, [hit.x, hit.z]], stitch:true }); }
   stitches.forEach(l => { LINES.push(l); addSegs(l.p, l); });
-  const coreLines = CORE.map(([n, p]) => ({ n, k:n === 'N Illinois Street' ? 0 : 2, p, core:true })); coreLines.forEach(l => addSegs(l.p, l));
+  const coreLines = CORE.map(([n, p]) => ({ n, k:n === 'N Illinois Street' ? 0 : 2, p, core:true }));
+  take(-198, -32, 160, 56); take(70, 28, 132, 252); take(-116, 28, -100, 252); take(-104, 52, -56, 90); take(-198, 246, 466, 266); take(150, 36, 452, 252); take(140, 12, 476, 36); take(-462, -794, -208, -506); take(282, -118, 328, -78); KEEP.slice(3).forEach(k => take(...k));
+  const caps = []; { const onEdge = (x, z) => KEEP.slice(0, 2).some(k => x > k[0] - 2 && x < k[2] + 2 && z > k[1] - 2 && z < k[3] + 2);
+    const nearCore = (x, z) => { let b = null; for(const l of coreLines) for(let i = 1; i < l.p.length; i++){ const a = l.p[i - 1], c = l.p[i], dx = c[0] - a[0], dz = c[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz))), qx = a[0] + dx * t, qz = a[1] + dz * t, d = Math.hypot(x - qx, z - qz); if(!b || d < b.d) b = { d, x:qx, z:qz, l }; } return b; };
+    for(const l of LINES.slice()){ if(l.stitch) continue; for(const e of [l.p[0], l.p[l.p.length - 1]]){ if(!onEdge(e[0], e[1])) continue; const c = nearCore(e[0], e[1]); let ok = c && c.d < 150 && c.d > 3;
+        if(ok) for(let t = .12; t < .9; t += .08){ const x = e[0] + (c.x - e[0]) * t, z = e[1] + (c.z - e[1]) * t; if(!free(x - 5, z - 5, x + 5, z + 5)){ ok = false; break; } }
+        if(ok){ const j = { n:l.n || c.l.n, k:Math.max(2, l.k), p:[[e[0], e[1]], [c.x, c.z]], stitch:true }; LINES.push(j); addSegs(j.p, j); } else if(c && c.d > 3) caps.push(e); } } }
+  coreLines.forEach(l => addSegs(l.p, l));
   // ---------- 2. road ribbons ----------
   const roadM = txMat('twroad', (g, w, h) => { noise(g, w, h, '#4b4d53', .2, 3400); g.fillStyle = '#e2c444'; g.fillRect(w / 2 - 1.5, 0, 3, h * .5); }, [1, 1]); roadM.map.wrapS = roadM.map.wrapT = THREE.RepeatWrapping;
   const hwyM = txMat('twhwy', (g, w, h) => { noise(g, w, h, '#484a50', .2, 3400); g.fillStyle = '#e2c444'; g.fillRect(w / 2 - 3, 0, 2, h); g.fillRect(w / 2 + 1, 0, 2, h); g.fillStyle = '#e8e8e0'; g.fillRect(w * .25 - 1, 0, 2, h * .5); g.fillRect(w * .75 - 1, 0, 2, h * .5); }, [1, 1]); hwyM.map.wrapS = hwyM.map.wrapT = THREE.RepeatWrapping;
   const walkM = mat('#b4b1a8'), waterM = mat('#4a8fc0'), bankM = mat('#3f7a38');
   const tieM = txMat('twties', (g, w, h) => { noise(g, w, h, '#8a857a', .2, 2000); g.fillStyle = '#4a3a2a'; g.fillRect(6, 0, w - 12, h * .45); g.fillStyle = '#5a5a60'; g.fillRect(w * .28, 0, 3, h); g.fillRect(w * .72 - 3, 0, 3, h); }, [1, 1]); tieM.map.wrapS = tieM.map.wrapT = THREE.RepeatWrapping;
-  function ribbon(pts, hw, y, m, off = 0, vs = 6){ const n = pts.length, pos = [], uv = [], idx = []; let L = 0;
+  const dense = p => { const o = [p[0]]; for(let i = 1; i < p.length; i++){ const a = p[i - 1], b = p[i], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 8)); for(let k = 1; k <= n; k++) o.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } return o; };
+  function ribbon(pts0, hw, y, m, off = 0, vs = 6){ const pts = dense(pts0), n = pts.length, pos = [], uv = [], idx = []; let L = 0;
     for(let i = 0; i < n; i++){ const a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)], p = pts[i]; let tx = b[0] - a[0], tz = b[1] - a[1]; const tl = Math.hypot(tx, tz) || 1; tx /= tl; tz /= tl; const nx = -tz, nz = tx; let mt = 1;
       if(i){ L += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]); if(i < n - 1){ const ax = p[0] - a[0], az = p[1] - a[1], bx = b[0] - p[0], bz = b[1] - p[1], cs = (ax * bx + az * bz) / ((Math.hypot(ax, az) || 1) * (Math.hypot(bx, bz) || 1)); mt = 1 / Math.max(.55, Math.sqrt(Math.max(0, (1 + cs) / 2))); } }
       const cx = p[0] + nx * off * mt, cz = p[1] + nz * off * mt; pos.push(cx + nx * hw * mt, y, cz + nz * hw * mt, cx - nx * hw * mt, y, cz - nz * hw * mt); uv.push(0, L / vs, 1, L / vs);
       if(i){ const k = i * 2; idx.push(k - 2, k, k - 1, k - 1, k, k + 1); } }
-    const ge = new THREE.BufferGeometry(); ge.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); ge.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); ge.setIndex(idx); ge.computeVertexNormals(); const me = new THREE.Mesh(ge, m); me.receiveShadow = true; S.add(me); return me; }
+    const ge = new THREE.BufferGeometry(); ge.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); ge.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); ge.setIndex(idx); ge.computeVertexNormals(); const me = new THREE.Mesh(ge, m); me.receiveShadow = true; me.userData.ribbon = true; S.add(me); return me; }
   G.mapLines = [];
   LINES.forEach((l, i) => { const hw = l.k === 0 ? 5 : 4; if(l.k) [-1, 1].forEach(s => ribbon(l.p, 1.2, .014, walkM, s * (hw + 1.3))); ribbon(l.p, hw, .03 + (i % 6) * .004, l.k === 0 ? hwyM : roadM); l.hw = hw; G.mapLines.push({ p:l.p, w:hw * 2, c:l.k === 0 ? '#6a6d74' : '#5a5d63' }); });
-  WATER.forEach(f => { const p = P2(f); ribbon(p, 5, .012, bankM); ribbon(p, 3.2, .02, waterM); G.mapLines.push({ p, w:6, c:'#4a8fc0' }); });
-  const railLines = RAIL.map(P2); railLines.forEach(p => { ribbon(p, 2.2, .05, tieM, 0, 2.4); G.mapLines.push({ p, w:3, c:'#8a857a' }); });
+  const waterLines = WATER.map(P2); waterLines.forEach(p => { addSegs(p, { n:'' }, SEGW); ribbon(p, 5, .012, bankM); ribbon(p, 3.2, .02, waterM); G.mapLines.push({ p, w:6, c:'#4a8fc0' }); });
+  const railLines = RAIL.map(P2); railLines.forEach(p => { addSegs(p, { n:'' }, SEGW); ribbon(p, 2.2, .05, tieM, 0, 2.4); G.mapLines.push({ p, w:3, c:'#8a857a' }); });
   coreLines.forEach(l => l.hw = 4); G.townLines = [...LINES, ...coreLines];
-  // reserved land: the story neighbourhood, the plaza, the school, the hidden sets
-  take(-198, -32, 160, 56); take(70, 28, 132, 252); take(-116, 28, -100, 252); take(-104, 52, -56, 90); take(-198, 246, 466, 266); take(150, 36, 452, 252); take(140, 12, 476, 36); take(-462, -794, -208, -506); take(282, -118, 328, -78); KEEP.slice(3).forEach(k => take(...k));
+  // junctions: a plain patch of asphalt wherever two streets cross or one ends against another, and a turning circle at dead ends
+  { const jm = rep(M.asphalt, 2, 2), segs = []; G.townLines.forEach((l, li) => { for(let i = 1; i < l.p.length; i++) segs.push([l.p[i - 1][0], l.p[i - 1][1], l.p[i][0], l.p[i][1], li]); }); const pts = [];
+    const add = (x, z, r) => { if(pts.some(q => Math.hypot(q[0] - x, q[1] - z) < 5)) return; pts.push([x, z]); const d = disc(r, jm, x, .062, z, 1, 1, 18); d.userData.flat = true; };
+    for(let i = 0; i < segs.length; i++){ const a = segs[i]; for(let j = i + 1; j < segs.length; j++){ const b = segs[j]; if(a[4] === b[4]) continue; if(Math.max(a[0], a[2]) < Math.min(b[0], b[2]) - 1 || Math.max(b[0], b[2]) < Math.min(a[0], a[2]) - 1 || Math.max(a[1], a[3]) < Math.min(b[1], b[3]) - 1 || Math.max(b[1], b[3]) < Math.min(a[1], a[3]) - 1) continue;
+        const d1x = a[2] - a[0], d1z = a[3] - a[1], d2x = b[2] - b[0], d2z = b[3] - b[1], den = d1x * d2z - d1z * d2x; if(Math.abs(den) < 1e-6) continue; const t = ((b[0] - a[0]) * d2z - (b[1] - a[1]) * d2x) / den, u = ((b[0] - a[0]) * d1z - (b[1] - a[1]) * d1x) / den, L1 = Math.hypot(d1x, d1z), L2 = Math.hypot(d2x, d2z);
+        if(t > -5 / L1 && t < 1 + 5 / L1 && u > -5 / L2 && u < 1 + 5 / L2) add(a[0] + d1x * t, a[1] + d1z * t, 6.4); } }
+    caps.forEach(e => { add(e[0], e[1], 8.5); G.mapShapes.push({ x0:e[0] - 6, z0:e[1] - 6, x1:e[0] + 6, z1:e[1] + 6, c:'#5a5d63' }); }); }
+  ZONES.push({ x0:-205, z0:-50, x1:480, z1:270, m:110, lv:0 }, { x0:-470, z0:-800, x1:-200, z1:-500, m:90, lv:0 }, { x0:278, z0:-124, x1:334, z1:-72, m:40, lv:0 }, { x0:330, z0:-900, x1:900, z1:-300, m:60, lv:0 });
 
   // ---------- generic pieces ----------
   let seedN = 100;
@@ -112,13 +128,13 @@ export function buildTown({ road, tree, M, rep, leafM }){
   const lamp = (x, z) => { cyl(.08, 5, mat('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), G.lampM); b.position.set(x, 5.05, z); S.add(b); lampGlow(x, z, 8); };
   const waterTower = (name, nx, nz) => { const sp = findSpot(14, 14, nx, nz); if(!sp) return; const [x, z] = sp, st = mat('#c9d2d8'); [[-3, -3], [3, -3], [-3, 3], [3, 3]].forEach(([a, b]) => cyl(.3, 20, st, x + a, 0, z + b, 6)); cyl(.5, 20, st, x, 0, z, 8);
     const tk = new THREE.Mesh(new THREE.SphereGeometry(6.5, 16, 10), mat('#dfe6ea')); tk.scale.y = .62; tk.position.set(x, 23, z); tk.castShadow = true; S.add(tk);
-    [0, Math.PI / 2, Math.PI, -Math.PI / 2].forEach(ry => vp(7, 1.5, sg(name, { bg:'#dfe6ea', fg:'#1b3a6a', size:70, w:512, h:110 }), x + Math.sin(ry) * 6.56, 23, z + Math.cos(ry) * 6.56, ry)); col(x - 3.4, z - 3.4, x + 3.4, z + 3.4, 20); take(x - 6, z - 6, x + 6, z + 6); mapRect(x - 4, z - 4, x + 4, z + 4, '#c9d2d8'); };
+    [0, Math.PI / 2, Math.PI, -Math.PI / 2].forEach(ry => vp(7, 1.5, sg(name, { bg:'#dfe6ea', fg:'#1b3a6a', size:70, w:512, h:110 }), x + Math.sin(ry) * 6.56, 23, z + Math.cos(ry) * 6.56, ry)); col(x - 3.4, z - 3.4, x + 3.4, z + 3.4, 20); take(x - 6, z - 6, x + 6, z + 6); zone(x - 6, z - 6, x + 6, z + 6, 20); mapRect(x - 4, z - 4, x + 4, z + 4, '#c9d2d8'); };
   // place a block written around (cx, cz) with footprint w x d near (nx, nz)
-  const put = (name, cx, cz, w, d, nx, nz, fn, gap) => { const sp = findSpot(w, d, nx, nz, gap); if(!sp){ console.warn('no room for', name); return null; } block(sp[0] - cx, sp[1] - cz, fn); take(sp[0] - w / 2, sp[1] - d / 2, sp[0] + w / 2, sp[1] + d / 2); PLACED[name] = sp; return sp; };
+  const put = (name, cx, cz, w, d, nx, nz, fn, gap) => { const sp = findSpot(w, d, nx, nz, gap); if(!sp){ console.warn('no room for', name); return null; } block(sp[0] - cx, sp[1] - cz, fn); take(sp[0] - w / 2, sp[1] - d / 2, sp[0] + w / 2, sp[1] + d / 2); zone(sp[0] - w / 2, sp[1] - d / 2, sp[0] + w / 2, sp[1] + d / 2); PLACED[name] = sp; return sp; };
 
   // ---------- 3. the Public Square: where Main Street meets Illinois Street ----------
   { let best = null; const ill = LINES.filter(m => /Illinois/.test(m.n)); for(const l of LINES) if(/Main Street/.test(l.n)) for(const p of l.p) for(const m of ill) for(const q of m.p){ const dd = Math.hypot(p[0] - q[0], p[1] - q[1]); if(!best || dd < best.d) best = { d:dd, x:(p[0] + q[0]) / 2, z:(p[1] + q[1]) / 2 }; }
-    if(best && best.d < 60){ SQ.x = Math.round(best.x); SQ.z = Math.round(best.z); } else { SQ.x = -426; SQ.z = 252; } G.SQ = SQ; PLACED['PUBLIC SQUARE'] = [SQ.x, SQ.z];
+    if(best && best.d < 60){ SQ.x = Math.round(best.x); SQ.z = Math.round(best.z); } else { SQ.x = -426; SQ.z = 252; } G.SQ = SQ; PLACED['PUBLIC SQUARE'] = [SQ.x, SQ.z]; zone(SQ.x - 100, SQ.z - 165, SQ.x + 170, SQ.z + 140, 60);
     block(SQ.x - 560, SQ.z - 256, () => { const x = 560, z = 256; [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => pave(x + (a < 0 ? -36 : 6.4), z + (b < 0 ? -36 : 6.4), x + (a < 0 ? -6.4 : 36), z + (b < 0 ? -6.4 : 36)));
       disc(30, rep(M.asphalt, 10, 10), x, .075, z, 1, 1, 48); mapRect(x - 28, z - 28, x + 28, z + 28, '#5a5d63');
       for(let q = 0; q < 4; q++){ const r = new THREE.Mesh(new THREE.RingGeometry(30, 33.5, 16, 1, q * Math.PI / 2 + .22, Math.PI / 2 - .44), M.walk); r.rotation.x = -Math.PI / 2; r.position.set(x, .08, z); r.receiveShadow = true; S.add(r); }
@@ -192,7 +208,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
   // roadside businesses: each finds a plot beside the street nearest its real location and faces it
   const biz = (name, w, d, nx, nz, o = {}) => { const sp = findSpot(w + 4, d + 18, nx, nz, 7); if(!sp) return; const [cx, cz] = sp, r = roadNear(cx, cz, 120), dx = r.x - cx, dz = r.z - cz, f = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'e' : 'w') : (dz > 0 ? 's' : 'n'), ew = f === 'e' || f === 'w', bw = ew ? d : w, bd = ew ? w : d;
     const bx = cx + (f === 'e' ? 6 : f === 'w' ? -6 : 0), bz = cz + (f === 's' ? 6 : f === 'n' ? -6 : 0); shop(bx - bw / 2, bz - bd / 2, bx + bw / 2, bz + bd / 2, { face:f, name, force:true, ...o });
-    const lx = cx - (f === 'e' ? 1 : f === 'w' ? -1 : 0) * (d / 2 + 3), lz = cz - (f === 's' ? 1 : f === 'n' ? -1 : 0) * (d / 2 + 3); lot(lx - (ew ? 5 : w / 2), lz - (ew ? w / 2 : 5), lx + (ew ? 5 : w / 2), lz + (ew ? w / 2 : 5), 3, { force:true }); take(cx - (ew ? d + 18 : w + 4) / 2, cz - (ew ? w + 4 : d + 18) / 2, cx + (ew ? d + 18 : w + 4) / 2, cz + (ew ? w + 4 : d + 18) / 2); PLACED[name] = sp; };
+    const lx = cx - (f === 'e' ? 1 : f === 'w' ? -1 : 0) * (d / 2 + 3), lz = cz - (f === 's' ? 1 : f === 'n' ? -1 : 0) * (d / 2 + 3); lot(lx - (ew ? 5 : w / 2), lz - (ew ? w / 2 : 5), lx + (ew ? 5 : w / 2), lz + (ew ? w / 2 : 5), 3, { force:true }); take(cx - (ew ? d + 18 : w + 4) / 2, cz - (ew ? w + 4 : d + 18) / 2, cx + (ew ? d + 18 : w + 4) / 2, cz + (ew ? w + 4 : d + 18) / 2); zone(cx - (ew ? d + 18 : w + 4) / 2, cz - (ew ? w + 4 : d + 18) / 2, cx + (ew ? d + 18 : w + 4) / 2, cz + (ew ? w + 4 : d + 18) / 2, 30); PLACED[name] = sp; };
   biz('MOTO MART', 22, 16, 96, 284, { h:4.4, wall:'#e8e2d0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' }); biz("STEAK 'N SHAKE", 24, 18, 20, 284, { h:4.6, wall:'#f2f2f2', sbg:'#111', sfg:'#fff', awn:'#111' });
   biz('WHITE CASTLE', 22, 18, -60, 284, { h:4.4, wall:'#f4f4f0', sbg:'#1b3a8a', sfg:'#fff', awn:'#1b3a8a' }); biz("IMO'S PIZZA", 26, 18, -140, 284, { h:4.6, brick:'#8c3b2a', sbg:'#c8102e', sfg:'#fff', awn:'#2f5a3a' });
   biz("HARDEE'S", 28, 20, 150, 284, { h:4.6, wall:'#e2d6be', sbg:'#f2a020', sfg:'#fff', awn:'#c8102e' }); biz('DAIRY QUEEN', 26, 18, 240, 284, { h:4.4, wall:'#f2ece0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' });
@@ -202,14 +218,14 @@ export function buildTown({ road, tree, M, rep, leafM }){
   { const stn = (nm, nx, nz) => { let best = null; for(const p of railLines) for(let i = 1; i < p.length; i++){ const mx = (p[i][0] + p[i - 1][0]) / 2, mz = (p[i][1] + p[i - 1][1]) / 2, dd = Math.hypot(mx - nx, mz - nz); if(!best || dd < best.d) best = { d:dd, x:mx, z:mz, a:Math.atan2(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]) }; } if(!best || best.d > 400) return;
       const g = new THREE.Group(); g.position.set(best.x, 0, best.z); g.rotation.y = best.a + Math.PI / 2; S.add(g); const B = (w, h, d, c, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c)); m.position.set(x, y + h / 2, z); m.castShadow = true; g.add(m); return m; };
       B(40, 1, 4, '#c4c0b6', 0, 0, 5); for(let x = -16; x <= 16; x += 8) B(.3, 3, .3, '#2a4a8a', x, 1, 6); B(36, .25, 4.6, '#e8e8e8', 0, 4, 5.2); [-11.5, 11.5].forEach(x => { B(22, 3.2, 2.7, '#f2f2f2', x, .5, 0); B(22.04, .5, 2.74, '#1b3a8a', x, 1.1, 0); B(20, .9, 2.76, '#26384a', x, 2.2, 0); });
-      const sgn = new THREE.Mesh(new THREE.BoxGeometry(7, 1.1, .14), sg(nm, { bg:'#1b3a8a', fg:'#fff', size:64, w:512, h:80 })); sgn.position.set(0, 3.1, 6.6); g.add(sgn); col(best.x - 6, best.z - 6, best.x + 6, best.z + 6, 3); take(best.x - 24, best.z - 24, best.x + 24, best.z + 24); mapRect(best.x - 5, best.z - 5, best.x + 5, best.z + 5, '#c4c0b6'); PLACED[nm + ' METRO'] = [Math.round(best.x), Math.round(best.z)]; };
+      const sgn = new THREE.Mesh(new THREE.BoxGeometry(7, 1.1, .14), sg(nm, { bg:'#1b3a8a', fg:'#fff', size:64, w:512, h:80 })); sgn.position.set(0, 3.1, 6.6); g.add(sgn); col(best.x - 6, best.z - 6, best.x + 6, best.z + 6, 3); take(best.x - 24, best.z - 24, best.x + 24, best.z + 24); zone(best.x - 24, best.z - 24, best.x + 24, best.z + 24, 30); mapRect(best.x - 5, best.z - 5, best.x + 5, best.z + 5, '#c4c0b6'); PLACED[nm + ' METRO'] = [Math.round(best.x), Math.round(best.z)]; };
     stn('SWANSEA', -25, 306); stn('BELLEVILLE', -367, 400); stn('MEMORIAL HOSPITAL', 170, -604); }
 
   // ---------- 5. houses along the smaller streets ----------
   let nh = 0; const HOUSE_CAP = 230;
   const sideOf = (l, step, skip) => { let acc = step * rnd(); for(let i = 1; i < l.p.length; i++){ const a = l.p[i - 1], b = l.p[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), tx = (b[0] - a[0]) / (L || 1), tz = (b[1] - a[1]) / (L || 1);
       for(; acc < L; acc += step){ for(const s of [-1, 1]){ if(nh >= HOUSE_CAP || rnd() < skip) continue; const x = a[0] + tx * acc - tz * s * 19, z = a[1] + tz * acc + tx * s * 19, dx = tz * s, dz = -tx * s, f = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'e' : 'w') : (dz > 0 ? 's' : 'n'), ew = f === 'e' || f === 'w', hw = ew ? 9.5 : 11.5, hd = ew ? 11.5 : 9.5;
-          if(!inWorld(x - hw, z - hd, x + hw, z + hd) || !free(x - hw, z - hd, x + hw, z + hd) || !offRoad(x - hw, z - hd, x + hw, z + hd, 6.5)) continue; seedN += 7; BL.house(x, z, f, seedN, { curb:13 }); take(x - hw, z - hd, x + hw, z + hd); nh++; if(rnd() < .5) yardTree(x - dx * 13 + 4, z - dz * 13 + 4); } } acc -= L; } };
+          if(!inWorld(x - hw, z - hd, x + hw, z + hd) || !free(x - hw, z - hd, x + hw, z + hd) || !offRoad(x - hw, z - hd, x + hw, z + hd, 6.5)) continue; seedN += 7; BL.house(x, z, f, seedN, { curb:13 }).userData.foot = [hw, hd]; take(x - hw, z - hd, x + hw, z + hd); nh++; if(rnd() < .5) yardTree(x - dx * 13 + 4, z - dz * 13 + 4); } } acc -= L; } };
   LINES.filter(l => l.k === 3).forEach(l => sideOf(l, 27, .22)); LINES.filter(l => l.k === 2 && !l.stitch).forEach(l => sideOf(l, 30, .5)); LINES.filter(l => l.k === 1).forEach(l => sideOf(l, 34, .72));
   (G.driveways || []).splice(d0).forEach((d, i) => { if(i % 3 !== 1) return; const c = makeCar(pick(carC), { suv:i % 4 === 0 }); c.position.set(d.x, 0, d.z); c.rotation.y = d.ry; S.add(c); Math.abs(Math.sin(d.ry)) > .7 ? col(d.x - 2.3, d.z - 1, d.x + 2.3, d.z + 1, 1.6) : col(d.x - 1, d.z - 2.3, d.x + 1, d.z + 2.3, 1.6); });
   // street lamps along the bigger streets, farm fields and trees on the land that is left
@@ -217,14 +233,32 @@ export function buildTown({ road, tree, M, rep, leafM }){
   const corn = txMat('corn', (g, w, h) => { noise(g, w, h, '#b89a4a', .25, 2600); g.fillStyle = 'rgba(70,50,10,.35)'; for(let x = 0; x < w; x += 8) g.fillRect(x, 0, 2, h); }, [1, 1]), stub = txMat('stub', (g, w, h) => { noise(g, w, h, '#8a744a', .22, 2600); g.fillStyle = 'rgba(40,30,10,.3)'; for(let x = 0; x < w; x += 10) g.fillRect(x, 0, 3, h); }, [1, 1]);
   for(let i = 0, made = 0; i < 260 && made < 16; i++){ const w = 70 + rnd() * 70, d = 60 + rnd() * 70, cx = WORLD.x0 + 60 + rnd() * (WORLD.x1 - WORLD.x0 - 120), cz = WORLD.z0 + 60 + rnd() * (WORLD.z1 - WORLD.z0 - 120), x0 = cx - w / 2, z0 = cz - d / 2, x1 = cx + w / 2, z1 = cz + d / 2;
     if(!free(x0 - 6, z0 - 6, x1 + 6, z1 + 6) || !offRoad(x0, z0, x1, z1, 12) || !inWorld(x0, z0, x1, z1, 20)) continue; const tall = made % 2 === 0;
-    if(tall){ box(w, 1.9, d, rep(corn, w / 5, d / 5), cx, 0, cz); mapRect(x0, z0, x1, z1, '#b89a4a'); } else { plane(w, d, rep(stub, w / 6, d / 6), cx, .03, cz); mapRect(x0, z0, x1, z1, '#8a744a'); } take(x0, z0, x1, z1); made++; }
-  for(let i = 0, made = 0; i < 2600 && made < 520; i++){ const x = WORLD.x0 + 20 + rnd() * (WORLD.x1 - WORLD.x0 - 40), z = WORLD.z0 + 20 + rnd() * (WORLD.z1 - WORLD.z0 - 40); if(!free(x - 2, z - 2, x + 2, z + 2) || roadNear(x, z, 10).d < 9) continue; made % 3 ? lite(x, z, .9 + rnd() * .6) : tree(x, z, 1 + rnd() * .6, rnd() < .5); made++; }
+    if(tall){ box(w, 1.9, d, rep(corn, w / 5, d / 5), cx, 0, cz); mapRect(x0, z0, x1, z1, '#b89a4a'); } else { plane(w, d, rep(stub, w / 6, d / 6), cx, .03, cz); mapRect(x0, z0, x1, z1, '#8a744a'); } take(x0, z0, x1, z1); zone(x0, z0, x1, z1, 40); made++; }
+  for(let i = 0, made = 0; i < 2600 && made < 520; i++){ const x = WORLD.x0 + 20 + rnd() * (WORLD.x1 - WORLD.x0 - 40), z = WORLD.z0 + 20 + rnd() * (WORLD.z1 - WORLD.z0 - 40); if(!free(x - 2, z - 2, x + 2, z + 2) || roadNear(x, z, 10).d < 9) continue; if(roadNear(x, z, 7, SEGW).d < 6) continue; made % 3 ? lite(x, z, .9 + rnd() * .6) : tree(x, z, 1 + rnd() * .6, rnd() < .5); made++; }
 
   // ---------- 6. the edge of the map ----------
   for(let x = WORLD.x0 - 20; x <= WORLD.x1 + 20; x += 11 + rnd() * 8){ lite(x, WORLD.z1 + 8 + rnd() * 14, 1.1 + rnd() * .7); lite(x + 5, WORLD.z0 - 8 - rnd() * 14, 1.2 + rnd() * .7); }
   for(let z = WORLD.z0 - 20; z <= WORLD.z1 + 20; z += 11 + rnd() * 8){ lite(WORLD.x0 - 8 - rnd() * 14, z, 1.1 + rnd() * .7); lite(WORLD.x1 + 8 + rnd() * 14, z, 1.1 + rnd() * .7); }
-  col(WORLD.x0 - 12, WORLD.z0 - 12, WORLD.x0 - 2, WORLD.z1 + 12, 12); col(WORLD.x1 + 2, WORLD.z0 - 12, WORLD.x1 + 12, WORLD.z1 + 12, 12); col(WORLD.x0 - 12, WORLD.z0 - 12, WORLD.x1 + 12, WORLD.z0 - 2, 12); col(WORLD.x0 - 12, WORLD.z1 + 2, WORLD.x1 + 12, WORLD.z1 + 12, 12);
-  col(326, WORLD.z0 - 12, 334, -300, 12); col(326, -304, WORLD.x1 + 12, -296, 12); for(let z = WORLD.z0; z < -300; z += 9) lite(338 + rnd() * 10, z, 1.4 + rnd() * .6); for(let x = 334; x < WORLD.x1; x += 9) lite(x, -310 - rnd() * 10, 1.4 + rnd() * .6);
+  const edge = (x0, z0, x1, z1) => G.colliders.push({ x0, x1, z0, z1, y0:-30, y1:60 });
+  edge(WORLD.x0 - 12, WORLD.z0 - 12, WORLD.x0 - 2, WORLD.z1 + 12, 12); edge(WORLD.x1 + 2, WORLD.z0 - 12, WORLD.x1 + 12, WORLD.z1 + 12, 12); edge(WORLD.x0 - 12, WORLD.z0 - 12, WORLD.x1 + 12, WORLD.z0 - 2, 12); edge(WORLD.x0 - 12, WORLD.z1 + 2, WORLD.x1 + 12, WORLD.z1 + 12, 12);
+  edge(326, WORLD.z0 - 12, 334, -300, 12); edge(326, -304, WORLD.x1 + 12, -296, 12); for(let z = WORLD.z0; z < -300; z += 9) lite(338 + rnd() * 10, z, 1.4 + rnd() * .6); for(let x = 334; x < WORLD.x1; x += 9) lite(x, -310 - rnd() * 10, 1.4 + rnd() * .6);
   { const fw = '#7a5a3a'; [[294, -106, 316, -106], [294, -88, 316, -88], [294, -106, 294, -88], [316, -106, 316, -88]].forEach(a => fenceLine(...a, fw, 3.2)); for(let i = 0; i < 26; i++){ const x = 284 + rnd() * 44, z = -122 + rnd() * 48; if(x > 292 && x < 318 && z > -108 && z < -86) continue; tree(x, z, 1.5 + rnd() * .5, rnd() < .5); } }
+  // ---------- 7. hills ----------
+  // Rolling ground everywhere except the level patches above (the story neighbourhood, the plaza, the school and each landmark),
+  // with a shallow valley along the creek. Heights are stored on an 8-unit grid; G.terrain(x, z) reads it.
+  { const CS = 8, MG = 120, gx0 = WORLD.x0 - MG, gz0 = WORLD.z0 - MG, nx = Math.ceil((WORLD.x1 - WORLD.x0 + 2 * MG) / CS) + 1, nz = Math.ceil((WORLD.z1 - WORLD.z0 + 2 * MG) / CS) + 1, H = new Float32Array(nx * nz), sm = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+    const raw = (x, z) => { let h = Math.max(0, 3.2 + 4.2 * Math.sin(x * .0125 + 1.3) * Math.cos(z * .0105 + .4) + 2.3 * Math.sin(x * .031 + z * .022 + 2) + 1.1 * Math.sin(z * .047 - x * .017)); const w = roadNear(x, z, 60, SEGW).d; return h * (.2 + .8 * sm(w / 60)); };
+    ZONES.forEach(q => { if(q.lv == null) q.lv = raw((q.x0 + q.x1) / 2, (q.z0 + q.z1) / 2) * .8; });
+    const hAt = (x, z) => { let h = raw(x, z); for(const q of ZONES){ const dx = Math.max(q.x0 - x, 0, x - q.x1), dz = Math.max(q.z0 - z, 0, z - q.z1), d = Math.hypot(dx, dz); if(d < q.m) h += (q.lv - h) * sm(1 - d / q.m); }
+      const e = Math.min(x - WORLD.x0, WORLD.x1 - x, z - WORLD.z0, WORLD.z1 - z); return h * sm((e + MG) / MG); };
+    for(let i = 0; i < nx; i++) for(let j = 0; j < nz; j++) H[i * nz + j] = hAt(gx0 + i * CS, gz0 + j * CS);
+    G.terrain = (x, z) => { const fx = (x - gx0) / CS, fz = (z - gz0) / CS, i = Math.floor(fx), j = Math.floor(fz); if(i < 0 || j < 0 || i >= nx - 1 || j >= nz - 1) return 0; const u = fx - i, v = fz - j, a = H[i * nz + j], b = H[(i + 1) * nz + j], c = H[i * nz + j + 1], d = H[(i + 1) * nz + j + 1]; return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v; };
+    const pos = new Float32Array(nx * nz * 3), uv = new Float32Array(nx * nz * 2), idx = []; for(let i = 0; i < nx; i++) for(let j = 0; j < nz; j++){ const k = i * nz + j; pos[k * 3] = gx0 + i * CS; pos[k * 3 + 1] = H[k] - .035; pos[k * 3 + 2] = gz0 + j * CS; uv[k * 2] = (gx0 + i * CS) / 7.5; uv[k * 2 + 1] = (gz0 + j * CS) / 7.5; if(i < nx - 1 && j < nz - 1) idx.push(k, k + 1, k + nz, k + 1, k + nz + 1, k + nz); }
+    const ge = new THREE.BufferGeometry(); ge.setAttribute('position', new THREE.BufferAttribute(pos, 3)); ge.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); ge.setIndex(idx); ge.computeVertexNormals(); const gm = rep(M.grass, 1, 1); gm.map.wrapS = gm.map.wrapT = THREE.RepeatWrapping; const land = new THREE.Mesh(ge, gm); land.receiveShadow = true; S.add(land); G.land = land;
+    // lift everything this file built onto the ground
+    const T = G.terrain; for(let i = C0; i < S.children.length; i++){ const o = S.children[i]; if(o === land) continue;
+      if(o.userData.ribbon){ const p = o.geometry.attributes.position; for(let k = 0; k < p.count; k++) p.setY(k, p.getY(k) + T(p.getX(k) + o.position.x, p.getZ(k) + o.position.z) + .03); p.needsUpdate = true; o.geometry.computeVertexNormals(); o.geometry.computeBoundingSphere(); continue; }
+      const f = o.userData.foot, x = o.position.x, z = o.position.z; o.position.y += f ? Math.min(T(x, z), T(x - f[0], z - f[1]), T(x + f[0], z - f[1]), T(x - f[0], z + f[1]), T(x + f[0], z + f[1])) : T(x, z); }
+    for(let i = K0; i < G.colliders.length; i++){ const c = G.colliders[i], h = T((c.x0 + c.x1) / 2, (c.z0 + c.z1) / 2); c.y0 += h - 1.5; c.y1 += h + .6; } for(let i = PL0; i < G.platforms.length; i++){ const p = G.platforms[i]; p.y += T((p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2); } }
   G.townHouses = nh; G.townPlaced = PLACED;
 }

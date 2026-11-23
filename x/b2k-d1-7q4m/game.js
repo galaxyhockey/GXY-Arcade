@@ -108,8 +108,8 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
         const Q = G.SQ; if(Q){ const dx = px - Q.x, dz = pz - Q.z, dd = Math.hypot(dx, dz); if(dd < 19 && dd > .01){ px = Q.x + dx / dd * 19; pz = Q.z + dz / dd * 19; let tx = -dz / dd, tz = dx / dd; if(tx * fx + tz * fz < 0){ tx = -tx; tz = -tz; } fx = tx; fz = tz; } }
         const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx), block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
         s += v * dt; if(s > total) s -= total;
-        car.position.set(px, 0, pz); car.rotation.y = Math.atan2(fx, fz); const lx = Math.abs(fx) > Math.abs(fz);
-        Object.assign(col, lx ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
+        const T = G.terrain, py = T ? T(px, pz) : 0; car.rotation.order = 'YXZ'; car.position.set(px, py, pz); car.rotation.y = Math.atan2(fx, fz); car.rotation.x = T ? -Math.atan((T(px + fx * 2, pz + fz * 2) - T(px - fx * 2, pz - fz * 2)) / 4) : 0; const lx = Math.abs(fx) > Math.abs(fz);
+        Object.assign(col, lx ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.y0 = py - .5; col.y1 = py + 1.6; col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
       t.amb = true; G.ticks.push(t); } }); }
 // parked cars in some driveways + Chris's own car (drivable)
 (G.driveways || []).filter((d, i) => i % 3 === 1).map(d => [d.x, d.z, d.ry]).forEach(([x, z, ry], i) => { const c = E.makeCar(['#7a2a2a', '#ccc', '#2a4a6a', '#e8e8e8', '#3a3a3a', '#6a5a2a', '#1f5a3a', '#8a8a92'][i % 8], { suv:i % 3 === 0 }); c.position.set(x, 0, z); c.rotation.y = ry; G.scene.add(c);

@@ -80,7 +80,7 @@ export function cyl(r, h, m, x, y, z, seg = 12, rt){ const me = new THREE.Mesh(n
 export function mapRect(x0, z0, x1, z1, c){ G.mapShapes.push({ x0, z0, x1, z1, c }); }
 
 export function groundAt(x, z, y){
-  let best = 0; if(G.pits) for(const p of G.pits) if(x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1){ best = -99; break; }
+  let best = G.terrain ? G.terrain(x, z) : 0; if(G.pits) for(const p of G.pits) if(x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1){ best = -99; break; }
   for(const p of G.platforms) if(x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1 && p.y <= y + .7 && p.y > best) best = p.y;
   for(const r of G.ramps) if(x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1){
     const t = r.axis === 'x' ? (x - r.x0) / (r.x1 - r.x0) : (z - r.z0) / (r.z1 - r.z0), h = r.ya + (r.yb - r.ya) * t;
@@ -313,7 +313,10 @@ function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.p
   else if(th < 0){ if(v > .2){ acc = 8.6 * th; braking = true; } else acc = v > -6 ? 2.6 * th : 0; }
   if(!ctl) acc = -Math.sign(v) * 6;
   acc -= Math.sign(v) * (.3 + .001 * v * v) + (hb ? Math.sign(v) * 5.5 : 0);
-  let nv = v + acc * dt; if((braking || hb || th === 0) && v !== 0 && Math.sign(nv) !== Math.sign(v)) nv = 0;
+  const cp0 = c.car.position, sF = Math.sin(c.head), cF = Math.cos(c.head), hF = groundAt(cp0.x + sF * 2, cp0.z + cF * 2, .3), hB = groundAt(cp0.x - sF * 2, cp0.z - cF * 2, .3), hL = groundAt(cp0.x + cF * .9, cp0.z - sF * .9, .3), hR = groundAt(cp0.x - cF * .9, cp0.z + sF * .9, .3);
+  c.slope = Math.abs(hF - hB) < 1.2 ? (hF - hB) / 4 : 0; c.bank = Math.abs(hL - hR) < .8 ? (hL - hR) / 1.8 : 0; acc -= 7 * c.slope;
+  let nv = v + acc * dt; if((braking || hb || (th === 0 && Math.abs(c.slope) < .03)) && v !== 0 && Math.sign(nv) !== Math.sign(v)) nv = 0;
+  if(th === 0 && !hb && nv < 0 && v <= .05 && c.slope > 0 && c.slope < .2) nv = 0;   // an automatic in Drive holds itself on an ordinary hill
   c.speed = Math.max(-6, Math.min(31, nv));
   // automatic gearbox (only matters for the sound and a small pause in the pull on each upshift)
   if(c.gear < 4 && av > GEAR[c.gear] * .92 && th > 0){ c.gear++; c.shiftT = .3; } else if(c.gear > 1 && av < GEAR[c.gear - 1] * .62) c.gear--;
@@ -331,7 +334,7 @@ function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.p
   // body: lean out of corners, dip under braking, squat under power
   const lat = c.speed * w, lon = (c.speed - v) / Math.max(dt, .001), ease = Math.min(1, dt * 5);
   c.roll = (c.roll || 0) + (Math.max(-.085, Math.min(.085, lat * .011)) - (c.roll || 0)) * ease; c.pitch = (c.pitch || 0) + (Math.max(-.035, Math.min(.05, -lon * .0055)) - (c.pitch || 0)) * ease;
-  const car = c.car; car.rotation.order = 'YXZ'; car.position.set(carP.x, groundAt(carP.x, carP.z, .3), carP.z); car.rotation.set(c.pitch, c.head, c.roll);
+  const car = c.car; car.rotation.order = 'YXZ'; car.position.set(carP.x, groundAt(carP.x, carP.z, .3), carP.z); car.rotation.set(c.pitch - Math.atan(c.slope || 0), c.head, c.roll + Math.atan(c.bank || 0));
   (car.userData.wheels || []).forEach((wg, i) => { wg.rotation.order = 'YXZ'; wg.rotation.x += c.speed * dt / .36; if(i < 2) wg.rotation.y = c.steer; });
   P.p.set(carP.x, 0, carP.z); P.yaw = c.head; P.mv = av; }
 
@@ -365,9 +368,9 @@ function updateCam(dt){
   const fovT = G.camOverride ? 62 : G.driving ? 62 + Math.min(11, Math.abs(G.driving.speed) * .38) : P.run ? 67 : 62; if(Math.abs(cam.fov - fovT) > .05){ cam.fov += (fovT - cam.fov) * Math.min(1, dt * 5); cam.updateProjectionMatrix(); }
   if(G.camOverride){ G.camOverride(dt); return; }
   if(G.driving){ const d = G.driving, c = d.car, h = d.head, sp = Math.abs(d.speed), sn = Math.sin(h), cs = Math.cos(h);
-    if(G.camMode === 'fp'){ cam.position.set(c.position.x + sn * .25 + cs * .36, c.position.y + 1.3, c.position.z + cs * .25 - sn * .36); cam.lookAt(c.position.x + sn * 30, 1.05, c.position.z + cs * 30); cam.rotateZ(-(d.roll || 0) * .6); camP.copy(cam.position); return; }
+    if(G.camMode === 'fp'){ cam.position.set(c.position.x + sn * .25 + cs * .36, c.position.y + 1.3, c.position.z + cs * .25 - sn * .36); cam.lookAt(c.position.x + sn * 30, c.position.y + 1.05 + (d.slope || 0) * 30, c.position.z + cs * 30); cam.rotateZ(-(d.roll || 0) * .6); camP.copy(cam.position); return; }
     d.camH = d.camH == null ? h : d.camH + angD(h, d.camH) * Math.min(1, dt * 3.4); const back = 6.3 + sp * .075, want = new THREE.Vector3(c.position.x - Math.sin(d.camH) * back, c.position.y + 2.3 + sp * .012, c.position.z - Math.cos(d.camH) * back);
-    camP.lerp(want, Math.min(1, dt * 9)); if(camP.distanceTo(want) > 20) camP.copy(want); cam.position.copy(camP); cam.lookAt(c.position.x + sn * 3.5, 1.1, c.position.z + cs * 3.5); return; }
+    camP.lerp(want, Math.min(1, dt * 9)); if(camP.distanceTo(want) > 20) camP.copy(want); cam.position.copy(camP); cam.lookAt(c.position.x + sn * 3.5, c.position.y + 1.1, c.position.z + cs * 3.5); return; }
   const fp = G.camMode === 'fp'; P.model.visible = !fp;
   const head = new THREE.Vector3(P.p.x, P.p.y + 1.62, P.p.z), dir = new THREE.Vector3(Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), Math.cos(P.yaw) * Math.cos(P.pitch));
   if(fp){ cam.position.copy(head).addScaledVector(dir, .12); cam.lookAt(head.clone().add(dir)); return; }

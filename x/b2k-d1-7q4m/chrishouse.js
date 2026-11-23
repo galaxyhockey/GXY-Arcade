@@ -41,9 +41,9 @@ export function buildChrisHouse(){
   const iwX = (x0, x1, z, y0, h, doors = [], m = gray) => { let x = x0; for(const [a, b] of [...doors].sort((p, q) => p[0] - q[0])){ if(a - x > .01) box(a - x, h, .14, m, (x + a) / 2, y0, z); if(h > 2.25) box(b - a, h - 2.2, .14, m, (a + b) / 2, y0 + 2.2, z, { col:false }); [a, b].forEach(e => deco(.08, 2.2, .2, trim, e, y0, z)); x = b; } if(x1 - x > .01) box(x1 - x, h, .14, m, (x + x1) / 2, y0, z); };
   const iwZ = (z0, z1, x, y0, h, doors = [], m = gray) => { let z = z0; for(const [a, b] of [...doors].sort((p, q) => p[0] - q[0])){ if(a - z > .01) box(.14, h, a - z, m, x, y0, (z + a) / 2); if(h > 2.25) box(.14, h - 2.2, b - a, m, x, y0 + 2.2, (a + b) / 2, { col:false }); [a, b].forEach(e => deco(.2, 2.2, .08, trim, x, y0, e)); z = b; } if(z1 - z > .01) box(.14, h, z1 - z, m, x, y0, (z + z1) / 2); };
   // an upstairs wall running front-to-back, clipped to the roof slope (so nothing pokes through the shingles)
-  const slopeZ = (z0, z1, x, doors = [], m = gray, thick = .14, hole) => { let z = z0; const piece = (a, b, lo) => { if(b - a < .02) return; const sh = new THREE.Shape(), pts = [[a, lo], [b, lo], [b, hAt(b)]]; [1.857, -4, -9.857].forEach(k => { if(k > a && k < b) pts.push([k, hAt(k)]); }); pts.push([a, hAt(a)]);
+  const slopeZ = (z0, z1, x, doors = [], m = gray, thick = .14, hole) => { let z = z0; const hX = zz => (x >= -.45 && x <= 4.45 && zz < -4) ? 3 : hAt(zz); const piece = (a, b, lo) => { if(b - a < .02) return; const sh = new THREE.Shape(), pts = [[a, lo], [b, lo], [b, hX(b)]]; [1.857, -4, -9.857].forEach(k => { if(k > a && k < b) pts.push([k, hX(k)]); }); pts.push([a, hX(a)]);
       pts.forEach(([zz, y], i) => i ? sh.lineTo(-zz, y) : sh.moveTo(-zz, y)); sh.closePath(); if(hole && hole[0] >= a && hole[1] <= b){ const hp = new THREE.Path(); hp.moveTo(-hole[0], hole[2]); hp.lineTo(-hole[1], hole[2]); hp.lineTo(-hole[1], hole[3]); hp.lineTo(-hole[0], hole[3]); hp.closePath(); sh.holes.push(hp); }
-      const g = new THREE.ExtrudeGeometry(sh, { depth:thick, bevelEnabled:false }); g.translate(0, 0, -thick / 2); g.rotateY(Math.PI / 2); const me = new THREE.Mesh(g, m); me.position.set(x, UP, 0); me.castShadow = true; me.receiveShadow = true; S.add(me); if(lo === 0) col(x - thick / 2, a, x + thick / 2, b, UP, UP + Math.max(hAt(a), hAt(b))); };
+      const g = new THREE.ExtrudeGeometry(sh, { depth:thick, bevelEnabled:false }); g.translate(0, 0, -thick / 2); g.rotateY(Math.PI / 2); const me = new THREE.Mesh(g, m); me.position.set(x, UP, 0); me.castShadow = true; me.receiveShadow = true; S.add(me); if(lo === 0) col(x - thick / 2, a, x + thick / 2, b, UP, UP + Math.max(hX(a), hX(b))); };
     for(const [a, b] of [...doors].sort((p, q) => p[0] - q[0])){ piece(z, a, 0); piece(a, b, 2.2); [a, b].forEach(e => deco(.2, 2.2, .08, trim, x, UP, e)); z = b; } piece(z, z1, 0); };
   // full gable end (knee wall to ridge) with an optional window hole [z0, z1, lo, hi]
   const gable = (x, hole) => { const sh = new THREE.Shape(); [[-12, 0], [4, 0], [4, 1.2], [-4, 7.92], [-12, 1.2]].forEach(([zz, y], i) => i ? sh.lineTo(-zz, y) : sh.moveTo(-zz, y)); sh.closePath();
@@ -63,10 +63,14 @@ export function buildChrisHouse(){
   wallX(-8, 8, 4, UP, 1.2, 1); wallX(-8, 8, -12, UP, 1.2, -1); gable(-8, [-5.3, -2.7, .9, 2.3]); gable(8, [-4.8, -3.2, .9, 2.2]);
   { const fm2 = mat('#8f8a82'); deco(16.6, .45, .2, fm2, 0, -.3, 4.2); deco(16.6, .45, .2, fm2, 0, -.3, -12.2); deco(.2, .45, 16.6, fm2, -8.2, -.3, -4); deco(.2, .45, 16.6, fm2, 8.2, -.3, -4); }
   const rm = txMat('chroof', (g, w, h) => { noise(g, w, h, '#7a5a44', .22, 3000); for(let y = 0; y < h; y += 10){ g.fillStyle = 'rgba(40,20,10,.3)'; g.fillRect(0, y, w, 2); for(let x = (y / 10) % 2 ? 0 : 8; x < w; x += 16) g.fillRect(x, y, 2, 10); } }, [6, 4]);
-  { const ang = Math.atan(TAN), len = Math.hypot(8, 8 * TAN) + 1; [-1, 1].forEach(s => { const r = new THREE.Mesh(new THREE.BoxGeometry(17.3, .18, len), rm); r.position.set(0, UP + 1.2 + 4 * TAN + .04, -4 + s * 4.12); r.rotation.x = s * ang; r.castShadow = true; S.add(r);
+  { const ang = Math.atan(TAN), len = Math.hypot(8, 8 * TAN) + 1; [-1, 1].forEach(s => { (s > 0 ? [[17.3, 0]] : [[8.25, -4.525], [4.25, 6.525]]).forEach(([w, cx]) => { const r = new THREE.Mesh(new THREE.BoxGeometry(w, .18, len), rm); r.position.set(cx, UP + 1.2 + 4 * TAN + .04, -4 + s * 4.12); r.rotation.x = s * ang; r.castShadow = true; S.add(r); });
+      if(s < 0){ const L2 = 5.86 / Math.cos(ang) + .3, r = new THREE.Mesh(new THREE.BoxGeometry(4.8, .18, L2), rm); r.position.set(2, UP + 1.2 + 5.07 * TAN + .04, -6.93); r.rotation.x = s * ang; r.castShadow = true; S.add(r);
+        const dr = new THREE.Mesh(new THREE.BoxGeometry(5.5, .16, 2.9), rm); dr.position.set(2, UP + 3.12, -10.85); dr.rotation.x = .05; dr.castShadow = true; S.add(dr); box(4.94, 1.84, T, stucco, 2, UP + 1.2, -12); deco(5.1, .16, .1, MAR, 2, UP + 2.96, -12.16);
+        const dw = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1), glassM); dw.rotation.y = Math.PI; dw.position.set(2.6, UP + 2.1, -12.12); S.add(dw); [[1.7, .08, 0, .54], [1.7, .08, 0, -.54], [.08, 1.1, .82, 0], [.08, 1.1, -.82, 0]].forEach(([w, h, dx, dy]) => deco(w, h, .06, trim, 2.6 + dx, UP + 2.1 + dy - h / 2, -12.14));
+        [-.47, 4.47].forEach(x => { const sh = new THREE.Shape(); sh.moveTo(12, 1.2); sh.lineTo(9.86, 3); sh.lineTo(12, 3); sh.closePath(); const g = new THREE.ExtrudeGeometry(sh, { depth:.1, bevelEnabled:false }); g.translate(0, 0, -.05); g.rotateY(Math.PI / 2); const m = new THREE.Mesh(g, stucco); m.position.set(x, UP, 0); S.add(m); }); }
       deco(17.3, .26, .14, MAR, 0, UP + 1.02, -4 + s * 8.5); deco(17.1, .12, .16, mat('#e8e8e2'), 0, UP + .92, -4 + s * 8.6);                                   // fascia + gutter
-      const c = new THREE.Mesh(new THREE.BoxGeometry(15.7, .08, 2.86), paintW); c.position.set(0, UP + 1.2 + 1.07 * TAN - .22, -4 + s * (8 - 1.07)); c.rotation.x = s * ang; S.add(c); });   // sloped ceiling inside
-    deco(17.3, .2, .34, mat('#5a4030'), 0, UP + 1.2 + 8 * TAN - .02, -4); deco(15.7, .08, 11.72, new THREE.MeshBasicMaterial({ color:0xe9e5dc }), 0, UP + 3, -4); }
+      (s > 0 ? [[15.7, 0]] : [[7.42, -4.16], [3.42, 6.16]]).forEach(([w, cx]) => { const c = new THREE.Mesh(new THREE.BoxGeometry(w, .08, 2.86), paintW); c.position.set(cx, UP + 1.2 + 1.07 * TAN - .22, -4 + s * (8 - 1.07)); c.rotation.x = s * ang; S.add(c); }); });   // sloped ceiling inside
+    deco(17.3, .2, .34, mat('#5a4030'), 0, UP + 1.2 + 8 * TAN - .02, -4); deco(15.7, .08, 11.72, new THREE.MeshBasicMaterial({ color:0xe9e5dc }), 0, UP + 3, -4); deco(4.9, .08, 2.2, new THREE.MeshBasicMaterial({ color:0xe9e5dc }), 2, UP + 3, -10.94); }
   box(1.3, 12.4, 1.1, brickM('#8a4a36'), 8.7, 0, -8.6);                                                                        // brick chimney
   // ---------- front stoop, door with the oval glass, coach lights, shrubs ----------
   box(2.8, .2, 1.5, conc, 0, 0, 4.75, { col:false }); G.platforms.push({ x0:-1.4, z0:4, x1:1.4, z1:5.5, y:.2 }); deco(3.4, .1, .5, conc, 0, 0, 5.7);
@@ -93,19 +97,18 @@ export function buildChrisHouse(){
   plane(7.6, 7, rp(stone, 5, 5), -4.2, .02, -8.5); plane(2.4, 5, rp(btile, 2, 4), 3.2, .02, -9.5);
   const ceil = new THREE.MeshBasicMaterial({ color:0xe9e5dc });
   // upstairs floor: everything except the stairwell (x -.4...8, z -11.4..-7)
-  [[-8, -12, -.4, 4], [.8, -12, 8, 4], [-.4, -12, .8, -11.4], [-.4, -7, .8, 4]].forEach(([x0, z0, x1, z1]) => { floor(x0, z0, x1, z1, UP, null); deco(x1 - x0, .2, z1 - z0, ceil, (x0 + x1) / 2, UP - .2, (z0 + z1) / 2); });
-  plane(7.6, 16, rp(carpet, 5, 10), -4.2, UP + .02, -4); plane(8.4, 16, rp(oak, 5, 9), 3.8, UP + .02, -4); plane(1.2, .6, rp(oak, 1, 1), .2, UP + .02, -11.7); plane(1.2, 11, rp(oak, 1, 6), .2, UP + .021, -1.5);
-  ramp(-.4, -11.4, .8, -7, 'z', UP, 0);
-  for(let i = 0; i < 12; i++){ const z = -7 - (i + .5) * (4.4 / 12); deco(1.2, (i + 1) * .267, 4.4 / 12, gray, .2, 0, z); deco(1.2, .06, 4.4 / 12 + .04, wood, .2, (i + 1) * .267, z); }
-  deco(.06, .06, 5.4, mat('#6a4428'), -.28, 1.9, -9.2).rotation.x = -Math.atan2(3.2, 4.4);                                         // handrail
+  [[-8, -12, -.4, 4], [.8, -12, 8, 4], [-.4, -12, .8, -10.8], [-.4, -7, .8, 4]].forEach(([x0, z0, x1, z1]) => { floor(x0, z0, x1, z1, UP, null); deco(x1 - x0, .2, z1 - z0, ceil, (x0 + x1) / 2, UP - .2, (z0 + z1) / 2); });
+  plane(7.6, 16, rp(carpet, 5, 10), -4.2, UP + .02, -4); plane(8.4, 16, rp(oak, 5, 9), 3.8, UP + .02, -4); plane(1.2, 1.2, rp(oak, 1, 1), .2, UP + .02, -11.4); plane(1.2, 11, rp(oak, 1, 6), .2, UP + .021, -1.5);
+  ramp(-.4, -10.8, .8, -7, 'z', UP, 0);
+  for(let i = 0; i < 12; i++){ const z = -7 - (i + .5) * (3.8 / 12); deco(1.2, (i + 1) * .267, 3.8 / 12, gray, .2, 0, z); deco(1.2, .06, 3.8 / 12 + .04, wood, .2, (i + 1) * .267, z); }
+  deco(.06, .06, 4.9, mat('#6a4428'), -.28, 1.9, -8.9).rotation.x = -Math.atan2(3.2, 3.8);                                         // handrail
   // ---------- ground-floor partitions ----------
   iwX(-8, 3.6, -5, 0, UP, [[-7.7, -6.5], [.2, 1.8]]); iwX(3.6, 8, -5, 0, UP, [[5.6, 6.6]]); iwZ(-5, 4, 3.6, 0, UP);
   iwZ(-12, -5, -.4, 0, UP, [[-6.6, -5.4]]); iwX(.8, 8, -7, 0, UP, [[.95, 1.85], [2.7, 3.6], [6, 7]]); iwZ(-12, -7, .8, 0, UP); iwZ(-12, -7, 2, 0, UP); iwZ(-12, -7, 4.4, 0, UP);
   deco(5.9, .95, .03, trim, -3.45, 0, -5.09);                                               // kitchen wainscot
   // ---------- upstairs partitions (bath in the middle, hall wraps round it) ----------
-  slopeZ(-12, 4, -.4, [[-1, .1]]); slopeZ(-12, 4, 4.4, [[-5, -4]]); slopeZ(-10.6, -7, .8); slopeZ(-10.6, -1.4, 3, [[-4.6, -3.7]]);
-  box(2.2, hAt(-10.6), .14, gray, 1.9, UP, -10.6); box(3.4, 3, .14, gray, 1.3, UP, -1.4); box(1.2, 3, .14, gray, .2, UP, -7); box(4.8, 3, .14, gray, 2, UP, .2);
-  box(.1, 1, .8, trim, .8, UP, -11); deco(.06, .9, .06, trim, .8, UP, -11.4);                                                          // rail at the top of the stairs
+  slopeZ(-12, 4, -.4, [[-1, .1]]); slopeZ(-12, 4, 4.4, [[-5, -4]]); slopeZ(-10.8, -7, .8); slopeZ(-10.6, -1.4, 3, [[-4.6, -3.7]]);
+  box(2.2, 3, .14, gray, 1.9, UP, -10.6); box(3.4, 3, .14, gray, 1.3, UP, -1.4); box(1.2, 3, .14, gray, .2, UP, -7); box(4.8, 3, .14, gray, 2, UP, .2);
   [[-3, 2.95, -1], [-4.2, 2.95, -8.5], [4, 2.95, -6], [5.8, 2.95, -1], [-4.2, UP + 2.93, -4], [3.7, UP + 2.93, -6], [6.2, UP + 2.93, -4]].forEach(([x, y, z]) => { const l = new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, .06, 14), new THREE.MeshBasicMaterial({ color:0xfff6dc })); l.position.set(x, y, z); S.add(l); });
 
 

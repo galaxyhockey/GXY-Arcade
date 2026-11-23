@@ -98,4 +98,12 @@ The grid town from the last build is gone. The map is now laid out from real str
 
 **Drive times** (estimated from distance, not hand-timed): home to Schnucks is roughly 45 seconds; home to Belleville West is roughly a minute and a half to two minutes. The real ratio is about 1 to 3; the game's is nearer 1 to 2.
 
-**Not done:** hills (the map is still flat), traffic lights, pedestrians outside the story streets, interiors for any new building.
+**Not done:** traffic lights, pedestrians outside the story streets, interiors for any new building.
+
+## Draft 2.8 — hills, road fixes, house fixes (after the author's first drive)
+
+- **Hills.** The ground now rolls, up to about 10 game units high, with a shallow valley along the creek. Roads rise and dip with it, houses sit on the slopes, traffic follows the ground, and the car tilts on a hill, slows climbing and picks up speed going down. The story neighbourhood, the Schnucks plaza, the school and every landmark stand on level ground, so no story scene changed height.
+- **Roads.** Every place two streets cross or meet now has a plain patch of asphalt, so centre lines and sidewalks no longer run through each other. Real streets that were cut off at the edge of the story neighbourhood are joined to the nearest story street where there is a clear path, or finished with a turning circle.
+- **Creek and rail.** Nothing is built on the creek or the MetroLink line any more (a house was sitting in the creek).
+- **Chris's house.** A dormer was added on the back of the roof over the stairs and the upstairs hallway, which used to be so low that Chris's head went through the roof. The landing at the top of the stairs is deeper.
+- Changes of level are game-original; the real ground was not surveyed.
