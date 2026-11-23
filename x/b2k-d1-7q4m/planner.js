@@ -6,16 +6,21 @@ import { SV } from './game.js';
 import { dateOf, weatherFor } from './extras.js';
 import { fmt } from './life.js';
 import { playMeter } from './minigames.js';
-import { TOWN_PLACES } from './town.js';
+import { placed } from './town.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-const PLACES = [['🏠', 'HOME', 0, -4], ['🛒', 'SCHNUCKS', 110, 366], ['📼', 'VIDEO WORLD', 26, 343], ['🥡', 'CHINA GARDEN', 196, 318], ['💈', 'HAIR CUTS', 232, 352], ['⛽', 'GAS + AUTO', -28, 278], ['🏫', 'BELLEVILLE WEST', -205, 150], ['🏀', 'ELMWOOD PARK', -80, 70], ['🏟', 'STADIUM', -255, 226], ...TOWN_PLACES];
+const PLACES = [['🏠', 'HOME', 0, -4], ['🛒', 'SCHNUCKS', 290, 146], ['📼', 'VIDEO WORLD', 374, 169], ['⛽', 'GAS + AUTO', 428, 234], ['🏫', 'BELLEVILLE WEST', -315, -620], ['🏀', 'ELMWOOD PARK', -80, 70]];
+const ICON = { 'PUBLIC SQUARE':'⛲', 'PRICE PARK':'🌳', 'FAIRGROUNDS':'🎪', 'SKYVIEW DRIVE-IN':'🎬', 'CATHEDRAL':'⛪', "ECKERT'S":'🎃', 'WALNUT HILL':'🪦', 'MEMORIAL HOSPITAL':'🏥', 'WOLF BRANCH':'🏫', 'SCHRANZ PARK':'⚾', 'SWANSEA VILLAGE HALL':'🚒', 'SWANSEA METRO':'🚆', 'BELLEVILLE METRO':'🚆' };
 const WX = { clear:'☀ Sunny', cloudy:'☁ Cloudy', rain:'🌧 Rain', storm:'⛈ Storms', snow:'❄ Snow' }, DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-export function initPlanner(){ G.onMap = (g, cx, cz, sc, size) => { const X = x => (x - cx) * sc + size / 2, Z = z => (z - cz) * sc + size / 2;
-  g.save(); g.textAlign = 'center'; g.font = 'bold 13px Arial'; for(const [ic, name, x, z] of PLACES){ g.font = '30px Arial'; g.fillText(ic, X(x), Z(z) + 8); g.font = 'bold 15px Arial'; g.lineWidth = 4; g.strokeStyle = '#000'; g.strokeText(name, X(x), Z(z) + 28); g.fillStyle = '#fff'; g.fillText(name, X(x), Z(z) + 28); }
-  g.font = 'bold 12px Arial'; const longest = {}; for(const r of G.roads || []){ const L = r.x1 - r.x0 + r.z1 - r.z0, b = longest[r.name]; if(!b || L > b.L) longest[r.name] = { r, L }; } // one label per street, on its longest stretch
-  for(const { r } of Object.values(longest)){ const along = r.x1 - r.x0 > r.z1 - r.z0; g.save(); g.translate(X((r.x0 + r.x1) / 2), Z((r.z0 + r.z1) / 2)); if(!along) g.rotate(-Math.PI / 2); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(r.name.toUpperCase(), 0, 4); g.restore(); }
-  for(const n of G.npcs) if(n.blip && !n.dog && n.name.length < 12){ g.lineWidth = 3; g.strokeStyle = '#000'; g.strokeText(n.name, X(n.p.x), Z(n.p.z) - 10); g.fillStyle = '#7ee0ff'; g.fillText(n.name, X(n.p.x), Z(n.p.z) - 10); }
-  if(G.way){ g.fillStyle = '#ffd23f'; g.fillText('▼ ' + (G.way.label || 'GO HERE'), X(G.way.x), Z(G.way.z) - 14); } g.restore();
+export function initPlanner(){ G.onMap = (g, cx, cz, sc, size) => { const X = (x, z) => (z - cz) * sc + size / 2, Y = (x, z) => size / 2 - (x - cx) * sc;   // north is up: +x = north, +z = east
+  g.save(); g.textAlign = 'center';
+  // one name per street, along its longest stretch
+  g.font = 'bold 11px Arial'; const seen = {}; for(const l of G.townLines || []){ if(!l.n) continue; let L = 0, bi = 1, bl = 0; for(let i = 1; i < l.p.length; i++){ const d = Math.hypot(l.p[i][0] - l.p[i - 1][0], l.p[i][1] - l.p[i - 1][1]); L += d; if(d > bl){ bl = d; bi = i; } } if(!seen[l.n] || L > seen[l.n].L) seen[l.n] = { L, a:l.p[bi - 1], b:l.p[bi] }; }
+  for(const [n, s] of Object.entries(seen)){ if(s.L * sc < 60) continue; const x0 = X(...s.a), y0 = Y(...s.a), x1 = X(...s.b), y1 = Y(...s.b); let ang = Math.atan2(y1 - y0, x1 - x0); if(ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; g.save(); g.translate((x0 + x1) / 2, (y0 + y1) / 2); g.rotate(ang); g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,.55)'; g.strokeText(n.toUpperCase(), 0, -5); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillText(n.toUpperCase(), 0, -5); g.restore(); }
+  const all = [...PLACES, ...Object.entries(placed()).filter(([n]) => ICON[n]).map(([n, p]) => [ICON[n], n, p[0], p[1]])];
+  for(const [ic, name, x, z] of all){ g.font = '24px Arial'; g.fillText(ic, X(x, z), Y(x, z) + 8); g.font = 'bold 12px Arial'; g.lineWidth = 4; g.strokeStyle = '#000'; g.strokeText(name, X(x, z), Y(x, z) + 24); g.fillStyle = '#fff'; g.fillText(name, X(x, z), Y(x, z) + 24); }
+  g.font = 'bold 15px Arial'; for(const n of G.npcs) if(n.blip && !n.dog && n.name.length < 12){ g.lineWidth = 3; g.strokeStyle = '#000'; g.strokeText(n.name, X(n.p.x, n.p.z), Y(n.p.x, n.p.z) - 10); g.fillStyle = '#7ee0ff'; g.fillText(n.name, X(n.p.x, n.p.z), Y(n.p.x, n.p.z) - 10); }
+  if(G.way){ g.fillStyle = '#ffd23f'; g.fillText('▼ ' + (G.way.label || 'GO HERE'), X(G.way.x, G.way.z), Y(G.way.x, G.way.z) - 14); }
+  g.fillStyle = '#fff'; g.font = 'bold 16px Arial'; g.fillText('N', size - 24, 30); g.fillText('▲', size - 24, 16); g.restore();
   // planner
   const l = SV.life, el = $('mapside'); if(!el) return; const row = (a, b) => `<div class="prow"><span>${a}</span><b>${b}</b></div>`, sec = t => `<h3>${t}</h3>`; let h = '';
   if(G.mission){ h = sec('MISSION') + `<p>${$('obj').textContent || '—'}</p>`; }
@@ -34,7 +39,7 @@ const NAMES = { board:'Skateboard', ps2:'PlayStation 2', madden:'Madden 2004', v
 const ROOM = [['poster_sk8', 'Skate poster', 7.99], ['poster_band', 'Band poster', 7.99], ['lava', 'Lava lamp', 14.99], ['beanbag', 'Bean bag chair', 24.99], ['stereo', 'Boombox with CD player', 59.99], ['bigtv', '27-inch TV for your room', 119.99]];
 const PAINT = [['#2a5a9a', 'Factory blue'], ['#c8202a', 'Arrest-me red'], ['#1a1a1a', 'Midnight black'], ['#e8e8e8', 'Rental white'], ['#3a8a3a', 'Lime-ish green'], ['#e8a020', 'School-bus yellow'], ['#7a3a9a', 'Grape']];
 let api = null, decor = null;
-function drawRoom(){ const l = api.L(), own = k => (l.owned || []).includes(k), UP = 3.2, S = G.scene; if(decor) S.remove(decor); decor = new THREE.Group(); S.add(decor);
+function drawRoom(){ const l = api.L(), own = k => (l.owned || []).includes(k), UP = 3.2, S = G.scene; if(decor) S.remove(decor); decor = new THREE.Group(); decor.position.x = -8; S.add(decor); // Chris's room is now on the west side upstairs
   const A = (geo, m, x, y, z) => { const me = new THREE.Mesh(geo, m); me.position.set(x, y, z); me.castShadow = true; decor.add(me); return me; }, lab = (t, o) => new THREE.MeshBasicMaterial({ map:E.label(t, o) });
   if(own('poster_sk8')) A(new THREE.PlaneGeometry(1, 1.4), lab(['SK8', 'OR', 'DIE'], { bg:'#1a1a1a', fg:'#3ad86a', size:60, w:200, h:280 }), .13, UP + 1.8, -8.3).rotation.y = Math.PI / 2;
   if(own('poster_band')) A(new THREE.PlaneGeometry(1, 1.4), lab(['THE', 'GARAGE', 'KINGS', 'TOUR 03'], { bg:'#7a1a2a', fg:'#f2d030', size:44, w:200, h:280 }), .13, UP + 1.8, -3.5).rotation.y = Math.PI / 2;
@@ -53,5 +58,5 @@ async function autoShop(){ const l = api.L(); l.car = l.car || {}; E.cut(true); 
   E.cut(false); }
 export function upgradesOn(a){ api = a; const l = api.L(); drawRoom(); if(l.car) drawCar(); G.shopOnline = shopOnline;
   api.add({ x:-62.5, z:68, r:2.6, prompt:'SHOOT HOOPS', use:async () => { const r = await playMeter({ kind:'hoops' }); api.passTime(20); l.hi = l.hi || {}; const best = r > (l.hi.hoops || 0); if(best) l.hi.hoops = r; api.save(); E.toast(`${r} / 10 at the park${best ? ' · NEW BEST' : ' · best ' + l.hi.hoops}`, 3200); } });
-  api.add({ x:-28, z:282.6, r:2.2, prompt:'AUTO COUNTER (CAR UPGRADES)', use:autoShop });
+  api.add({ x:428, z:229.4, r:2.2, prompt:'AUTO COUNTER (CAR UPGRADES)', use:autoShop });
   api.addTick(() => { if(G.mission || !l.orders || !l.orders.length) return; const dc = l.dayCount || 0, due = l.orders.filter(o => o.at <= dc && l.min >= 420); if(!due.length) return; due.forEach(o => l.owned.push(o.id)); l.orders = l.orders.filter(o => !due.includes(o)); drawRoom(); api.save(); E.sfx('ok'); E.toast(`📦 Package arrived: ${due.map(o => o.name).join(', ')}. It’s in your room.`, 4200); }); }

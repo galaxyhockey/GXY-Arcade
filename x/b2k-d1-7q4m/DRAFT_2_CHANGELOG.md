@@ -62,27 +62,6 @@ Also GAME ORIGINAL: the encyclopedia passages in S03, the recovery / printer scr
 - S05: Madison's train is 12 carts; the most you can build is 20; long trains are slower and lose carts on sharp turns. No cash reward.
 - M06 bagging: three orders. M08 arcade: 8 hoop shots, air hockey to 3. M09 paper towels: 8 throws with a very small target.
 
-## Draft 2.5 — the bigger town (world dressing, GAME ORIGINAL layout)
-
-The map grew from the four-street loop to a street grid about five times the area. Nothing in M01–M09 or S01–S07 moved: the old neighbourhood, school and Schnucks plaza sit in the middle exactly where they were.
-The layout was drawn from satellite views of Belleville and Swansea, turned a quarter turn so it lines up with the game's existing N Illinois Street. None of this is story canon; change any name you like.
-
-- Streets (13): N Illinois / S Illinois (through the Public Square), Main Street (E Main / W Main), N Belt East / West, A Street, Washington Street, Cleveland Avenue, N Charles, N Church, N Jackson, N 1st, N 17th, Fullerton Road, Frank Scott Parkway. Oakmont, Maple and Westhaven were extended to meet them. Oakmont Drive and Westhaven Road are still game-original names.
-- Real places used as landmarks: Public Square and the Veterans Memorial Fountain (roundabout), St. Clair County Building, Belleville City Hall, Belleville Public Library, Cathedral of St. Peter, Lincoln Theatre, Belleville News-Democrat, Fischer's Restaurant, Melvin Price Memorial Park, Belle-Clair Fairgrounds, Skyview Drive-In, Walnut Hill Cemetery, Eckert's, the MetroLink Belleville station, and Swansea / Belleville water towers.
-- Real chains used on signs (text only, no logos): Moto Mart, Steak 'n Shake, White Castle, Imo's Pizza, Hardee's, Dairy Queen, Walgreens, Belleville Pancake House. Every other storefront has a generic name (BAKERY, PAWN, CELLULAR + PAGERS ...). Please strike any you do not want.
-- Marquee text that is NOT from the book: Lincoln Theatre "Pirates of the Caribbean"; Skyview "School of Rock / Kill Bill Vol. 1" (both October 2003 releases). Say the word and they go blank.
-- Positions are not to scale and not all on their real corners. Jax's basement set is hidden inside a fenced, wooded lot east of Maple.
-- Traffic now runs on every street and goes round the fountain. The map screen (M) is zoomed out to show the whole town and names each street once.
-- Not built: interiors for any new building, pedestrians downtown, traffic lights. The new places are scenery to drive and walk through.
-
-### Swansea (added after a second look at the satellite map)
-
-The west side of the map, north of Schnucks, is now Swansea rather than generic houses and fields.
-- Streets: Huntwood Road, Big Bend Boulevard, Sullivan Drive, and two dead-end courts (Deerfield Drive, Thistle Lane) with a small lake beside one. Fullerton Road and Frank Scott Parkway were already there.
-- Real places: Wolf Branch School, Schranz Memorial Park (two ball diamonds, pond, pavilion), Swansea Village Hall, Swansea Fire Dept., Memorial Hospital on Frank Scott Parkway, a second MetroLink platform signed SWANSEA, the SWANSEA water tower, and a "Welcome to Swansea" board.
-- Skyview Drive-In moved off the Swansea side to N Belt West, which is where it really is.
-- As before, positions are approximate and nothing has an interior.
-
 ## Draft 2.6 — realism pass, part 1 (driving + Chris's house)
 
 **Driving.** The car is tuned as a 1996 Ford Taurus. It has weight: about 12.7 s from 0 to 60 mph, about 31 m to stop from 54 mph, an 11 m U-turn at parking speed. Steering turns gradually and is limited by tyre grip, so fast corners run wide with tyre squeal. The body leans in corners and dips under braking. There is an automatic gearbox, engine, tyre and road sound, a closer chase camera, and a hood camera on V. S brakes first and only then reverses; SPACE is the handbrake.
@@ -97,3 +76,26 @@ The west side of the map, north of Schnucks, is now Swansea rather than generic 
 - Furniture inside each room keeps its old arrangement so the story scenes still line up; it has not been matched to the photos piece by piece.
 
 Still to do in this pass: the town rebuilt on real street shapes, hills and street detail, pedestrians and traffic lights.
+
+## Draft 2.7 — the town on real street shapes
+
+The grid town from the last build is gone. The map is now laid out from real street data for Belleville and Swansea.
+
+**What moved, and why.** On the old map Chris's house and Schnucks were on opposite sides of N Illinois Street and the high school was next door. In the real town home and Schnucks are both west of Illinois, and Belleville West is a long drive to the south-west.
+- The Schnucks plaza (with the gas station) was turned around and now sits on the west side of Illinois. From home: up Oakmont, right on Maple, left on Illinois, store on the left. That is the shape of the real drive.
+- Belleville West was moved out to the south-west, on a stretch of Frank Scott Parkway West.
+- Chris's street, Maple Street, Jax's house and Elmwood Park did not move.
+- Every story scene at Schnucks and at the school was re-pointed to the new positions.
+
+**Streets.** About 55 real streets, drawn with their real curves: N and S Illinois, N Belt West and East, W and E Main, Frank Scott Parkway, IL-15, IL-161, Old St. Louis Road, Lebanon Avenue, Centreville Avenue, S Belt West and a set of neighbourhood streets. Richland Creek and the MetroLink line are drawn too. Street data is from OpenStreetMap (c) OpenStreetMap contributors, ODbL.
+- Scale is about 1 game unit to 5.5 metres. Streets closer together than a block or two were thinned out, because game roads cannot shrink with the map.
+- Street names: major public roads keep their real names. The real street Chris's house stands on is shown as Oakmont Drive, and the cross street at his corner is not drawn.
+- The compass changed: north is now toward Schnucks. The big map (M) is drawn north-up.
+
+**Landmarks** are placed as near their real spots as the streets allow: the Public Square and fountain where Main meets Illinois, downtown storefronts, St. Clair County Building, City Hall, the library, Cathedral of St. Peter, Lincoln Theatre, News-Democrat, Melvin Price Memorial Park, Skyview Drive-In, Eckert's, Wolf Branch School, Swansea Village Hall and Fire Dept., Memorial Hospital, two MetroLink platforms, Swansea and Belleville water towers, and the roadside businesses along Illinois (Moto Mart, Steak 'n Shake, White Castle, Imo's, Hardee's, Dairy Queen, Belleville Pancake House, Walgreens, a bank).
+- Not placed (no clear land found yet): Belle-Clair Fairgrounds, Walnut Hill Cemetery, Schranz Memorial Park.
+- Marquee text that is not from the book is unchanged from before (Lincoln Theatre, Skyview).
+
+**Drive times** (estimated from distance, not hand-timed): home to Schnucks is roughly 45 seconds; home to Belleville West is roughly a minute and a half to two minutes. The real ratio is about 1 to 3; the game's is nearer 1 to 2.
+
+**Not done:** hills (the map is still flat), traffic lights, pedestrians outside the story streets, interiors for any new building.

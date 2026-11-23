@@ -73,7 +73,7 @@ async function cartRun(corralIdx, need, prompt = 'GRAB CARTS'){
   E.obj('Push them inside to the cart return.'); await H.reach(G.cartBay.x, G.cartBay.z, 3); await H.interact(G.cartBay.x, G.cartBay.z, 'RETURN CARTS', 3.5); deliver(); E.sfx('ok'); G.blips = []; }
 
 // =================== M04 — OLD DUDE (BOOK: September 26, 2003) ===================
-export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front entrance of Belleville West High School', needs:'M03', start:{ x:-126, z:150 },
+export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front entrance of Belleville West High School', needs:'M03', start:{ x:-236, z:-620 },
   setup(i){ E.setTime(i >= 6 ? 'night' : i >= 4 ? 'dusk' : 'day'); E.setOutfit(i >= 2 && i < 9 ? work : {}); clock(day4, ''); G.noTraffic = false; G.storeOpen = true; },
   stages:[
     async () => { const cl = G.classroom; E.place(cl.chris.x, cl.chris.z, -Math.PI / 2); clock(day4, '2:45 PM');
@@ -89,28 +89,28 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
         ['Jax', 'Shouldn’t you do your job? Wouldn\'t that make you a good worker and you can get promoted'], [C, 'Why would i want to get promoted, that place sucks ass'], ['Jax', 'Fair point i guess']]);
       E.sfx('bell'); await H.card('SCHOOL BELL RINGS', '', 1400); await H.say([[C, 'Finally']]); E.cut(false);
       E.obj('LEAVE CLASS WHEN THE BELL RINGS.'); await H.reach(G.classroom.door.x, G.classroom.door.z, 2.6); },
-    async () => { park(-134.5, 186.5, Math.PI / 2); E.place(-130.5, 186.5, -Math.PI / 2); E.cut(false); G.blips.push({ x:-134.5, z:186.5, c:'#4fc3ff' });
+    async () => { park(-244.5, -583.5, Math.PI / 2); E.place(-240.5, -583.5, -Math.PI / 2); E.cut(false); G.blips.push({ x:-244.5, z:-583.5, c:'#4fc3ff' });
       E.say([['', 'i ran out of that building like it was on FIRE.']], { auto:true });
       E.obj('GET IN YOUR CAR. (E)'); await H.until(() => G.driving); G.noExit = true; E.obj('DRIVE TO WORK — SCHNUCKS SWANSEA. Park by the staff entrance.'); G.blips = [];
-      await H.reach(180, 352, 5, { color:0x4fc3ff }); E.toast('Stop the car to park (S / SPACE)', 2500); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar(); clock(day4, '3:58 PM');
+      await H.reach(220, 160, 5, { color:0x4fc3ff }); E.toast('Stop the car to park (S / SPACE)', 2500); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar(); clock(day4, '3:58 PM');
       await H.say([['', 'I drove to work and changed into my shirt while I was in my car.']]);
       await H.say([['', 'I then walked inside, not ready for a lame ass day of work. 7 whole hours of torture.']]);
-      E.obj('CLOCK IN AND PICK UP YOUR VEST.'); await H.reach(171, 357.5, 2.2);
-      const andrew = mnpc('Andrew', W.andrew, 164, 358.6); face(andrew, { x:158, z:358 });
-      await H.reach(166.5, 358.4, 2, { noMarker:true }); E.cut(true); face(andrew, P.p); faceP(andrew); await two(P.p, andrew);
+      E.obj('CLOCK IN AND PICK UP YOUR VEST.'); await H.reach(229, 154.5, 2.2);
+      const andrew = mnpc('Andrew', W.andrew, 236, 153.4, { face:Math.PI }); face(andrew, { x:242, z:154 });
+      await H.reach(233.5, 153.6, 2, { noMarker:true }); E.cut(true); face(andrew, P.p); faceP(andrew); await two(P.p, andrew);
       await H.say([['', 'I turned around the corner, and walked to the time clock. There I saw Andrew, and he looked like he was seeing ghosts.'], [C, 'Yo Andrew'], ['Andrew', 'SHH'],
         ['Andrew', 'Be quiet, Jacob is around the corner'], [C, 'Oh alright'], [C, 'I’ll be quiet'], ['Andrew', 'God Jacob is such a dick'],
         [C, 'Tell me about it, he\'s always on me for \'not doing my job\' and \'horsing around too much\''], [C, 'I DONT EVEN OWN A DAMN HORSE']]);
-      const eric = mnpc('Eric', W.eric, 160, 361); face(eric, P.p); await two(P.p, eric, -1);
+      const eric = mnpc('Eric', W.eric, 240, 151, { face:Math.PI }); face(eric, P.p); await two(P.p, eric, -1);
       await H.say([['Eric', 'Alright dumbasses, work needs to get done'], [C, 'I haven\'t even clocked in yet'], ['', 'I said, knowing he does this stuff all the time.'],
         ['Eric', 'Don’t care, clock in and get carts we need them'], ['', 'Eric says as Andrew runs away like he\'s a scared damn dog.'], [C, 'Fine']]);
-      andrew.go([[150, 358], [140, 350]], 6); eric.go([[158, 368], [160, 380]], 3); E.cut(false);
+      andrew.go([[250, 154], [260, 162]], 6); eric.go([[242, 144], [240, 132]], 3); E.cut(false);
       E.obj('CLOCK IN.'); await H.interact(G.timeClock.x, G.timeClock.z, 'CLOCK IN', 2); E.sfx('ok'); E.toast('CLOCKED IN · 4:01 PM', 2000);
       E.obj('PICK UP YOUR VEST.'); await H.interact(G.vests.x, G.vests.z, 'GRAB YOUR VEST', 2); E.setOutfit(work); },
-    async () => { E.place(150, 358, Math.PI); E.setOutfit(work); E.obj('HEAD OUTSIDE TO GET CARTS.');
-      const eric = mnpc('Eric', W.eric, 111, 322); const jacob = mnpc('Jacob', W.jacob, 113, 321); face(eric, jacob); face(jacob, eric);
-      await H.reach(105, 326.5, 3);
-      E.cut(true); await H.shot([105, 2, 326], [112, 1.6, 321.5], 700);
+    async () => { E.place(250, 154, 0); E.setOutfit(work); E.obj('HEAD OUTSIDE TO GET CARTS.');
+      const eric = mnpc('Eric', W.eric, 289, 190, { face:Math.PI }); const jacob = mnpc('Jacob', W.jacob, 287, 191, { face:Math.PI }); face(eric, jacob); face(jacob, eric);
+      await H.reach(295, 185.5, 3);
+      E.cut(true); await H.shot([295, 2, 186], [288, 1.6, 190.5], 700);
       await H.say([['', 'i walked and grabbed my vest and headed outside but when i walked outside, i saw my bosses Eric and Jacob standing there, talking about some back in my day this and im old as fuck that type of stuff.']]);
       await H.fade(true, 700); await H.card('SEPTEMBER 1989', '', 2000);
       const Y = G.Y89.campus, e89 = mnpc('Eric', W.eric89, Y.x - .8, -20), j89 = mnpc('Jacob', W.jacob89, Y.x + .8, -20); E.setTime('after');
@@ -122,19 +122,19 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
         ['Jacob', 'I got some Pepsi and Mountain Dew but that\'s about it'], ['Eric', 'No.. Jacob… the booze.. Liquor.. Scootch..'],
         ['Jacob', 'Alright I understand now Eric, and the answer is no, we can’t have any, we are only 18. That will get us arrested during our freshman year. Terrible idea man.'],
         ['Eric', 'Like you said it’s our freshman year, 4 years of time to make mistakes, lets make one now'], ['Jacob', 'Alright but how will you even acquire this liquor'], ['Eric', 'I got a guy']]);
-      E.setTime('day'); G.camOverride = null; E.place(105, 325, 0); await H.shot([106, 2, 323], [111, 1.6, 322], 0); face(eric, P.p);
+      E.setTime('day'); G.camOverride = null; E.place(295, 187, Math.PI); await H.shot([294, 2, 189], [289, 1.6, 190], 0); face(eric, P.p);
       await H.say([['Eric', 'Stop standing there Chris, get some carts'], [C, 'Alright']]); E.cut(false); },
-    async () => { E.place(105, 325, 0); E.setOutfit(work); clock(day4, '4:20 PM');
+    async () => { E.place(295, 187, Math.PI); E.setOutfit(work); clock(day4, '4:20 PM');
       await H.say([['', 'thank goodness it\'s a cool day, I walk around and grab the carts and something pops into my mind.']]);
       await cartRun(2, 6); clock(day4, '5:40 PM');
       await H.say([['', 'Jax’s friend is hosting a rager this Friday, and I\'m off. This sounds like an amazing idea. I guess I\'ll save it for later, if I can remember.']]);
-      const mad = mnpc('Madison', W.madison, 96, 320); mad.blip = '#4fc3ff'; await cartRun(9, 5); clock(day4, '6:55 PM');
-      E.cut(true); E.place(103.8, 320.5, 0); mad.at(106.6, 322.2); face(mad, P.p); faceP(mad); await H.shot([107.3, 2.2, 318.1], [105.2, 1.5, 321.4], 600);
+      const mad = mnpc('Madison', W.madison, 304, 192, { face:Math.PI }); mad.blip = '#4fc3ff'; await cartRun(9, 5); clock(day4, '6:55 PM');
+      E.cut(true); E.place(296.2, 191.5, Math.PI); mad.at(106.6, 322.2); face(mad, P.p); faceP(mad); await H.shot([292.7, 2.2, 193.9], [294.8, 1.5, 190.6], 600);
       await H.say([['', 'My awesome thoughts get interrupted by Madison.'], ['Madison', 'Why aren’t you pushing more carts? We need them!'], [C, 'Why are you pushing so many carts, how about that'],
         ['Madison', 'Real funny Chris, how long did it take you to think that one up'], [C, 'Only 5 minutes'], ['Madison', 'Exactly'],
         ['', 'Madison said pushing carts in, I followed behind, she works too much for my liking, always stealing those extra shifts, getting all the credit. It sucks.']]);
-      mad.go([[105, 334], [96, 345]], 3); E.cut(false); },
-    async () => { E.place(104, 337, Math.PI); E.setOutfit(work); clock(day4, '7:10 PM'); const L = G.lanes[2];
+      mad.go([[295, 178], [304, 167]], 3); E.cut(false); },
+    async () => { E.place(296, 175, 0); E.setOutfit(work); clock(day4, '7:10 PM'); const L = G.lanes[2];
       const ryan = mnpc('Ryan', W.ryan, L.x + .2, L.z - 1, { face:-Math.PI / 2 }); const doris = mnpc('Doris', W.doris, L.x - 1.6, L.z - 2.6); ryan.blip = '#4fc3ff';
       await H.say([['Ryan', 'Chris come here']]); E.obj('GO TO RYAN\'S CHECKLANE.'); await H.interact(() => ryan.p.x, () => ryan.p.z, 'TALK TO RYAN', 2.6);
       E.cut(true); face(ryan, P.p); faceP(ryan); await two(P.p, ryan);
@@ -143,7 +143,7 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
       doris.follow(P, 2.4, 3.2); E.obj('HELP DORIS TO HER CAR.');
       await H.say([[C, 'Hello, Doris! Lovely day we are having here. Really beautiful…'], ['Doris', 'You seem like a nice young man'], [C, 'I sure hope so'], ['Doris', 'Whats with that tone son'],
         [C, 'What. Huh. Oh. Nothing i was just thinking out loud'], ['Doris', 'That\'s very weird son']]);
-      const dc = E.makeCar('#8a7a5a'); dc.position.set(G.parkDoris.x, 0, G.parkDoris.z); dc.rotation.y = .1; G.scene.add(dc); G.dorisCar = dc;
+      const dc = E.makeCar('#8a7a5a'); dc.position.set(G.parkDoris.x, 0, G.parkDoris.z); dc.rotation.y = 3.24; G.scene.add(dc); G.dorisCar = dc;
       await H.reach(G.parkDoris.x - 2.2, G.parkDoris.z - 3.2, 2.6); await H.interact(G.parkDoris.x - 1.6, G.parkDoris.z - 2.8, 'LOAD THE GROCERIES', 3);
       doris.stop(); doris.at(G.parkDoris.x - 1.4, G.parkDoris.z - 1); E.sfx('door');
       await H.say([['', 'as we arrived at her beat up to hell car. I set her groceries in her car with like a million things in her damn trunk like she\'s a traveling circus. As i grab her cart and walk away, i overhear']]);
@@ -151,23 +151,23 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
       await H.say([['Doris', 'Jackass'], ['', 'from the old lady, that kinda pissed me off'], [C, 'You’re a loser you old hag'], ['', 'i said just loud enough for her to hear but not loud enough for my bosses to hear'],
         ['Doris', 'THATS IT'], ['Doris', 'I wanna talk to your manager']]);
       E.sfx('ring'); await H.say([['Walkie (GAME ORIGINAL)', '*kssht* ...need a manager out in the lot, please. *kssht*']]);
-      const eric = mnpc('Eric', W.eric, 105, 333); await H.shot([G.parkDoris.x - 8, 2.4, G.parkDoris.z - 8], [105, 1.4, 326], 600); await H.go(eric, [[105, 326], [G.parkDoris.x - 3.5, G.parkDoris.z - 3.2]], 5.5); face(eric, doris); await two(doris, eric, 1, 4.4);
+      const eric = mnpc('Eric', W.eric, 295, 179, { face:Math.PI }); await H.shot([G.parkDoris.x - 8, 2.4, G.parkDoris.z - 8], [295, 1.4, 186], 600); await H.go(eric, [[295, 186], [G.parkDoris.x - 3.5, G.parkDoris.z - 3.2]], 5.5); face(eric, doris); await two(doris, eric, 1, 4.4);
       await H.say([['', 'As she said that Eric looks my way, absolutely pissed and comes over to where we are at.'], ['Eric', 'I am so sorry ma’am, we will have a talk with him'],
         ['Eric', 'Chris, push a row of carts then go to my office.'], [C, 'Damn it'], ['', 'I muttered under my breath.']]); G.flags.doris_complaint = true;
-      eric.go([[105, 326], [150, 362]], 4); E.cut(false); },
-    async () => { E.setOutfit(work); clock(day4, '7:35 PM'); clearTrain(); E.place(150, 300, Math.PI); if(!G.dorisCar){ }
+      eric.go([[295, 186], [250, 150]], 4); E.cut(false); },
+    async () => { E.setOutfit(work); clock(day4, '7:35 PM'); clearTrain(); E.place(250, 212, 0); if(!G.dorisCar){ }
       await cartRun(11, 6, 'GRAB A ROW OF CARTS');
       const L = G.lanes[2]; const ryan = mnpc('Ryan', W.ryan, L.x + .2, L.z - 1, { face:-Math.PI / 2 });
       E.obj('REPORT TO ERIC\'S OFFICE.'); E.setWay(G.office.door.x, G.office.door.z + 1); await H.until(() => Math.hypot(P.p.x - ryan.p.x, P.p.z - ryan.p.z) < 6 || P.p.x > 140);
       if(Math.hypot(P.p.x - ryan.p.x, P.p.z - ryan.p.z) < 9) await H.say([[C, 'Fuck you dude, got me in trouble'], ['Ryan', 'Not my fault you\'re an idiot']]);
       await H.reach(G.office.door.x, G.office.door.z + 1, 2); },
     async () => { E.setOutfit(work); clock(day4, '7:45 PM'); const O = G.office; E.place(O.chair.x, O.chair.z, 0);
-      const eric = mnpc('Eric', W.eric, O.eric.x, O.eric.z, { face:Math.PI }); E.cut(true); await H.shot([157, 2.3, 375], [160, 1.5, 381], 0);
+      const eric = mnpc('Eric', W.eric, O.eric.x, O.eric.z, { face:Math.PI }); E.cut(true); await H.shot([243, 2.3, 137], [240, 1.5, 131], 0);
       await H.say([['', 'I get to Eric’s office and he\'s sitting there PISSED.'], ['Eric', 'Sit down Chris'], ['Eric', 'Alright, I\'ve punished you way too many times. It doesn’t hit deep enough. So i am gonna give you some life advice'],
         [C, 'Fine with me man, as long as I don\'t have to work.'], ['Eric', 'Alright then… It was September 1989.'], [C, 'Man you are old'], ['Eric', 'Shut it and listen to the story'], [C, 'Why should i'],
         ['Eric', 'Its important maybe you’ll actually learn something'], [C, 'Learn? I thought learning was only for those harvard guys'], ['Eric', 'JUST LISTEN TO IT CHRIS'],
         [C, 'Fine, only because i am getting paid'], ['Eric', 'So, it was your boss was about to make a huge mistake']]);
-      await H.shot([160, 1.75, 380.4], [160, 1.7, 382], 900); await H.fade(true, 800); await H.card('SEPTEMBER 1989 (CONT.)', 'As told by Eric', 2200);
+      await H.shot([240, 1.75, 131.6], [240, 1.7, 130], 900); await H.fade(true, 800); await H.card('SEPTEMBER 1989 (CONT.)', 'As told by Eric', 2200);
       // Scene A — dorm
       const D = G.Y89.dorm; E.setTime('indoor'); const j = mnpc('Jacob', W.jacob89, D.x + 1.2, 0), e = mnpc('Eric', W.eric89, D.x - 1.2, 0); face(j, e); face(e, j);
       const can = new E.THREE.Mesh(new E.THREE.CylinderGeometry(.04, .04, .12, 8), E.mat('#c8a84a')); can.position.set(D.x + 1.4, 1.1, .3); G.scene.add(can);
@@ -201,13 +201,13 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
       await two(e, j, 1, 3.4, 0); await H.card('THE NEXT MORNING', '', 1400); await H.fade(false, 500);
       await H.say([['Jacob', 'What happened'], ['Eric', 'You got hammered, tried to fight some dudes and luckily Lilly was at the game and called me on the payphone to bring you home'],
         ['Eric', 'That is $30.50 we will never get back'], ['Jacob', 'You don’t know how much i owe you'], ['Eric', 'You don’t either.']]);
-      await H.fade(true, 700); j.remove(); e.remove(); E.setTime('day'); await H.shot([157, 2.3, 375], [160, 1.5, 381], 0); await H.fade(false, 600);
+      await H.fade(true, 700); j.remove(); e.remove(); E.setTime('day'); await H.shot([243, 2.3, 137], [240, 1.5, 131], 0); await H.fade(false, 600);
       await H.say([[C, 'Man Jacob was one cool dude, it\'s unfortunate he turned into a total bitch'], ['Eric', 'CHRIS COME ONE DUDE, DID YOU LEARN ANYTHING??'],
         [C, 'I learned that drinking is only cool if it isn’t a Coors Banquet'], ['Eric', 'Get out of my office and back to work.'], ['', 'man these people suck.']]);
       G.flags.heard_1989 = true; E.cut(false); },
-    async () => { E.setOutfit(work); clock(day4, '8:40 PM'); E.place(160, 362, Math.PI); E.obj('RETURN TO THE SALES FLOOR.');
-      const mia = mnpc('Mia', W.mia, 112, 349); const cust = mnpc('Customer', W.cust, 62, 351); const jack = mnpc('Jack', W.jack, G.custService.x, G.custService.z - 4.6, { face:0 });
-      await H.reach(118, 351, 4); E.cut(true); face(mia, P.p); faceP(mia); await two(P.p, mia);
+    async () => { E.setOutfit(work); clock(day4, '8:40 PM'); E.place(240, 150, 0); E.obj('RETURN TO THE SALES FLOOR.');
+      const mia = mnpc('Mia', W.mia, 288, 163, { face:Math.PI }); const cust = mnpc('Customer', W.cust, 338, 161, { face:Math.PI }); const jack = mnpc('Jack', W.jack, G.custService.x, G.custService.z - 4.6, { face:0 });
+      await H.reach(282, 161, 4); E.cut(true); face(mia, P.p); faceP(mia); await two(P.p, mia);
       await H.say([['', 'I went back to work and continued to get carts. Until Mia continues to get on me for some reason.'], ['Mia', 'CHRIS!'], [C, 'Yo.'], ['Mia', 'Why have you not been bagging, isn’t that your job'],
         [C, 'I don’t know, carts have been like biting me'], ['Mia', 'That makes no sense, start bagging'], [C, 'No i am good'], ['Mia', 'Your doing such a great job chris keep it up'],
         [C, 'Yes i am'], ['', 'i said walking away, Mia gave nice compliments. I continue to do my job lame as hell. Communicating with the customers very well.']]); E.cut(false);
@@ -220,9 +220,9 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
         ['', 'i said walking away, customer interactions suck. Jack called me over to customer service']]); P.model.userData.aR.remove(apple); P.model.userData.aR.rotation.x = 0; E.cut(false);
       E.obj('GO TO CUSTOMER SERVICE.'); jack.blip = '#4fc3ff'; await H.interact(G.custService.x, G.custService.z, 'TALK TO JACK', 2.6);
       await H.say([[C, 'Yeah Jack'], ['Jack', 'Time for your break'], [C, 'Thank god']]); },
-    async () => { E.setOutfit(work); clock(day4, '9:05 PM'); E.place(145, 342, Math.PI); E.obj('TAKE YOUR BREAK. (Grab snacks from the vending machine, then head to the break room)');
+    async () => { E.setOutfit(work); clock(day4, '9:05 PM'); E.place(255, 170, 0); E.obj('TAKE YOUR BREAK. (Grab snacks from the vending machine, then head to the break room)');
       minter({ x:G.vending.x, z:G.vending.z, y:G.vending.y, r:2, prompt:'BUY DORITOS 3D + A REESE\'S CUP', use:() => { G.flags.snacks = true; E.sfx('ok'); E.toast('Doritos 3D — they looked cool<br>+ a Reese\'s peanut butter cup', 3000); } });
-      await H.interact(G.breakRoom.x, G.breakRoom.z, 'SIT DOWN AND WATCH HOCKEY', 2.4, 3.6); hockeyTV(true); E.cut(true); await H.shot([74, 5.4, 380], [79, 5.5, 387], 600);
+      await H.interact(G.breakRoom.x, G.breakRoom.z, 'SIT DOWN AND WATCH HOCKEY', 2.4, 3.6); hockeyTV(true); E.cut(true); await H.shot([326, 5.4, 132], [321, 5.5, 125], 600);
       await H.say([['', `${G.flags.snacks ? 'I bought some snacks, Doritos 3D, they looked cool and a Reese\'s peanut butter cup and headed to the breakroom.' : 'I headed to the breakroom.'} They had some hockey on and I love hockey, dudes beating other dudes up, that\'s sick as hell.`],
         ['', 'It was a fight heavy game as well, the only bad part is it was on for so long it was 30 minutes. Usually those dumbasses tell me to get a move on after 15 so I was fine with going back.']]);
       await H.card('30 MINUTES LATER', '', 1400); E.cut(false);
@@ -230,7 +230,7 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
       await H.say([['', 'Now that I am back from break I let Jack know I was going to the bathroom. I walked to the bathroom and had one goal, i am not leaving until i make 10 wet towel throws into the trash can.']]);
       const tries = await live2(towelGame()); E.toast(`10 throws made · ${tries} tries`, 3000);
       await H.say([['', 'It took awhile but my aim sucks like balls. Luckily it was time to go home by then and all the bosses went there like cocoons or whatever they are called.']]); clock(day4, '11:00 PM'); },
-    async () => { E.setTime('night'); E.setOutfit({}); clock(day4, '11:05 PM'); park(180, 352, Math.PI); E.place(177.5, 349, Math.PI); E.cut(false);
+    async () => { E.setTime('night'); E.setOutfit({}); clock(day4, '11:05 PM'); park(220, 160, 0); E.place(222.5, 163, 0); E.cut(false);
       E.obj('DRIVE HOME. (E to get in)'); await H.until(() => G.driving); G.noExit = true; E.say([['', 'I drove home, that was the best part of the night. The air was like cold but it was nice and warm and the music I was listening to was awesome. (music placeholder)']], { auto:true });
       E.obj('DRIVE HOME — park in your driveway.'); await H.reach(-17, 10, 4, { color:0x4fc3ff }); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar();
       await H.fade(true, 400); E.place(-4.5, .4, Math.PI); E.cut(true); await H.fade(false, 400);
@@ -251,23 +251,23 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
 const live2 = p => p; // mini-games run to completion
 
 // =================== S01 — A LITTLE EXTRA CASH (GAME ORIGINAL) ===================
-export const S01 = { title:'A Little Extra Cash', sub:'SIDE MISSION · GAME ORIGINAL', where:'Schnucks staff entrance', needs:'M04', start:{ x:174, z:357.5 },
+export const S01 = { title:'A Little Extra Cash', sub:'SIDE MISSION · GAME ORIGINAL', where:'Schnucks staff entrance', needs:'M04', start:{ x:226, z:154.5 },
   setup(i){ E.setTime('night'); E.setOutfit(work); clock('CLOSING SHIFT', ''); G.storeOpen = true; },
   stages:[
-    async () => { E.place(168, 357.5, -Math.PI / 2); const eric = mnpc('Eric', W.eric, 163, 360); const jacob = mnpc('Jacob', W.jacob, 163, 356.5); [eric, jacob].forEach(n => face(n, P.p));
-      E.obj('Talk to Eric and Jacob.'); await H.interact(164, 358.2, 'ASK ABOUT EXTRA SHIFT', 3.2);
-      E.cut(true); faceP(eric); await H.shot([168.5, 2.2, 352.5], [164, 1.5, 358.5], 600);
+    async () => { E.place(232, 154.5, Math.PI / 2); const eric = mnpc('Eric', W.eric, 237, 152, { face:Math.PI }); const jacob = mnpc('Jacob', W.jacob, 237, 155.5, { face:Math.PI }); [eric, jacob].forEach(n => face(n, P.p));
+      E.obj('Talk to Eric and Jacob.'); await H.interact(236, 153.8, 'ASK ABOUT EXTRA SHIFT', 3.2);
+      E.cut(true); faceP(eric); await H.shot([231.5, 2.2, 159.5], [236, 1.5, 153.5], 600);
       await H.say([['Jacob', 'Hey Chris. Want to make a little extra money tonight?'], [C, 'How little is \'a little\'?'], ['Eric', 'We need the lot cleared before closing.'], [C, 'Okay. How bad is it?'],
         ['Jacob', 'Fourteen corrals. All the carts. Inside the store. You\'ve got one hour.'], [C, 'Fourteen? Did every person in Belleville come shopping today?'], ['Eric', 'You taking the shift or not?']]);
       const k = await H.choose(['Take the shift', 'Maybe later']); if(k === 1){ await H.say([[C, 'Maybe later.']]); E.cut(false); G.s01Declined = true; G.noComplete = true; return; }
       await H.say([[C, 'Fine. But if I turn into a shopping cart, I\'m blaming both of you.']]); E.cut(false); },
     async () => { if(G.s01Declined){ G.s01Declined = false; return; }
       E.cut(true); G.corrals.forEach(c => fillCorral(c, 6)); const total = G.corrals.reduce((a, c) => a + c.initial, 0); clearTrain(); startPushing();
-      await H.shot([112, 40, 250], [112, 0, 305], 0); await H.wait(900);
-      for(const c of G.corrals){ G.blips.push({ x:c.x, z:c.z, c:'#ffd23f' }); } await H.shot([112, 9, 318], [112, 2, 334], 2600);
+      await H.shot([112, 40, 250], [288, 0, 207], 0); await H.wait(900);
+      for(const c of G.corrals){ G.blips.push({ x:c.x, z:c.z, c:'#ffd23f' }); } await H.shot([288, 9, 194], [288, 2, 178], 2600);
       await H.card('CLOSING SHIFT — 60:00', `14 CORRALS · CARTS RETURNED: 0 / ${total}`, 2600);
       await H.say([['Eric (radio)', 'Bring them through the entrance and put them in the cart bay. Outside doesn\'t count.'], [C, 'Obviously. Why would this be easy?']]);
-      E.place(105, 322, Math.PI); E.cut(false); E.obj('Clear all 14 corrals and return every cart indoors before time runs out.');
+      E.place(295, 190, 0); E.cut(false); E.obj('Clear all 14 corrals and return every cart indoors before time runs out.');
       let left = 3600, started = false, said = {}; const sx = P.p.x, sz = P.p.z; const tEl = $('timer'), cEl = $('carts'); tEl.style.display = 'block'; cEl.style.display = 'block';
       const delivered = () => G.corrals.reduce((a, c) => a + c.delivered, 0);
       const draw = () => { const m = Math.max(0, left); tEl.textContent = `${String(m / 60 | 0).padStart(2, '0')}:${String(m % 60 | 0).padStart(2, '0')}`; tEl.style.color = m < 300 ? '#ff5252' : '#fff';
@@ -284,12 +284,12 @@ export const S01 = { title:'A Little Extra Cash', sub:'SIDE MISSION · GAME ORIG
       const res = await H.until(() => delivered() >= total || left <= 0).then(() => delivered() >= total ? 'win' : 'lose');
       const outside = total - delivered(), rem = Math.max(0, left), mmss = `${String(rem / 60 | 0).padStart(2, '0')}:${String(rem % 60 | 0).padStart(2, '0')}`;
       tEl.style.display = 'none'; cEl.style.display = 'none'; E.cut(true);
-      if(res === 'win'){ await H.shot([108, 2.2, 340], [113, 1, 334], 600); const e = mnpc('Eric', W.eric, 110, 338), j = mnpc('Jacob', W.jacob, 116, 338);
+      if(res === 'win'){ await H.shot([292, 2.2, 172], [287, 1, 178], 600); const e = mnpc('Eric', W.eric, 290, 174, { face:Math.PI }), j = mnpc('Jacob', W.jacob, 284, 174, { face:Math.PI });
         await H.say([['Eric', 'Well, I\'ll be damned. You actually cleared the whole lot.'], [C, 'Yeah, and I think my arms are gonna fall off.'], ['Jacob', 'Good work. You\'re done for tonight.'],
           [C, 'Thank God. I was about to move into the cart corral.']]);
         if(!SV.s01best || rem > SV.s01best) SV.s01best = rem; save();
         await H.banner('MISSION PASSED', `A LITTLE EXTRA CASH<br>Time remaining: ${mmss} · Carts returned: ${total} / ${total}<br>Reward: $25 [PROPOSED]`, false, 5200); G.flags.S01_completed = true; }
-      else { await H.shot([112, 30, 260], [112, 0, 300], 600); await H.say([['Eric (radio)', 'Time\'s up, Chris. We\'re closing.'], [C, 'Well, that\'s just great.']]);
+      else { await H.shot([112, 30, 260], [288, 0, 212], 600); await H.say([['Eric (radio)', 'Time\'s up, Chris. We\'re closing.'], [C, 'Well, that\'s just great.']]);
         await H.banner('MISSION FAILED — SHIFT OVER', `Carts remaining: ${outside}`, true, 3600);
         const k = await H.choose(['Retry from start', 'Exit to free roam']); if(k === 0) return fail('Retrying the closing shift.'); G.noComplete = true; }
       emptyCorrals(); clearTrain(); } ],

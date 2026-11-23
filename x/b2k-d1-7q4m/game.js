@@ -62,7 +62,7 @@ export const newCart = () => cartGeo.clone();
 export const train = []; // meshes following the player
 export function clearTrain(){ train.forEach(c => G.scene.remove(c)); train.length = 0; }
 export function fillCorral(c, n){ c.carts.forEach(m => G.scene.remove(m)); c.carts = []; c.initial = n; c.delivered = 0;
-  for(let i = 0; i < n; i++){ const m = newCart(); m.position.set(c.x, 0, c.z + 2.2 - i * .55); m.rotation.y = Math.PI; G.scene.add(m); c.carts.push(m); } }
+  for(let i = 0; i < n; i++){ const m = newCart(); m.position.set(c.x, 0, c.z - 2.2 + i * .55); m.rotation.y = 0; G.scene.add(m); c.carts.push(m); } }
 export function emptyCorrals(){ G.corrals.forEach(c => fillCorral(c, 0)); }
 export function startPushing(){ G.carry = (dt, mv) => { G.pushN = train.length; // carts nest into a line Chris pushes IN FRONT of him
     if(!train.length) return; const a = P.model.rotation.y, fx = Math.sin(a), fz = Math.cos(a);
@@ -98,20 +98,19 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
     roamMarks.push({ mk, stop }); G.blips.push({ x:s.x, z:s.z, c:id[0] === 'S' ? '#4fc3ff' : '#ffd23f' }); });
   if(next){ E.obj(`${MIS[next].title}: go to the ${next[0] === 'S' ? 'blue' : 'yellow'} marker (${MIS[next].where}).`); E.setWay(MIS[next].start.x, MIS[next].start.z); } else E.obj('Free roam. Replay missions from the pause menu.'); }
 // ambient traffic: drives on the right on every road, stops for Chris (on foot or driving)
-{ const T = G.townRoads, lanes = []; // two lanes on every street; the two that cross the Public Square swing round the fountain
-  T.H.forEach(h => { const sq = h.z === T.SQ.z ? T.SQ.x : null; lanes.push({ ax:'x', m:h.z, o:1.8, a0:h.a + 2, a1:h.b - 2, dir:1, sq }, { ax:'x', m:h.z, o:-1.8, a0:h.b - 2, a1:h.a + 2, dir:-1, sq }); });
-  T.V.forEach(v => { if(v.quiet) return; const sq = v.x === T.SQ.x ? T.SQ.z : null; lanes.push({ ax:'z', m:v.x, o:-2, a0:v.a + 2, a1:v.b - 2, dir:1, sq }, { ax:'z', m:v.x, o:2, a0:v.b - 2, a1:v.a + 2, dir:-1, sq }); });
-  const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
-  lanes.forEach((l, i) => { const n = Math.max(1, Math.round(Math.abs(l.a1 - l.a0) / 150)); for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0, lights:true }); G.scene.add(car);
-    const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let a = l.a0 + (l.a1 - l.a0) * ((k + (i % 2) * .5) / n), v = 12;
-    const t = dt => { let c = l.m + l.o, sl = 0; if(l.sq != null && Math.abs(a - l.sq) < 38){ const u = (a - l.sq) / 38 * Math.PI / 2, s = Math.sign(l.o); c += s * 16 * Math.cos(u) ** 2; sl = -s * 16 * Math.sin(2 * u) * Math.PI / 76; }
-      const px = l.ax === 'x' ? a : c, pz = l.ax === 'x' ? c : a, fx = l.ax === 'x' ? l.dir : 0, fz = l.ax === 'z' ? l.dir : 0;
-      const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx);
-      const block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
-      a += l.dir * v * dt; if((l.dir > 0 && a > l.a1) || (l.dir < 0 && a < l.a1)) a = l.a0;
-      car.position.set(px, 0, pz); car.rotation.y = l.ax === 'x' ? Math.atan2(l.dir, sl * l.dir) : Math.atan2(sl * l.dir, l.dir);
-      Object.assign(col, l.ax === 'x' ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
-    t.amb = true; G.ticks.push(t); } }); }
+{ const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
+  (G.townLines || []).forEach((l, li) => { let total = 0; const cum = [0]; for(let i = 1; i < l.p.length; i++){ total += Math.hypot(l.p[i][0] - l.p[i - 1][0], l.p[i][1] - l.p[i - 1][1]); cum.push(total); } if(total < 70) return;
+    const n = Math.max(1, Math.round(total / (l.k === 3 ? 280 : 180)));
+    for(const dir of [1, -1]) for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(li * 3 + k + (dir > 0 ? 0 : 4)) % 9], { suv:(li + k) % 3 === 0, lights:true }); G.scene.add(car);
+      const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let s = total * ((k + (dir > 0 ? .25 : .75)) / n), v = 12, seg = 1;
+      const t = dt => { const u = dir > 0 ? s : total - s; while(seg < cum.length - 1 && cum[seg] < u) seg++; while(seg > 1 && cum[seg - 1] > u) seg--;
+        const a = l.p[seg - 1], b = l.p[seg], L = cum[seg] - cum[seg - 1] || 1, f = (u - cum[seg - 1]) / L; let fx = (b[0] - a[0]) / L * dir, fz = (b[1] - a[1]) / L * dir, px = a[0] + (b[0] - a[0]) * f - fz * 1.9, pz = a[1] + (b[1] - a[1]) * f + fx * 1.9;
+        const Q = G.SQ; if(Q){ const dx = px - Q.x, dz = pz - Q.z, dd = Math.hypot(dx, dz); if(dd < 19 && dd > .01){ px = Q.x + dx / dd * 19; pz = Q.z + dz / dd * 19; let tx = -dz / dd, tz = dx / dd; if(tx * fx + tz * fz < 0){ tx = -tx; tz = -tz; } fx = tx; fz = tz; } }
+        const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx), block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
+        s += v * dt; if(s > total) s -= total;
+        car.position.set(px, 0, pz); car.rotation.y = Math.atan2(fx, fz); const lx = Math.abs(fx) > Math.abs(fz);
+        Object.assign(col, lx ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
+      t.amb = true; G.ticks.push(t); } }); }
 // parked cars in some driveways + Chris's own car (drivable)
 (G.driveways || []).filter((d, i) => i % 3 === 1).map(d => [d.x, d.z, d.ry]).forEach(([x, z, ry], i) => { const c = E.makeCar(['#7a2a2a', '#ccc', '#2a4a6a', '#e8e8e8', '#3a3a3a', '#6a5a2a', '#1f5a3a', '#8a8a92'][i % 8], { suv:i % 3 === 0 }); c.position.set(x, 0, z); c.rotation.y = ry; G.scene.add(c);
   const sw = Math.abs(Math.sin(ry)) > .7; G.colliders.push(sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1, y0:0, y1:1.6 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3, y0:0, y1:1.6 }); });
@@ -125,7 +124,7 @@ G.chrisCarCol = G.colliders.find(c => c.x0 === -18 && c.z0 === 6.8); G.chrisDriv
 // ---------- menus ----------
 function openPause(on){ G.paused = on; $('pause').style.display = on ? 'flex' : 'none'; if(on){ E.unlock(); $('pRestart').disabled = !SV.cp; } }
 G.hotkey = e => { if(['Escape', 'KeyP'].includes(e.code) && !$('title').offsetParent){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; return; } openPause(!G.paused); }
-  if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, 65, 195, .64); G.onMap && G.onMap($('mapc').getContext('2d'), 65, 195, .64, 900); } } };
+  if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, 0, -180, .67, 'N'); G.onMap && G.onMap($('mapc').getContext('2d'), 0, -180, .67, 900); } } };
 $('pResume').onclick = () => openPause(false);
 { let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); }
 $('pRestart').onclick = () => { openPause(false); restartCP(); };

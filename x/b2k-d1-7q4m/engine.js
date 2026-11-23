@@ -504,14 +504,15 @@ export function sfx(k){ if(k === 'pass') [523, 659, 784, 1046].forEach((f, i) =>
 // ---------- minimap ----------
 const mini = $('mini').getContext('2d');
 export function drawMap(g, size, cx, cz, scale, rot){ g.save(); g.clearRect(0, 0, size, size); g.fillStyle = '#3b6a34'; g.fillRect(0, 0, size, size);
-  g.translate(size / 2, size / 2); if(rot !== undefined) g.rotate(rot); g.scale(scale, scale); g.translate(-cx, -cz);
+  g.translate(size / 2, size / 2); if(rot === 'N') g.rotate(-Math.PI / 2); else if(rot !== undefined) g.rotate(rot); g.scale(scale, scale); g.translate(-cx, -cz);
+  if(G.mapLines){ g.lineJoin = g.lineCap = 'round'; for(const l of G.mapLines){ g.strokeStyle = l.c; g.lineWidth = l.w; g.beginPath(); for(let i = 0; i < l.p.length; i++) i ? g.lineTo(l.p[i][0], l.p[i][1]) : g.moveTo(l.p[i][0], l.p[i][1]); g.stroke(); } }
   for(const s of G.mapShapes){ g.fillStyle = s.c; g.fillRect(s.x0, s.z0, s.x1 - s.x0, s.z1 - s.z0); }
   const dot = (x, z, c, r) => { g.fillStyle = c; g.beginPath(); g.arc(x, z, r / scale, 0, 7); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 1.5 / scale; g.stroke(); };
   for(const b of G.blips) dot(b.x, b.z, b.c || '#4fc3ff', 5);
   for(const n of G.npcs) if(n.blip) dot(n.p.x, n.p.z, n.blip, 5);
   if(G.way){ dot(G.way.x, G.way.z, '#ffd23f', 8); }
   g.restore();
-  g.save(); g.translate(size / 2, size / 2); if(rot === undefined){ g.translate((P.p.x - cx) * scale, (P.p.z - cz) * scale); g.rotate(-P.yaw + Math.PI); }
+  g.save(); g.translate(size / 2, size / 2); if(rot === 'N'){ g.translate((P.p.z - cz) * scale, -(P.p.x - cx) * scale); g.rotate(-P.yaw + Math.PI / 2); } else if(rot === undefined){ g.translate((P.p.x - cx) * scale, (P.p.z - cz) * scale); g.rotate(-P.yaw + Math.PI); }
   g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -9); g.lineTo(7, 8); g.lineTo(0, 4); g.lineTo(-7, 8); g.closePath(); g.fill(); g.stroke(); g.restore(); }
 const wayV = new THREE.Vector3(); let wayD = -1;
 function hud(){

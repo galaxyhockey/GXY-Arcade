@@ -5,10 +5,10 @@ import * as E from './engine.js';
 import { repDelta, wage } from './extras.js';
 import { save, newCart, train, clearTrain, startPushing, grabFrom, deliver, fillCorral, emptyCorrals } from './game.js';
 const { G, P } = E; const $ = id => document.getElementById(id);
-const SPOTS = [[70, 276], [130, 276], [160, 302], [90, 302], [40, 318], [180, 318], [210, 276], [20, 302]];
+const SPOTS = [[330, 236], [270, 236], [240, 210], [310, 210], [360, 194], [220, 194], [190, 236], [380, 210]];
 const money = n => '$' + n.toFixed(2);
 
-function addCart(c){ const m = newCart(); m.position.set(c.x, 0, c.z + 2.2 - c.carts.length * .55); m.rotation.y = Math.PI; G.scene.add(m); c.carts.push(m); c.initial = (c.initial || 0) + 1; }
+function addCart(c){ const m = newCart(); m.position.set(c.x, 0, c.z - 2.2 + c.carts.length * .55); m.rotation.y = 0; G.scene.add(m); c.carts.push(m); c.initial = (c.initial || 0) + 1; }
 export async function playShift(life, randomLook){ const { L, passTime } = life, l = L(); if(G.onShift) return; G.onShift = true;
   const S = { el:0, stock:16, pat:70, tips:0, carts:0, bags:0, outs:0, req:null, run:null, out:null, nextCust:4, nextBag:12, lastHour:Math.floor(l.min / 60), warned:{} };
   const inters = [], marks = []; const addI = o => { inters.push(E.addInter(o)); return o; };
@@ -44,11 +44,11 @@ export async function playShift(life, randomLook){ const { L, passTime } = life,
     if(S.out && Math.hypot(P.p.x - S.out.spot[0], P.p.z - S.out.spot[1]) < 3.5){ const o = S.out; S.out = null; E.clearMarker(o.mk); E.setWay(); G.scene.remove(o.cart); train.length = 0; const tip = [0, 1, 2, 2, 3, 5][Math.random() * 6 | 0];
       S.tips += tip; S.outs++; S.pat = Math.min(100, S.pat + 6); o.cust.stop(); E.toast(tip ? `Customer tipped you ${money(tip)}. Don’t tell Eric.` : 'Customer: "Thanks, sweetie." No tip. Classic.', 2800); setTimeout(() => o.cust.remove(), 2500); }
     // goofing off in the break room
-    if(P.p.y > 3 && P.p.x > 66 && P.p.x < 84 && P.p.z > 366 && P.p.z < 388){ S.pat -= .25 * dm; if(!S.warned.br || S.el - S.warned.br > 25){ S.warned.br = S.el; radio('Chris, are you on break AGAIN?'); } }
+    if(P.p.y > 3 && P.p.x > 316 && P.p.x < 334 && P.p.z > 124 && P.p.z < 146){ S.pat -= .25 * dm; if(!S.warned.br || S.el - S.warned.br > 25){ S.warned.br = S.el; radio('Chris, are you on break AGAIN?'); } }
     S.pat = Math.max(0, S.pat);
     const left = Math.max(0, 300 - S.el), bar = '█'.repeat(Math.round(S.pat / 10)) + '░'.repeat(10 - Math.round(S.pat / 10));
     const ce = $('carts'); ce.style.display = 'block'; ce.textContent = `SHIFT  ${left / 60 | 0}:${String(left % 60 | 0).padStart(2, '0')} LEFT\nCART BAY  ${S.stock}\nPUSHING  ${S.out ? 'CARRYOUT' : train.length + '/12'}\n` + (S.run ? `CART RUN  ${S.run.got}/${S.run.need}\n` : '') + (S.req ? `LANE ${G.lanes.indexOf(S.req.lane) + 1} NEEDS A BAGGER\n` : '') + `ERIC  ${bar}\nTIPS  ${money(S.tips)}`;
-    const far = Math.hypot(P.p.x - 110, P.p.z - 340) > 230; if(S.el >= 300 || S.pat <= 0 || far) end(far ? 'walked' : S.pat <= 0 ? 'sent' : 'done'); };
+    const far = Math.hypot(P.p.x - 290, P.p.z - 172) > 230; if(S.el >= 300 || S.pat <= 0 || far) end(far ? 'walked' : S.pat <= 0 ? 'sent' : 'done'); };
   t.amb = true; G.ticks.push(t);
   async function end(why){ G.onShift = false; const i = G.ticks.indexOf(t); if(i >= 0) G.ticks.splice(i, 1); inters.forEach(E.delInter); if(S.req) E.clearMarker(S.req.mk); if(S.out){ E.clearMarker(S.out.mk); S.out.cust.remove(); G.scene.remove(S.out.cart); } E.setWay();
     clearTrain(); G.carry = null; emptyCorrals(); $('carts').style.display = 'none';

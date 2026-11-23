@@ -19,7 +19,7 @@ function mesh(geo, m, x, y, z){ const me = new THREE.Mesh(geo, m); me.position.s
 export function weatherFor(dc){ const d = dateOf(dc), m = d.getMonth(), r = rnd(dc + 7); if(m === 9 && d.getDate() === 31) return 'clear';
   if(m === 11 && r < .25) return 'snow'; if(r < .5) return 'clear'; if(r < .72) return 'cloudy'; if(r < .93) return 'rain'; return 'storm'; }
 const WX_NAME = { clear:'Sunny', cloudy:'Cloudy', rain:'Rain', storm:'Thunderstorms', snow:'Snow' };
-function indoors(){ const p = P.p, S = G.SCH; return (p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4) || (S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1) || (p.x > -322 && p.x < -140 && p.z > 100 && p.z < 200 && !(p.x > -270 && p.x < -190 && p.z > 130 && p.z < 170)) || (p.z > 334 && p.z < 350 && ((p.x > 2 && p.x < 49) || (p.x > 184 && p.x < 232))); }
+function indoors(){ const p = P.p, S = G.SCH; return (p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4) || (S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1) || (p.x > -432 && p.x < -250 && p.z > -670 && p.z < -570 && !(p.x > -380 && p.x < -300 && p.z > -640 && p.z < -600)) || (p.z > 162 && p.z < 178 && ((p.x > 351 && p.x < 398) || (p.x > 168 && p.x < 216))); }
 function makeRain(){ const n = 2600, g = new THREE.BufferGeometry(), a = new Float32Array(n * 3); for(let i = 0; i < n; i++){ a[i * 3] = (Math.random() - .5) * 60; a[i * 3 + 1] = Math.random() * 30; a[i * 3 + 2] = (Math.random() - .5) * 60; }
   g.setAttribute('position', new THREE.BufferAttribute(a, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color:0xa8bcd0, size:.09, transparent:true, opacity:.7, depthWrite:false })); p.frustumCulled = false; G.scene.add(p); return p; }
 function applyWeather(){ const w = G.wx || 'clear', wet = w === 'rain' || w === 'storm' || w === 'snow', dim = w === 'cloudy' ? .8 : wet ? .5 : 1;
@@ -37,9 +37,9 @@ function buildDecor(dc){ if(decor){ G.scene.remove(decor); decor = null; } const
   const pumpkin = (x, z) => { const p = new THREE.Mesh(new THREE.SphereGeometry(.28, 10, 8), new THREE.MeshLambertMaterial({ color:0xe0701a, emissive:0x000000 })); p.scale.y = .8; p.position.set(x, .22, z); decor.add(p); (decor.userData.glow = decor.userData.glow || []).push(p.material); };
   if(m === 9 && day >= 20 || (m === 10 && day === 1)){ NORTH.forEach(x => pumpkin(x + 1.6, 10.6)); SOUTH.forEach(x => x === 0 ? 0 : pumpkin(x + 1.6, 37.4)); pumpkin(1.4, 6.6); pumpkin(-1.4, 6.6); }
   if(m === 11){ const cols = [0xff3030, 0x30ff60, 0x3070ff, 0xffd030]; [...NORTH.map(x => [x, 10.7]), ...SOUTH.filter(x => x).map(x => [x, 37.3]), [0, 4.3]].forEach(([x, z]) => { for(let i = 0; i < 11; i++){ const b = new THREE.Mesh(new THREE.SphereGeometry(.07, 6, 4), new THREE.MeshBasicMaterial({ color:cols[i % 4] })); b.position.set(x - 5 + i, 3.15, z); decor.add(b); } });
-    const ban = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.2), new THREE.MeshBasicMaterial({ map:E.label('HAPPY HOLIDAYS FROM SCHNUCKS', { bg:'#1a6a2a', fg:'#fff', size:40, w:768, h:110 }) })); ban.position.set(105, 6.6, 331.2); decor.add(ban); }
-  if(m === 10 && day >= 20 && day <= 28){ for(let i = 0; i < 12; i++){ const t = new THREE.Mesh(new THREE.BoxGeometry(.6, .35, .5), E.mat('#a8743a')); t.position.set(118 + (i % 4) * .65, .18 + (i / 4 | 0) * .36, 340); decor.add(t); }
-    const tb = new THREE.Mesh(new THREE.PlaneGeometry(3, .7), new THREE.MeshBasicMaterial({ map:E.label('TURKEYS 59¢/LB', { bg:'#8a3a1a', fg:'#fff', size:44, w:384, h:90 }) })); tb.position.set(119, 2.2, 339.6); tb.rotation.y = Math.PI; decor.add(tb); }
+    const ban = new THREE.Mesh(new THREE.PlaneGeometry(8, 1.2), new THREE.MeshBasicMaterial({ map:E.label('HAPPY HOLIDAYS FROM SCHNUCKS', { bg:'#1a6a2a', fg:'#fff', size:40, w:768, h:110 }) })); ban.position.set(295, 6.6, 180.8); ban.rotation.y = Math.PI; decor.add(ban); }
+  if(m === 10 && day >= 20 && day <= 28){ for(let i = 0; i < 12; i++){ const t = new THREE.Mesh(new THREE.BoxGeometry(.6, .35, .5), E.mat('#a8743a')); t.position.set(282 - (i % 4) * .65, .18 + (i / 4 | 0) * .36, 172); decor.add(t); }
+    const tb = new THREE.Mesh(new THREE.PlaneGeometry(3, .7), new THREE.MeshBasicMaterial({ map:E.label('TURKEYS 59¢/LB', { bg:'#8a3a1a', fg:'#fff', size:44, w:384, h:90 }) })); tb.position.set(281, 2.2, 172.4); decor.add(tb); }
   windows(G.time); }
 
 // ---------- newspaper ----------
@@ -85,7 +85,7 @@ export function startJob(j){ if(job){ E.toast('Finish your current job first.', 
   if(j.k === 'walk'){ const owner = E.npc('Linda', { shirt:'#a8557a', pants:'#334', hair:'#7a4a2a', hairStyle:'pony', top:'track', bottom:'track', lips:'#b5505a' }, 45, 12.5); job.npcs.push(owner);
     const dog = E.npc('Buster', { dog:true, color:'#6a4a2a', dark:'#2a1a0a', size:1.1 }, 46, 13.5, { speed:5 }); job.npcs.push(dog); dog.follow(P, 1.6, 6.5); job.leg = 0; stepTo(-80, 70, 'WALK BUSTER TO ELMWOOD PARK.');
     job.check = () => { if(job.leg === 0 && Math.hypot(P.p.x + 80, P.p.z - 70) < 4){ job.leg = 1; stepTo(45, 14, 'BRING BUSTER BACK TO LINDA.'); E.sfx('bark'); } return job.leg === 1 && Math.hypot(P.p.x - 45, P.p.z - 14) < 3; }; }
-  if(j.k === 'lost'){ const spots = [[-205, 150], [175, 322], [-62, 84], [124, 186]], s = spots[Math.floor(Math.random() * spots.length)];
+  if(j.k === 'lost'){ const spots = [[-315, -620], [225, 190], [-62, 84], [124, 186]], s = spots[Math.floor(Math.random() * spots.length)];
     const dog = E.npc('Biscuit', { dog:true, color:'#c9a26b', dark:'#6a4a2a', size:.7 }, s[0], s[1], { speed:5.5 }); job.npcs.push(dog); const owner = E.npc('Gary', { shirt:'#5a6a4a', pants:'#3a3a3a', hair:'#4a3a2a', beard:'#4a3a2a', wide:1.15 }, 120, 36.5); job.npcs.push(owner);
     job.leg = 0; E.obj('FIND BISCUIT. Gary heard barking near ' + ['the high school', 'the plaza', 'Elmwood Park', 'Maple Street'][spots.indexOf(s)] + '.'); E.setWay(s[0], s[1]);
     job.check = () => { if(job.leg === 0 && Math.hypot(P.p.x - dog.p.x, P.p.z - dog.p.z) < 2.5){ job.leg = 1; dog.follow(P, 1.5, 6.5); E.sfx('bark'); stepTo(120, 37.5, 'BRING BISCUIT HOME TO GARY.'); } return job.leg === 1 && Math.hypot(P.p.x - 120, P.p.z - 37.5) < 3; }; }
@@ -96,10 +96,10 @@ export function startJob(j){ if(job){ E.toast('Finish your current job first.', 
 
 // ---------- friends: schedule, hangouts, plans, ragers, AIM ----------
 const FRIENDS = { Zeke:'sk8rzeke03', Jax:'jaxattack', Matt:'mattdaman15', Milo:'m1lo_the_brain' };
-const PLACES = { 'Elmwood Park':[-80, 72], 'the plaza (Video World)':[26, 331.5], 'the Schnucks lot':[96, 286], 'your house':[0, 9] };
+const PLACES = { 'Elmwood Park':[-80, 72], 'the plaza (Video World)':[374, 180.5], 'the Schnucks lot':[304, 226], 'your house':[0, 9] };
 function schedule(l){ const d = dateOf(l.dayCount).getDay(), wk = d > 0 && d < 6, t = l.min, wet = G.wet, out = []; if(G.flags.GROUNDING_ACTIVE) return out; // Draft #2: grounded after M08 — school, home, work only
-  if(wk && t >= 930 && t < 1110) out.push(['Zeke', wet ? [26, 331.5] : [-82, 68]]); if(!wk && t >= 720 && t < 1020) out.push(['Jax', [24, 331.5]]); if(wk && t >= 1080 && t < 1200) out.push(['Jax', [-78, 72]]);
-  if(!wk && t >= 840 && t < 1080) out.push(['Matt', [96, 286]]); if(wk && t >= 1020 && t < 1140) out.push(['Milo', [205, 340.5]]); return out; }
+  if(wk && t >= 930 && t < 1110) out.push(['Zeke', wet ? [374, 180.5] : [-82, 68]]); if(!wk && t >= 720 && t < 1020) out.push(['Jax', [376, 180.5]]); if(wk && t >= 1080 && t < 1200) out.push(['Jax', [-78, 72]]);
+  if(!wk && t >= 840 && t < 1080) out.push(['Matt', [304, 226]]); if(wk && t >= 1020 && t < 1140) out.push(['Milo', [195, 171.5]]); return out; }
 const TALK = { Zeke:[['Zeke', 'Bro I almost landed a kickflip today. Almost.'], ['Zeke', 'Journeys made me wear the shirt tucked in. TUCKED IN, Chris.'], ['Zeke', 'You think if I eat enough Hot Pockets I get powers?']],
   Jax:[['Jax', 'My friend is throwing a rager Friday. You coming or are you working, like always?'], ['Jax', 'You look tired. Did Eric make you push carts in the rain again?'], ['Jax', 'I’m thinking about getting frosted tips. Don’t laugh.']],
   Matt:[['Matt', 'YOOOO. Wanna see me ride a cart down the hill?'], ['Matt', 'My mom’s been in Schnucks for an HOUR. For milk.'], ['Matt', 'I burned a CD with 80 songs on it. It skips on every single one.']],
@@ -140,14 +140,14 @@ async function playPS2(){ const l = api.L(), games = GAMES.filter(g => g[2] !== 
   l.hi = l.hi || {}; const best = sc > (l.hi[id] || 0); if(best) l.hi[id] = sc; api.passTime(60); api.save(); E.toast(`${PLAY[id]}<br>SCORE ${sc}${best ? ' · NEW BEST' : ' · best ' + l.hi[id]} · an hour went by`, 4200); return true; }
 
 // ---------- gas station (west end of the plaza lot) ----------
-function gasStation(){ const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), E.mat('#9a9890')); pad.rotation.x = -Math.PI / 2; pad.position.set(-28, .03, 276); addObj(pad); E.mapRect(-43, 264, -13, 288, '#7a7870');
-  const can = mesh(new THREE.BoxGeometry(20, .6, 10), E.mat('#f2f2ee'), -28, 5.2, 276); const band = mesh(new THREE.BoxGeometry(20.2, .5, 10.2), E.mat('#1f4aa8'), -28, 4.75, 276);
-  [[-37, 272], [-19, 272], [-37, 280], [-19, 280]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(.4, 5, .4), E.mat('#f2f2ee'), x, 2.5, z); G.colliders.push({ x0:x - .25, x1:x + .25, z0:z - .25, z1:z + .25, y0:0, y1:5 }); });
-  [[-32, 276], [-24, 276]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(1, 1.8, .7), E.mat('#d8d8d0'), x, .9, z); mesh(new THREE.PlaneGeometry(.7, .4), new THREE.MeshBasicMaterial({ color:0x2a6a3a }), x, 1.4, z + .36); G.colliders.push({ x0:x - .55, x1:x + .55, z0:z - .4, z1:z + .4, y0:0, y1:1.8 }); });
-  const kiosk = mesh(new THREE.BoxGeometry(8, 3.2, 5), E.mat('#e8e2d0'), -28, 1.6, 286); G.colliders.push({ x0:-32, x1:-24, z0:283.5, z1:288.5, y0:0, y1:3.2 });
-  const sg = mesh(new THREE.PlaneGeometry(6, .9), new THREE.MeshBasicMaterial({ map:E.label('GAS · FOOD · ICE', { bg:'#1f4aa8', fg:'#fff', size:56, w:512, h:80 }) }), -28, 2.8, 283.45); sg.rotation.y = Math.PI;
-  const pole = mesh(new THREE.BoxGeometry(.3, 6, .3), E.mat('#777'), -42, 3, 266); const ps = mesh(new THREE.BoxGeometry(2.4, 1.6, .2), new THREE.MeshBasicMaterial({ map:E.label(['UNLEADED', '$1.59⁹'], { bg:'#1a1a1a', fg:'#ffd030', size:44, w:256, h:170 }) }), -42, 6.4, 266);
-  [[-32, 274.6], [-24, 274.6]].forEach(([x, z]) => api.add({ x, z, r:2, prompt:'FILL UP THE TANK', when:() => !G.mission && G.ctl && !G.driving && !G.uiOpen && G.chrisCar && Math.hypot(G.chrisCar.position.x - x, G.chrisCar.position.z - z) < 7,
+function gasStation(){ const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), E.mat('#9a9890')); pad.rotation.x = -Math.PI / 2; pad.position.set(428, .03, 236); addObj(pad); E.mapRect(413, 224, 443, 248, '#7a7870');
+  const can = mesh(new THREE.BoxGeometry(20, .6, 10), E.mat('#f2f2ee'), 428, 5.2, 236); const band = mesh(new THREE.BoxGeometry(20.2, .5, 10.2), E.mat('#1f4aa8'), 428, 4.75, 236);
+  [[437, 240], [419, 240], [437, 232], [419, 232]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(.4, 5, .4), E.mat('#f2f2ee'), x, 2.5, z); G.colliders.push({ x0:x - .25, x1:x + .25, z0:z - .25, z1:z + .25, y0:0, y1:5 }); });
+  [[432, 236], [424, 236]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(1, 1.8, .7), E.mat('#d8d8d0'), x, .9, z); mesh(new THREE.PlaneGeometry(.7, .4), new THREE.MeshBasicMaterial({ color:0x2a6a3a }), x, 1.4, z - .36).rotation.y = Math.PI; G.colliders.push({ x0:x - .55, x1:x + .55, z0:z - .4, z1:z + .4, y0:0, y1:1.8 }); });
+  const kiosk = mesh(new THREE.BoxGeometry(8, 3.2, 5), E.mat('#e8e2d0'), 428, 1.6, 226); G.colliders.push({ x0:424, x1:432, z0:223.5, z1:228.5, y0:0, y1:3.2 });
+  const sg = mesh(new THREE.PlaneGeometry(6, .9), new THREE.MeshBasicMaterial({ map:E.label('GAS · FOOD · ICE', { bg:'#1f4aa8', fg:'#fff', size:56, w:512, h:80 }) }), 428, 2.8, 228.55);
+  const pole = mesh(new THREE.BoxGeometry(.3, 6, .3), E.mat('#777'), 442, 3, 246); const ps = mesh(new THREE.BoxGeometry(2.4, 1.6, .2), new THREE.MeshBasicMaterial({ map:E.label(['UNLEADED', '$1.59⁹'], { bg:'#1a1a1a', fg:'#ffd030', size:44, w:256, h:170 }) }), 442, 6.4, 246);
+  [[432, 237.4], [424, 237.4]].forEach(([x, z]) => api.add({ x, z, r:2, prompt:'FILL UP THE TANK', when:() => !G.mission && G.ctl && !G.driving && !G.uiOpen && G.chrisCar && Math.hypot(G.chrisCar.position.x - x, G.chrisCar.position.z - z) < 7,
     use:async () => { const need = Math.max(0, 10 - G.gas), cost = Math.round(need * 1.599 * 100) / 100; if(need < .2){ E.toast('Tank’s already full.', 2000); return; } if(api.pay(cost)){ G.gas = 10; api.L().gas = 10; api.save(); E.toast(`Filled up: ${need.toFixed(1)} gal for ${api.money(cost)}.`, 2600); } } })); }
 
 // ---------- switch on ----------
@@ -197,7 +197,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
     const kids = (dow > 0 && dow < 6 && l.min >= 900 && l.min < 1080) || ((dow === 0 || dow === 6) && l.min >= 600 && l.min < 1080), busy = (dow === 0 || dow === 6) && l.min >= 540 && l.min < 1140 && !G.wet;
     const crowd = (key, on, make) => { if(on && !spawned[key]){ spawned[key] = make(); } if(!on && spawned[key]){ spawned[key].forEach(n => n.remove()); delete spawned[key]; } };
     crowd('__kids', kids && !G.wet, () => [0, 1, 2, 3].map(i => { const n = E.npc('Kid', { ...api.randomLook(i % 2 === 1), scale:.72 }, -86 + i * 3, 66 + (i % 2) * 5, { speed:2.6 }); n.townie = true; const loop = () => { if(!G.npcs.includes(n)) return; n.go([[-92 + Math.random() * 24, 60 + Math.random() * 20]]).then(() => setTimeout(loop, 600)); }; loop(); return n; }));
-    crowd('__busy', busy, () => [0, 1, 2, 3, 4].map(i => { const n = E.npc('Shopper', api.randomLook(i % 2 === 0), 70 + i * 18, 382, { speed:1.4 }); n.townie = true; const pts = [[66, 352], [148, 352], [148, 382], [66, 382]]; let j = i % 4; const loop = () => { if(!G.npcs.includes(n)) return; n.go([pts[j]]).then(() => { j = (j + 1) % 4; setTimeout(loop, 1500); }); }; loop(); return n; }));
+    crowd('__busy', busy, () => [0, 1, 2, 3, 4].map(i => { const n = E.npc('Shopper', api.randomLook(i % 2 === 0), 70 + i * 18, 382, { speed:1.4 }); n.townie = true; const pts = [[334, 160], [252, 160], [252, 130], [334, 130]]; let j = i % 4; const loop = () => { if(!G.npcs.includes(n)) return; n.go([pts[j]]).then(() => { j = (j + 1) % 4; setTimeout(loop, 1500); }); }; loop(); return n; }));
     const dd = dateOf(dc), hal = dd.getMonth() === 9 && dd.getDate() === 31 && l.min >= 1080 && l.min < 1260;
     crowd('__tot', hal && !G.wet, () => ['ghost', 'witch', 'pirate', 'superhero'].map((c, i) => { const look = { ...api.randomLook(i % 2 === 1), scale:.7, ...(c === 'ghost' ? { shirt:'#f4f4f4', pants:'#f4f4f4', hairStyle:'bald', top:'tee', bottom:'jeans' } : c === 'witch' ? { shirt:'#2a1a3a', pants:'#2a1a3a', hat:'beanie', hatColor:'#111' } : c === 'pirate' ? { hat:'bandana', hatColor:'#c8202a', shirt:'#f2f2f2' } : { shirt:'#2a4ab8', pants:'#c8202a' }) };
       const n = E.npc('Trick-or-treater', look, -40 + i * 12, 17.5, { speed:2.2 }); n.townie = true; const loop = () => { if(!G.npcs.includes(n)) return; n.go([[-60 + Math.random() * 120, 16.5 + Math.random() * 2]]).then(() => setTimeout(loop, 1200)); }; loop(); return n; }));

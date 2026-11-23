@@ -9,6 +9,7 @@ import * as SC from './school.js';
 import * as PZ from './plaza.js';
 import * as ST from './store.js';
 import { worldDetail } from './detail.js';
+import { relocate } from './relocate.js';
 import { buildTown } from './town.js';
 const S = G.scene;
 // ---------- materials ----------
@@ -32,7 +33,7 @@ const glass = new THREE.MeshLambertMaterial({ color:0x9fc6e6, transparent:true, 
 G.M = M;
 
 // ---------- ground + roads ----------
-plane(2200, 1700, rep(M.grass, 293, 227), 160, 0, 150);
+plane(2500, 2500, rep(M.grass, 333, 333), 150, 0, -100);
 function road(x0, z0, x1, z1, name){ plane(x1 - x0, z1 - z0, rep(M.asphalt, (x1 - x0) / 6, (z1 - z0) / 6), (x0 + x1) / 2, .02, (z0 + z1) / 2); mapRect(x0, z0, x1, z1, '#5a5d63');
   const along = x1 - x0 > z1 - z0, dash = new THREE.MeshBasicMaterial({ color:0xf2d04a });
   if(along){ for(let x = x0 + 2; x < x1; x += 6) plane(3, .18, dash, x, .03, (z0 + z1) / 2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z0 - 1.2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z1 + 1.2); }
@@ -225,5 +226,7 @@ export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070,
   G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
 // interior lights for Chris's house and the school classroom
 [[-2.5, 2.6, -3.5], [-4, 5.6, -5]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
-buildTown({ road, tree, M, rep, leafM }); // the wider town: street grid, downtown, parks, farms (town.js)
 worldDetail(); // curbs, poles, yard + park + plaza + store detail (detail.js)
+G.townKit = { road, tree, M, rep, leafM };
+relocate(); // plaza to the real side of Illinois, school out to the south-west (relocate.js)
+buildTown(G.townKit); // real street shapes, landmarks, houses, map edge (town.js)

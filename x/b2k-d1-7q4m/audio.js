@@ -59,11 +59,11 @@ function carSound(){ const c = G.driving, t = A.currentTime, vol = G.paused ? 0 
   eng.g.gain.setTargetAtTime((.022 + .034 * thr + rpm * 3e-6) * vol, t, .08); eng.sq.g.gain.setTargetAtTime(Math.min(.1, (c.slipS || 0) * .035) * vol, t, .05); eng.rd.g.gain.setTargetAtTime(Math.min(.07, Math.abs(c.speed) * .0024) * vol, t, .1); }
 
 // ---------- zone / music selection, every frame ----------
-G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH;
-  const z = G.driving ? 'car' : S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1 + .5 ? 'store' : p.x > -330 && p.x < -140 && p.z > 98 && p.z < 202 && p.y >= 0 && isInside(p) ? 'school'
+G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH, sp = { x:p.x + 110, y:p.y, z:p.z + 770 }; // sp = position in the school's own (old) coordinates
+  const z = G.driving ? 'car' : S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1 + .5 ? 'store' : sp.x > -330 && sp.x < -140 && sp.z > 98 && sp.z < 202 && p.y >= 0 && isInside(sp) ? 'school'
     : p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4 ? 'home' : 'out';
   if(z !== zone){ zone = z; setHum(z === 'store' || z === 'home', z === 'store' ? 60 : 52); }
-  G.inGym = z === 'school' && p.x < -272;
+  G.inGym = z === 'school' && sp.x < -272;
   const want = !music || G.mission === 'S01' ? null : z === 'car' ? 'car' : z === 'store' ? 'store' : z === 'home' && !G.mission ? 'home' : null;
   if(want !== cur){ cur = want; step = 0; nextT = A.currentTime + .1; }
   const tgt = (cur ? (cur === 'car' ? .55 : .5) : 0) * G.set.music / .8; musicG.gain.value += (tgt - musicG.gain.value) * Math.min(1, dt * 2);

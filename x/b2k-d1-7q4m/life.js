@@ -123,27 +123,27 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   { const pep = E.npc('Pepper', { dog:true, color:'#efe6d6', dark:'#6a5a4a', size:.8 }, 2, -20, { speed:1.6 }); npcs.push(pep); const roam = () => { if(!npcs.includes(pep)) return; pep.go([[-10 + Math.random() * 20, -24 + Math.random() * 9]]).then(() => setTimeout(roam, 1500 + Math.random() * 3000)); }; roam();
     add({ x:() => pep.p.x, z:() => pep.p.z, r:1.6, prompt:'PET PEPPER', use:async () => { E.sfx('bark'); E.toast(['Pepper rolls over. Good girl.', 'yip yip. She loves you, apparently.', 'Pepper licks your hand. Gross. Cute.'][Math.random() * 3 | 0], 2400); } }); }
   // plaza shops
-  add({ x:31, z:335.9, r:1.8, prompt:'VIDEO WORLD COUNTER', use:videoStore });
-  add({ x:208, z:344.6, r:1.8, prompt:'ORDER FOOD ($5.95)', use:async () => { if(!pay(5.95)) return; E.cut(true); await E.say([['China Garden', 'Number one, General Tso! Ready in five minutes.']]); await E.fade(true, 400); passTime(20); await E.fade(false, 400); E.cut(false);
+  add({ x:369, z:176.1, r:1.8, prompt:'VIDEO WORLD COUNTER', use:videoStore });
+  add({ x:192, z:167.4, r:1.8, prompt:'ORDER FOOD ($5.95)', use:async () => { if(!pay(5.95)) return; E.cut(true); await E.say([['China Garden', 'Number one, General Tso! Ready in five minutes.']]); await E.fade(true, 400); passTime(20); await E.fade(false, 400); E.cut(false);
     E.toast('Best General Tso’s in Swansea. Fortune: “You will find what you are looking for.” Hopefully my homework.', 4200); } });
-  add({ x:219.6, z:340, r:1.6, prompt:'GET A HAIRCUT ($12)', use:async () => { E.cut(true); await E.say([['Barber', 'Sit down, what are we doing today?']]); const ok = await editor('HAIR CUTS — $12', barberRows(), 12, { x:219.6, z:340, yaw:Math.PI / 2 }); if(ok){ passTime(30); E.toast('Fresh cut. Looking dangerous.', 2400); } } });
-  add({ x:40, z:340, r:1.8, prompt:'DO LAUNDRY ($1.50)', use:async () => { if(!pay(1.5)) return; E.cut(true); await E.fade(true, 400); passTime(45); await E.card('45 MINUTES LATER', 'SMELLS LIKE DRYER SHEETS', 1500); await E.fade(false, 400); E.cut(false); } });
-  add({ x:10, z:337, r:1.8, prompt:'NAIL SPA', use:async () => { E.cut(true); await E.say([['Nail Tech', 'You want a manicure, honey?'], ['Chris', 'I’m... good. Thanks.']]); E.cut(false); } });
+  add({ x:180.4, z:172, r:1.6, prompt:'GET A HAIRCUT ($12)', use:async () => { E.cut(true); await E.say([['Barber', 'Sit down, what are we doing today?']]); const ok = await editor('HAIR CUTS — $12', barberRows(), 12, { x:180.4, z:172, yaw:Math.PI / 2 }); if(ok){ passTime(30); E.toast('Fresh cut. Looking dangerous.', 2400); } } });
+  add({ x:360, z:172, r:1.8, prompt:'DO LAUNDRY ($1.50)', use:async () => { if(!pay(1.5)) return; E.cut(true); await E.fade(true, 400); passTime(45); await E.card('45 MINUTES LATER', 'SMELLS LIKE DRYER SHEETS', 1500); await E.fade(false, 400); E.cut(false); } });
+  add({ x:390, z:175, r:1.8, prompt:'NAIL SPA', use:async () => { E.cut(true); await E.say([['Nail Tech', 'You want a manicure, honey?'], ['Chris', 'I’m... good. Thanks.']]); E.cut(false); } });
   // Schnucks: pick up a shift, vending machine
   add({ x:G.timeClock.x, z:G.timeClock.z, r:1.6, prompt:'WORK A SHIFT (5 HRS)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.onShift && l.min >= 6 * 60 && l.min < 18 * 60, use:async () => { E.cut(true); const pick = await E.choose(['Play the shift (carts, bagging, carryouts)', `Skip it — coast through 5 hours (${money(wage() * 4)}, no tips)`, 'Never mind']);
     if(pick === 2){ E.cut(false); return; } if(pick === 0){ E.cut(false); G.shiftStarted = true; return playShift({ L, passTime }, randomLook); } await E.fade(true, 600); passTime(300); const pay5 = Math.round(wage() * 5 * .8 * 100) / 100; l.cash += pay5; G.shiftStarted = true; save();
     await E.card('SHIFT DONE', `+${money(pay5)}  ·  COASTED THROUGH 5 HRS`, 2200); await E.fade(false, 600); E.cut(false); E.toast('Pushed carts for 5 hours. Eric only yelled twice. Personal best.', 3400); } });
   add({ x:G.vending.x, z:G.vending.z, y:3.6, r:1.6, prompt:'BUY A SODA ($0.75)', use:async () => { if(pay(.75)) E.toast('*clunk* Ice cold.', 1800); } });
   // townspeople: sidewalks, plaza, Schnucks shoppers, school courtyard kids
-  [[-60, 31, [[-60, 31], [60, 31]], false], [80, 17, [[80, 17], [-40, 17]], true], [96, 120, [[94, 120], [94, 210]], false], [60, 318, [[60, 318], [170, 318]], true], [30, 331, [[10, 331], [45, 331]], false],
-   [200, 331, [[190, 331], [230, 331]], true], [90, 352, [[90, 352], [140, 352], [140, 380], [90, 380]], true], [120, 382, [[120, 382], [66, 382], [66, 352], [66, 382]], false], [-230, 140, null, false], [-228, 141.5, null, true], [-150, 140, [[-150, 140], [-180, 160]], true]]
+  [[-60, 31, [[-60, 31], [60, 31]], false], [80, 17, [[80, 17], [-40, 17]], true], [96, 120, [[94, 120], [94, 210]], false], [340, 194, [[340, 194], [230, 194]], true], [370, 181, [[390, 181], [355, 181]], false],
+   [200, 181, [[210, 181], [170, 181]], true], [310, 160, [[310, 160], [260, 160], [260, 132], [310, 132]], true], [280, 130, [[280, 130], [334, 130], [334, 160], [334, 130]], false], [-340, -630, null, false], [-338, -628.5, null, true], [-260, -630, [[-260, -630], [-290, -610]], true]]
     .forEach(([x, z, path, fem], i) => townsperson(fem ? ['Linda', 'Ashley', 'Brittany', 'Tiffany', 'Megan', 'Karen'][i % 6] : ['Mr. Davis', 'Kyle', 'Tyler', 'Dustin', 'Brandon', 'Gary'][i % 6], x, z, path, fem, { face:i }));
   // clock, lighting, street names, far NPCs hidden
   let lastRoad = '', lastT = '', st = 0; const sn = $('street') || Object.assign(document.body.appendChild(document.createElement('div')), { id:'street' });
   sn.style.cssText = 'position:fixed;right:22px;bottom:150px;font-family:"Press Start 2P",monospace;font-size:13px;color:#fff;text-shadow:2px 2px 0 #000;z-index:12;transition:opacity .6s;opacity:0';
   const f = dt => { if(!on || G.mission) return; if(G.ctl && !G.paused && !G.uiOpen){ l.min += dt * .8; if(l.min >= 1440){ l.min -= 1440; l.day = (l.day + 1) % 7; l.dayCount = (l.dayCount || 0) + 1; } }
     const k = tod(l.min); if(k !== lastT){ lastT = k; E.setTime(k); } hud();
-    const r = (G.roads || []).find(r => P.p.x >= r.x0 && P.p.x <= r.x1 && P.p.z >= r.z0 && P.p.z <= r.z1); const name = r ? r.name : '';
+    const r = (G.roads || []).find(r => P.p.x >= r.x0 && P.p.x <= r.x1 && P.p.z >= r.z0 && P.p.z <= r.z1); const name = r ? r.name : G.roadName ? G.roadName(P.p.x, P.p.z) : '';
     if(name && name !== lastRoad){ sn.textContent = name.toUpperCase(); sn.style.opacity = 1; st = 3; } lastRoad = name || lastRoad; if(st > 0 && (st -= dt) <= 0) sn.style.opacity = 0;
     for(const n of npcs){ n.o.visible = Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < (G.npcDist || 70) && !(G.hidePepper && n.name === 'Pepper'); } };
   f.amb = true; G.ticks.push(f); ticks.push(() => { const i = G.ticks.indexOf(f); if(i >= 0) G.ticks.splice(i, 1); sn.style.opacity = 0; });
