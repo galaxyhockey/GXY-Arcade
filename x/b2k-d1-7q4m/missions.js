@@ -40,7 +40,7 @@ const M01 = { title:'Welcome to Belleville', sub:'GAME ORIGINAL · TUTORIAL', wh
   stages:[
     async () => { const b = G.bedSpawn; E.place(b.x, b.z, Math.PI, 3.2); E.cut(true);
       await H.shot([70, 46, 90], [0, 4, 0], 0); await H.shot([40, 26, 50], [0, 3, -4], 5000); await H.shot([8, 9, 26], [0, 4, -4], 4000);
-      await H.shot([4.6, 4.7, -9.6], [4, 4.1, -11.5], 0); await H.wait(1600); await H.shot([3, 5.2, -6], [5, 3.9, -8.6], 1200);
+      await H.shot([-3.7, 4.7, -9.6], [-4.3, 4.1, -11.5], 0); await H.wait(1600); await H.shot([-5.3, 5.2, -6], [-3.3, 3.9, -8.6], 1200);
       await H.card('BELLEVILLE, ILLINOIS | 2003', '', 2600);
       await H.say([[C, 'Belleville, Illinois. Same town, same houses, same boring crap.'], [C, 'I could probably find something to do. Probably.']]); E.cut(false); },
     async () => { E.obj('Look around your room.'); P.moved = 0; P.rotated = 0;
@@ -70,35 +70,35 @@ const M01 = { title:'Welcome to Belleville', sub:'GAME ORIGINAL · TUTORIAL', wh
 
 // =================== M02 — TRIP TO THE KITCHEN (BOOK: September 23, 2003) ===================
 const pj = { shirt:'#7a9ad8', pants:'#5a7ac0', shoes:'#e8b896', sleeve:'short', top:'tee', bottom:'jeans' };
-const CHASE = [[11, -2], [11.5, 10], [16, 23.5], [45, 23.5], [80, 24], [100, 26], [100, 60], [100, 95], [100, 118]];
-const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the TV in Chris's living room", needs:'M01', start:{ x:-4.5, z:-5 },
+const CHASE = [[-14.2, -3], [-14.4, 10], [-10, 23.5], [45, 23.5], [80, 24], [100, 26], [100, 60], [100, 95], [100, 118]];
+const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the TV in Chris's living room", needs:'M01', start:{ x:-4.5, z:1.4 },
   setup(i){ E.setTime('after'); E.setOutfit(pj); clock(day1, ''); G.noTraffic = true; },
   stages:[
-    async () => { phoneUp(true); E.cut(true); clock(day1, '2:40 PM'); await H.shot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 0);
+    async () => { phoneUp(true); E.cut(true); clock(day1, '2:40 PM'); await H.shot([.1, 2.1, -3.4], [3.1, 1.5, -1.2], 0);
       await H.card(day1, '“Drain You” would be playing right now. (music placeholder)', 2600);
       await H.say(call(true, [[C, 'Dude, today is so damn boring'], ['Zeke', 'Bro, I got the coolest idea, let’s skate over some trash cans or something'],
         [C, "That sounds kick-ass but I can't leave the house, I gotta take care of this bratty ass dog, Pepper"], ['Zeke', 'Lame as fuck bro, just ditch like you always do'],
         [C, 'If i get in trouble again i am gonna be moose meat'], ['Zeke', 'I’ll be there soon,']])); phoneUp(false);
       await H.say([['', 'Zeke is one of the sickest dudes ever. We get into all kinds of shit, all of the time. It’s awesome. He works at Journey\'s at the mall, he says it sucks ass and I don\'t blame him.'],
         ['', 'Anyways, i am gonna head to the living room to take care of this lame dog and watch some awesome fucking TV. The new season of this show, Malcolm in the Middle comes on tonight.']]); E.cut(false); },
-    async () => { const pep = mnpc('Pepper', LOOK.pepper, -1, -7.5, { speed:1.2 }); pep.blip = '#fff';
+    async () => { const pep = mnpc('Pepper', LOOK.pepper, -1, -1.1, { speed:1.2 }); pep.blip = '#fff';
       const roam = () => pep.go([[-1 + Math.random() * 4 - 2, -7 + Math.random() * 3]]).then(() => setTimeout(roam, 1200)); roam();
       E.obj('Check on Pepper.'); await H.interact(() => pep.p.x, () => pep.p.z, 'CHECK ON PEPPER', 2); E.sfx('bark'); await H.say([['', 'yip yip, yip yip.'], [C, '...bratty ass dog.']]);
       E.obj('Watch some TV.'); await H.interact(G.sofa.x, G.sofa.z, 'SIT AND WATCH TV', 2.2); sitSofa(true); E.cut(true);
       await H.shot(...TV_SHOT, 600); const flick = mtick(() => G.tvScreen.material.color.setHSL((G.t * .3) % 1, .5, .45)); await H.wait(2200);
-      E.sfx('bang'); await H.shot([5, 2, -4], [8, 1.6, -5.4], 300); await H.wait(400);
-      const zeke = mnpc('Zeke', LOOK.zeke, 9.8, -5.4, { face:-Math.PI / 2 }); G.zeke = zeke; await H.shot([4.5, 1.9, -5.4], [9.8, 1.6, -5.4], 500);
-      pep.stop(); pep.at(4.8, -6.4); E.sfx('bark'); flick(); G.tvScreen.material.color.set(0x4a6aa8);
+      E.sfx('bang'); await H.shot([-4.6, 2, -5.6], [-8, 1.6, -7], 300); await H.wait(400);
+      const zeke = mnpc('Zeke', LOOK.zeke, -9.8, -7, { face:Math.PI / 2 }); G.zeke = zeke; await H.shot([-4.5, 1.9, -7], [-9.8, 1.6, -7], 500);
+      pep.stop(); pep.at(-5.6, -7.4); E.sfx('bark'); flick(); G.tvScreen.material.color.set(0x4a6aa8);
       await H.say([['Zeke', 'YO'], ['Zeke', 'OPEN THIS DAMN WINDOW'], ['', 'The dog starts to do that annoying fucking bark she always does, yip yip, yip yip.'],
         [C, "Dude. What the hell are you doing here?"], ['Zeke', "We are gonna do this sick idea, you know it's sick."], [C, 'It sounds cool but i can’t do it'], ['Zeke', 'Then i will make you']]);
-      E.place(2.5, -6.4, Math.PI / 2); const kw = G.kitchenWindow, ky = kw.position.y; for(let i = 0; i < 12; i++){ kw.position.y = ky + i * .1; await H.wait(30); } E.sfx('door');
-      await H.go(zeke, [[8.75, -5.4]], 2); await crawl(zeke, 8, -1, -5.4); await H.go(zeke, [[5.2, -6.3]], 3); pep.o.visible = false; E.sfx('bark');
-      await H.go(zeke, [[7.25, -5.4]], 4); await crawl(zeke, 8, 1, -5.4); await H.go(zeke, [[9.8, -5.4], [11, -3]], 5);
+      E.place(-3.4, -7, -Math.PI / 2); const kw = G.kitchenWindow, ky = kw.position.y; for(let i = 0; i < 12; i++){ kw.position.y = ky + i * .1; await H.wait(30); } E.sfx('door');
+      await H.go(zeke, [[-8.75, -7]], 2); await crawl(zeke, -8, 1, -7); await H.go(zeke, [[-5.4, -7.8]], 3); pep.o.visible = false; E.sfx('bark');
+      await H.go(zeke, [[-7.25, -7]], 4); await crawl(zeke, -8, -1, -7); await H.go(zeke, [[-9.8, -7], [-11.6, -3.4]], 5);
       kw.position.y = ky; await H.say([['', 'Zeke walks through my fucking window, steals the dog and fucking runs off with it. So now I am chasing this actual idiot with my dog down the street in daytime pajamas. Story of my fucking life.'],
         ['', 'It’s so over when dad gets home.']]);
       await H.card('GET PEPPER BACK', '', 1800); E.cut(false); },
     async () => { const zeke = mnpc('Zeke', LOOK.zeke, 11, -2); const pep = mnpc('Pepper', LOOK.pepper, 11, -2); zeke.blip = '#ff4f4f';
-      E.place(9.2, -5.4, 0); E.obj('CHASE ZEKE AND GET PEPPER BACK.'); clock(day1, '2:55 PM');
+      E.place(-9.4, -7, 0); E.obj('CHASE ZEKE AND GET PEPPER BACK.'); clock(day1, '2:55 PM');
       mtick(() => { pep.p.set(zeke.p.x + Math.sin(zeke.face + 1.6) * .3, zeke.p.y + .75, zeke.p.z + Math.cos(zeke.face + 1.6) * .3); pep.face = zeke.face; pep.sync(); });
       let tired = false; zeke.go(CHASE, 9).then(() => tired = true);
       mtick(() => { const d = Math.hypot(P.p.x - zeke.p.x, P.p.z - zeke.p.z); zeke.speed = tired ? 2.4 : d > 16 ? 6.4 : d < 4 ? 10.6 : 9; if(d > 75) fail('You lost Zeke.'); });
@@ -183,11 +183,11 @@ const M02 = { title:'Trip to the Kitchen', sub:'SEPTEMBER 23RD 2003', where:"the
         ['', 'However, that damn phone interrupts my episode.']]);
       const ring = setInterval(() => E.sfx('ring'), 1400); E.cut(false); E.obj('ANSWER THE PHONE.');
       await H.interact(G.phone.x, G.phone.z, 'ANSWER THE PHONE', 2); clearInterval(ring); clock(day1, '6:00 PM');
-      E.cut(true); phoneUp(true); await H.shot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 500);
+      E.cut(true); phoneUp(true); await H.shot([.1, 2.1, -3.4], [3.1, 1.5, -1.2], 500);
       await H.say([[C, 'Hello?'], ['Eric (phone)', 'Is this Chris?'], [C, 'Yeah? Who is this now? Are you one of those dumbass telemarketers?'], ['Eric (phone)', 'No, I am your boss, where the hell are you Chris?'],
         [C, 'Eric? That\'s you? Your voice sounds funnier over the phone'], ['Eric (phone)', 'CHRIS, ITS 6 PM AND YOU WERE SUPPOSED TO BE AT WORK 3 HOURS AGO TO CLOSE. GET YOUR ASS HERE NOW'],
         [C, 'What if…. I take the day off'], ['Eric (phone)', 'Get to work… NOW.'], [C, 'I’m good on this one dude, i’ll take the sick day']]); phoneUp(false);
-      E.sfx('door'); await H.shot([4, 5, -9], [4, 4.1, -11.5], 1200);
+      E.sfx('door'); await H.shot([-4.3, 5, -9], [-4.3, 4.1, -11.5], 1200);
       await H.say([['', 'hanging up the phone like a boss. Now I would call today pretty successful so far. Might get on the computer to end the night, Runescape is so good.']]);
       await H.banner('MISSION PASSED', 'TRIP TO THE KITCHEN'); Object.assign(G.flags, { missed_shift_eric:true, chris_grounded:true, dogs_safe:true, M03_available:true });
       if(G.suvHome) G.scene.remove(G.suvHome); } ],
@@ -206,14 +206,14 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
       await H.say([['', 'I head inside and get to my backpack and realize that I left the homework in my damn locker at work. Shit.'],
         ['', 'If i go back there i have to face my manager Eric and he\'s gonna be pissed about yesterday still. I know who i need to call about how to get that homework back.'],
         ['', 'Milo, he knows how to get that paper back, and he can give me the answers! YES! That\'s what I need.']]);
-      E.obj('CALL MILO.'); await H.interact(G.phone.x, G.phone.z, 'CALL MILO', 2); E.cut(true); phoneUp(true); await H.shot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 400);
+      E.obj('CALL MILO.'); await H.interact(G.phone.x, G.phone.z, 'CALL MILO', 2); E.cut(true); phoneUp(true); await H.shot([.1, 2.1, -3.4], [3.1, 1.5, -1.2], 400);
       await H.say([['Milo (phone)', 'Hello Chris, what do you need, it\'s 2 in the afternoon you usually don’t wake up this early.'], [C, 'How did you know it was me… nevermind besides the point here, I need a plan on how to get my homework back from my work locker.'],
         ['Milo (phone)', 'Why don’t you just get it?'], [C, 'My boss is PISSED at me for forgetting about work then not coming in'], ['Milo (phone)', 'Sounds about right, I\'ll call the others and we can meet at your house in 10'],
         [C, 'Sounds good Milo, i appreciate it'], ['Milo (phone)', 'Yeah.'], ['', 'he said, hanging up the phone. Dude. Uncool. Why would he just hang up on me by just saying “Yeah.” Anyway, I\'m gonna watch TV for now and wait for the gang to get here.']]);
       phoneUp(false); E.cut(false); E.obj('WAIT FOR THE GROUP. (Watch TV to pass the time)'); await Promise.race([H.interact(G.sofa.x, G.sofa.z, 'WATCH TV UNTIL THEY GET HERE', 2.2), H.wait(25000)]);
       await H.fade(true, 600); await H.card('10 MINUTES LATER', '', 1500); },
-    async () => { E.place(-4.5, -9.4, 0); const g = { milo:mnpc('Milo', LOOK.milo, -6.5, -6), zeke:mnpc('Zeke', LOOK.zeke, -2.3, -6.6), jax:mnpc('Jax', LOOK.jax, -6.8, -8.2), matt:mnpc('Matt', LOOK.matt, -2, -8.4) };
-      Object.values(g).forEach(n => face(n, P.p)); E.cut(true); await H.shot([-1, 2.6, -11.5], [-4.5, 1.1, -7], 0);
+    async () => { E.place(-4.5, -3, 0); const g = { milo:mnpc('Milo', LOOK.milo, -6.5, .4), zeke:mnpc('Zeke', LOOK.zeke, -2.3, -.2), jax:mnpc('Jax', LOOK.jax, -6.8, -1.8), matt:mnpc('Matt', LOOK.matt, -2, -2) };
+      Object.values(g).forEach(n => face(n, P.p)); E.cut(true); await H.shot([-1, 2.6, -4.7], [-4.5, 1.1, -.6], 0);
       await H.say([[C, 'Alright, so how do we attack this'], ['', 'i ask the gang, confused'], ['Milo', 'Alright, what if we just wait till Eric gets off work'], [C, 'Might work'],
         ['Zeke', 'What if? We break into the Schnucks at night'], [C, 'I do like that idea'], ['Milo', 'Are we serious right now'], ['Milo', 'Thats idiotic'], ['Jax', 'I like it'],
         ['Matt', 'Could be fun, but what if we did that but right now instead of at night'], [C, 'Yes.. Yes.. YES'], ['Zeke', 'Agreed'],
@@ -277,12 +277,12 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
       const g = ['milo', 'zeke', 'jax', 'matt'].map((k, i) => mnpc(k, black(LOOK[k]), 150.5 + i, 397.5)); const FORM = [[-1.4, 1.6], [0, 0], [1.4, 1.7], [0, 3]]; g.forEach((n, i) => n.follow(P, 2, 11, FORM[i])); g[1].slow = true; g[1].follow(P, 3, 4.4);
       E.obj('ESCAPE SCHNUCKS WITH THE GROUP.'); E.setWay(152, 410); await H.until(() => P.p.z > 405); alarmFx(false); E.toast('The alarm fades behind you. RUN.', 2500);
       E.obj('RUN HOME.'); g[1].blip = '#ffa040'; await H.say([['', 'So we ran, although Zeke fell behind quickly.']], { auto:true }); await H.reach(0, 7, 2.6); await H.say([['', 'We then finally made it home.']]); await H.fade(true, 500); },
-    async () => { E.place(-4.5, -9.4, 0); const g = { milo:mnpc('Milo', LOOK.milo, -6.5, -6), zeke:mnpc('Zeke', LOOK.zeke, -2.3, -6.6), jax:mnpc('Jax', LOOK.jax, -6.8, -8.2), matt:mnpc('Matt', LOOK.matt, -2, -8.4) };
-      Object.values(g).forEach(n => face(n, P.p)); E.cut(true); await H.shot([.2, 2.5, -4.6], [-4.5, 1.2, -8.2], 0); G.rearDoor.position.x = 152; G.rearDoor.userData.col.off = false;
+    async () => { E.place(-4.5, -3, 0); const g = { milo:mnpc('Milo', LOOK.milo, -6.5, .4), zeke:mnpc('Zeke', LOOK.zeke, -2.3, -.2), jax:mnpc('Jax', LOOK.jax, -6.8, -1.8), matt:mnpc('Matt', LOOK.matt, -2, -2) };
+      Object.values(g).forEach(n => face(n, P.p)); E.cut(true); await H.shot([.2, 2.5, 1.8], [-4.5, 1.2, -1.8], 0); G.rearDoor.position.x = 152; G.rearDoor.userData.col.off = false;
       await H.say([[C, 'Alright, Milo, you can finally help me with tomorrows homework'], ['Milo', 'Does that mean give you the answers'], [C, 'Yes'], ['Zeke', 'Can i get those aswell'],
         ['Milo', 'Sure.'], ['', 'milo said sighing'], ['Milo', 'Wait, Chris'], [C, 'Yeah?']]);
-      await H.shot([-5.6, 1.6, -6.8], [-6.5, 1.3, -6], 400); await H.say([['Milo', 'This is last week\'s homework']]);
-      await H.shot([-3.6, 1.8, -8.1], [-4.5, 1.5, -9.4], 200); E.sfx('bang'); await H.say([[C, 'GOD DAMN IT!!'], ['', 'i yelled, i just fucked myself over didn’t i.']]);
+      await H.shot([-5.6, 1.6, -.4], [-6.5, 1.3, .4], 400); await H.say([['Milo', 'This is last week\'s homework']]);
+      await H.shot([-3.6, 1.8, -1.7], [-4.5, 1.5, -3], 200); E.sfx('bang'); await H.say([[C, 'GOD DAMN IT!!'], ['', 'i yelled, i just fucked myself over didn’t i.']]);
       await H.banner('MISSION PASSED', "ZEKE'S IDEA"); Object.assign(G.flags, { M03_complete:true, retrieved_wrong_homework:true, missed_shift_eric:true, M04_available:true }); } ],
   done(){ G.roamTime = 'after'; G.noTraffic = false; } };
 

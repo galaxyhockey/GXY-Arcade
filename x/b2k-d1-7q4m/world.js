@@ -224,6 +224,6 @@ export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070,
     p.position.set(x, row * .5 + .5, 19.6 + row * 1.2); p.rotation.y = Math.PI; S.add(p); G.crowd.push(p); }
   G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
 // interior lights for Chris's house and the school classroom
-[[0, 2.6, -6], [3, 5.8, -7]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
+[[-2.5, 2.6, -3.5], [-4, 5.6, -5]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
 buildTown({ road, tree, M, rep, leafM }); // the wider town: street grid, downtown, parks, farms (town.js)
 worldDetail(); // curbs, poles, yard + park + plaza + store detail (detail.js)

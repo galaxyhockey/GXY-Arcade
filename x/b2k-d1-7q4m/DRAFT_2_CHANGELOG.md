@@ -82,3 +82,18 @@ The west side of the map, north of Schnucks, is now Swansea rather than generic 
 - Real places: Wolf Branch School, Schranz Memorial Park (two ball diamonds, pond, pavilion), Swansea Village Hall, Swansea Fire Dept., Memorial Hospital on Frank Scott Parkway, a second MetroLink platform signed SWANSEA, the SWANSEA water tower, and a "Welcome to Swansea" board.
 - Skyview Drive-In moved off the Swansea side to N Belt West, which is where it really is.
 - As before, positions are approximate and nothing has an interior.
+
+## Draft 2.6 — realism pass, part 1 (driving + Chris's house)
+
+**Driving.** The car is tuned as a 1996 Ford Taurus. It has weight: about 12.7 s from 0 to 60 mph, about 31 m to stop from 54 mph, an 11 m U-turn at parking speed. Steering turns gradually and is limited by tyre grip, so fast corners run wide with tyre squeal. The body leans in corners and dips under braking. There is an automatic gearbox, engine, tyre and road sound, a closer chase camera, and a hood camera on V. S brakes first and only then reverses; SPACE is the handbrake.
+
+**Chris's house** was rebuilt from the author's floor-plan sketches and photos. It stands on the same spot.
+- Outside: cream brick, brown roof, maroon trim, a storey and a half with the upstairs window in the driveway-side gable, front door with oval glass and coach lights, sunroom, covered porch off the kitchen, detached garage with cupola, wood privacy fence, patio, grills, fire pit, big tree, vegetable patch.
+- Main floor: living room and sunroom on the street side, kitchen behind, hallway with the stairs and bathroom, parents' bedroom and a second bedroom at the far end.
+- Upstairs: Chris's bedroom on the driveway side, bathroom in the middle with the hallway wrapping round it, second bedroom at the other end.
+- The driveway and car moved to the sunroom side. Zeke now comes through the kitchen window on that side.
+- Modern items in the reference photos were swapped for 2003 ones. The house number is left off.
+- NOT built yet: the basement (the door is there but shut), so the desk corner with the tube TV and push-button phone is still to come.
+- Furniture inside each room keeps its old arrangement so the story scenes still line up; it has not been matched to the photos piece by piece.
+
+Still to do in this pass: the town rebuilt on real street shapes, hills and street detail, pedestrians and traffic lights.

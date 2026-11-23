@@ -121,5 +121,5 @@ export function buildTravel(){ const T = G.T = {};
   // ---------- Chris's house: family PC by the front door (S02), cordless on the coffee table (S07) ----------
   solid(1.5, .76, .7, '#8a6a4a', 2.4, 0, 3.45); PR.crtMonitor(2.4, .76, 3.5, Math.PI); PR.chair(2.4, 0, 2.55, 0, '#5a4a3a'); deco(.5, .14, .4, '#d8d4c8', 3, .76, 3.45);
   G.famPC = { x:2.4, z:2.2, look:[2.4, 1.02, 3.5] };
-  deco(.1, .2, .22, '#2a2a2e', -5.1, .45, -6.4); deco(.2, .05, .26, '#3a3a40', -5.1, .45, -6.4); G.phone2 = { x:-5.1, z:-5.3 };
+  deco(.1, .2, .22, '#2a2a2e', -5.1, .48, 0); deco(.2, .05, .26, '#3a3a40', -5.1, .48, 0); G.phone2 = { x:-5.1, z:1.1 };
   void makeCar; }

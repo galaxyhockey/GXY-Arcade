@@ -232,15 +232,15 @@ export const M04 = { title:'Old Dude', sub:'SEPTEMBER 26TH 2003', where:'front e
       await H.say([['', 'It took awhile but my aim sucks like balls. Luckily it was time to go home by then and all the bosses went there like cocoons or whatever they are called.']]); clock(day4, '11:00 PM'); },
     async () => { E.setTime('night'); E.setOutfit({}); clock(day4, '11:05 PM'); park(180, 352, Math.PI); E.place(177.5, 349, Math.PI); E.cut(false);
       E.obj('DRIVE HOME. (E to get in)'); await H.until(() => G.driving); G.noExit = true; E.say([['', 'I drove home, that was the best part of the night. The air was like cold but it was nice and warm and the music I was listening to was awesome. (music placeholder)']], { auto:true });
-      E.obj('DRIVE HOME — park in your driveway.'); await H.reach(10.5, 10, 4, { color:0x4fc3ff }); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar();
-      await H.fade(true, 400); E.place(-4.5, -6, Math.PI); E.cut(true); await H.fade(false, 400);
-      const dad = mnpc('Dad', LOOK.dad, -5.3, -10.3, { face:0 }); const mom = mnpc('Mom', LOOK.mom, -3.7, -10.3, { face:0 }); [dad, mom].forEach(n => n.p.y = .25);
-      await H.shot([-1.5, 2.4, -5], [-4.5, 1.2, -10], 0); mtick(() => G.tvScreen.material.color.setHSL((G.t * .2) % 1, .4, .45));
+      E.obj('DRIVE HOME — park in your driveway.'); await H.reach(-17, 10, 4, { color:0x4fc3ff }); await H.until(() => Math.abs(G.driving.speed) < 1.2); G.noExit = false; E.exitCar();
+      await H.fade(true, 400); E.place(-4.5, .4, Math.PI); E.cut(true); await H.fade(false, 400);
+      const dad = mnpc('Dad', LOOK.dad, -5.3, -3.9, { face:0 }); const mom = mnpc('Mom', LOOK.mom, -3.7, -3.9, { face:0 }); [dad, mom].forEach(n => n.p.y = .25);
+      await H.shot([-1.5, 2.4, 1.4], [-4.5, 1.2, -3.6], 0); mtick(() => G.tvScreen.material.color.setHSL((G.t * .2) % 1, .4, .45));
       await H.say([['', 'I got home and mom and dad were like on the couch watching a gay movie'], ['Dad', 'Welcome home chris'], ['Mom', 'Welcome home chrissy'],
         [C, 'Don’t say that again mom, where\'s the food'], [C, 'i hate when she calls me that, feel like a mistake'], ['Mom', 'It\'s in the microwave']]); E.cut(false);
       E.obj('EAT DINNER.'); await H.interact(G.micro.x, G.micro.z, 'HEAT UP THE LEFTOVERS', 2); E.tone(440, 0, 1.2, 'sine', .03); await H.wait(1300); E.sfx('ok');
       await H.say([['', 'I walked over to the microwave and heated up the leftovers. I ate it, and they make some good food.']]);
-      E.obj('GO TO YOUR ROOM.'); await H.reach(4, -6, 2, { y:3.2 }); E.obj('PLAY MADDEN 2002.'); await H.interact(G.console.x, G.console.z, 'PLAY MADDEN 2002', 2, 3.2);
+      E.obj('GO TO YOUR ROOM.'); await H.reach(-4.3, -6, 2, { y:3.2 }); E.obj('PLAY MADDEN 2002.'); await H.interact(G.console.x, G.console.z, 'PLAY MADDEN 2002', 2, 3.2);
       await H.say([['', 'I walked over to my room, sat down and played some Madden 2002. The Rams were gonna win against the Panthers because they had, the one, the only Christopher Storbach, if only it was Staubach, I\'d have cooler parents.'],
         ['', 'However, I got pissed cause my team kinda sucked bad this game for some reason and I was getting my ass handed to me.']]);
       await live2(footballMontage());

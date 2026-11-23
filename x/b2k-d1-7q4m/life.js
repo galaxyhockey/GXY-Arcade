@@ -82,7 +82,7 @@ async function usePC(){ E.cut(true); const [x, y, z] = G.monitorPos; await E.cam
   for(;;){ const k = await E.choose(['Play RuneScape (1 hr)', 'Check email', 'Instant Messenger', 'Shop online', 'Log off']); if(k === 4) break; if(k === 2 && G.ext){ await G.ext.aim(); continue; } if(k === 3){ if(G.shopOnline) await G.shopOnline(); continue; }
     if(k === 0){ passTime(60); } await E.say([[['', 'An hour of chopping trees later: level 31 woodcutting. Worth it.']], [['', '1 new message: “U HAVE WON A FREE IPOD!!!” Delete.']], [['', 'Nobody’s online. Zeke’s away message just says “skating.”']]][k]); }
   scr.color.setHex(c0); E.cut(false); }
-async function usePhone(){ if(G.ext && G.ext.grounded()){ E.toast('Dad took the phone. Grounded.', 2400); return; } E.cut(true); phoneUp(true); await E.camShot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 400); const names = Object.keys(CALLS);
+async function usePhone(){ if(G.ext && G.ext.grounded()){ E.toast('Dad took the phone. Grounded.', 2400); return; } E.cut(true); phoneUp(true); await E.camShot([.1, 2.1, -3.4], [3.1, 1.5, -1.2], 400); const names = Object.keys(CALLS);
   if(G.ext && (await E.choose(['Make plans with a friend', 'Just call someone'])) === 0){ await G.ext.makePlans(); phoneUp(false); E.cut(false); return; }
   const k = await E.choose([...names.map(n => 'Call ' + n), 'Hang up']); if(k < names.length){ for(let i = 0; i < 2; i++){ E.sfx('ring'); await E.wait(900); } await E.say(CALLS[names[k]]); }
   phoneUp(false); E.cut(false); }
@@ -109,8 +109,8 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   E.setTime(tod(l.min)); E.setOutfit({});
   // home
   add({ x:G.sofa.x, z:G.sofa.z, y:0, r:1.8, prompt:'WATCH TV', use:useTV }); add({ x:G.desk.x, z:G.desk.z, y:3.2, r:1.8, prompt:'USE THE COMPUTER', use:usePC }); add({ x:G.phone.x, z:G.phone.z, y:0, r:1.8, prompt:'USE THE PHONE', use:usePhone });
-  add({ x:G.closet.x, z:G.closet.z, y:3.2, r:1.6, prompt:'OPEN YOUR CLOSET', use:async () => { E.sfx('door'); await editor("CHRIS'S CLOSET", closetRows(), 0, { x:5.2, z:-5, yaw:-Math.PI / 2 }); } });
-  add({ x:1.6, z:-10.3, y:0, r:1.4, prompt:'GRAB A SNACK', use:async () => { const d = G.fridgeObj && G.fridgeObj.userData.door; E.cut(true); E.place(1.75, -10.25, Math.PI); P.model.rotation.y = Math.PI; E.camShot([3.4, 1.9, -9.2], [1.5, 1.1, -11.2], 400); E.sfx('door');
+  add({ x:G.closet.x, z:G.closet.z, y:3.2, r:1.6, prompt:'OPEN YOUR CLOSET', use:async () => { E.sfx('door'); await editor("CHRIS'S CLOSET", closetRows(), 0, { x:-3.1, z:-5.4, yaw:-Math.PI / 2 }); } });
+  add({ x:-6.7, z:-10.3, y:0, r:1.4, prompt:'GRAB A SNACK', use:async () => { const d = G.fridgeObj && G.fridgeObj.userData.door; E.cut(true); E.place(-6.55, -10.25, Math.PI); P.model.rotation.y = Math.PI; E.camShot([-4.9, 1.9, -9.2], [-6.8, 1.1, -11.2], 400); E.sfx('door');
     for(let i = 1; i <= 10; i++){ if(d) d.rotation.y = -1.75 * i / 10; await E.wait(30); } await E.wait(900); for(let i = 9; i >= 0; i--){ if(d) d.rotation.y = -1.75 * i / 10; await E.wait(25); } E.sfx('door'); E.cut(false); passTime(10); E.toast(['Bagel Bites. A classic.', 'Last Hot Pocket. Sorry, Dad.', 'Gushers. Breakfast of champions.', 'Cold pizza from Friday.'][Math.random() * 4 | 0], 2600); } });
   add({ x:G.console.x, z:G.console.z, y:3.2, r:1.6, prompt:'PLAY VIDEO GAMES (1 HR)', use:async () => { if(G.ext && G.ext.owned('ps2')){ await G.ext.playPS2(); return; } E.cut(true); await E.fade(true, 500); passTime(60); await E.card('1 HOUR LATER', '', 1200); await E.fade(false, 500); E.cut(false);
     E.toast(['Beat my high score in the skate game. Untouchable.', 'Lost every race. The controller is broken. Definitely the controller.', 'Finally beat that boss. Took 40 tries.'][Math.random() * 3 | 0], 3200); } });

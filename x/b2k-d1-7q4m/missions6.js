@@ -19,7 +19,7 @@ const base = () => { reg(); film(null); pcOff(); G.noTraffic = false; G.storeOpe
 async function pick(html, o, opts, right, wrongMsg){ let n = 0; for(;;){ pc(html, o); const k = await H.choose(opts); if(k === right){ E.sfx('ok'); return n; } n++; E.sfx('miss'); E.toast(Array.isArray(wrongMsg) ? wrongMsg[k] || wrongMsg[0] : wrongMsg, 3000); } }
 
 // =================== S02 — COMPUTER TROUBLES ===================
-export const S02 = { title:'Computer Troubles', sub:'SIDE MISSION · GAME ORIGINAL', where:'the family computer, by your front door', needs:'M05', avail:d => d.M05 && !d.M08, start:{ x:3.9, z:2.8 },
+export const S02 = { title:'Computer Troubles', sub:'SIDE MISSION · GAME ORIGINAL', where:'the family computer, by your front door', needs:'M05', avail:d => d.M05 && !d.M08, start:{ x:3, z:1.6 },
   setup(){ base(); E.setTime('after'); E.setOutfit({}); clock('SIDE MISSION', ''); },
   stages:[ async () => { const F = G.famPC; E.place(-1.2, -3.4, 0); const mom = sitN(mnpc(MOM, LOOK.mom, 0, 0), 2.4, 2.55, 0); E.cut(true); await H.shot([-.4, 1.9, .4], [2.4, 1.1, 3], 0); await H.say([[MOM, `Chris! I think I broke the computer.`]]); E.cut(false);
       E.obj('FIND MOM.'); await H.interact(F.x - 1.2, F.z - .2, 'CHECK THE COMPUTER', 2.2); E.cut(true); faceP(mom); await H.shot([.2, 1.8, .8], [2.4, 1.1, 3.2], 500);
@@ -43,9 +43,9 @@ const SUBJ = [
     ['A small business needs a plan: what it sells, what that costs, and who will buy it.', 'The smallest country in the world is Vatican City.', 'Monopoly is a board game about buying property.'], 0],
   ['computer networks', ['computer networks', 'fishing nets', 'computer solitaire'], 0, ['', 'Nets. For fish.', 'Tempting. No.'],
     ['An early electronic computer filled a whole room.', 'A spider builds its web out of silk.', 'A network joins computers together so they can share one internet connection and one printer.'], 2] ];
-export const S03 = { title:'Midnight Research', sub:'SIDE MISSION · GAME ORIGINAL', where:'your bedroom computer', needs:'M06', avail:d => d.M06 && !d.M07, start:{ x:1.3, z:-8.6, y:3.2 },
+export const S03 = { title:'Midnight Research', sub:'SIDE MISSION · GAME ORIGINAL', where:'your bedroom computer', needs:'M06', avail:d => d.M06 && !d.M07, start:{ x:-7, z:-8.6, y:3.2 },
   setup(){ base(); E.setTime('night'); E.setOutfit({}); clock('OCTOBER 1ST 2003', 'LATE'); },
-  stages:[ async () => { E.place(3.5, -9.4, Math.PI, 3.2); E.cut(true); await pcShot(0); await H.say([['Dad', `Chris, you've got ten minutes before I need the phone line.`], [C, `A whole ten minutes? Might as well get my PhD while I'm at it.`]]);
+  stages:[ async () => { E.place(-4.8, -9.4, Math.PI, 3.2); E.cut(true); await pcShot(0); await H.say([['Dad', `Chris, you've got ten minutes before I need the phone line.`], [C, `A whole ten minutes? Might as well get my PhD while I'm at it.`]]);
       const long = (await H.choose(['10:00 on the clock', '15:00 on the clock (more time)'])) === 1; let left = long ? 900 : 600, out = null; const o = { title:'Encyclopedia 2003', task:'WINDOWS XP | Encyclopedia 2003' }, lost = new Promise(r => out = r);
       const fmt = () => `PHONE LINE ${String(left / 60 | 0).padStart(2, '0')}:${String(left % 60 | 0).padStart(2, '0')}`; mtick(dt => { if(left > 0 && (left -= dt) <= 0){ left = 0; out('time'); } pcClock(fmt()); });
       const timed = p => Promise.race([p, lost]), notes = []; E.obj('OPEN THE ENCYCLOPEDIA. Find three subjects and save your notes before the timer runs out.');
@@ -103,13 +103,13 @@ export const S06 = { title:'Pickup Game', sub:'SIDE MISSION · GAME ORIGINAL', w
 
 // =================== S07 — PHONE TROUBLES ===================
 // Household checks only: handsets and a plug-in cord. No wiring, no poles, no outside box.
-export const S07 = { title:'Phone Troubles', sub:'SIDE MISSION · GAME ORIGINAL', where:'your kitchen', needs:'M08', avail:d => d.M08, start:{ x:4.8, z:-3 },
+export const S07 = { title:'Phone Troubles', sub:'SIDE MISSION · GAME ORIGINAL', where:'your kitchen', needs:'M08', avail:d => d.M08, start:{ x:.5, z:-3 },
   setup(){ base(); E.setTime('dusk'); E.setOutfit({}); clock('GROUNDED', ''); },
-  stages:[ async () => { E.place(3.4, -3.2, Math.PI / 2); const dad = mnpc(DAD, LOOK.dad, 5.6, -2.2), mom = mnpc(MOM, LOOK.mom, 3.2, -6.4); [dad, mom].forEach(n => face(n, P.p)); const crackle = () => { for(let i = 0; i < 6; i++) E.tone(900 + Math.random() * 2400, i * .07, .05, 'square', .02); }, tone = () => { E.tone(350, 0, 1.4, 'sine', .04); E.tone(440, 0, 1.4, 'sine', .04); };
+  stages:[ async () => { E.place(3.4, -3.2, Math.PI / 2); const dad = mnpc(DAD, LOOK.dad, 1.3, -2.2), mom = mnpc(MOM, LOOK.mom, -5.1, -6.4); [dad, mom].forEach(n => face(n, P.p)); const crackle = () => { for(let i = 0; i < 6; i++) E.tone(900 + Math.random() * 2400, i * .07, .05, 'square', .02); }, tone = () => { E.tone(350, 0, 1.4, 'sine', .04); E.tone(440, 0, 1.4, 'sine', .04); };
       E.cut(true); faceP(dad); crackle(); await two(P.p, dad, 1, 3.8); await H.say([['', `The landline crackled. The repair company was delayed. Again.`], [C, `So the phone company has a phone they can answer, but we don't? That's poetic.`], [DAD, `Since you can't go anywhere, you can at least help me figure this out.`], [MOM, `Don't make it worse.`]]); E.cut(false); // first line GO-STANDIN
       E.obj('PICK UP THE PHONE.'); await H.interact(G.phone.x, G.phone.z, 'PICK UP THE KITCHEN PHONE', 2); crackle(); E.toast('Static. No dial tone.', 2600);
       E.obj('CHECK HOUSE HANDSETS. (the cordless in the living room)'); await H.interact(G.phone2.x, G.phone2.z, 'TRY THE CORDLESS', 2); crackle(); E.toast('Same static. So it is not just one phone.', 3000);
-      E.obj('CHECK HOUSE HANDSETS. (back at the kitchen phone)'); await H.interact(G.phone.x, G.phone.z, 'CHECK THE KITCHEN PHONE', 2); E.cut(true); await H.shot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 500);
+      E.obj('CHECK HOUSE HANDSETS. (back at the kitchen phone)'); await H.interact(G.phone.x, G.phone.z, 'CHECK THE KITCHEN PHONE', 2); E.cut(true); await H.shot([.1, 2.1, -3.4], [3.1, 1.5, -1.2], 500);
       for(;;){ const k = await H.choose(['Push the handset cord back in', 'Look at the long extension cord to the wall', 'Shake the phone']); if(k === 1) break; crackle(); E.toast(k === 0 ? 'It was already in. Still static.' : 'Mom: “Don’t make it worse.”', 2600); }
       E.toast('The extension cord is kinked and cracked near the plug.', 3200); E.sfx('ok'); E.cut(false);
       E.obj('FIND SPARE CORD. (the junk box in your closet, upstairs)'); await H.interact(G.closet.x, G.closet.z, 'DIG OUT A SPARE PHONE CORD', 2, 3.2); E.sfx('ok'); E.toast('One spare phone cord. Still in the twist tie.', 2600);

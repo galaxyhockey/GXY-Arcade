@@ -77,8 +77,8 @@ const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01', 'M05', 'S02', 'S06', 'M06', 'S
 let roamMarks = [];
 const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
 // Chris sits on the living-room sofa facing the TV; the camera looks over his shoulder so he never blocks the screen
-export const TV_SHOT = [[-5.9, 2.3, -11.4], [-4.5, 1.1, -2.6]];
-export function sitSofa(on){ if(on){ E.place(-4.5, -10.45, 0); if(G.sofaCol) G.sofaCol.off = true; P.model.rotation.y = 0; E.sit(P.model, true); } else if(P.model.userData.sitting){ E.place(-4.5, -9.3, 0); } }
+export const TV_SHOT = [[-5.9, 2.3, -4.72], [-4.5, 1.1, 3.8]];
+export function sitSofa(on){ if(on){ E.place(-4.5, -4.05, 0); if(G.sofaCol) G.sofaCol.off = true; P.model.rotation.y = 0; E.sit(P.model, true); } else if(P.model.userData.sitting){ E.place(-4.5, -2.9, 0); } }
 // Chris takes the kitchen wall phone off the hook (handset at his ear) / hangs it up
 export function phoneUp(on){ const hs = G.phoneObj && G.phoneObj.userData.hs; if(hs) hs.visible = !on; E.holdPhone(P.model, on ? 'handset' : null);
   if(on){ E.place(G.phone.x, G.phone.z, Math.atan2(G.phoneLook.x - G.phone.x, G.phoneLook.z - G.phone.z)); P.model.rotation.y = P.yaw; } }
@@ -115,7 +115,7 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
 // parked cars in some driveways + Chris's own car (drivable)
 (G.driveways || []).filter((d, i) => i % 3 === 1).map(d => [d.x, d.z, d.ry]).forEach(([x, z, ry], i) => { const c = E.makeCar(['#7a2a2a', '#ccc', '#2a4a6a', '#e8e8e8', '#3a3a3a', '#6a5a2a', '#1f5a3a', '#8a8a92'][i % 8], { suv:i % 3 === 0 }); c.position.set(x, 0, z); c.rotation.y = ry; G.scene.add(c);
   const sw = Math.abs(Math.sin(ry)) > .7; G.colliders.push(sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1, y0:0, y1:1.6 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3, y0:0, y1:1.6 }); });
-G.chrisCarCol = G.colliders.find(c => c.x0 === 9.5 && c.z0 === 6.8); G.chrisDrive = E.makeDrivable(G.chrisCar, G.chrisCarCol);
+G.chrisCarCol = G.colliders.find(c => c.x0 === -18 && c.z0 === 6.8); G.chrisDrive = E.makeDrivable(G.chrisCar, G.chrisCarCol);
 { const barks = ['"Afternoon."', '"Watch the road, kid."', '"Nice weather, huh?"'];
   const peds = [[[-150, 17], [-20, 17]], [[20, 31], [140, 31]], [[94, 60], [94, 230]]];
   peds.forEach((path, i) => { const n = E.npc('ped' + i, { shirt:['#8a5a9a', '#3a7a6a', '#a8743a'][i], pants:'#334', hair:['#222', '#a87a4a', '#ddd'][i], long:i === 1 }, path[0][0], path[0][1], { speed:1.6 });
