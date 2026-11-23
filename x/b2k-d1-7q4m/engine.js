@@ -256,6 +256,7 @@ export class NPC {
       const d = Math.hypot(f.x - this.p.x, f.z - this.p.z);
       if((d > 26 || Math.abs((f.y || 0) - this.p.y) > 2.5) && !this.slow){ this.lost = (this.lost || 0) + dt; if(this.lost > 2.5){ this.p.set(f.x, f.y || 0, f.z); this.lost = 0; } } else this.lost = 0;
       if(d > (this.off ? .5 : this.gap)) tgt = f; }
+    if(tgt && this.path && !this.noLaw && this.speed <= 4.5 && G.pedHold && G.pedHold(this, tgt)) tgt = null;
     if(tgt){ const dx = tgt.x - this.p.x, dz = tgt.z - this.p.z, d = Math.hypot(dx, dz) || 1, sp = this.fol && !this.path ? Math.min(this.speed * (d > 8 ? 1.6 : 1), d * 3) : this.speed;
       this.p.x += dx / d * sp * dt; this.p.z += dz / d * sp * dt; this.face = Math.atan2(dx, dz); moving = sp; }
     const gy = groundAt(this.p.x, this.p.z, this.p.y); this.p.y += (gy - this.p.y) * Math.min(1, dt * 12);

@@ -1,5 +1,6 @@
 // Back in the 2000s: The Game — Draft #1 runner: saves, mission flow, checkpoints, free roam, carts, menus
 import * as E from './engine.js';
+import { initTraffic } from './traffic.js';
 import './world.js';
 import './audio.js';
 import * as LIFE from './life.js';
@@ -98,19 +99,7 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
     roamMarks.push({ mk, stop }); G.blips.push({ x:s.x, z:s.z, c:id[0] === 'S' ? '#4fc3ff' : '#ffd23f' }); });
   if(next){ E.obj(`${MIS[next].title}: go to the ${next[0] === 'S' ? 'blue' : 'yellow'} marker (${MIS[next].where}).`); E.setWay(MIS[next].start.x, MIS[next].start.z); } else E.obj('Free roam. Replay missions from the pause menu.'); }
 // ambient traffic: drives on the right on every road, stops for Chris (on foot or driving)
-{ const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
-  (G.townLines || []).forEach((l, li) => { let total = 0; const cum = [0]; for(let i = 1; i < l.p.length; i++){ total += Math.hypot(l.p[i][0] - l.p[i - 1][0], l.p[i][1] - l.p[i - 1][1]); cum.push(total); } if(total < 70) return;
-    const n = Math.max(1, Math.round(total / (l.k === 3 ? 280 : 180)));
-    for(const dir of [1, -1]) for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(li * 3 + k + (dir > 0 ? 0 : 4)) % 9], { suv:(li + k) % 3 === 0, lights:true }); G.scene.add(car);
-      const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let s = total * ((k + (dir > 0 ? .25 : .75)) / n), v = 12, seg = 1;
-      const t = dt => { const u = dir > 0 ? s : total - s; while(seg < cum.length - 1 && cum[seg] < u) seg++; while(seg > 1 && cum[seg - 1] > u) seg--;
-        const a = l.p[seg - 1], b = l.p[seg], L = cum[seg] - cum[seg - 1] || 1, f = (u - cum[seg - 1]) / L; let fx = (b[0] - a[0]) / L * dir, fz = (b[1] - a[1]) / L * dir, px = a[0] + (b[0] - a[0]) * f - fz * 1.9, pz = a[1] + (b[1] - a[1]) * f + fx * 1.9;
-        const Q = G.SQ; if(Q){ const dx = px - Q.x, dz = pz - Q.z, dd = Math.hypot(dx, dz); if(dd < 19 && dd > .01){ px = Q.x + dx / dd * 19; pz = Q.z + dz / dd * 19; let tx = -dz / dd, tz = dx / dd; if(tx * fx + tz * fz < 0){ tx = -tx; tz = -tz; } fx = tx; fz = tz; } }
-        const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx), block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
-        s += v * dt; if(s > total) s -= total;
-        const T = G.terrain, py = T ? T(px, pz) : 0; car.rotation.order = 'YXZ'; car.position.set(px, py, pz); car.rotation.y = Math.atan2(fx, fz); car.rotation.x = T ? -Math.atan((T(px + fx * 2, pz + fz * 2) - T(px - fx * 2, pz - fz * 2)) / 4) : 0; const lx = Math.abs(fx) > Math.abs(fz);
-        Object.assign(col, lx ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.y0 = py - .5; col.y1 = py + 1.6; col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
-      t.amb = true; G.ticks.push(t); } }); }
+initTraffic(); // signals, stop signs, cars and pedestrians that obey them (traffic.js)
 // parked cars in some driveways + Chris's own car (drivable)
 (G.driveways || []).filter((d, i) => i % 3 === 1).map(d => [d.x, d.z, d.ry]).forEach(([x, z, ry], i) => { const c = E.makeCar(['#7a2a2a', '#ccc', '#2a4a6a', '#e8e8e8', '#3a3a3a', '#6a5a2a', '#1f5a3a', '#8a8a92'][i % 8], { suv:i % 3 === 0 }); c.position.set(x, 0, z); c.rotation.y = ry; G.scene.add(c);
   const sw = Math.abs(Math.sin(ry)) > .7; G.colliders.push(sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1, y0:0, y1:1.6 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3, y0:0, y1:1.6 }); });

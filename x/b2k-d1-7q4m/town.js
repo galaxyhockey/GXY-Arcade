@@ -87,13 +87,30 @@ export function buildTown({ road, tree, M, rep, leafM }){
   const waterLines = WATER.map(P2); waterLines.forEach(p => { addSegs(p, { n:'' }, SEGW); ribbon(p, 5, .012, bankM); ribbon(p, 3.2, .02, waterM); G.mapLines.push({ p, w:6, c:'#4a8fc0' }); });
   const railLines = RAIL.map(P2); railLines.forEach(p => { addSegs(p, { n:'' }, SEGW); ribbon(p, 2.2, .05, tieM, 0, 2.4); G.mapLines.push({ p, w:3, c:'#8a857a' }); });
   coreLines.forEach(l => l.hw = 4); G.townLines = [...LINES, ...coreLines];
-  // junctions: a plain patch of asphalt wherever two streets cross or one ends against another, and a turning circle at dead ends
-  { const jm = rep(M.asphalt, 2, 2), segs = []; G.townLines.forEach((l, li) => { for(let i = 1; i < l.p.length; i++) segs.push([l.p[i - 1][0], l.p[i - 1][1], l.p[i][0], l.p[i][1], li]); }); const pts = [];
-    const add = (x, z, r) => { if(pts.some(q => Math.hypot(q[0] - x, q[1] - z) < 5)) return; pts.push([x, z]); const d = disc(r, jm, x, .062, z, 1, 1, 18); d.userData.flat = true; };
-    for(let i = 0; i < segs.length; i++){ const a = segs[i]; for(let j = i + 1; j < segs.length; j++){ const b = segs[j]; if(a[4] === b[4]) continue; if(Math.max(a[0], a[2]) < Math.min(b[0], b[2]) - 1 || Math.max(b[0], b[2]) < Math.min(a[0], a[2]) - 1 || Math.max(a[1], a[3]) < Math.min(b[1], b[3]) - 1 || Math.max(b[1], b[3]) < Math.min(a[1], a[3]) - 1) continue;
-        const d1x = a[2] - a[0], d1z = a[3] - a[1], d2x = b[2] - b[0], d2z = b[3] - b[1], den = d1x * d2z - d1z * d2x; if(Math.abs(den) < 1e-6) continue; const t = ((b[0] - a[0]) * d2z - (b[1] - a[1]) * d2x) / den, u = ((b[0] - a[0]) * d1z - (b[1] - a[1]) * d1x) / den, L1 = Math.hypot(d1x, d1z), L2 = Math.hypot(d2x, d2z);
-        if(t > -5 / L1 && t < 1 + 5 / L1 && u > -5 / L2 && u < 1 + 5 / L2) add(a[0] + d1x * t, a[1] + d1z * t, 6.4); } }
-    caps.forEach(e => { add(e[0], e[1], 8.5); G.mapShapes.push({ x0:e[0] - 6, z0:e[1] - 6, x1:e[0] + 6, z1:e[1] + 6, c:'#5a5d63' }); }); }
+  // junctions: where streets cross or meet. Each gets a plain patch of asphalt and a rule:
+  //   'signal' = traffic lights (two big roads), 'stop' = stop signs (the smaller road stops; all-way if they are equals), 'none'.
+  // Each arm (a street passing through) is in group 0 (the main road's direction) or group 1 (the cross street).
+  { const jm = rep(M.asphalt, 2, 2), TL = G.townLines, segs = [], JS = [], white = new THREE.MeshBasicMaterial({ color:0xe8e8e0 }), stopM = sg('STOP', { bg:'#c8102e', fg:'#fff', size:42, w:128, h:128 }), steel = mat('#70757c'), dark = mat('#1c1e22');
+    TL.forEach((l, li) => { let c = 0; for(let k = 1; k < l.p.length; k++){ const L = Math.hypot(l.p[k][0] - l.p[k - 1][0], l.p[k][1] - l.p[k - 1][1]); segs.push([l.p[k - 1][0], l.p[k - 1][1], l.p[k][0], l.p[k][1], li, c, L]); c += L; } l.len = c; });
+    const jAt = (x, z) => { let q = JS.find(q => Math.hypot(q.x - x, q.z - z) < 7); if(!q){ q = { x, z, arms:[] }; JS.push(q); } return q; }, arm = (q, li, u) => { if(!q.arms.some(r => r.li === li)) q.arms.push({ li, u }); };
+    for(let a0 = 0; a0 < segs.length; a0++){ const a = segs[a0]; for(let b0 = a0 + 1; b0 < segs.length; b0++){ const b = segs[b0]; if(a[4] === b[4]) continue; if(Math.max(a[0], a[2]) < Math.min(b[0], b[2]) - 6 || Math.max(b[0], b[2]) < Math.min(a[0], a[2]) - 6 || Math.max(a[1], a[3]) < Math.min(b[1], b[3]) - 6 || Math.max(b[1], b[3]) < Math.min(a[1], a[3]) - 6) continue;
+        const d1x = a[2] - a[0], d1z = a[3] - a[1], d2x = b[2] - b[0], d2z = b[3] - b[1], den = d1x * d2z - d1z * d2x; if(Math.abs(den) < 1e-6) continue; const t = ((b[0] - a[0]) * d2z - (b[1] - a[1]) * d2x) / den, u = ((b[0] - a[0]) * d1z - (b[1] - a[1]) * d1x) / den;
+        if(t > -5 / a[6] && t < 1 + 5 / a[6] && u > -5 / b[6] && u < 1 + 5 / b[6]){ const q = jAt(a[0] + d1x * t, a[1] + d1z * t); arm(q, a[4], a[5] + Math.max(0, Math.min(1, t)) * a[6]); arm(q, b[4], b[5] + Math.max(0, Math.min(1, u)) * b[6]); } } }
+    const tan = (l, u) => { let c = 0; for(let k = 1; k < l.p.length; k++){ const L = Math.hypot(l.p[k][0] - l.p[k - 1][0], l.p[k][1] - l.p[k - 1][1]); if(u <= c + L + .01 || k === l.p.length - 1) return [(l.p[k][0] - l.p[k - 1][0]) / (L || 1), (l.p[k][1] - l.p[k - 1][1]) / (L || 1)]; c += L; } return [1, 0]; };
+    for(const q of JS){ const big = q.arms.some(r => TL[r.li].k === 0); disc(big ? 7.6 : 6.4, jm, q.x, .062, q.z, 1, 1, 18); q.type = 'none';
+      if(Math.hypot(q.x - SQ.x, q.z - SQ.z) < 46) continue;
+      q.arms.forEach(r => { r.t = tan(TL[r.li], r.u); r.k = TL[r.li].k; }); const main = q.arms.slice().sort((a, b) => a.k - b.k || TL[b.li].len - TL[a.li].len)[0];
+      q.arms.forEach(r => { r.g = Math.abs(r.t[0] * main.t[0] + r.t[1] * main.t[1]) > .8 ? 0 : 1; }); if(!q.arms.some(r => r.g === 1)) continue;
+      const kA = Math.min(...q.arms.filter(r => !r.g).map(r => r.k)), kB = Math.min(...q.arms.filter(r => r.g).map(r => r.k));
+      q.type = (kA <= 1 && kB <= 1) || (kA === 0 && kB <= 2) ? 'signal' : 'stop'; q.arms.forEach(r => { r.stop = q.type === 'stop' && (kA === kB || r.g === 1); }); q.heads = [];
+      for(const r of q.arms){ const l = TL[r.li], hw = l.hw || 4; for(const dir of [1, -1]){ if(dir > 0 ? r.u < 9 : l.len - r.u < 9) continue;                       // no traffic arrives from a side the street does not have
+          const dx = r.t[0] * dir, dz = r.t[1] * dir, rx = -dz, rz = dx, px = q.x - dx * 8.6 + rx * (hw + 2.3), pz = q.z - dz * 8.6 + rz * (hw + 2.3), ry = Math.atan2(-dx, -dz);
+          if(q.type === 'signal' || r.stop){ const cx = q.x - dx * 7.4 + rx * hw / 2, cz = q.z - dz * 7.4 + rz * hw / 2; ribbon([[cx - rx * hw / 2, cz - rz * hw / 2], [cx + rx * hw / 2, cz + rz * hw / 2]], .22, .068, white); }
+          if(q.type === 'signal'){ cyl(.11, 5.4, steel, px, 0, pz, 8); const hd = new THREE.Mesh(new THREE.BoxGeometry(.46, 1.36, .34), dark); hd.position.set(px - rx * .5, 4.6, pz - rz * .5); hd.rotation.y = ry; hd.castShadow = true; S.add(hd); D(.9, .1, .1, steel, px - rx * .25, 5.2, pz - rz * .25).rotation.y = ry;
+            q.heads.push({ x:px - rx * .5 - dx * .19, z:pz - rz * .5 - dz * .19, y:4.6, ry, g:r.g }); }
+          else if(r.stop){ cyl(.05, 2.4, mat('#888'), px, 0, pz, 6); const o = new THREE.Mesh(new THREE.CylinderGeometry(.38, .38, .04, 8), stopM); o.rotation.order = 'YXZ'; o.rotation.set(Math.PI / 2, ry, Math.PI / 8); o.position.set(px, 2.5, pz); S.add(o); G.colliders.push({ x0:px - .1, x1:px + .1, z0:pz - .1, z1:pz + .1, y0:0, y1:2.6 }); } } } }
+    caps.forEach(e => { if(JS.some(q => Math.hypot(q.x - e[0], q.z - e[1]) < 9)) return; disc(8.5, jm, e[0], .062, e[1], 1, 1, 18); G.mapShapes.push({ x0:e[0] - 6, z0:e[1] - 6, x1:e[0] + 6, z1:e[1] + 6, c:'#5a5d63' }); });
+    G.junctions = JS; }
   ZONES.push({ x0:-205, z0:-50, x1:480, z1:270, m:110, lv:0 }, { x0:-470, z0:-800, x1:-200, z1:-500, m:90, lv:0 }, { x0:278, z0:-124, x1:334, z1:-72, m:40, lv:0 }, { x0:330, z0:-900, x1:900, z1:-300, m:60, lv:0 });
 
   // ---------- generic pieces ----------
@@ -260,5 +277,6 @@ export function buildTown({ road, tree, M, rep, leafM }){
       if(o.userData.ribbon){ const p = o.geometry.attributes.position; for(let k = 0; k < p.count; k++) p.setY(k, p.getY(k) + T(p.getX(k) + o.position.x, p.getZ(k) + o.position.z) + .03); p.needsUpdate = true; o.geometry.computeVertexNormals(); o.geometry.computeBoundingSphere(); continue; }
       const f = o.userData.foot, x = o.position.x, z = o.position.z; o.position.y += f ? Math.min(T(x, z), T(x - f[0], z - f[1]), T(x + f[0], z - f[1]), T(x - f[0], z + f[1]), T(x + f[0], z + f[1])) : T(x, z); }
     for(let i = K0; i < G.colliders.length; i++){ const c = G.colliders[i], h = T((c.x0 + c.x1) / 2, (c.z0 + c.z1) / 2); c.y0 += h - 1.5; c.y1 += h + .6; } for(let i = PL0; i < G.platforms.length; i++){ const p = G.platforms[i]; p.y += T((p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2); } }
+  (G.junctions || []).forEach(q => (q.heads || []).forEach(h => { h.y += G.terrain(h.x, h.z); }));
   G.townHouses = nh; G.townPlaced = PLACED;
 }

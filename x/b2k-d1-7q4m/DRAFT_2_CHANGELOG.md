@@ -107,3 +107,13 @@ The grid town from the last build is gone. The map is now laid out from real str
 - **Creek and rail.** Nothing is built on the creek or the MetroLink line any more (a house was sitting in the creek).
 - **Chris's house.** A dormer was added on the back of the roof over the stairs and the upstairs hallway, which used to be so low that Chris's head went through the roof. The landing at the top of the stairs is deeper.
 - Changes of level are game-original; the real ground was not surveyed.
+
+## Draft 2.9 — traffic lights, stop signs, pedestrians
+
+- **Junction rules.** Every place streets cross or meet is worked out automatically. Two big roads get traffic lights (17 junctions); elsewhere the smaller street gets stop signs, or all sides stop if the streets are equals (25 junctions). The Public Square stays a roundabout. In the story neighbourhood: Maple at Illinois and Westhaven at Illinois have lights; Oakmont at Maple and Oakmont at Westhaven are all-way stops.
+- **Lights.** Each signal cycles: main road green 14 s, yellow 3 s, all red 1.5 s, then the cross street.
+- **Traffic obeys.** Cars stop on red, stop at stop signs and take turns, keep a gap to the car in front, and wait for people who are crossing.
+- **Pedestrians.** 32 people walk the sidewalks near home, the plaza, downtown and the school. They cross with the green light, or when the road is clear at a stop sign.
+- **Story characters obey too.** Any story car driven by the script (Milo's car, for example) stops for red lights and stop signs. A story character walking a scripted path waits at the kerb on a red light. Running or chasing characters, and characters following Chris, are left alone so chases still work.
+- **Chris is not forced.** The player can still run a light; nothing happens yet if he does.
+- Known gaps: cars do not turn at junctions (each stays on its own street), there are no walk / don't-walk lamps, and a car that re-enters at the edge of the map can roll through a light there.

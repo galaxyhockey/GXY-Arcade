@@ -20,7 +20,7 @@ export function worldDetail(){
   [[96, 104], [-112, -104]].forEach(([a, b]) => { curbZ(28.2, 251.8, a - .11); curbZ(28.2, 251.8, b + .11); });
   // stop lines + stop signs at the four corners
   const stop = (x, z, ry) => { cyl(.05, 2.4, M('#888'), x, 0, z, 6); const o = new THREE.Mesh(new THREE.CylinderGeometry(.38, .38, .04, 8), sign('STOP', { bg:'#c8102e', fg:'#fff', size:42, w:128, h:128 })); o.rotation.set(Math.PI / 2, 0, Math.PI / 8); o.rotation.order = 'YXZ'; o.rotation.y = ry; o.position.set(x, 2.5, z); S.add(o); col(x - .1, z - .1, x + .1, z + .1, 2.6); };
-  [[100, 24], [100, 256], [-108, 24], [-108, 256]].forEach(([cx, cz]) => { const n = cz < 100;
+  [].forEach(([cx, cz]) => { const n = cz < 100;
     flat(3.6, .4, white, cx + 2, n ? cz + 6.4 : cz - 6.4); stop(cx + 5.4, n ? cz + 6.6 : cz - 6.6, n ? 0 : Math.PI);          // traffic on Maple / Westhaven arriving at the cross street
     flat(.4, 3.6, white, cx - 6.4, cz + 2); flat(.4, 3.6, white, cx + 6.4, cz - 2); });
   // double yellow centre line on the two main roads
