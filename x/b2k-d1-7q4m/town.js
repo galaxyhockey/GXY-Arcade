@@ -97,7 +97,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
         const d1x = a[2] - a[0], d1z = a[3] - a[1], d2x = b[2] - b[0], d2z = b[3] - b[1], den = d1x * d2z - d1z * d2x; if(Math.abs(den) < 1e-6) continue; const t = ((b[0] - a[0]) * d2z - (b[1] - a[1]) * d2x) / den, u = ((b[0] - a[0]) * d1z - (b[1] - a[1]) * d1x) / den;
         if(t > -5 / a[6] && t < 1 + 5 / a[6] && u > -5 / b[6] && u < 1 + 5 / b[6]){ const q = jAt(a[0] + d1x * t, a[1] + d1z * t); arm(q, a[4], a[5] + Math.max(0, Math.min(1, t)) * a[6]); arm(q, b[4], b[5] + Math.max(0, Math.min(1, u)) * b[6]); } } }
     const tan = (l, u) => { let c = 0; for(let k = 1; k < l.p.length; k++){ const L = Math.hypot(l.p[k][0] - l.p[k - 1][0], l.p[k][1] - l.p[k - 1][1]); if(u <= c + L + .01 || k === l.p.length - 1) return [(l.p[k][0] - l.p[k - 1][0]) / (L || 1), (l.p[k][1] - l.p[k - 1][1]) / (L || 1)]; c += L; } return [1, 0]; };
-    for(const q of JS){ const big = q.arms.some(r => TL[r.li].k === 0); disc(big ? 7.6 : 6.4, jm, q.x, .062, q.z, 1, 1, 18); q.type = 'none';
+    for(const q of JS){ const big = q.arms.some(r => TL[r.li].k === 0); disc(big ? 7.6 : 6.4, jm, q.x, .062, q.z, 1, 1, 18).userData.flat = true; q.type = 'none';
       if(Math.hypot(q.x - SQ.x, q.z - SQ.z) < 46) continue;
       q.arms.forEach(r => { r.t = tan(TL[r.li], r.u); r.k = TL[r.li].k; }); const main = q.arms.slice().sort((a, b) => a.k - b.k || TL[b.li].len - TL[a.li].len)[0];
       q.arms.forEach(r => { r.g = Math.abs(r.t[0] * main.t[0] + r.t[1] * main.t[1]) > .8 ? 0 : 1; }); if(!q.arms.some(r => r.g === 1)) continue;
@@ -109,7 +109,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
           if(q.type === 'signal'){ cyl(.11, 5.4, steel, px, 0, pz, 8); const hd = new THREE.Mesh(new THREE.BoxGeometry(.46, 1.36, .34), dark); hd.position.set(px - rx * .5, 4.6, pz - rz * .5); hd.rotation.y = ry; hd.castShadow = true; S.add(hd); D(.9, .1, .1, steel, px - rx * .25, 5.2, pz - rz * .25).rotation.y = ry;
             q.heads.push({ x:px - rx * .5 - dx * .19, z:pz - rz * .5 - dz * .19, y:4.6, ry, g:r.g }); }
           else if(r.stop){ cyl(.05, 2.4, mat('#888'), px, 0, pz, 6); const o = new THREE.Mesh(new THREE.CylinderGeometry(.38, .38, .04, 8), stopM); o.rotation.order = 'YXZ'; o.rotation.set(Math.PI / 2, ry, Math.PI / 8); o.position.set(px, 2.5, pz); S.add(o); G.colliders.push({ x0:px - .1, x1:px + .1, z0:pz - .1, z1:pz + .1, y0:0, y1:2.6 }); } } } }
-    caps.forEach(e => { if(JS.some(q => Math.hypot(q.x - e[0], q.z - e[1]) < 9)) return; disc(8.5, jm, e[0], .062, e[1], 1, 1, 18); G.mapShapes.push({ x0:e[0] - 6, z0:e[1] - 6, x1:e[0] + 6, z1:e[1] + 6, c:'#5a5d63' }); });
+    caps.forEach(e => { if(JS.some(q => Math.hypot(q.x - e[0], q.z - e[1]) < 9)) return; disc(8.5, jm, e[0], .062, e[1], 1, 1, 18).userData.flat = true; G.mapShapes.push({ x0:e[0] - 6, z0:e[1] - 6, x1:e[0] + 6, z1:e[1] + 6, c:'#5a5d63' }); });
     G.junctions = JS; }
   ZONES.push({ x0:-205, z0:-50, x1:480, z1:270, m:110, lv:0 }, { x0:-470, z0:-800, x1:-200, z1:-500, m:90, lv:0 }, { x0:278, z0:-124, x1:334, z1:-72, m:40, lv:0 }, { x0:330, z0:-900, x1:900, z1:-300, m:60, lv:0 });
 
@@ -242,7 +242,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
   let nh = 0; const HOUSE_CAP = 230;
   const sideOf = (l, step, skip) => { let acc = step * rnd(); for(let i = 1; i < l.p.length; i++){ const a = l.p[i - 1], b = l.p[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]), tx = (b[0] - a[0]) / (L || 1), tz = (b[1] - a[1]) / (L || 1);
       for(; acc < L; acc += step){ for(const s of [-1, 1]){ if(nh >= HOUSE_CAP || rnd() < skip) continue; const x = a[0] + tx * acc - tz * s * 19, z = a[1] + tz * acc + tx * s * 19, dx = tz * s, dz = -tx * s, f = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'e' : 'w') : (dz > 0 ? 's' : 'n'), ew = f === 'e' || f === 'w', hw = ew ? 9.5 : 11.5, hd = ew ? 11.5 : 9.5;
-          if(!inWorld(x - hw, z - hd, x + hw, z + hd) || !free(x - hw, z - hd, x + hw, z + hd) || !offRoad(x - hw, z - hd, x + hw, z + hd, 6.5)) continue; seedN += 7; BL.house(x, z, f, seedN, { curb:13 }).userData.foot = [hw, hd]; take(x - hw, z - hd, x + hw, z + hd); nh++; if(rnd() < .5) yardTree(x - dx * 13 + 4, z - dz * 13 + 4); } } acc -= L; } };
+          if(!inWorld(x - hw, z - hd, x + hw, z + hd) || !free(x - hw, z - hd, x + hw, z + hd) || !offRoad(x - hw, z - hd, x + hw, z + hd, 6.5)) continue; seedN += 7; BL.house(x, z, f, seedN, { curb:13 }); take(x - hw, z - hd, x + hw, z + hd); zone(x - hw - 5, z - hd - 5, x + hw + 5, z + hd + 5, 11); nh++; if(rnd() < .5) yardTree(x - dx * 13 + 4, z - dz * 13 + 4); } } acc -= L; } };
   LINES.filter(l => l.k === 3).forEach(l => sideOf(l, 27, .22)); LINES.filter(l => l.k === 2 && !l.stitch).forEach(l => sideOf(l, 30, .5)); LINES.filter(l => l.k === 1).forEach(l => sideOf(l, 34, .72));
   (G.driveways || []).splice(d0).forEach((d, i) => { if(i % 3 !== 1) return; const c = makeCar(pick(carC), { suv:i % 4 === 0 }); c.position.set(d.x, 0, d.z); c.rotation.y = d.ry; S.add(c); Math.abs(Math.sin(d.ry)) > .7 ? col(d.x - 2.3, d.z - 1, d.x + 2.3, d.z + 1, 1.6) : col(d.x - 1, d.z - 2.3, d.x + 1, d.z + 2.3, 1.6); });
   // street lamps along the bigger streets, farm fields and trees on the land that is left
@@ -263,19 +263,23 @@ export function buildTown({ road, tree, M, rep, leafM }){
   // ---------- 7. hills ----------
   // Rolling ground everywhere except the level patches above (the story neighbourhood, the plaza, the school and each landmark),
   // with a shallow valley along the creek. Heights are stored on an 8-unit grid; G.terrain(x, z) reads it.
-  { const CS = 8, MG = 120, gx0 = WORLD.x0 - MG, gz0 = WORLD.z0 - MG, nx = Math.ceil((WORLD.x1 - WORLD.x0 + 2 * MG) / CS) + 1, nz = Math.ceil((WORLD.z1 - WORLD.z0 + 2 * MG) / CS) + 1, H = new Float32Array(nx * nz), sm = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
-    const raw = (x, z) => { let h = Math.max(0, 3.2 + 4.2 * Math.sin(x * .0125 + 1.3) * Math.cos(z * .0105 + .4) + 2.3 * Math.sin(x * .031 + z * .022 + 2) + 1.1 * Math.sin(z * .047 - x * .017)); const w = roadNear(x, z, 60, SEGW).d; return h * (.2 + .8 * sm(w / 60)); };
-    ZONES.forEach(q => { if(q.lv == null) q.lv = raw((q.x0 + q.x1) / 2, (q.z0 + q.z1) / 2) * .8; });
-    const hAt = (x, z) => { let h = raw(x, z); for(const q of ZONES){ const dx = Math.max(q.x0 - x, 0, x - q.x1), dz = Math.max(q.z0 - z, 0, z - q.z1), d = Math.hypot(dx, dz); if(d < q.m) h += (q.lv - h) * sm(1 - d / q.m); }
+  { const CS = 5, MG = 120, gx0 = WORLD.x0 - MG, gz0 = WORLD.z0 - MG, nx = Math.ceil((WORLD.x1 - WORLD.x0 + 2 * MG) / CS) + 1, nz = Math.ceil((WORLD.z1 - WORLD.z0 + 2 * MG) / CS) + 1, H = new Float32Array(nx * nz), sm = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+    // 1) the natural ground: long gentle hills, a valley along the creek, level where the story lives, flat beyond the map edge
+    const fixed = ZONES.filter(q => q.lv != null), pads = ZONES.filter(q => q.lv == null), zb = (h, x, z, list) => { for(const q of list){ const dx = Math.max(q.x0 - x, 0, x - q.x1), dz = Math.max(q.z0 - z, 0, z - q.z1), d = Math.hypot(dx, dz); if(d < q.m) h += (q.lv - h) * sm(1 - d / q.m); } return h; };
+    const base0 = (x, z) => { let h = Math.max(0, 3.2 + 4.4 * Math.sin(x * .0125 + 1.3) * Math.cos(z * .0105 + .4) + 1.5 * Math.sin(x * .027 + z * .019 + 2) + .5 * Math.sin(z * .04 - x * .015)); h *= .2 + .8 * sm(roadNear(x, z, 60, SEGW).d / 60); h = zb(h, x, z, fixed);
       const e = Math.min(x - WORLD.x0, WORLD.x1 - x, z - WORLD.z0, WORLD.z1 - z); return h * sm((e + MG) / MG); };
+    // 2) every pad (house, shop, landmark, field) sits at the height of the street it faces
+    pads.forEach(q => { const cx = (q.x0 + q.x1) / 2, cz = (q.z0 + q.z1) / 2, r = roadNear(cx, cz, 300); q.lv = r.line ? base0(r.x, r.z) : base0(cx, cz); });
+    // 3) the ground is cut level across every street: within the roadway it takes the height of the centre line, then eases back to the natural ground
+    const hAt = (x, z) => { let h = zb(base0(x, z), x, z, pads); const r = roadNear(x, z, 26); if(r.line){ const w = sm((r.d - ((r.line.hw || 4) + 4)) / 13); if(w < 1){ const hr = base0(r.x, r.z); h = hr + (h - hr) * w; } } return h; };
     for(let i = 0; i < nx; i++) for(let j = 0; j < nz; j++) H[i * nz + j] = hAt(gx0 + i * CS, gz0 + j * CS);
     G.terrain = (x, z) => { const fx = (x - gx0) / CS, fz = (z - gz0) / CS, i = Math.floor(fx), j = Math.floor(fz); if(i < 0 || j < 0 || i >= nx - 1 || j >= nz - 1) return 0; const u = fx - i, v = fz - j, a = H[i * nz + j], b = H[(i + 1) * nz + j], c = H[i * nz + j + 1], d = H[(i + 1) * nz + j + 1]; return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v; };
     const pos = new Float32Array(nx * nz * 3), uv = new Float32Array(nx * nz * 2), idx = []; for(let i = 0; i < nx; i++) for(let j = 0; j < nz; j++){ const k = i * nz + j; pos[k * 3] = gx0 + i * CS; pos[k * 3 + 1] = H[k] - .035; pos[k * 3 + 2] = gz0 + j * CS; uv[k * 2] = (gx0 + i * CS) / 7.5; uv[k * 2 + 1] = (gz0 + j * CS) / 7.5; if(i < nx - 1 && j < nz - 1) idx.push(k, k + 1, k + nz, k + 1, k + nz + 1, k + nz); }
     const ge = new THREE.BufferGeometry(); ge.setAttribute('position', new THREE.BufferAttribute(pos, 3)); ge.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); ge.setIndex(idx); ge.computeVertexNormals(); const gm = rep(M.grass, 1, 1); gm.map.wrapS = gm.map.wrapT = THREE.RepeatWrapping; const land = new THREE.Mesh(ge, gm); land.receiveShadow = true; S.add(land); G.land = land;
     // lift everything this file built onto the ground
     const T = G.terrain; for(let i = C0; i < S.children.length; i++){ const o = S.children[i]; if(o === land) continue;
-      if(o.userData.ribbon){ const p = o.geometry.attributes.position; for(let k = 0; k < p.count; k++) p.setY(k, p.getY(k) + T(p.getX(k) + o.position.x, p.getZ(k) + o.position.z) + .03); p.needsUpdate = true; o.geometry.computeVertexNormals(); o.geometry.computeBoundingSphere(); continue; }
-      const f = o.userData.foot, x = o.position.x, z = o.position.z; o.position.y += f ? Math.min(T(x, z), T(x - f[0], z - f[1]), T(x + f[0], z - f[1]), T(x - f[0], z + f[1]), T(x + f[0], z + f[1])) : T(x, z); }
+      if(o.userData.ribbon){ const p = o.geometry.attributes.position; for(let k = 0; k < p.count; k++) p.setY(k, p.getY(k) + T(p.getX(k) + o.position.x, p.getZ(k) + o.position.z) + .05); p.needsUpdate = true; o.geometry.computeVertexNormals(); o.geometry.computeBoundingSphere(); continue; }
+      const x = o.position.x, z = o.position.z; o.position.y += T(x, z) + (o.userData.flat ? .075 : 0); }
     for(let i = K0; i < G.colliders.length; i++){ const c = G.colliders[i], h = T((c.x0 + c.x1) / 2, (c.z0 + c.z1) / 2); c.y0 += h - 1.5; c.y1 += h + .6; } for(let i = PL0; i < G.platforms.length; i++){ const p = G.platforms[i]; p.y += T((p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2); } }
   (G.junctions || []).forEach(q => (q.heads || []).forEach(h => { h.y += G.terrain(h.x, h.z); }));
   G.townHouses = nh; G.townPlaced = PLACED;

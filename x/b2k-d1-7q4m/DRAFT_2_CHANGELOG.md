@@ -117,3 +117,11 @@ The grid town from the last build is gone. The map is now laid out from real str
 - **Story characters obey too.** Any story car driven by the script (Milo's car, for example) stops for red lights and stop signs. A story character walking a scripted path waits at the kerb on a red light. Running or chasing characters, and characters following Chris, are left alone so chases still work.
 - **Chris is not forced.** The player can still run a light; nothing happens yet if he does.
 - Known gaps: cars do not turn at junctions (each stays on its own street), there are no walk / don't-walk lamps, and a car that re-enters at the edge of the map can roll through a light there.
+
+### Hills, second pass (the first pass made a mess of roads and places)
+
+The first version laid roads and buildings over the hills. Now the ground is shaped to them instead:
+- Every street is cut level from side to side and follows a smooth rise and fall along its length. The ground eases back to the natural hill over about 13 units either side.
+- Every house, shop, landmark and field stands on a level pad at the height of the street it faces, so driveways and parking lots meet the road.
+- Junctions are level, with their asphalt patch above the road surface.
+- The hills themselves are a little gentler, and the terrain is drawn on a finer grid.
