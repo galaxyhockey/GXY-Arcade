@@ -205,7 +205,8 @@ export function makeDog(color = '#c9a26b', o = {}){
   const tail = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, .22), m); tail.position.set(0, .48, -.36); tail.rotation.x = .6;
   const legs = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([a, b]) => { const p = new THREE.Group(); p.position.set(a * .1, .28, b * .22); const l = new THREE.Mesh(new THREE.BoxGeometry(.07, .28, .07), m); l.position.y = -.14; p.add(l); return p; });
   tail.userData.keep = true; g.add(body, head, snout, ...ears, tail, ...legs); compact(g); g.scale.setScalar(s); g.userData = { dog:true, legs, tail, phase:0 }; return g; }
-const CARS_T = { sedan:{ L:4.4, p:[[-2.2, .38], [-2.2, .92], [-1.55, 1], [-1, 1.42], [.35, 1.42], [1, .98], [2.05, .9], [2.2, .62], [2.2, .38]], gl:[[-1.4, 1.03], [-.97, 1.35], [.3, 1.35], [.87, 1.03]], f:[[1, .98], [.35, 1.42]], r:[[-1, 1.42], [-1.55, 1]] },
+const CARS_T = { taurus:{ L:5, p:[[-2.5, .4], [-2.5, .8], [-2.36, .95], [-1.78, 1.03], [-1.42, 1.25], [-1.02, 1.4], [-.3, 1.46], [.4, 1.4], [.82, 1.22], [1.18, 1.0], [2.0, .9], [2.38, .76], [2.5, .58], [2.5, .4]], gl:[[-1.62, 1.07], [-1.02, 1.34], [-.3, 1.4], [.38, 1.34], [1.04, 1.05]], f:[[1.18, 1.0], [.4, 1.4]], r:[[-1.02, 1.4], [-1.78, 1.03]] },
+  sedan:{ L:4.4, p:[[-2.2, .38], [-2.2, .92], [-1.55, 1], [-1, 1.42], [.35, 1.42], [1, .98], [2.05, .9], [2.2, .62], [2.2, .38]], gl:[[-1.4, 1.03], [-.97, 1.35], [.3, 1.35], [.87, 1.03]], f:[[1, .98], [.35, 1.42]], r:[[-1, 1.42], [-1.55, 1]] },
   suv:{ L:4.7, p:[[-2.35, .42], [-2.35, 1.15], [-2.22, 1.72], [.5, 1.72], [1.1, 1.15], [2.2, 1.05], [2.35, .7], [2.35, .42]], gl:[[-2.2, 1.2], [-2.1, 1.64], [.45, 1.64], [.95, 1.2]], f:[[1.1, 1.15], [.5, 1.72]], r:[[-2.22, 1.72], [-2.35, 1.15]] },
   pickup:{ L:5, p:[[-2.5, .42], [-2.5, 1.05], [-.55, 1.05], [-.5, 1.62], [.55, 1.62], [1.15, 1.08], [2.35, 1], [2.5, .7], [2.5, .42]], gl:[[-.45, 1.12], [-.42, 1.54], [.5, 1.54], [1, 1.12]], f:[[1.15, 1.08], [.55, 1.62]], r:[[-.5, 1.62], [-.55, 1.05]] },
   van:{ L:4.8, p:[[-2.4, .4], [-2.4, 1.2], [-2.27, 1.78], [1, 1.78], [1.75, 1.1], [2.3, .98], [2.4, .65], [2.4, .4]], gl:[[-2.2, 1.22], [-2.12, 1.7], [.95, 1.7], [1.6, 1.22]], f:[[1.75, 1.1], [1, 1.78]], r:[[-2.27, 1.78], [-2.4, 1.2]] } };
@@ -217,7 +218,7 @@ export function makeCar(color = '#b23', o = {}){ let hsh = 0; for(const ch of co
   for(const [a, b] of [T.f, T.r]){ const dz = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dz, dy), w = A(new THREE.PlaneGeometry(W - .28, len * .82), gl, 0, (a[1] + b[1]) / 2, (a[0] + b[0]) / 2); w.rotation.x = Math.atan2(dz, dy); w.translateZ(.012); w.castShadow = false; }
   [L / 2, -L / 2].forEach((z, i) => { A(new THREE.BoxGeometry(W + .06, .2, .16), dk, 0, .5, z + (i ? -.02 : .02)); A(new THREE.BoxGeometry(.5, .13, .03), mat('#f2f2ee'), 0, .52, z + (i ? -.11 : .11)); });
   A(new THREE.BoxGeometry(W - .7, .16, .04), dk, 0, .76, L / 2 + .005);
-  [-.66, .66].forEach(x => { A(new THREE.BoxGeometry(.34, .15, .05), mat('#fff8d0', { emissive:0x777755 }), x, .78, L / 2 - .02 - (type === 'sedan' ? .06 : 0)); A(new THREE.BoxGeometry(.3, .16, .05), mat('#c00', { emissive:0x550000 }), x, .82, -L / 2 - .012); A(new THREE.BoxGeometry(.12, .1, .2), m, x * 1.5, T.gl[0][1] + .06, T.f[0][0] - .25); });
+  [-.66, .66].forEach(x => { A(new THREE.BoxGeometry(.34, .15, .05), mat('#fff8d0', { emissive:0x777755 }), x, .78, L / 2 - .02 - (type === 'sedan' || type === 'taurus' ? .06 : 0)); A(new THREE.BoxGeometry(.3, .16, .05), mat('#c00', { emissive:0x550000 }), x, .82, -L / 2 - .012); A(new THREE.BoxGeometry(.12, .1, .2), m, x * 1.5, T.gl[0][1] + .06, T.f[0][0] - .25); });
   if(type === 'pickup'){ const bed = A(new THREE.PlaneGeometry(W - .26, 1.8), dk, 0, 1.055, -1.55); bed.rotation.x = -Math.PI / 2; bed.castShadow = false; }
   if(type === 'suv' || type === 'van') [-.6, .6].forEach(x => A(new THREE.BoxGeometry(.05, .05, 1.9), dk, x, T.p[2][1] + .03, -.7));
   if(o.spoiler){ const sy = T.p[1][1] + .28; A(new THREE.BoxGeometry(W - .1, .05, .34), m, 0, sy, -L / 2 + .3); [-.6, .6].forEach(x => A(new THREE.BoxGeometry(.06, .26, .1), dk, x, sy - .14, -L / 2 + .32)); }
@@ -292,21 +293,47 @@ const camP = new THREE.Vector3(), camL = new THREE.Vector3();
 export const CARS = [];
 export function makeDrivable(car, col){ const c = { car, col, speed:0, head:car.rotation.y }; CARS.push(c);
   addInter({ x:() => car.position.x, z:() => car.position.z, r:3.4, prompt:'DRIVE', persist:true, amb:true, when:() => !G.driving && !G.noDrive && car.visible, use:() => enterCar(c) }); return c; }
-export function enterCar(c){ G.driving = c; c.head = c.car.rotation.y; c.speed = 0; if(c.col) c.col.off = true; P.model.visible = false; sfx('door'); }
-export function exitCar(){ const c = G.driving; if(!c) return; G.driving = null; const a = c.head + Math.PI / 2;
+export function enterCar(c){ G.driving = c; c.head = c.car.rotation.y; c.speed = 0; c.steer = c.roll = c.pitch = c.slipS = 0; c.gear = 1; c.rpm = 800; c.camH = c.head; if(c.col) c.col.off = true; P.model.visible = false; sfx('door'); }
+export function exitCar(){ const c = G.driving; if(!c) return; G.driving = null; c.car.rotation.set(0, c.head, 0); (c.car.userData.wheels || []).forEach(w => w.rotation.y = 0); const a = c.head + Math.PI / 2;
   place(c.car.position.x + Math.sin(a) * 2, c.car.position.z + Math.cos(a) * 2, c.head); P.model.visible = true;
   if(c.col){ const x = c.car.position.x, z = c.car.position.z, sw = Math.abs(Math.sin(c.head)) > .7; Object.assign(c.col, sw ? { x0:x - 2.3, x1:x + 2.3, z0:z - 1, z1:z + 1 } : { x0:x - 1, x1:x + 1, z0:z - 2.3, z1:z + 2.3 }); c.col.off = false; } sfx('door'); }
 const carP = new THREE.Vector3();
+// Handling is tuned as a 1996 Ford Taurus: a heavy, soft, front-drive sedan with a 4-speed automatic (metres + seconds).
+// speed = along the heading; steering is a real front-wheel angle (bicycle model, 2.76 m wheelbase) capped by tyre grip, so
+// the car cannot turn sharply at speed, it leans in corners, dips under braking and takes real distance to stop.
+const GEAR = [0, 7, 13, 20, 31], angD = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.paused;
   let th = ctl ? (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0) : 0; if(ctl && Math.abs(PAD.gas) > .05) th = PAD.gas;
   if(G.gas != null && !G.mission){ G.gas = Math.max(0, G.gas - Math.abs(c.speed) * dt * 6e-4); if(G.gas <= 0 && th > 0){ th = 0; if(!G.gasWarn){ G.gasWarn = 1; toast('Out of gas. Should have stopped at the station.', 3000); } } } else G.gasWarn = 0;
-  const st = ctl ? ((k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) || PAD.steer) : 0;
-  if(th > 0) c.speed += (c.speed < 0 ? 26 : 11) * dt; else if(th < 0) c.speed -= (c.speed > 0 ? 24 : 7) * dt; else c.speed *= Math.pow(.45, dt);
-  if((k.Space || PAD.brake) && ctl) c.speed *= Math.pow(.05, dt); c.speed = Math.max(-7, Math.min(24, c.speed));
-  c.head += st * dt * Math.min(1, Math.abs(c.speed) / 6) * 1.7 * Math.sign(c.speed || 1);
+  const stIn = ctl ? ((k.KeyA || k.ArrowLeft ? 1 : 0) - (k.KeyD || k.ArrowRight ? 1 : 0) || PAD.steer) : 0, hb = (k.Space || PAD.brake) && ctl;
+  const v = c.speed, av = Math.abs(v); c.shiftT = Math.max(0, (c.shiftT || 0) - dt); c.gear = c.gear || 1;
+  // pedals: the brake pedal (S) stops the car first and only then selects reverse; W does the same out of reverse
+  let acc = 0, braking = !ctl && av > 0;
+  if(th > 0){ if(v < -.2){ acc = 9 * th; braking = true; } else acc = th * (4 - 2.2 * Math.min(1, v / 31)) * (c.shiftT > 0 ? .3 : 1); }
+  else if(th < 0){ if(v > .2){ acc = 8.6 * th; braking = true; } else acc = v > -6 ? 2.6 * th : 0; }
+  if(!ctl) acc = -Math.sign(v) * 6;
+  acc -= Math.sign(v) * (.3 + .001 * v * v) + (hb ? Math.sign(v) * 5.5 : 0);
+  let nv = v + acc * dt; if((braking || hb || th === 0) && v !== 0 && Math.sign(nv) !== Math.sign(v)) nv = 0;
+  c.speed = Math.max(-6, Math.min(31, nv));
+  // automatic gearbox (only matters for the sound and a small pause in the pull on each upshift)
+  if(c.gear < 4 && av > GEAR[c.gear] * .92 && th > 0){ c.gear++; c.shiftT = .3; } else if(c.gear > 1 && av < GEAR[c.gear - 1] * .62) c.gear--;
+  const rpmT = v < -.2 ? 900 + av * 420 : 780 + 4300 * Math.min(1, av / GEAR[c.gear]) + (th > 0 && av < 5 ? 700 * th : 0); c.rpm = (c.rpm || 800) + (rpmT - (c.rpm || 800)) * Math.min(1, dt * 6); c.thr = th;
+  // steering: the wheel turns at a finite rate and has less lock at speed; yaw is limited by lateral grip
+  const lock = .6 / (1 + av / 13), want = stIn * lock, rate = (stIn ? 2.4 : 4.2) * dt; c.steer = (c.steer || 0) + Math.max(-rate, Math.min(rate, want - (c.steer || 0)));
+  let w = c.speed * Math.tan(c.steer) / 2.76, slip = 0; const grip = hb ? 4.6 : G.wet ? 5.6 : 7.6;
+  if(Math.abs(c.speed * w) > grip){ slip = Math.abs(c.speed * w) - grip; w = Math.sign(w) * grip / Math.max(.1, av); }
+  if(hb && av > 6 && stIn){ w *= 1.5; slip = Math.max(slip, 3); c.speed *= Math.pow(.75, dt); }
+  if(braking && av > 9 && th < -.9) slip = Math.max(slip, 1.2);
+  c.head += w * dt; c.slipS = (c.slipS || 0) + (slip - (c.slipS || 0)) * Math.min(1, dt * 8);
   carP.copy(c.car.position); carP.x += Math.sin(c.head) * c.speed * dt; carP.z += Math.cos(c.head) * c.speed * dt; carP.y = 0;
-  const bx = carP.x, bz = carP.z; collide(carP, 1.25); if(Math.hypot(carP.x - bx, carP.z - bz) > .01){ c.speed *= .4; }
-  c.car.position.set(carP.x, groundAt(carP.x, carP.z, .3), carP.z); c.car.rotation.y = c.head; for(const w of c.car.userData.wheels || []) w.rotation.x += c.speed * dt / .36; P.p.set(carP.x, 0, carP.z); P.yaw = c.head; P.mv = Math.abs(c.speed); }
+  const bx = carP.x, bz = carP.z; collide(carP, 1.25); c.bumpT = Math.max(0, (c.bumpT || 0) - dt);
+  if(Math.hypot(carP.x - bx, carP.z - bz) > .01){ if(av > 4 && !c.bumpT){ c.bumpT = .5; tone(70, 0, .22, 'square', Math.min(.12, av * .008), 40); c.pitch = (c.pitch || 0) + Math.sign(v) * Math.min(.06, av * .004); } c.speed *= Math.pow(.02, dt * 6); }
+  // body: lean out of corners, dip under braking, squat under power
+  const lat = c.speed * w, lon = (c.speed - v) / Math.max(dt, .001), ease = Math.min(1, dt * 5);
+  c.roll = (c.roll || 0) + (Math.max(-.085, Math.min(.085, lat * .011)) - (c.roll || 0)) * ease; c.pitch = (c.pitch || 0) + (Math.max(-.035, Math.min(.05, -lon * .0055)) - (c.pitch || 0)) * ease;
+  const car = c.car; car.rotation.order = 'YXZ'; car.position.set(carP.x, groundAt(carP.x, carP.z, .3), carP.z); car.rotation.set(c.pitch, c.head, c.roll);
+  (car.userData.wheels || []).forEach((wg, i) => { wg.rotation.order = 'YXZ'; wg.rotation.x += c.speed * dt / .36; if(i < 2) wg.rotation.y = c.steer; });
+  P.p.set(carP.x, 0, carP.z); P.yaw = c.head; P.mv = av; }
 
 function updatePlayer(dt){
   if(G.driving){ updateDriving(dt); return; }
@@ -335,10 +362,12 @@ function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between p
   return t; }
 let rayT = 1;
 function updateCam(dt){
-  const fovT = G.camOverride ? 62 : G.driving ? 62 + Math.min(8, Math.abs(G.driving.speed) * .35) : P.run ? 67 : 62; if(Math.abs(cam.fov - fovT) > .05){ cam.fov += (fovT - cam.fov) * Math.min(1, dt * 5); cam.updateProjectionMatrix(); }
+  const fovT = G.camOverride ? 62 : G.driving ? 62 + Math.min(11, Math.abs(G.driving.speed) * .38) : P.run ? 67 : 62; if(Math.abs(cam.fov - fovT) > .05){ cam.fov += (fovT - cam.fov) * Math.min(1, dt * 5); cam.updateProjectionMatrix(); }
   if(G.camOverride){ G.camOverride(dt); return; }
-  if(G.driving){ const c = G.driving.car, h = G.driving.head, want = new THREE.Vector3(c.position.x - Math.sin(h) * 8.5, 3.6, c.position.z - Math.cos(h) * 8.5);
-    camP.lerp(want, Math.min(1, dt * 5)); if(camP.distanceTo(want) > 20) camP.copy(want); cam.position.copy(camP); cam.lookAt(c.position.x + Math.sin(h) * 4, 1.2, c.position.z + Math.cos(h) * 4); return; }
+  if(G.driving){ const d = G.driving, c = d.car, h = d.head, sp = Math.abs(d.speed), sn = Math.sin(h), cs = Math.cos(h);
+    if(G.camMode === 'fp'){ cam.position.set(c.position.x + sn * .25 + cs * .36, c.position.y + 1.3, c.position.z + cs * .25 - sn * .36); cam.lookAt(c.position.x + sn * 30, 1.05, c.position.z + cs * 30); cam.rotateZ(-(d.roll || 0) * .6); camP.copy(cam.position); return; }
+    d.camH = d.camH == null ? h : d.camH + angD(h, d.camH) * Math.min(1, dt * 3.4); const back = 6.3 + sp * .075, want = new THREE.Vector3(c.position.x - Math.sin(d.camH) * back, c.position.y + 2.3 + sp * .012, c.position.z - Math.cos(d.camH) * back);
+    camP.lerp(want, Math.min(1, dt * 9)); if(camP.distanceTo(want) > 20) camP.copy(want); cam.position.copy(camP); cam.lookAt(c.position.x + sn * 3.5, 1.1, c.position.z + cs * 3.5); return; }
   const fp = G.camMode === 'fp'; P.model.visible = !fp;
   const head = new THREE.Vector3(P.p.x, P.p.y + 1.62, P.p.z), dir = new THREE.Vector3(Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), Math.cos(P.yaw) * Math.cos(P.pitch));
   if(fp){ cam.position.copy(head).addScaledVector(dir, .12); cam.lookAt(head.clone().add(dir)); return; }

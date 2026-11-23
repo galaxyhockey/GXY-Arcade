@@ -119,7 +119,7 @@ export function buildChrisHouse(){
   [4.25, -12.25].forEach(z => deco(16.4, .14, .14, mat('#e8e8e2'), 0, UP + 2.8, z)); [[-8.1, 4.2], [8.1, 4.2], [-8.1, -12.2], [8.1, -12.2]].forEach(([x, z]) => deco(.1, UP + 2.8, .1, mat('#e8e8e2'), x, 0, z));
   mapRect(-8, -12, 8, 4, '#d8c8a8'); mapRect(-14, -26, 14, -12, '#6a9a4a');
   for(let z = 7.5; z < 20; z += 1.6) plane(1.3, 1.45, mat('#b9b6ad'), 0, .05, z);
-  const car = makeCar('#2a5a9a', { type:'sedan', spin:true, lights:true }); car.position.set(10.5, 0, 9); S.add(car); G.colliders.push({ x0:9.5, x1:11.5, z0:6.8, z1:11.2, y0:0, y1:1.6 }); G.chrisCar = car;
+  const car = makeCar('#2a5a9a', { type:'taurus', spin:true, lights:true }); car.position.set(10.5, 0, 9); S.add(car); G.colliders.push({ x0:9.5, x1:11.5, z0:6.8, z1:11.2, y0:0, y1:1.6 }); G.chrisCar = car;
   plane(4, 15.5, mat('#a9a59b'), 10.5, .03, 11.6); PR.mailbox(2.4, 19.2, 0);
   [[-6, 5.2], [6, 5.2], [-3.5, 5.2], [3.5, 5.2]].forEach(([x, z]) => { const b = new THREE.Mesh(new THREE.IcosahedronGeometry(.6, 0), mat('#3d6a2e')); b.position.set(x, .45, z + .2); b.scale.y = .75; b.castShadow = true; S.add(b); });
 }

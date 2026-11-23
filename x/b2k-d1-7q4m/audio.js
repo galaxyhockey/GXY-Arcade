@@ -46,6 +46,18 @@ function ambience(dt){ ambT -= dt; if(ambT > 0) return; const t = A.currentTime,
   else if(zone === 'school'){ ambT = .3; for(let i = 0; i < 3; i++) noise(t + i * .1, .4, G.inGym ? .04 : .015, ambG, 500 + Math.random() * 700, 3); if(Math.random() < .03) noise(t, .15, .06, ambG, 300, 1); }
   else ambT = 1; }
 
+// ---------- the car: engine note from rpm + throttle, tyre squeal from slip, road rumble from speed ----------
+let eng = null;
+function carSound(){ const c = G.driving, t = A.currentTime, vol = G.paused ? 0 : G.set.sfx / .8;
+  if(c && !eng){ const o1 = A.createOscillator(), o2 = A.createOscillator(), lp = A.createBiquadFilter(), g = A.createGain(); o1.type = 'sawtooth'; o2.type = 'square'; lp.type = 'lowpass'; g.gain.value = 0; o1.connect(lp); o2.connect(lp); lp.connect(g); g.connect(master); o1.start(); o2.start();
+    const mk = (f, q, type) => { const s = A.createBufferSource(), fl = A.createBiquadFilter(), gg = A.createGain(); s.buffer = noiseBuf; s.loop = true; fl.type = type; fl.frequency.value = f; fl.Q.value = q; gg.gain.value = 0; s.connect(fl); fl.connect(gg); gg.connect(master); s.start(); return { s, g:gg }; };
+    eng = { o1, o2, lp, g, sq:mk(2700, 7, 'bandpass'), rd:mk(420, .5, 'lowpass') }; }
+  if(!eng) return;
+  if(!c){ const e = eng; eng = null; [e.g, e.sq.g, e.rd.g].forEach(g => g.gain.setTargetAtTime(0, t, .08)); setTimeout(() => { try{ e.o1.stop(); e.o2.stop(); e.sq.s.stop(); e.rd.s.stop(); }catch(x){} }, 600); return; }
+  const rpm = c.rpm || 800, f = rpm / 60 * 1.5, thr = Math.max(0, c.thr || 0);
+  eng.o1.frequency.setTargetAtTime(f, t, .04); eng.o2.frequency.setTargetAtTime(f * .5, t, .04); eng.lp.frequency.setTargetAtTime(260 + rpm * .3 + thr * 500, t, .08);
+  eng.g.gain.setTargetAtTime((.022 + .034 * thr + rpm * 3e-6) * vol, t, .08); eng.sq.g.gain.setTargetAtTime(Math.min(.1, (c.slipS || 0) * .035) * vol, t, .05); eng.rd.g.gain.setTargetAtTime(Math.min(.07, Math.abs(c.speed) * .0024) * vol, t, .1); }
+
 // ---------- zone / music selection, every frame ----------
 G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH;
   const z = G.driving ? 'car' : S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1 + .5 ? 'store' : p.x > -330 && p.x < -140 && p.z > 98 && p.z < 202 && p.y >= 0 && isInside(p) ? 'school'
@@ -56,7 +68,7 @@ G.ticks.push(Object.assign(dt => { if(!started) return; const p = P.p, S = G.SCH
   if(want !== cur){ cur = want; step = 0; nextT = A.currentTime + .1; }
   const tgt = (cur ? (cur === 'car' ? .55 : .5) : 0) * G.set.music / .8; musicG.gain.value += (tgt - musicG.gain.value) * Math.min(1, dt * 2);
   ambG.gain.value += ((G.paused ? 0 : G.set.amb / .8) - ambG.gain.value) * Math.min(1, dt * 2);
-  schedule(); ambience(dt);
+  schedule(); ambience(dt); carSound();
   // footsteps: pace follows speed; duller indoors, crunchier on wet ground
   if(P.mv > .5 && !G.driving && !P.board && P.vy === 0 && !G.paused){ stepT -= dt * (P.mv > 8 ? 3.3 : 2.1); if(stepT <= 0){ stepT = 1; const t = A.currentTime, ind = z !== 'out' && z !== 'car'; noise(t, ind ? .07 : .09, ind ? .05 : .035, ambG, ind ? 520 : G.wet ? 2400 : 900, ind ? 1.2 : .7, 'bandpass'); osc('sine', ind ? 95 : 70, t, .05, .05, ambG, 40); } } else stepT = .25; }, { amb:true }));
 function isInside(p){ return (p.x > -270 && p.x < -140 && p.z > 100 && p.z < 128) || (p.x > -190 && p.x < -140 && p.z > 128 && p.z < 172) || (p.x > -322 && p.x < -272 && p.z > 100 && p.z < 150); }
