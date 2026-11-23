@@ -14,7 +14,7 @@ const LK = k => (G.LOOK || {})[k] || {};
 
 const BEATS = [
   { id:'eric_call', when:l => atHome() && P.p.y < 1 && l.min > 600 && l.min < 960 && (G.SVdone || {}).M02, start(){ const ring = setInterval(() => active && active.id === 'eric_call' && !active.answered && E.sfx('ring'), 1500); stuff.push({ remove:() => clearInterval(ring) });
-      goal(G.phone.x, G.phone.z, 'The phone is ringing.'); inter({ x:G.phone.x, z:G.phone.z, r:1.8, prompt:'ANSWER THE PHONE', use:async () => { active.answered = true; E.cut(true); api.phoneUp(true); await E.camShot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 400);
+      G.ringing = true; stuff.push({ remove:() => { G.ringing = false; } }); goal(G.phone.x, G.phone.z, 'The phone is ringing.'); inter({ x:G.phone.x, z:G.phone.z, r:1.8, prompt:'ANSWER THE PHONE', use:async () => { active.answered = true; E.cut(true); api.phoneUp(true); await E.camShot([4.4, 2.1, -3.4], [7.4, 1.5, -1.2], 400);
         await E.say([['Eric (phone)', 'Chris. Two people called out. I need you on carts tonight.'], ['Chris', 'It’s my day off, Eric.'], ['Eric (phone)', 'I know what day it is. Are you coming in or not?']]);
         const k = await E.choose(['Fine. I’ll be there by 6.', 'Can’t. I’m super busy.']); const l = L();
         if(k === 0){ await E.say([['Eric (phone)', 'Six o’clock. Don’t make me regret this.']]); l.owed = { by:(l.dayCount || 0) * 1440 + 18 * 60 + 15 }; api.phoneUp(false); E.cut(false); done('eric_call', 'Clock in at Schnucks before 6:15 PM.'); }

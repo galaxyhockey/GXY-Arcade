@@ -108,7 +108,7 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   if(G.roamFrom){ l.min = { morning:8 * 60, dusk:19 * 60, after:15 * 60 + 30, day:10 * 60, night:22 * 60 }[G.roamFrom] ?? l.min; G.roamFrom = null; }
   E.setTime(tod(l.min)); E.setOutfit({});
   // home
-  add({ x:G.sofa.x, z:G.sofa.z, y:0, r:1.8, prompt:'WATCH TV', use:useTV }); add({ x:G.desk.x, z:G.desk.z, y:3.2, r:1.8, prompt:'USE THE COMPUTER', use:usePC }); add({ x:G.phone.x, z:G.phone.z, y:0, r:1.8, prompt:'USE THE PHONE', use:usePhone });
+  add({ x:G.sofa.x, z:G.sofa.z, y:0, r:1.8, prompt:'WATCH TV', use:useTV }); add({ x:G.desk.x, z:G.desk.z, y:3.2, r:1.8, prompt:'USE THE COMPUTER', use:usePC }); add({ x:G.phone.x, z:G.phone.z, y:0, r:1.8, prompt:'USE THE PHONE', use:usePhone, when:() => !G.mission && G.ctl && !G.driving && !G.uiOpen && !G.ringing });
   add({ x:G.closet.x, z:G.closet.z, y:3.2, r:1.6, prompt:'OPEN YOUR CLOSET', use:async () => { E.sfx('door'); await editor("CHRIS'S CLOSET", closetRows(), 0, { x:-3.1, z:-5.4, yaw:-Math.PI / 2 }); } });
   add({ x:-6.7, z:-10.3, y:0, r:1.4, prompt:'GRAB A SNACK', use:async () => { const d = G.fridgeObj && G.fridgeObj.userData.door; E.cut(true); E.place(-6.55, -10.25, Math.PI); P.model.rotation.y = Math.PI; E.camShot([-4.9, 1.9, -9.2], [-6.8, 1.1, -11.2], 400); E.sfx('door');
     for(let i = 1; i <= 10; i++){ if(d) d.rotation.y = -1.75 * i / 10; await E.wait(30); } await E.wait(900); for(let i = 9; i >= 0; i--){ if(d) d.rotation.y = -1.75 * i / 10; await E.wait(25); } E.sfx('door'); E.cut(false); passTime(10); E.toast(['Bagel Bites. A classic.', 'Last Hot Pocket. Sorry, Dad.', 'Gushers. Breakfast of champions.', 'Cold pizza from Friday.'][Math.random() * 4 | 0], 2600); } });

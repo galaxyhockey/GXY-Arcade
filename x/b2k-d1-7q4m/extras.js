@@ -19,7 +19,7 @@ function mesh(geo, m, x, y, z){ const me = new THREE.Mesh(geo, m); me.position.s
 export function weatherFor(dc){ const d = dateOf(dc), m = d.getMonth(), r = rnd(dc + 7); if(m === 9 && d.getDate() === 31) return 'clear';
   if(m === 11 && r < .25) return 'snow'; if(r < .5) return 'clear'; if(r < .72) return 'cloudy'; if(r < .93) return 'rain'; return 'storm'; }
 const WX_NAME = { clear:'Sunny', cloudy:'Cloudy', rain:'Rain', storm:'Thunderstorms', snow:'Snow' };
-function indoors(){ const p = P.p, S = G.SCH; return (p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4) || (S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1) || (p.x > -432 && p.x < -250 && p.z > -670 && p.z < -570 && !(p.x > -380 && p.x < -300 && p.z > -640 && p.z < -600)) || (p.z > 162 && p.z < 178 && ((p.x > 351 && p.x < 398) || (p.x > 168 && p.x < 216))); }
+function indoors(){ const p = P.p, S = G.SCH; return (G.shops || []).some(s => p.x > s.x0 && p.x < s.x1 && p.z > s.z0 && p.z < s.z1) || (p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4) || (S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1) || (p.x > -432 && p.x < -250 && p.z > -670 && p.z < -570 && !(p.x > -380 && p.x < -300 && p.z > -640 && p.z < -600)) || (p.z > 162 && p.z < 178 && ((p.x > 351 && p.x < 398) || (p.x > 168 && p.x < 216))); }
 function makeRain(){ const n = 2600, g = new THREE.BufferGeometry(), a = new Float32Array(n * 3); for(let i = 0; i < n; i++){ a[i * 3] = (Math.random() - .5) * 60; a[i * 3 + 1] = Math.random() * 30; a[i * 3 + 2] = (Math.random() - .5) * 60; }
   g.setAttribute('position', new THREE.BufferAttribute(a, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color:0xa8bcd0, size:.09, transparent:true, opacity:.7, depthWrite:false })); p.frustumCulled = false; G.scene.add(p); return p; }
 function applyWeather(){ const w = G.wx || 'clear', wet = w === 'rain' || w === 'storm' || w === 'snow', dim = w === 'cloudy' ? .8 : wet ? .5 : 1;
@@ -125,6 +125,29 @@ async function aim(){ const l = api.L(); l.fr = l.fr || {}; const on = Object.ke
   if(flake){ l.flaked = null; if(r === 0){ l.fr[n] = (l.fr[n] || 0) + 1; await E.say([[sn, 'its fine. just dont do it again']]); } else await E.say([[sn, 'busy doin what. pushing carts?']]); }
   else if(r === 1){ await E.say([[sn, 'sure. call me']]); } else if(r === 0){ l.fr[n] = (l.fr[n] || 0) + 1; await E.say([[sn, ['lmao', 'haha ya', 'lol ok', ':P'][k]]]); }
   api.save(); }
+// fines come straight out of Chris's cash; if he is short he owes the rest (cash goes negative until the next paycheck covers it)
+const watch = {};
+function fine(n, why){ const l = api.L(); if(G.t - (fine.t || -9) < 2.5) return; fine.t = G.t; l.cash -= n; api.save(); E.sfx('miss'); E.tone(880, 0, .18, 'square', .05); E.tone(660, .2, .22, 'square', .05); E.toast(`<b>${why}</b> &nbsp;−$${n.toFixed(2)}` + (l.cash < 0 ? `<br>You are broke. You owe Dad $${(-l.cash).toFixed(2)}.` : ''), 4200); }
+G.onCrash = av => { if(G.mission || !api || av < 8 || G.t - (G.onCrash.t || -99) < 10) return; G.onCrash.t = G.t; fine(Math.min(60, Math.round(av * 2.5)), 'CRASH: body shop bill'); };
+// GAME ORIGINAL: what the walk-in shops sell. [item, price, Chris's take, minutes it takes (meals), fills stamina]
+const SHOPS = {
+  'WALGREENS':{ who:'Cashier', hi:'Find everything okay?', items:[['Bottle of soda', .99, 'Cold. Fizzy. Gone in four seconds.', 0, 1], ['Candy bar', .65, 'Breakfast of champions.', 0, 1], ['Pack of gum', .35, 'Winterfresh. I am now unstoppable.'], ['Disposable camera', 6.99, '27 exposures. I will waste 20 of them on Pepper.'], ['Birthday card', 1.99, 'Somebody always has a birthday. Now I am ready.'], ['AA batteries', 3.49, 'For the remote. And the other remote.']] },
+  'MOTO MART':{ who:'Clerk', hi:'Pump or just snacks?', items:[['44 oz fountain soda', .89, 'This cup is the size of my head.', 0, 1], ['Hot dog off the roller', 1.29, 'It has been rolling since 1998. Still good.', 0, 1], ['Slushie', .99, 'Brain freeze. Worth it.', 0, 1], ['Beef jerky', 2.49, 'Chewing this is a part-time job.', 0, 1]] },
+  "STEAK 'N SHAKE":{ who:'Server', hi:'Welcome in. What can I get you?', items:[['Steakburger and fries', 3.99, 'Thin fries. Thin burger. Somehow perfect.', 25, 1], ['Chili', 2.29, 'Chili in a diner at any hour. America.', 15, 1], ['Chocolate shake', 2.49, 'They give you the extra in the metal cup. Respect.', 10, 1]] },
+  'WHITE CASTLE':{ who:'Cashier', hi:'Welcome to White Castle.', items:[['Sack of 10 sliders', 4.90, 'I regret nothing. Yet.', 20, 1], ['4 sliders', 1.96, 'A responsible amount of sliders.', 12, 1], ['Onion chips', 1.09, 'My breath is a weapon now.', 5, 1]] },
+  "IMO'S PIZZA":{ who:'Counter Guy', hi:'Pick-up or eating here?', items:[['Small pizza', 6.50, 'Square slices. Cracker crust. Provel. This is how pizza works here.', 30, 1], ['Toasted ravioli', 3.99, 'If you are not from here you would not get it.', 15, 1], ['Fountain drink', .99, 'Refills are free and I intend to prove it.', 5, 1]] },
+  "HARDEE'S":{ who:'Cashier', hi:'Hi, what can I get started for you?', items:[['Burger combo', 4.59, 'That burger had its own gravity.', 20, 1], ['Curly fries', 1.39, 'The curly ones just taste better. Science.', 8, 1], ['Biscuit and gravy', 1.49, 'Breakfast all day should be a law.', 10, 1]] },
+  'DAIRY QUEEN':{ who:'Cashier', hi:'Hi there! What sounds good?', items:[['Blizzard', 2.39, 'They flipped it upside down. It stayed. Witchcraft.', 10, 1], ['Dipped cone', 1.19, 'Ate the shell first. As is tradition.', 6, 1], ['Chili dog', 1.59, 'A chili dog from an ice cream place. Bold. Good.', 10, 1]] },
+  'BELLEVILLE PANCAKE HOUSE':{ who:'Waitress', hi:'Sit anywhere, hon. What are we having?', items:[['Short stack', 3.25, 'Three pancakes. More syrup than pancake.', 25, 1], ['Big breakfast', 5.25, 'Eggs, bacon, hash browns, toast. I need a nap.', 35, 1], ['Coffee', .95, 'I do not even like coffee. I feel very grown up.', 8]] },
+  'FIRST NATIONAL BANK':{ who:'Teller', hi:'Good afternoon. How can I help you?' } };
+let shopN = [];
+async function useShop(s){ const c = SHOPS[s.name], l = api.L(); if(!c) return; E.cut(true); await E.say([[c.who, c.hi]]);
+  if(s.kind === 'bank'){ for(;;){ l.bank = l.bank || 0; const k = await E.choose(['Deposit $20', 'Deposit all my cash', 'Withdraw $20', 'Withdraw everything', 'Leave']); if(k === 4) break; const amt = k === 0 ? 20 : k === 1 ? Math.max(0, l.cash) : k === 2 ? Math.min(20, l.bank) : l.bank;
+      if(k < 2){ if(amt <= 0 || l.cash < amt){ await E.say([[c.who, 'You do not have that much on you.']]); continue; } l.cash -= amt; l.bank += amt; } else { if(amt <= 0){ await E.say([[c.who, 'There is nothing in the account to withdraw.']]); continue; } l.bank -= amt; l.cash += amt; }
+      api.save(); E.sfx('ok'); await E.say([[c.who, `All set. Your savings balance is ${api.money(l.bank)}.`]]); } E.cut(false); return; }
+  for(;;){ const k = await E.choose([...c.items.map(i => `${i[0]} · ${api.money(i[1])}`), 'Leave']); if(k >= c.items.length) break; const it = c.items[k]; if(!api.pay(it[1])) break;
+    if(it[3]){ await E.fade(true, 400); api.passTime(it[3]); await E.fade(false, 400); } if(it[4]){ P.stam = 1; P.tired = false; } await E.say([['', it[2]]]); if(s.kind === 'diner') break; }
+  E.cut(false); }
 function grounded(l){ return l.groundedDay != null && l.groundedDay === (l.dayCount || 0); }
 
 // ---------- PS2 + games (sold at Video World) ----------
@@ -153,6 +176,9 @@ function gasStation(){ const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 24
 // ---------- switch on ----------
 export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs = []; spawned = {}; clearJob(); const l = api.L();
   l.rep = l.rep ?? 50; l.owned = l.owned || []; G.gas = l.gas ?? 7.5; G.LIFE_API = api;
+  shopN.forEach(n => n.remove()); shopN = (G.shops || []).filter(s => SHOPS[s.name]).map((s, i) => { api.add({ x:s.at[0], z:s.at[1], r:1.9, prompt:s.kind === 'bank' ? 'TALK TO THE TELLER' : s.kind === 'diner' ? 'ORDER FOOD' : 'BUY SOMETHING', use:() => useShop(s) });
+    return E.npc(SHOPS[s.name].who, api.randomLook(i % 2 === 0), s.clerk[0], s.clerk[1], { face:s.face, y:G.terrain ? G.terrain(s.clerk[0], s.clerk[1]) : 0 }); });
+  api.onOff(() => { shopN.forEach(n => n.remove()); shopN = []; });
   G.ext = { makePlans, aim, shopGames, playPS2, owned:k => (l.owned || []).includes(k), grounded:() => grounded(l), paper };
   // skateboard on the porch (free) — B hops on/off once you own it
   const board = mesh(new THREE.BoxGeometry(.26, .05, .82), E.mat('#2a2a2a'), 2.2, .4, 5.6); board.rotation.y = .4; board.visible = !l.owned.includes('board');
@@ -178,8 +204,14 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
     // curfew: 11 PM Sun–Thu, 12:30 AM Fri/Sat
     const dow = dateOf(dc).getDay(), cf = dow === 5 || dow === 6 ? 1470 : 1380, t = l.min < 360 ? l.min + 1440 : l.min, home = P.p.x > -8 && P.p.x < 8 && P.p.z > -12 && P.p.z < 4;
     if(!l.late && t >= cf && !home && !G.onShift){ l.late = true; E.toast('<b>Dad (phone):</b> It’s past curfew. Get. Home. Now.', 4200); E.sfx('ring'); }
-    if(l.late && home && G.ctl && !G.uiOpen){ l.late = false; l.groundedDay = l.min < 360 ? dc : dc + 1; api.save(); (async () => { E.cut(true); await E.say([['Dad', 'Do you know what time it is?'], ['Chris', '...Not past curfew o’clock?'], ['Dad', 'You’re grounded tomorrow. No phone, no car.']]); E.cut(false); })(); }
+    if(l.late && home && G.ctl && !G.uiOpen){ l.late = false; const gd = l.min < 360 ? dc : dc + 1, again = l.groundedDay != null && gd - l.groundedDay >= 0 && gd - l.groundedDay <= 1; if(!again) l.groundedDay = gd; api.save();
+      (async () => { E.cut(true); await E.say(again ? [['Dad', 'Late. Again.'], ['Chris', '...Am I grounded tomorrow too?'], ['Dad', 'No. I am not doing this two days in a row. Go to bed.']] : [['Dad', 'Do you know what time it is?'], ['Chris', '...Not past curfew o’clock?'], ['Dad', 'You’re grounded tomorrow. No phone, no car.']]); E.cut(false); })(); }
     if(grounded(l) && G.driving && !G.mission){ E.exitCar(); E.toast('You’re grounded. Keys are on Dad’s dresser.', 2600); }
+    { const c = G.driving; if(c && !G.mission && G.driveRule){ const p = c.car.position, w = watch, mx = p.x - (w.x ?? p.x), mz = p.z - (w.z ?? p.z), m = Math.hypot(mx, mz); w.x = p.x; w.z = p.z; const sp = Math.abs(c.speed), R = m > 1e-4 && m < 3 ? G.driveRule(p.x, p.z, mx / m, mz / m, 30) : null, k = w.k;
+        if(R && (!k || k.j !== R.j)) w.k = { j:R.j, g:R.g, stop:R.stop, minV:99, d:R.d, red:false };
+        else if(R){ if(R.d < 22) k.minV = Math.min(k.minV, sp); if(k.d > 8.2 && R.d <= 8.2) k.red = R.j.type === 'signal' && G.signalPhase(R.j, R.g) === 'r'; k.d = R.d; }
+        else if(k){ if(k.d < 9 && Math.hypot(p.x - k.j.x, p.z - k.j.z) < 9 && sp > 2){ if(k.red) fine(30, 'TICKET: ran a red light'); else if(k.stop && k.minV > 1.6) fine(15, 'TICKET: ran a stop sign'); } if(m > 1e-4) w.k = null; } }
+      else { watch.k = null; watch.x = null; } }
     if(G.gas != null) l.gas = G.gas;
     // friends hanging out on their schedule + planned meetups + Friday ragers
     const want = {}; schedule(l).forEach(([n, at]) => want[n] = { at }); const pl = l.plan, now = absNow(l);

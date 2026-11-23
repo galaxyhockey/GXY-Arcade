@@ -331,7 +331,7 @@ function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.p
   c.head += w * dt; c.slipS = (c.slipS || 0) + (slip - (c.slipS || 0)) * Math.min(1, dt * 8);
   carP.copy(c.car.position); carP.x += Math.sin(c.head) * c.speed * dt; carP.z += Math.cos(c.head) * c.speed * dt; carP.y = 0;
   const bx = carP.x, bz = carP.z; collide(carP, 1.25); c.bumpT = Math.max(0, (c.bumpT || 0) - dt);
-  if(Math.hypot(carP.x - bx, carP.z - bz) > .01){ if(av > 4 && !c.bumpT){ c.bumpT = .5; tone(70, 0, .22, 'square', Math.min(.12, av * .008), 40); c.pitch = (c.pitch || 0) + Math.sign(v) * Math.min(.06, av * .004); } c.speed *= Math.pow(.02, dt * 6); }
+  if(Math.hypot(carP.x - bx, carP.z - bz) > .01){ if(av > 4 && !c.bumpT){ c.bumpT = .5; G.onCrash && G.onCrash(av); tone(70, 0, .22, 'square', Math.min(.12, av * .008), 40); c.pitch = (c.pitch || 0) + Math.sign(v) * Math.min(.06, av * .004); } c.speed *= Math.pow(.02, dt * 6); }
   // body: lean out of corners, dip under braking, squat under power
   const lat = c.speed * w, lon = (c.speed - v) / Math.max(dt, .001), ease = Math.min(1, dt * 5);
   c.roll = (c.roll || 0) + (Math.max(-.085, Math.min(.085, lat * .011)) - (c.roll || 0)) * ease; c.pitch = (c.pitch || 0) + (Math.max(-.035, Math.min(.05, -lon * .0055)) - (c.pitch || 0)) * ease;

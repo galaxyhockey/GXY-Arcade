@@ -119,11 +119,44 @@ export function buildTown({ road, tree, M, rep, leafM }){
   const glassM = mat('#26384a'), shopGlass = mat('#4a6880'), paveM = mat('#b4b0a6'), pave = (x0, z0, x1, z1) => plane(x1 - x0, z1 - z0, paveM, (x0 + x1) / 2, .035, (z0 + z1) / 2), AWN = ['#8a2a2a', '#2a4a7a', '#2f5a3a', '#5a3a6a', '#b8862a', '#333'], BR = ['#8c3b2a', '#7a4a3a', '#a0522d', '#6e3b2e', '#b0603a', '#8a6a4a'];
   function shop(x0, z0, x1, z1, o = {}){ if(!o.force && (!free(x0, z0, x1, z1) || !offRoad(x0, z0, x1, z1, 6))) return null; const w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, h = o.h || 5, f = o.face || 's', sx = f === 'e' ? 1 : f === 'w' ? -1 : 0, sz = f === 's' ? 1 : f === 'n' ? -1 : 0, len = sx ? d : w;
     const wall = o.wall ? mat(o.wall) : BL.brickM(o.brick || pick(BR), '#c9bba5', [Math.max(2, Math.round(len / 4)), Math.max(1, Math.round(h / 2.6))], 'tn');
-    box(w, h, d, wall, cx, 0, cz); D(w + .5, .45, d + .5, o.trim || '#d8d2c4', cx, h, cz);
     const at = (u, y, off) => sx ? [cx + sx * (w / 2 + off), y, cz + u] : [cx + u, y, cz + sz * (d / 2 + off)], ry = RY[f];
     const P = (pw, ph, m, u, y, off) => vp(pw, ph, m, ...at(u, y, off), ry);
-    if(o.front !== false){ P(len - 2.2, 2.2, shopGlass, 0, 1.4, .04); for(let u = -len / 2 + 4.1; u < len / 2 - 2; u += 3) P(.14, 2.2, '#2a2a2e', u, 1.4, .05); P(1.3, 2.3, o.door || '#3a2a1e', o.doorU ?? -len / 4, 1.15, .06);
-      if(o.awn){ const [ax2, , az2] = at(0, 0, .75); D(sx ? 1.5 : len - 1, .14, sx ? len - 1 : 1.5, o.awn, ax2, 2.75, az2); } }
+    // ---- walk-in shops (o.inside = 'store' | 'diner' | 'bank'): a hollow shell with an open doorway, lit from inside, furnished by kind ----
+    const ins = o.inside, du = o.doorU ?? -len / 4, dep = sx ? w : d, a0 = -len / 2, a1 = len / 2, rf = RY[f], uL = sx ? 0 : Math.PI / 2;
+    const loc = (u, v) => sx ? [cx + sx * (w / 2 - v), cz + u] : [cx + u, cz + sz * (d / 2 - v)];          // u = along the shop front, v = metres in from the front wall
+    const F = (lu, hh, lv, c, u, y, v, co) => { const [x, z] = loc(u, v); return box(sx ? lv : lu, hh, sx ? lu : lv, C(c), x, y, z, { col:!!co }); };
+    const IW = (pw, ph, m, u, y, v, ry) => { const [x, z] = loc(u, v); return vp(pw, ph, m, x, y, z, ry); };
+    if(!ins) box(w, h, d, wall, cx, 0, cz);
+    else { const TH = .35, dk = (c, e = .5) => mat(c, { emissive:new THREE.Color(c).multiplyScalar(e).getHex() }), inM = dk('#e6e1d4', .46), winM = dk('#bcd6ea', .8), steel = dk('#aeb4ba'), wood = dk('#7a5a3c'), lightM = mat('#ffffff', { emissive:0xffffff });
+      F(len, h, TH, wall, 0, 0, dep - TH / 2, 1); F(TH, h, dep, wall, a0 + TH / 2, 0, dep / 2, 1); F(TH, h, dep, wall, a1 - TH / 2, 0, dep / 2, 1);
+      F(du - .85 - a0, h, TH, wall, (a0 + du - .85) / 2, 0, TH / 2, 1); F(a1 - du - .85, h, TH, wall, (a1 + du + .85) / 2, 0, TH / 2, 1); F(1.7, h - 2.4, TH, wall, du, 2.4, TH / 2, 0);
+      IW(len - 2 * TH, h, inM, 0, h / 2, dep - TH - .02, rf); IW(dep - 2 * TH, h, inM, a0 + TH + .02, h / 2, dep / 2, uL); IW(dep - 2 * TH, h, inM, a1 - TH - .02, h / 2, dep / 2, uL + Math.PI);
+      [[a0 + TH, du - .85], [du + .85, a1 - TH]].forEach(([p, q]) => { IW(q - p, h, inM, (p + q) / 2, h / 2, TH + .02, rf + Math.PI); if(q - p > 3){ IW(q - p - 1.6, 1.9, winM, (p + q) / 2, 1.5, TH + .04, rf + Math.PI); P(q - p - 1.2, 2.2, shopGlass, (p + q) / 2, 1.4, .04); } });
+      IW(1.7, h - 2.4, inM, du, (h + 2.4) / 2, TH + .02, rf + Math.PI);
+      const fl = { store:'#aeb9bd', diner:'#a8744e', bank:'#5a3f3a' }[ins]; plane(w - .6, d - .6, dk(fl, .42), cx, .04, cz);
+      { const cl = new THREE.Mesh(new THREE.PlaneGeometry(w - .6, d - .6), dk('#efede6', .6)); cl.rotation.x = Math.PI / 2; cl.position.set(cx, h - .03, cz); S.add(cl); }
+      for(let u = a0 + 3; u < a1 - 2; u += 5) for(let v = 3; v < dep - 2; v += 5) F(1.6, .06, .5, lightM, u, h - .1, v);
+      let spot, clerk;
+      if(ins === 'store'){ const cu = a1 - 2.7; F(.9, 1, 4.6, wood, cu, 0, 4, 1); F(.5, .35, .5, dk('#3a3a40'), cu, 1, 3.2); F(.6, .5, .3, dk('#c8102e'), cu, 1, 5.2); spot = [cu - 1.3, 4]; clerk = [cu + 1.2, 4];
+        const cols = ['#c8102e', '#f2c230', '#2f6fb8', '#3f9a54', '#e87a2a', '#8a4ab0', '#f2f2f2']; let n = 0;
+        for(let u = a0 + 3.2; u < cu - 4; u += 3.4){ const v0 = 3.4, v1 = dep - 4.2, vm = (v0 + v1) / 2; F(1, 1.75, v1 - v0, dk('#d8d4c8'), u, 0, vm, 1); for(let k = 0; k < 3; k++) for(let v = v0 + .2; v < v1 - 1.3; v += 1.45) F(1.08, .3, 1.3, dk(cols[(n += 3) % cols.length]), u, .28 + k * .5, v + .65); F(1.2, .5, .9, dk(cols[n++ % cols.length]), u, 0, v0 - .7); }
+        F(len - 7, 2.2, .8, dk('#dfe6ea'), -2, 0, dep - TH - .42, 1); IW(len - 7.4, 1.7, winM, -2, 1.15, dep - TH - .84, rf + Math.PI); for(let u = a0 + 2; u < a1 - 6; u += 1.5) F(.08, 2.2, .06, steel, u, 0, dep - TH - .86);
+        IW(Math.min(8, len - 8), .9, sg(/WALG/.test(o.name) ? 'PHARMACY' : 'COLD DRINKS', { bg:o.sbg || '#c8102e', fg:o.sfg || '#fff', size:58, w:512, h:76 }), -2, 2.9, dep - TH - .86, rf + Math.PI); }
+      else if(ins === 'diner'){ const cv = dep - 4.4; F(len - 5, 1.05, .9, dk('#c9c4b8'), 0, 0, cv, 1); F(len - 5, .06, 1, dk(o.sbg || '#c8102e'), 0, 1.05, cv); F(.5, .35, .5, dk('#3a3a40'), 1.5, 1.11, cv); F(len - 3, .95, .8, steel, 0, 0, dep - TH - .45, 1); F(1.2, 1.5, .7, steel, a0 + 2.2, .95, dep - TH - .45);
+        IW(Math.min(10, len - 6), 1.1, sg('MENU', { bg:'#1c1c1c', fg:'#f2e9c8', size:70, w:512, h:76 }), 0, 3, dep - TH - .04, rf + Math.PI); spot = [0, cv - 1.3]; clerk = [0, cv + 1.2];
+        const seat = dk(o.awn || o.sbg || '#b23a3a'), top = dk('#e8e2d2');
+        for(const side of [a0 + TH + 1, a1 - TH - 1]) for(let v = 2.6; v < cv - 2.6; v += 3.3){ if(Math.abs(side - du) < 2.4 && v < 3.4) continue; F(1.6, .07, .95, top, side, .72, v); F(.14, .72, .14, steel, side, 0, v); for(const s of [-1, 1]){ F(1.6, .46, .5, seat, side, 0, v + s * 1, 1); F(1.6, .6, .12, seat, side, .46, v + s * 1.2); } }
+        if(len > 22) for(let u = -4; u <= 4; u += 8) for(let v = 3.2; v < cv - 3; v += 3.4){ F(1, .07, 1, top, u, .72, v); F(.14, .72, .14, steel, u, 0, v, 1); for(const s of [-1, 1]) F(.42, .46, .42, seat, u + s * .95, 0, v); } }
+      else { const cv = dep - 5.2; F(len - 7, 1.15, 1, wood, -1, 0, cv, 1); F(len - 7, .05, 1.1, dk('#c8b060'), -1, 1.15, cv); for(let u = a0 + 4; u < a1 - 6; u += 3.2) F(.08, 1, .08, dk('#c8b060'), u, 1.2, cv); spot = [-1, cv - 1.4]; clerk = [-1, cv + 1.3];
+        F(2.8, 2.9, .22, steel, a1 - 4, 0, dep - TH - .14); F(1, 1, .1, dk('#c8b060'), a1 - 4, 1, dep - TH - .3); F(.16, .16, .3, dk('#3a3a40'), a1 - 4, 1.42, dep - TH - .4);
+        for(const v of [3, 6.2]){ F(1.9, .76, .95, wood, a0 + 3, 0, v, 1); F(.5, .5, .5, dk('#2f4a6a'), a0 + 1.4, 0, v); F(.5, .5, .5, dk('#2f4a6a'), a0 + 4.8, 0, v); }
+        for(const u of [-3.5, 1.5]) for(const v of [cv - 3.2, cv - 5.6]) cyl(.05, 1, C(dk('#c8b060')), ...((p) => [p[0], 0, p[1]])(loc(u, v)), 8);
+        IW(6, .8, sg('FIRST NATIONAL', { bg:'#1b3a6a', fg:'#fff', size:54, w:512, h:68 }), -1, 3.4, dep - TH - .04, rf + Math.PI); }
+      const [sxw, szw] = loc(spot[0], spot[1]), [cxw, czw] = loc(clerk[0], clerk[1]); (G.shops = G.shops || []).push({ name:Array.isArray(o.name) ? o.name.join(' ') : o.name, kind:ins, at:[sxw, szw], clerk:[cxw, czw], face:Math.atan2(sxw - cxw, szw - czw), x0, z0, x1, z1 }); }
+    D(w + .5, .45, d + .5, o.trim || '#d8d2c4', cx, h, cz);
+    if(o.front !== false && !ins){ P(len - 2.2, 2.2, shopGlass, 0, 1.4, .04); for(let u = -len / 2 + 4.1; u < len / 2 - 2; u += 3) P(.14, 2.2, '#2a2a2e', u, 1.4, .05); P(1.3, 2.3, o.door || '#3a2a1e', o.doorU ?? -len / 4, 1.15, .06);
+    }
+    if(o.front !== false && o.awn){ const [ax2, , az2] = at(0, 0, .75); D(sx ? 1.5 : len - 1, .14, sx ? len - 1 : 1.5, o.awn, ax2, 2.75, az2); }
     for(let fl = 1; fl < Math.floor(h / 3.2); fl++) for(let u = -len / 2 + 1.7; u <= len / 2 - 1.7 + .01; u += 2.7) P(1.2, 1.6, glassM, u, fl * 3.2 + 1.55, .04);
     if(o.name){ const sw = Math.max(3.6, Math.min(len - 1, (Array.isArray(o.name) ? Math.max(...o.name.map(t => t.length)) : o.name.length) * .5 + 1.4)), sh = Array.isArray(o.name) ? 1.7 : 1, hp = Math.round(512 * sh / sw);
       P(sw, sh, sg(o.name, { bg:o.sbg || '#f2ecd8', fg:o.sfg || '#2a2420', size:Math.round(Math.min(64, hp * (Array.isArray(o.name) ? .4 : .76))), w:512, h:hp }), 0, Math.min(h - .7, o.signY || 3.75), .09); }
@@ -224,7 +257,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
     shop(-296, 268, -258, 292, { h:6, face:'n', name:'SWANSEA FIRE DEPT.', brick:'#8c3b2a', sbg:'#8c3b2a', sfg:'#fff', awn:null, front:false, signY:5.2, force:true }); [-288, -277, -266].forEach(x => { vp(8, 4, '#c8202a', x, 2, 267.94, Math.PI); for(let y = 1; y < 4; y++) vp(8, .06, '#8a1418', x, y, 267.92, Math.PI); }); lot(-344, 296, -262, 318, 6, { force:true }); });
   // roadside businesses: each finds a plot beside the street nearest its real location and faces it
   const biz = (name, w, d, nx, nz, o = {}) => { const sp = findSpot(w + 4, d + 18, nx, nz, 7); if(!sp) return; const [cx, cz] = sp, r = roadNear(cx, cz, 120), dx = r.x - cx, dz = r.z - cz, f = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'e' : 'w') : (dz > 0 ? 's' : 'n'), ew = f === 'e' || f === 'w', bw = ew ? d : w, bd = ew ? w : d;
-    const bx = cx + (f === 'e' ? 6 : f === 'w' ? -6 : 0), bz = cz + (f === 's' ? 6 : f === 'n' ? -6 : 0); shop(bx - bw / 2, bz - bd / 2, bx + bw / 2, bz + bd / 2, { face:f, name, force:true, ...o });
+    const bx = cx + (f === 'e' ? 6 : f === 'w' ? -6 : 0), bz = cz + (f === 's' ? 6 : f === 'n' ? -6 : 0); shop(bx - bw / 2, bz - bd / 2, bx + bw / 2, bz + bd / 2, { face:f, name, force:true, inside:/MART|WALGREENS/.test(name) ? 'store' : /BANK/.test(name) ? 'bank' : 'diner', ...o });
     const lx = cx - (f === 'e' ? 1 : f === 'w' ? -1 : 0) * (d / 2 + 3), lz = cz - (f === 's' ? 1 : f === 'n' ? -1 : 0) * (d / 2 + 3); lot(lx - (ew ? 5 : w / 2), lz - (ew ? w / 2 : 5), lx + (ew ? 5 : w / 2), lz + (ew ? w / 2 : 5), 3, { force:true }); take(cx - (ew ? d + 18 : w + 4) / 2, cz - (ew ? w + 4 : d + 18) / 2, cx + (ew ? d + 18 : w + 4) / 2, cz + (ew ? w + 4 : d + 18) / 2); zone(cx - (ew ? d + 18 : w + 4) / 2, cz - (ew ? w + 4 : d + 18) / 2, cx + (ew ? d + 18 : w + 4) / 2, cz + (ew ? w + 4 : d + 18) / 2, 30); PLACED[name] = sp; };
   biz('MOTO MART', 22, 16, 96, 284, { h:4.4, wall:'#e8e2d0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' }); biz("STEAK 'N SHAKE", 24, 18, 20, 284, { h:4.6, wall:'#f2f2f2', sbg:'#111', sfg:'#fff', awn:'#111' });
   biz('WHITE CASTLE', 22, 18, -60, 284, { h:4.4, wall:'#f4f4f0', sbg:'#1b3a8a', sfg:'#fff', awn:'#1b3a8a' }); biz("IMO'S PIZZA", 26, 18, -140, 284, { h:4.6, brick:'#8c3b2a', sbg:'#c8102e', sfg:'#fff', awn:'#2f5a3a' });
@@ -279,7 +312,26 @@ export function buildTown({ road, tree, M, rep, leafM }){
     // lift everything this file built onto the ground
     const T = G.terrain; for(let i = C0; i < S.children.length; i++){ const o = S.children[i]; if(o === land) continue;
       if(o.userData.ribbon){ const p = o.geometry.attributes.position; for(let k = 0; k < p.count; k++) p.setY(k, p.getY(k) + T(p.getX(k) + o.position.x, p.getZ(k) + o.position.z) + .05); p.needsUpdate = true; o.geometry.computeVertexNormals(); o.geometry.computeBoundingSphere(); continue; }
-      const x = o.position.x, z = o.position.z; o.position.y += T(x, z) + (o.userData.flat ? .075 : 0); }
+      const x = o.position.x, z = o.position.z; if(o.userData.flat){ const p = o.geometry.attributes.position; for(let k = 0; k < p.count; k++) p.setZ(k, T(x + p.getX(k), z - p.getY(k)) + .075); p.needsUpdate = true; o.geometry.computeVertexNormals(); o.geometry.computeBoundingSphere(); continue; }
+      o.position.y += T(x, z); }
+    // grade: the ground is then shaped to what lies on it, so nothing pokes through. Every grid point under or beside a flat surface
+    // (road, car park, lawn, path) is set just below that surface: cut down where a hill rose through it, filled where it hung in the air.
+    { S.updateMatrixWorld(true); const cov = new Float32Array(nx * nz).fill(1e9), cap = new Float32Array(nx * nz).fill(1e9), fill = new Uint8Array(nx * nz), pits = G.pits || [], W = (e, p, k) => { const x = p.getX(k), y = p.getY(k), z = p.getZ(k); return [e[0] * x + e[4] * y + e[8] * z + e[12], e[1] * x + e[5] * y + e[9] * z + e[13], e[2] * x + e[6] * y + e[10] * z + e[14]]; };
+      S.traverse(o => { if(!o.isMesh || o === land || !o.geometry.attributes.position || o.material.transparent) return; const g = o.geometry, p = g.attributes.position, ix = g.index, e = o.matrixWorld.elements, tc = (ix ? ix.count : p.count) / 3, soft = o.userData.ribbon || o.userData.flat || g.type === 'PlaneGeometry' || g.type === 'CircleGeometry';
+        if(!g.boundingSphere) g.computeBoundingSphere(); if(g.boundingSphere.radius > 400) return;                                   // the backdrop plane under the whole map is not something to grade to
+        for(let t = 0; t < tc; t++){ const a = W(e, p, ix ? ix.getX(t * 3) : t * 3), b = W(e, p, ix ? ix.getX(t * 3 + 1) : t * 3 + 1), c = W(e, p, ix ? ix.getX(t * 3 + 2) : t * 3 + 2);
+          const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2], ny = uz * vx - ux * vz, nl = Math.hypot(uy * vz - uz * vy, ny, ux * vy - uy * vx); if(nl < .02 || ny / nl < .96) continue;
+          const mx = (a[0] + b[0] + c[0]) / 3, my = (a[1] + b[1] + c[1]) / 3, mz = (a[2] + b[2] + c[2]) / 3, dh = my - T(mx, mz); if(dh > 1.3 || dh < -1.5 || pits.some(q => mx > q.x0 - 1 && mx < q.x1 + 1 && mz > q.z0 - 1 && mz < q.z1 + 1)) continue;
+          const big = soft && nl / 2 >= 6 && dh < .7, den = ux * vz - vx * uz; if(Math.abs(den) < 1e-9) continue;
+          const i0 = Math.max(0, Math.floor((Math.min(a[0], b[0], c[0]) - gx0) / CS) - 1), i1 = Math.min(nx - 1, Math.ceil((Math.max(a[0], b[0], c[0]) - gx0) / CS) + 1), j0 = Math.max(0, Math.floor((Math.min(a[2], b[2], c[2]) - gz0) / CS) - 1), j1 = Math.min(nz - 1, Math.ceil((Math.max(a[2], b[2], c[2]) - gz0) / CS) + 1);
+          for(let i = i0; i <= i1; i++) for(let j = j0; j <= j1; j++){ const X = gx0 + i * CS, Z = gz0 + j * CS, k = i * nz + j; let s = ((X - a[0]) * vz - (Z - a[2]) * vx) / den, r = ((Z - a[2]) * ux - (X - a[0]) * uz) / den;   // point = a + s*u + r*v
+            if(s >= -1e-6 && r >= -1e-6 && s + r <= 1 + 1e-6){ const y = a[1] + s * uy + r * vy; if(y < cov[k]) cov[k] = y; if(big) fill[k] = 1; continue; }
+            let bd = 1e9, by = 0; for(const [P, Q] of [[a, b], [b, c], [c, a]]){ const ex = Q[0] - P[0], ez = Q[2] - P[2], q = Math.max(0, Math.min(1, ((X - P[0]) * ex + (Z - P[2]) * ez) / (ex * ex + ez * ez || 1))), d = Math.hypot(P[0] + ex * q - X, P[2] + ez * q - Z); if(d < bd){ bd = d; by = P[1] + (Q[1] - P[1]) * q; } }
+            if(bd <= CS * 1.45 && by < cap[k]) cap[k] = by; } } });
+      const p = land.geometry.attributes.position; for(let k = 0; k < nx * nz; k++){ let h = H[k] - .035; if(cov[k] < 1e8) h = fill[k] ? cov[k] - .06 : Math.min(h, cov[k] - .06); if(cap[k] < 1e8) h = Math.min(h, cap[k] - .06); H[k] = h; p.setY(k, h); } p.needsUpdate = true; land.geometry.computeVertexNormals(); land.geometry.computeBoundingSphere();
+      for(let i = C0; i < S.children.length; i++){ const o = S.children[i]; if(o.material === G.glowM){ const x = o.position.x, z = o.position.z, r = o.geometry.parameters.width / 2; o.position.y = Math.max(G.terrain(x, z), G.terrain(x - r, z), G.terrain(x + r, z), G.terrain(x, z - r), G.terrain(x, z + r)) + .09; } }   // light pools sit clear of the slope
+      // walking and driving use exactly the triangles that are drawn
+      G.terrain = (x, z) => { const fx = (x - gx0) / CS, fz = (z - gz0) / CS, i = Math.floor(fx), j = Math.floor(fz); if(i < 0 || j < 0 || i >= nx - 1 || j >= nz - 1) return 0; const u = fx - i, v = fz - j, k = i * nz + j, a = H[k], b = H[k + nz], c = H[k + 1], d = H[k + nz + 1]; return (u + v <= 1 ? a + (b - a) * u + (c - a) * v : d + (c - d) * (1 - u) + (b - d) * (1 - v)) + .035; }; }
     for(let i = K0; i < G.colliders.length; i++){ const c = G.colliders[i], h = T((c.x0 + c.x1) / 2, (c.z0 + c.z1) / 2); c.y0 += h - 1.5; c.y1 += h + .6; } for(let i = PL0; i < G.platforms.length; i++){ const p = G.platforms[i]; p.y += T((p.x0 + p.x1) / 2, (p.z0 + p.z1) / 2); } }
   (G.junctions || []).forEach(q => (q.heads || []).forEach(h => { h.y += G.terrain(h.x, h.z); }));
   G.townHouses = nh; G.townPlaced = PLACED;

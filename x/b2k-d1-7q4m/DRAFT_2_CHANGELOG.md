@@ -133,3 +133,12 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 - While the radio plays, the old generated car tune is silent; with the radio off (or no folder) it plays as before. Radio follows the Music volume setting and pauses with the game.
 - Not built yet: the other two stations, a station dial on the HUD.
 - Streaming from any device: `radio/encrypt.js` (local only) locks each song with a passcode (AES-256-GCM) into `radiox/`; the game asks for the passcode once per device (R in the car), then downloads and unlocks one song at a time. Without the passcode the files are unreadable.
+
+## Draft 2.11 — ground fixes, walk-in shops, tickets (all GAME ORIGINAL systems)
+
+- **Hills no longer poke through roads and lots.** After everything is placed, the ground is graded to what lies on it: cut down where a hill rose through a road, car park, lawn or path, filled where one hung in the air. Junction patches now follow the slope instead of being rigid discs. Walking and driving use exactly the drawn ground. Measured: 609 poke-through spots before, 0 after (outside Chris's basement, which is meant to be below ground).
+- **Walk-in interiors** for the nine roadside businesses: Walgreens and Moto Mart (shelves, coolers, counter), Steak 'n Shake, White Castle, Imo's, Hardee's, Dairy Queen, Pancake House (counter, menu board, booths, tables), First National Bank (teller line, desks, vault). Each has a clerk and a counter you can use in free roam: buy items / order food (GAME ORIGINAL lines and 2003-ish prices), and a savings account at the bank (deposit / withdraw).
+- **Tickets and repair bills, free roam only** (story missions stay as written): running a red light $30, rolling a stop sign $15 (you must come to a stop within about 20 m of the sign), crashing at speed $20–$60 body shop bill (at most one per 10 s). Money comes out of Chris's cash; if he is short the balance goes negative ("you owe Dad") until pay covers it.
+- **Curfew:** Chris can no longer be grounded two days in a row for curfew. Dad has a GAME ORIGINAL line for it.
+- **Fixed:** the ringing house phone (Eric's call) could not be answered, because the everyday "USE THE PHONE" prompt sat on the same spot and took the key press. It now steps aside while the phone rings.
+- Not done: the larger landmarks (hospital, Wolf Branch school, village hall, Eckert's) are still closed shells; shop windows are not see-through from inside.
