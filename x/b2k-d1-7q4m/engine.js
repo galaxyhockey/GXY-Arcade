@@ -168,7 +168,7 @@ export function makePerson(o = {}){
   // head: round, face texture on the front; hair + hats are shaped caps
   const head = new THREE.Group(); head.position.y = 1.62; const HS = [1, 1.1, 1];
   const hd = new THREE.Mesh(new THREE.SphereGeometry(.2, 18, 14), new THREE.MeshLambertMaterial({ map:face(skin, o) })); hd.position.y = .2; hd.scale.set(...HS); hd.castShadow = true; hd.userData.keep = true; head.add(hd);
-  [-1, 1].forEach(sd => A(new THREE.SphereGeometry(.042, 6, 5), sk, sd * .198, .19, 0, head)); A(new THREE.SphereGeometry(.034, 6, 5), sk, 0, .168, .197, head);
+  if(!(o.fringe && hs === 'long')) [-1, 1].forEach(sd => A(new THREE.SphereGeometry(.042, 6, 5), sk, sd * .198, .19, 0, head)); A(new THREE.SphereGeometry(.034, 6, 5), sk, 0, .168, .197, head);
   const hg = new THREE.Group(); hg.position.y = .2; hg.scale.set(...HS); head.add(hg);
   const hc = mat(o.hair || '#3a2414'), dome = (r, th2, m = hc, y = 0) => A(new THREE.SphereGeometry(r, 14, 8, 0, Math.PI * 2, 0, th2), m, 0, y, 0, hg), back = (r, th2, m = hc) => A(new THREE.SphereGeometry(r, 10, 8, Math.PI, Math.PI, 0, th2), m, 0, 0, 0, hg);
   const HB = (w, h, d, x, y, z, m = hc, rx = 0, rz = 0) => { const b = A(new THREE.BoxGeometry(w, h, d), m, x, y, z, hg); b.rotation.set(rx, 0, rz); return b; };
@@ -176,8 +176,9 @@ export function makePerson(o = {}){
     if(hs === 'buzz') dome(.2045, 1.3, mat(new THREE.Color(o.hair || '#3a2414').offsetHSL(0, -.1, .06).getStyle()));
     else if(hs === 'afro') A(new THREE.SphereGeometry(.29, 12, 9), hc, 0, .1, -.02, hg);
     else { dome(.213, hs === 'shaggy' ? 1.22 : 1.02); back(.215, ['long', 'pony', 'pigtails'].includes(hs) ? 2.45 : hs === 'shaggy' ? 2.2 : 1.85); }
-    if(hs === 'long' && o.fringe){ const fall = A(new THREE.SphereGeometry(.2, 12, 10), hc, 0, -.22, -.1, hg); fall.scale.set(1.12, 1.75, .62); [-1, 1].forEach(sd => { const lk = A(cap(.05, .3), hc, sd * .185, -.2, .035, hg); lk.rotation.z = sd * .07; lk.scale.z = .8; });
-      const fr2 = A(new THREE.SphereGeometry(.214, 14, 8, -.35, Math.PI + .7, .18, .78), hc, 0, .012, .012, hg); fr2.rotation.z = -.2; }
+    if(hs === 'long' && o.fringe){ const h2 = mat(o.hair || '#3a2414', { side:THREE.DoubleSide }); // straight shoulder-length hair: a smooth curtain around the back and sides, side-swept bangs
+      A(new THREE.CylinderGeometry(.219, .2, .44, 20, 1, true, .78, Math.PI * 2 - 1.56), h2, 0, -.22, 0, hg); A(new THREE.SphereGeometry(.219, 20, 6, Math.PI / 2 + .78, Math.PI * 2 - 1.56, .9, Math.PI / 2 - .9), h2, 0, 0, 0, hg);
+      const bg = A(new THREE.SphereGeometry(.2185, 18, 8, Math.PI / 2 - 1.2, 2.4, .3, .98), h2, 0, 0, 0, hg); bg.rotation.z = -.2; }
     else if(hs === 'long') HB(.34, .3, .1, 0, -.24, -.15);
     if(hs === 'spiky'){ const tip = mat(o.tips || '#f0dc9a'); for(let i = 0; i < 9; i++){ const a = i / 9 * 6.28, r = i % 3 ? .1 : .03, sp = A(new THREE.ConeGeometry(.045, .13, 5), i % 2 ? tip : hc, Math.cos(a) * r, .22 - r * .25, Math.sin(a) * r, hg); sp.rotation.set(Math.sin(a) * r * 4, 0, -Math.cos(a) * r * 4); } }
     if(hs === 'curtains'){ HB(.13, .06, .05, -.075, .12, .185, hc, .2, .5); HB(.13, .06, .05, .075, .12, .185, hc, .2, -.5); }
