@@ -74,3 +74,11 @@ The layout was drawn from satellite views of Belleville and Swansea, turned a qu
 - Positions are not to scale and not all on their real corners. Jax's basement set is hidden inside a fenced, wooded lot east of Maple.
 - Traffic now runs on every street and goes round the fountain. The map screen (M) is zoomed out to show the whole town and names each street once.
 - Not built: interiors for any new building, pedestrians downtown, traffic lights. The new places are scenery to drive and walk through.
+
+### Swansea (added after a second look at the satellite map)
+
+The west side of the map, north of Schnucks, is now Swansea rather than generic houses and fields.
+- Streets: Huntwood Road, Big Bend Boulevard, Sullivan Drive, and two dead-end courts (Deerfield Drive, Thistle Lane) with a small lake beside one. Fullerton Road and Frank Scott Parkway were already there.
+- Real places: Wolf Branch School, Schranz Memorial Park (two ball diamonds, pond, pavilion), Swansea Village Hall, Swansea Fire Dept., Memorial Hospital on Frank Scott Parkway, a second MetroLink platform signed SWANSEA, the SWANSEA water tower, and a "Welcome to Swansea" board.
+- Skyview Drive-In moved off the Swansea side to N Belt West, which is where it really is.
+- As before, positions are approximate and nothing has an interior.

@@ -27,9 +27,10 @@ export const H = [
   { z:-170, a:-604, b:734, n:'N Charles Street' }, { z:-80, a:-604, b:96, n:'N Church Street' }, { z:-80, a:344, b:734, n:'N Church Street' },
   { z:24, a:-190, b:336, n:'Oakmont Drive', old:[-190, 150] }, { z:90, a:344, b:734, n:'N Jackson Street' },
   { z:256, a:-604, b:734, n:'N Illinois Street', old:[-190, 230], gap:[532, 588] },
-  { z:400, a:-604, b:-112, n:'N 1st Street' }, { z:400, a:344, b:734, n:'N 1st Street' }, { z:560, a:-604, b:734, n:'N 17th Street' } ];
+  { z:400, a:-604, b:-112, n:'Big Bend Boulevard' }, { z:400, a:344, b:734, n:'N 1st Street' }, { z:560, a:-604, b:734, n:'N 17th Street', wn:[-108, 'Sullivan Drive'] } ];
 export const V = [
-  { x:-600, a:-174, b:564, n:'Frank Scott Parkway' }, { x:-360, a:-166, b:556, n:'Fullerton Road' },
+  { x:-600, a:-174, b:564, n:'Frank Scott Parkway' }, { x:-480, a:260, b:556, n:'Huntwood Road' }, { x:-360, a:-166, b:556, n:'Fullerton Road' },
+  { x:-240, a:404, b:470, n:'Deerfield Drive', quiet:true }, { x:-200, a:330, b:396, n:'Thistle Lane', quiet:true },
   { x:-108, a:-166, b:556, n:'Westhaven Road', old:[28, 252] }, { x:100, a:-166, b:252, n:'Maple Street', old:[28, 252] },
   { x:340, a:-166, b:556, n:'N Belt', ew:['N Belt East', 'N Belt West'] }, { x:460, a:-166, b:556, n:'A Street', ew:['E A Street', 'W A Street'] },
   { x:560, a:-166, b:556, n:'Main Street', ew:['E Main Street', 'W Main Street'], gap:[228, 284] },
@@ -46,7 +47,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
   const through = (h, x) => h.a <= x - 3.9 && h.b >= x + 3.9;
   const cuts = (seg, list) => { let s = [seg]; for(const r of list) s = s.flatMap(([a, b]) => r[0] >= b || r[1] <= a ? [[a, b]] : [[a, r[0]], [r[1], b]]); return s.filter(([a, b]) => b - a > 1); };
   // ---------- streets ----------
-  for(const h of H){ take(h.a, h.z - 6.4, h.b, h.z + 6.4); for(const [a, b] of cuts([h.a, h.b], [h.old, h.gap].filter(Boolean))) road(a, h.z - 4, b, h.z + 4, h.z === SQ.z && a >= SQ.x ? 'S Illinois Street' : h.n); }
+  for(const h of H){ take(h.a, h.z - 6.4, h.b, h.z + 6.4); for(const [a, b] of cuts([h.a, h.b], [h.old, h.gap, h.wn && [h.wn[0], h.wn[0]]].filter(Boolean))) road(a, h.z - 4, b, h.z + 4, h.z === SQ.z && a >= SQ.x ? 'S Illinois Street' : h.wn && b <= h.wn[0] ? h.wn[1] : h.n); }
   for(const v of V){ take(v.x - 6.4, v.a, v.x + 6.4, v.b);
     const cs = H.filter(h => through(h, v.x) && h.z > v.a - 4.5 && h.z < v.b + 4.5).map(h => [h.z - 4, h.z + 4]);
     for(const [a, b] of cuts([v.a, v.b], [...cs, v.old, v.gap].filter(Boolean))) road(v.x - 4, a, v.x + 4, b, v.ew ? v.ew[b <= SQ.z ? 0 : 1] : v.n); }
@@ -60,7 +61,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
     if(h.old && v.old && v.x > h.old[0] && v.x < h.old[1]) continue;
     if(through(h, v.x)){ const vN = v.a < h.z - 5, vS = v.b > h.z + 5; patch(v.x - 4, h.z - 4 - (vN ? 2.4 : 0), v.x + 4, h.z + 4 + (vS ? 2.4 : 0));
       if(vN) plane(8, 2, xwM, v.x, .075, h.z - 5.2); if(vS) plane(8, 2, xwM, v.x, .075, h.z + 5.2);
-      cyl(.05, 3.5, mat('#777'), v.x + 5.2, 0, h.z + 5.2, 6); blade(h.z === SQ.z && v.x > SQ.x ? 'S Illinois Street' : h.n, v.x + 5.2, 3.1, h.z + 5.2, 0); blade(v.ew ? v.ew[h.z < SQ.z ? 0 : 1] : v.n, v.x + 5.2, 3.5, h.z + 5.2, Math.PI / 2); }
+      cyl(.05, 3.5, mat('#777'), v.x + 5.2, 0, h.z + 5.2, 6); blade(h.z === SQ.z && v.x > SQ.x ? 'S Illinois Street' : h.wn && v.x < h.wn[0] ? h.wn[1] : h.n, v.x + 5.2, 3.1, h.z + 5.2, 0); blade(v.ew ? v.ew[h.z < SQ.z ? 0 : 1] : v.n, v.x + 5.2, 3.5, h.z + 5.2, Math.PI / 2); }
     else if(Math.abs(h.b - (v.x - 4)) < .6) patch(v.x - 6.4, h.z - 4, v.x - 4, h.z + 4); else if(Math.abs(h.a - (v.x + 4)) < .6) patch(v.x + 4, h.z - 4, v.x + 6.4, h.z + 4); }
   // street lamps
   const lamp = (x, z) => { cyl(.08, 5, mat('#4a4a4a'), x, 0, z, 6); const b = new THREE.Mesh(new THREE.BoxGeometry(.5, .2, .9), G.lampM); b.position.set(x, 5.05, z); S.add(b); lampGlow(x, z, 8); };
@@ -199,25 +200,50 @@ export function buildTown({ road, tree, M, rep, leafM }){
     const field = (x0, z0, x1, z1, tall) => { if(tall){ box(x1 - x0, 1.9, z1 - z0, rep(corn, (x1 - x0) / 5, (z1 - z0) / 5), (x0 + x1) / 2, 0, (z0 + z1) / 2); mapRect(x0, z0, x1, z1, '#b89a4a'); } else { plane(x1 - x0, z1 - z0, rep(stub, (x1 - x0) / 6, (z1 - z0) / 6), (x0 + x1) / 2, .03, (z0 + z1) / 2); mapRect(x0, z0, x1, z1, '#8a744a'); } take(x0, z0, x1, z1); };
     BL.house(-582, 60, 'w', 41, { curb:14 }); take(-594, 48, -570, 72); barn(-540, 20, 16, 22); cyl(3.2, 13, mat('#c9c4b8'), -524, 0, 6, 12); { const cap = new THREE.Mesh(new THREE.SphereGeometry(3.2, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), mat('#9aa0a6')); cap.position.set(-524, 13, 6); S.add(cap); } col(-527, 3, -521, 9, 13); take(-530, 0, -518, 12);
     field(-590, 100, -470, 244, true); field(-460, 100, -370, 244, false); field(-500, -70, -370, 84, true); field(-590, -70, -590 + 60, 0, false);
-    field(-590, 268, -470, 392, false); field(-460, 268, -370, 392, true); waterTower(-526, 300, 'SWANSEA'); copse(-354, -70, -328, 250, 16);
-    // Skyview Drive-In
-    plane(224, 143, mat('#8f8878'), -480, .03, 479.5); mapRect(-592, 408, -368, 551, '#8f8878'); take(-594, 406, -366, 556);
-    box(46, 2, 1.2, mat('#6a6a6e'), -480, 0, 545); [-18, -6, 6, 18].forEach(dx => D(.5, 8, .5, '#6a6a6e', -480 + dx, 2, 545.6)); D(46, 19, .6, wh, -480, 7, 545); D(47, 19.6, .3, '#2a2a2e', -480, 6.7, 545.5); mapRect(-503, 543, -457, 547, '#f2f2f2');
-    for(let z = 440; z <= 520; z += 16) for(let x = -572; x <= -388; x += 8){ if(Math.abs(x + 480) < 9 && z > 460 && z < 500) continue; D(.1, 1.3, .1, '#7a7a7e', x, 0, z); D(.26, .32, .2, '#b8b8b8', x, 1.2, z); }
-    box(12, 3.4, 8, mat('#d8cdb0'), -480, 0, 480); D(12.6, .3, 8.6, '#8a2420', -480, 3.4, 480); vp(8, 1, sg('SNACK BAR', { bg:'#8a2420', fg:'#ffe9a8', size:60, w:512, h:64 }), -480, 2.7, 475.94, Math.PI);
-    box(3, 2.8, 3, mat('#d8cdb0'), -480, 0, 414); D(3.6, .25, 3.6, '#8a2420', -480, 2.8, 414); fenceLine(-592, 408, -488, 408, '#7a5a3a', 2.2); fenceLine(-472, 408, -368, 408, '#7a5a3a', 2.2); fenceLine(-592, 408, -592, 551, '#7a5a3a', 2.2); fenceLine(-368, 408, -368, 551, '#7a5a3a', 2.2); fenceLine(-592, 551, -368, 551, '#7a5a3a', 2.2);
-    D(.5, 9, .5, '#2a4a8a', -466, 0, 407); D(.5, 9, .5, '#2a4a8a', -458, 0, 407); board('SKYVIEW DRIVE-IN', 9, 1.6, -462, 8.4, 407, 0, { bg:'#2a4a8a', fg:'#ffe24a', size:50, posts:false });
-    board(['SCHOOL OF ROCK  PG-13', 'KILL BILL VOL. 1  R', 'OPEN FRI · SAT · SUN'], 9, 3.2, -462, 5.6, 407, 0, { bg:'#fffbe8', fg:'#111', size:44, posts:false }); }
+    field(-590, 276, -488, 392, false); waterTower(-526, 300, 'SWANSEA'); copse(-354, -70, -328, 250, 16);
+    // Skyview Drive-In (off N Belt West)
+    { const cx = 401, x0 = 348, x1 = 454; plane(x1 - x0, 143, mat('#8f8878'), cx, .03, 479.5); mapRect(x0, 408, x1, 551, '#8f8878'); take(x0 - 2, 406, x1 + 2, 556);
+      box(46, 2, 1.2, mat('#6a6a6e'), cx, 0, 545); [-18, -6, 6, 18].forEach(dx => D(.5, 8, .5, '#6a6a6e', cx + dx, 2, 545.6)); D(46, 19, .6, wh, cx, 7, 545); D(47, 19.6, .3, '#2a2a2e', cx, 6.7, 545.5); mapRect(cx - 23, 543, cx + 23, 547, '#f2f2f2');
+      for(let z = 440; z <= 520; z += 16) for(let x = x0 + 8; x <= x1 - 8; x += 8){ if(Math.abs(x - cx) < 9 && z > 460 && z < 500) continue; D(.1, 1.3, .1, '#7a7a7e', x, 0, z); D(.26, .32, .2, '#b8b8b8', x, 1.2, z); }
+      box(12, 3.4, 8, mat('#d8cdb0'), cx, 0, 480); D(12.6, .3, 8.6, '#8a2420', cx, 3.4, 480); vp(8, 1, sg('SNACK BAR', { bg:'#8a2420', fg:'#ffe9a8', size:60, w:512, h:64 }), cx, 2.7, 475.94, Math.PI);
+      box(3, 2.8, 3, mat('#d8cdb0'), cx, 0, 414); D(3.6, .25, 3.6, '#8a2420', cx, 2.8, 414); fenceLine(x0, 408, cx - 8, 408, '#7a5a3a', 2.2); fenceLine(cx + 8, 408, x1, 408, '#7a5a3a', 2.2); fenceLine(x0, 408, x0, 551, '#7a5a3a', 2.2); fenceLine(x1, 408, x1, 551, '#7a5a3a', 2.2); fenceLine(x0, 551, x1, 551, '#7a5a3a', 2.2);
+      D(.5, 9, .5, '#2a4a8a', cx + 14, 0, 407); D(.5, 9, .5, '#2a4a8a', cx + 22, 0, 407); board('SKYVIEW DRIVE-IN', 9, 1.6, cx + 18, 8.4, 407, 0, { bg:'#2a4a8a', fg:'#ffe24a', size:50, posts:false });
+      board(['SCHOOL OF ROCK  PG-13', 'KILL BILL VOL. 1  R', 'OPEN FRI · SAT · SUN'], 9, 3.2, cx + 18, 5.6, 407, 0, { bg:'#fffbe8', fg:'#111', size:44, posts:false }); }
+    // ---------- Swansea (the village north of Schnucks): Wolf Branch School, Schranz Memorial Park, Village Hall + Fire Dept, Memorial Hospital, two courts ----------
+    const diamond = (x, z) => { plane(34, 34, mat('#b8905a'), x, .045, z).rotation.z = Math.PI / 4; plane(26, 26, rep(M.grass, 4, 4), x, .05, z).rotation.z = Math.PI / 4; [[0, 17], [17, 0], [0, -17], [-17, 0]].forEach(([a, b]) => plane(1, 1, mat('#f4f4f0'), x + a, .06, z + b)); box(8, 4, .15, mat('#8a8f96'), x, 0, z + 23.4); };
+    board(['WELCOME TO', 'SWANSEA', 'A GREAT PLACE TO LIVE'], 6, 2.6, -584, 2.2, 266, 0, { size:50, bg:'#1b3a6a', fg:'#fff' });
+    { // Wolf Branch School on Huntwood Road
+      shop(-468, 296, -448, 372, { h:5.2, face:'w', name:'WOLF BRANCH SCHOOL', wall:'#c9a878', sbg:'#c9a878', sfg:'#3a2a1e', awn:null, front:false }); shop(-448, 320, -412, 348, { h:5.2, face:'s', wall:'#c9a878', front:false });
+      for(let z = 300; z <= 368; z += 6) if(Math.abs(z - 334) > 8) vp(3, 1.6, glassM, -468.06, 2, z, -Math.PI / 2); vp(3, 2.4, '#3a5a8a', -468.08, 1.2, 334, -Math.PI / 2); cyl(.08, 8, mat('#c9c9c9'), -472, 0, 326, 6); D(1.8, 1.1, .04, '#b22234', -471, 6.9, 326);
+      lot(-444, 270, -380, 292, 6); plane(40, 24, mat('#55575c'), -392, .03, 372); mapRect(-412, 360, -372, 384, '#55575c'); [-404, -380].forEach(x => { cyl(.09, 3.2, mat('#888'), x, 0, 372, 6); D(1.3, .9, .06, '#f2f2f2', x + (x < -392 ? .6 : -.6), 2.6, 372); });
+      [[-438, 300], [-430, 300]].forEach(([x, z]) => { box(2.6, 2.8, 9, mat('#e8b820'), x, .4, z + 4); D(2.64, .7, 8.6, '#26384a', x, 2, z + 4); }); take(-474, 264, -366, 396); mapRect(-474, 264, -366, 396, '#5f9a48'); }
+    { // Schranz Memorial Park
+      plane(108, 146, rep(M.grass, 18, 24), -420, .03, 479); mapRect(-474, 406, -366, 552, '#4f8a3c'); take(-474, 406, -366, 552); board(['SCHRANZ', 'MEMORIAL PARK'], 5, 1.7, -470, 1.6, 420, Math.PI / 2, { size:58 });
+      diamond(-440, 440); diamond(-398, 500); disc(1, mat('#4a8fc0'), -444, .05, 520, 18, 12); disc(1, mat('#3a7a34'), -444, .045, 520, 19.5, 13.5); mapRect(-460, 510, -428, 530, '#4a8fc0');
+      cyl(4.6, .4, mat('#cfc6ad'), -392, 0, 430, 8); for(let i = 0; i < 6; i++){ const a = i / 6 * Math.PI * 2; cyl(.16, 3, mat('#f3efe4'), -392 + Math.cos(a) * 4.1, .4, 430 + Math.sin(a) * 4.1, 6); } pyr(10.5, 10.5, 2.4, '#2f5a3a', -392, 3.4, 430); G.platforms.push({ x0:-396, z0:426, x1:-388, z1:434, y:.4 });
+      [[-470, 470], [-468, 540], [-372, 462], [-374, 544], [-416, 546], [-420, 412], [-452, 482], [-380, 414]].forEach(([x, z]) => tree(x, z, 1.2 + rnd() * .4, rnd() < .6)); }
+    { // Village Hall + Fire Department on N Illinois
+      shop(-344, 268, -304, 290, { h:6.4, face:'n', name:'SWANSEA VILLAGE HALL', wall:'#c9b48a', sbg:'#c9b48a', sfg:'#2a2420', awn:null }); cyl(.08, 9, mat('#c9c9c9'), -348, 0, 266, 6); D(1.8, 1.1, .04, '#b22234', -347, 7.7, 266);
+      shop(-296, 268, -258, 292, { h:6, face:'n', name:'SWANSEA FIRE DEPT.', brick:'#8c3b2a', sbg:'#8c3b2a', sfg:'#fff', awn:null, front:false, signY:5.2 }); [-288, -277, -266].forEach(x => { vp(8, 4, '#c8202a', x, 2, 267.94, Math.PI); for(let y = 1; y < 4; y++) vp(8, .06, '#8a1418', x, y, 267.92, Math.PI); });
+      lot(-344, 296, -262, 318, 6); }
+    { // Memorial Hospital on Frank Scott Parkway
+      box(46, 17, 64, mat('#d8d4c8'), -564, 0, 470); for(let f = 0; f < 5; f++) D(46.2, 1.4, 64.2, '#2a3a4a', -564, f * 3.3 + 1.7, 470); D(48, .8, 66, '#b9b3a6', -564, 17, 470); box(14, 4.2, 12, mat('#d8d4c8'), -534, 0, 470); D(16, .5, 16, '#c8202a', -532, 4.2, 470);
+      vp(10, 1.1, sg('EMERGENCY', { bg:'#c8202a', fg:'#fff', size:44, w:512, h:56 }), -523.94, 3.5, 470, Math.PI / 2); vp(22, 2.2, sg('MEMORIAL HOSPITAL', { bg:'#d8d4c8', fg:'#1b3a6a', size:40, w:512, h:51 }), -540.94, 14.6, 470, Math.PI / 2);
+      board(['H', 'MEMORIAL HOSPITAL'], 4, 2.2, -490, 2, 414, 0, { bg:'#1b3a8a', fg:'#fff', size:70 }); mapRect(-587, 438, -541, 502, '#d8d4c8'); take(-590, 434, -524, 506); lot(-520, 420, -490, 548, 12); lot(-588, 512, -526, 548, 8); copse(-590, 408, -530, 430, 4); }
+    { // the two courts, and a lake in the bend of one
+      disc(11, rep(M.asphalt, 4, 4), -240, .07, 476, 1, 1, 28); mapRect(-250, 466, -230, 486, '#5a5d63'); take(-252, 464, -228, 488); BL.house(-240, 501, 'n', 77, { curb:14 }); take(-252, 491, -228, 511);
+      disc(11, rep(M.asphalt, 4, 4), -200, .07, 324, 1, 1, 28); mapRect(-210, 314, -190, 334, '#5a5d63'); take(-212, 312, -188, 336); BL.house(-200, 299, 's', 78, { curb:14 }); take(-212, 289, -188, 309);
+      disc(1, mat('#4a8fc0'), -296, .05, 480, 20, 13); disc(1, mat('#3a7a34'), -296, .045, 480, 21.5, 14.5); mapRect(-314, 468, -278, 492, '#4a8fc0'); take(-318, 465, -274, 495); } }
 
   // ---------- small landmarks ----------
   waterTower(232, 132, 'BELLEVILLE');
   { // MetroLink line along the north edge + Belleville station
     const tie = txMat('ties', (g, w, h) => { noise(g, w, h, '#8a857a', .2, 2000); g.fillStyle = '#4a3a2a'; for(let x = 0; x < w; x += 16) g.fillRect(x, 6, 7, h - 12); }, [1, 1]);
     box(1440, 1, 9, mat('#8a857a'), 65, 0, -214, { col:false }); plane(1440, 5, rep(tie, 360, 1), 65, 1.02, -214); [-1, 1].forEach(s => D(1440, .16, .14, '#5a5a60', 65, 1.02, -214 + s * .75));
-    box(90, 1.1, 5, mat('#c4c0b6'), 560, 0, -206.5); for(let x = 524; x <= 596; x += 12) D(.3, 3.2, .3, '#2a4a8a', x, 1.1, -205); D(84, .25, 5.4, '#e8e8e8', 560, 4.3, -206.4);
-    board('BELLEVILLE', 6, 1.1, 560, 3.2, -204.6, 0, { bg:'#1b3a8a', fg:'#fff', size:70, posts:false }); board(['M  METROLINK', 'BELLEVILLE STATION'], 5, 1.7, 572, 1.9, -178, 0, { bg:'#1b3a8a', fg:'#fff', size:56 });
+    [[560, 'BELLEVILLE'], [-108, 'SWANSEA']].forEach(([x, nm]) => { box(90, 1.1, 5, mat('#c4c0b6'), x, 0, -206.5); for(let px = x - 36; px <= x + 36; px += 12) D(.3, 3.2, .3, '#2a4a8a', px, 1.1, -205); D(84, .25, 5.4, '#e8e8e8', x, 4.3, -206.4);
+      board(nm, 6, 1.1, x, 3.2, -204.6, 0, { bg:'#1b3a8a', fg:'#fff', size:70, posts:false }); board(['M  METROLINK', nm + ' STATION'], 5, 1.7, x + 12, 1.9, -178, 0, { bg:'#1b3a8a', fg:'#fff', size:56 }); lot(x - 60, -200, x + 60, -178, 9); mapRect(x - 45, -209, x + 45, -204, '#c4c0b6'); });
     [540, 565].forEach(x => { D(23, 3.2, 2.7, '#f2f2f2', x, 1.3, -214); D(23.04, .5, 2.74, '#1b3a8a', x, 1.9, -214); D(23.04, .16, 2.74, '#c8102e', x, 1.7, -214); D(21, .9, 2.76, '#26384a', x, 3, -214); });
-    lot(500, -200, 620, -178, 9); mapRect(-655, -219, 785, -209, '#8a857a'); mapRect(515, -209, 605, -204, '#c4c0b6'); }
+    mapRect(-655, -219, 785, -209, '#8a857a'); }
 
   // ---------- houses ----------
   const CH = -80, CA = -170, JA = 90, IL = 256, F1 = 400, S17 = 560, OK = 24;
@@ -234,7 +260,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
   houses('x', side(F1, 1), 346, 556, 'n'); houses('x', side(S17, -1), 346, 556, 's'); houses('z', side(340, 1), 430, 530, 'w'); houses('z', side(460, -1), 430, 530, 'e'); houses('z', side(460, 1), 430, 530, 'w'); houses('z', side(560, -1), 430, 530, 'e');
   // south: behind the plaza, Westhaven's south end, Swansea streets
   houses('x', side(S17, -1), -98, 334, 's'); houses('z', side(340, -1), 400, 530, 'e'); houses('z', side(-108, 1), 296, 530, 'w');
-  houses('x', side(IL, 1), -352, -116, 'n'); houses('x', side(F1, -1), -352, -116, 's'); houses('x', side(F1, 1), -352, -116, 'n'); houses('x', side(S17, -1), -352, -116, 's'); houses('z', side(-108, -1), 300, 370, 'e'); houses('z', side(-360, 1), 300, 370, 'w'); houses('z', side(-360, 1), 440, 520, 'w');
+  houses('x', side(IL, 1), -352, -116, 'n'); houses('x', side(F1, -1), -352, -116, 's'); houses('x', side(F1, 1), -352, -116, 'n'); houses('x', side(S17, -1), -352, -116, 's'); houses('z', side(-108, -1), 300, 370, 'e'); houses('z', side(-360, 1), 300, 370, 'w'); houses('z', side(-360, 1), 440, 520, 'w'); houses('z', side(-240, -1), 406, 470, 'e', { step:28, skip:0 }); houses('z', side(-240, 1), 406, 470, 'w', { step:28, skip:0 }); houses('z', side(-200, -1), 330, 394, 'e', { step:28, skip:0 }); houses('z', side(-200, 1), 330, 394, 'w', { step:28, skip:0 });
   // leftover land: trees
   copse(136, 62, 304, 190, 34, 1.4); copse(-84, 296, -26, 530, 22, 1.3); copse(-94, 480, 250, 520, 14, 1.2); copse(346, -60, 726, 66, 30, 1.2); copse(-352, -142, 92, -110, 22, 1.2); copse(346, -142, 726, -110, 18, 1.2);
   copse(-352, 296, -116, 364, 12, 1.2); copse(-352, 440, -116, 520, 14, 1.2); copse(346, 440, 556, 520, 12, 1.2); copse(660, 100, 722, 190, 6, 1.2); copse(656, 330, 724, 392, 6, 1.2);
@@ -249,4 +275,4 @@ export function buildTown({ road, tree, M, rep, leafM }){
 }
 
 // places for the map screen
-export const TOWN_PLACES = [['⛲', 'PUBLIC SQUARE', 560, 256], ['🌳', 'PRICE PARK', 400, 330], ['🎪', 'FAIRGROUNDS', 646, 480], ['🎬', 'SKYVIEW DRIVE-IN', -480, 480], ['⛪', 'CATHEDRAL', 614, 340], ['🚆', 'METROLINK', 560, -200], ['🎃', "ECKERT'S", -440, -120], ['🪦', 'WALNUT HILL', 198, -98], ['🏛', 'COUNTY BLDG', 498, 150]];
+export const TOWN_PLACES = [['⛲', 'PUBLIC SQUARE', 560, 256], ['🌳', 'PRICE PARK', 400, 330], ['🎪', 'FAIRGROUNDS', 646, 480], ['🎬', 'SKYVIEW DRIVE-IN', 401, 480], ['🏥', 'MEMORIAL HOSPITAL', -556, 470], ['🏫', 'WOLF BRANCH', -440, 334], ['⚾', 'SCHRANZ PARK', -420, 480], ['🚒', 'SWANSEA VILLAGE HALL', -300, 280], ['🚆', 'SWANSEA METRO', -108, -200], ['⛪', 'CATHEDRAL', 614, 340], ['🚆', 'METROLINK', 560, -200], ['🎃', "ECKERT'S", -440, -120], ['🪦', 'WALNUT HILL', 198, -98], ['🏛', 'COUNTY BLDG', 498, 150]];

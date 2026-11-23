@@ -100,7 +100,7 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
 // ambient traffic: drives on the right on every road, stops for Chris (on foot or driving)
 { const T = G.townRoads, lanes = []; // two lanes on every street; the two that cross the Public Square swing round the fountain
   T.H.forEach(h => { const sq = h.z === T.SQ.z ? T.SQ.x : null; lanes.push({ ax:'x', m:h.z, o:1.8, a0:h.a + 2, a1:h.b - 2, dir:1, sq }, { ax:'x', m:h.z, o:-1.8, a0:h.b - 2, a1:h.a + 2, dir:-1, sq }); });
-  T.V.forEach(v => { const sq = v.x === T.SQ.x ? T.SQ.z : null; lanes.push({ ax:'z', m:v.x, o:-2, a0:v.a + 2, a1:v.b - 2, dir:1, sq }, { ax:'z', m:v.x, o:2, a0:v.b - 2, a1:v.a + 2, dir:-1, sq }); });
+  T.V.forEach(v => { if(v.quiet) return; const sq = v.x === T.SQ.x ? T.SQ.z : null; lanes.push({ ax:'z', m:v.x, o:-2, a0:v.a + 2, a1:v.b - 2, dir:1, sq }, { ax:'z', m:v.x, o:2, a0:v.b - 2, a1:v.a + 2, dir:-1, sq }); });
   const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
   lanes.forEach((l, i) => { const n = Math.max(1, Math.round(Math.abs(l.a1 - l.a0) / 150)); for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0, lights:true }); G.scene.add(car);
     const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let a = l.a0 + (l.a1 - l.a0) * ((k + (i % 2) * .5) / n), v = 12;
