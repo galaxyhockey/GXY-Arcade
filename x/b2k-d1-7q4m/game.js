@@ -98,19 +98,18 @@ export function freeRoam(on){ roamMarks.forEach(r => { E.clearMarker(r.mk); E.de
     roamMarks.push({ mk, stop }); G.blips.push({ x:s.x, z:s.z, c:id[0] === 'S' ? '#4fc3ff' : '#ffd23f' }); });
   if(next){ E.obj(`${MIS[next].title}: go to the ${next[0] === 'S' ? 'blue' : 'yellow'} marker (${MIS[next].where}).`); E.setWay(MIS[next].start.x, MIS[next].start.z); } else E.obj('Free roam. Replay missions from the pause menu.'); }
 // ambient traffic: drives on the right on every road, stops for Chris (on foot or driving)
-{ const lanes = [
-    { ax:'x', c:25.8, a0:-188, a1:148, dir:1 }, { ax:'x', c:22.2, a0:148, a1:-188, dir:-1 },
-    { ax:'x', c:257.8, a0:-188, a1:228, dir:1 }, { ax:'x', c:254.2, a0:228, a1:-188, dir:-1 },
-    { ax:'z', c:98, a0:30, a1:250, dir:1 }, { ax:'z', c:102, a0:250, a1:30, dir:-1 },
-    { ax:'z', c:-110, a0:30, a1:250, dir:1 }, { ax:'z', c:-106, a0:250, a1:30, dir:-1 } ];
+{ const T = G.townRoads, lanes = []; // two lanes on every street; the two that cross the Public Square swing round the fountain
+  T.H.forEach(h => { const sq = h.z === T.SQ.z ? T.SQ.x : null; lanes.push({ ax:'x', m:h.z, o:1.8, a0:h.a + 2, a1:h.b - 2, dir:1, sq }, { ax:'x', m:h.z, o:-1.8, a0:h.b - 2, a1:h.a + 2, dir:-1, sq }); });
+  T.V.forEach(v => { const sq = v.x === T.SQ.x ? T.SQ.z : null; lanes.push({ ax:'z', m:v.x, o:-2, a0:v.a + 2, a1:v.b - 2, dir:1, sq }, { ax:'z', m:v.x, o:2, a0:v.b - 2, a1:v.a + 2, dir:-1, sq }); });
   const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'];
-  lanes.forEach((l, i) => { const n = l.ax === 'x' ? 4 : 3; for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0, lights:true }); G.scene.add(car);
+  lanes.forEach((l, i) => { const n = Math.max(1, Math.round(Math.abs(l.a1 - l.a0) / 150)); for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(i * 3 + k) % 9], { suv:(i + k) % 3 === 0, lights:true }); G.scene.add(car);
     const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); let a = l.a0 + (l.a1 - l.a0) * ((k + (i % 2) * .5) / n), v = 12;
-    const t = dt => { const px = l.ax === 'x' ? a : l.c, pz = l.ax === 'x' ? l.c : a, fx = l.ax === 'x' ? l.dir : 0, fz = l.ax === 'z' ? l.dir : 0;
+    const t = dt => { let c = l.m + l.o, sl = 0; if(l.sq != null && Math.abs(a - l.sq) < 38){ const u = (a - l.sq) / 38 * Math.PI / 2, s = Math.sign(l.o); c += s * 16 * Math.cos(u) ** 2; sl = -s * 16 * Math.sin(2 * u) * Math.PI / 76; }
+      const px = l.ax === 'x' ? a : c, pz = l.ax === 'x' ? c : a, fx = l.ax === 'x' ? l.dir : 0, fz = l.ax === 'z' ? l.dir : 0;
       const rx = P.p.x - px, rz = P.p.z - pz, ahead = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx);
       const block = ahead > 0 && ahead < 9 && side < 2.6; v += ((block ? 0 : 12) - v) * Math.min(1, dt * (block ? 6 : 1.5));
       a += l.dir * v * dt; if((l.dir > 0 && a > l.a1) || (l.dir < 0 && a < l.a1)) a = l.a0;
-      car.position.set(px, 0, pz); car.rotation.y = l.ax === 'x' ? (l.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (l.dir > 0 ? 0 : Math.PI);
+      car.position.set(px, 0, pz); car.rotation.y = l.ax === 'x' ? Math.atan2(l.dir, sl * l.dir) : Math.atan2(sl * l.dir, l.dir);
       Object.assign(col, l.ax === 'x' ? { x0:px - 2.2, x1:px + 2.2, z0:pz - 1, z1:pz + 1 } : { x0:px - 1, x1:px + 1, z0:pz - 2.2, z1:pz + 2.2 }); col.off = !!G.noTraffic; car.visible = !G.noTraffic && Math.abs(px - P.p.x) + Math.abs(pz - P.p.z) < 170; };
     t.amb = true; G.ticks.push(t); } }); }
 // parked cars in some driveways + Chris's own car (drivable)
@@ -126,7 +125,7 @@ G.chrisCarCol = G.colliders.find(c => c.x0 === 9.5 && c.z0 === 6.8); G.chrisDriv
 // ---------- menus ----------
 function openPause(on){ G.paused = on; $('pause').style.display = on ? 'flex' : 'none'; if(on){ E.unlock(); $('pRestart').disabled = !SV.cp; } }
 G.hotkey = e => { if(['Escape', 'KeyP'].includes(e.code) && !$('title').offsetParent){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; return; } openPause(!G.paused); }
-  if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, -20, 195, 1.5); G.onMap && G.onMap($('mapc').getContext('2d'), -20, 195, 1.5, 900); } } };
+  if(e.code === 'KeyM'){ if($('mapv').style.display === 'flex'){ $('mapv').style.display = 'none'; G.paused = false; } else if(!G.paused && G.ctl){ $('mapv').style.display = 'flex'; G.paused = true; E.unlock(); E.drawMap($('mapc').getContext('2d'), 900, 65, 195, .64); G.onMap && G.onMap($('mapc').getContext('2d'), 65, 195, .64, 900); } } };
 $('pResume').onclick = () => openPause(false);
 { let q = 'MEDIUM'; try{ q = localStorage.getItem('b2k_gfx') || 'MEDIUM'; }catch(e){} E.setQuality(q); }
 $('pRestart').onclick = () => { openPause(false); restartCP(); };

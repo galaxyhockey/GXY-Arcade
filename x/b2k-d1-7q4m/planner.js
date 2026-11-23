@@ -6,12 +6,14 @@ import { SV } from './game.js';
 import { dateOf, weatherFor } from './extras.js';
 import { fmt } from './life.js';
 import { playMeter } from './minigames.js';
+import { TOWN_PLACES } from './town.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-const PLACES = [['🏠', 'HOME', 0, -4], ['🛒', 'SCHNUCKS', 110, 366], ['📼', 'VIDEO WORLD', 26, 343], ['🥡', 'CHINA GARDEN', 196, 318], ['💈', 'HAIR CUTS', 232, 352], ['⛽', 'GAS + AUTO', -28, 278], ['🏫', 'BELLEVILLE WEST', -205, 150], ['🏀', 'ELMWOOD PARK', -80, 70], ['🏟', 'STADIUM', -255, 226]];
+const PLACES = [['🏠', 'HOME', 0, -4], ['🛒', 'SCHNUCKS', 110, 366], ['📼', 'VIDEO WORLD', 26, 343], ['🥡', 'CHINA GARDEN', 196, 318], ['💈', 'HAIR CUTS', 232, 352], ['⛽', 'GAS + AUTO', -28, 278], ['🏫', 'BELLEVILLE WEST', -205, 150], ['🏀', 'ELMWOOD PARK', -80, 70], ['🏟', 'STADIUM', -255, 226], ...TOWN_PLACES];
 const WX = { clear:'☀ Sunny', cloudy:'☁ Cloudy', rain:'🌧 Rain', storm:'⛈ Storms', snow:'❄ Snow' }, DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 export function initPlanner(){ G.onMap = (g, cx, cz, sc, size) => { const X = x => (x - cx) * sc + size / 2, Z = z => (z - cz) * sc + size / 2;
   g.save(); g.textAlign = 'center'; g.font = 'bold 13px Arial'; for(const [ic, name, x, z] of PLACES){ g.font = '30px Arial'; g.fillText(ic, X(x), Z(z) + 8); g.font = 'bold 15px Arial'; g.lineWidth = 4; g.strokeStyle = '#000'; g.strokeText(name, X(x), Z(z) + 28); g.fillStyle = '#fff'; g.fillText(name, X(x), Z(z) + 28); }
-  g.font = 'bold 15px Arial'; for(const r of G.roads || []){ const along = r.x1 - r.x0 > r.z1 - r.z0; g.save(); g.translate(X((r.x0 + r.x1) / 2), Z((r.z0 + r.z1) / 2)); if(!along) g.rotate(-Math.PI / 2); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(r.name.toUpperCase(), along ? -150 : 0, 4); g.restore(); }
+  g.font = 'bold 12px Arial'; const longest = {}; for(const r of G.roads || []){ const L = r.x1 - r.x0 + r.z1 - r.z0, b = longest[r.name]; if(!b || L > b.L) longest[r.name] = { r, L }; } // one label per street, on its longest stretch
+  for(const { r } of Object.values(longest)){ const along = r.x1 - r.x0 > r.z1 - r.z0; g.save(); g.translate(X((r.x0 + r.x1) / 2), Z((r.z0 + r.z1) / 2)); if(!along) g.rotate(-Math.PI / 2); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(r.name.toUpperCase(), 0, 4); g.restore(); }
   for(const n of G.npcs) if(n.blip && !n.dog && n.name.length < 12){ g.lineWidth = 3; g.strokeStyle = '#000'; g.strokeText(n.name, X(n.p.x), Z(n.p.z) - 10); g.fillStyle = '#7ee0ff'; g.fillText(n.name, X(n.p.x), Z(n.p.z) - 10); }
   if(G.way){ g.fillStyle = '#ffd23f'; g.fillText('▼ ' + (G.way.label || 'GO HERE'), X(G.way.x), Z(G.way.z) - 14); } g.restore();
   // planner

@@ -9,6 +9,7 @@ import * as SC from './school.js';
 import * as PZ from './plaza.js';
 import * as ST from './store.js';
 import { worldDetail } from './detail.js';
+import { buildTown } from './town.js';
 const S = G.scene;
 // ---------- materials ----------
 const M = {
@@ -31,7 +32,7 @@ const glass = new THREE.MeshLambertMaterial({ color:0x9fc6e6, transparent:true, 
 G.M = M;
 
 // ---------- ground + roads ----------
-plane(1200, 1200, rep(M.grass, 160, 160), 200, 0, 200);
+plane(2200, 1700, rep(M.grass, 293, 227), 160, 0, 150);
 function road(x0, z0, x1, z1, name){ plane(x1 - x0, z1 - z0, rep(M.asphalt, (x1 - x0) / 6, (z1 - z0) / 6), (x0 + x1) / 2, .02, (z0 + z1) / 2); mapRect(x0, z0, x1, z1, '#5a5d63');
   const along = x1 - x0 > z1 - z0, dash = new THREE.MeshBasicMaterial({ color:0xf2d04a });
   if(along){ for(let x = x0 + 2; x < x1; x += 6) plane(3, .18, dash, x, .03, (z0 + z1) / 2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z0 - 1.2); plane(x1 - x0, 2.4, rep(M.walk, (x1 - x0) / 3, 1), (x0 + x1) / 2, .06, z1 + 1.2); }
@@ -82,7 +83,7 @@ function house(x, z, face, col, o = {}){ // closed exterior house; face: 1 = doo
 const north = [-170, -150, -130, -80, -60, -40, 25, 45, 65, 120, 140], south = [-170, -150, -130, -60, -40, -20, 0, 20, 40, 60, 80, 140];
 north.forEach((x, i) => BL.house(x, 6, 's', i * 7 + 3, { curb:14 }));
 south.forEach((x, i) => BL.house(x, 42, 'n', i * 5 + 11, { curb:14 }));
-[-30, -15, 30, 55, 85, 130, -115, -95, -165, -142].forEach((x, i) => { tree(x, 34 + (i % 2) * 2, 1, true); tree(x + 6, 14 - (i % 2) * 2, 1.1); });
+[-30, -15, 30, 55, 85, 130, -122, -95, -165, -142].forEach((x, i) => { tree(x, 34 + (i % 2) * 2, 1, true); tree(x + 6, 14 - (i % 2) * 2, 1.1); });
 for(let z = 54, k = 0; z < 245; z += 15, k++){ const sd = [1, 2, 4, 5]; BL.house(83, z + 4, 'e', sd[k % 4] + 6 * k, { curb:13 }); if(k) BL.house(117, z, 'w', sd[(k + 2) % 4] + 6 * (k + 3), { curb:13 }); }
 buildJaxHouse(); // Jax's house on the corner of Oakmont and Maple (jaxhouse.js)
 buildTravel(); // Draft #2 story sets, off the map (travel.js)
@@ -224,4 +225,5 @@ export const Y89 = { campus:{ x:1000, z:0 }, dorm:{ x:1040, z:0 }, apt:{ x:1070,
   G.stadium = { jacob:{ x:sx + 2, z:21 }, guy:{ x:sx + 4, z:21 }, lilly:{ x:sx, z:21 }, gate:{ x:sx - 32, z:13 } }; }
 // interior lights for Chris's house and the school classroom
 [[0, 2.6, -6], [3, 5.8, -7]].forEach(([x, y, z]) => { const l = new THREE.PointLight(0xffe8c8, 18, 16, 1.4); l.position.set(x, y, z); S.add(l); });
+buildTown({ road, tree, M, rep, leafM }); // the wider town: street grid, downtown, parks, farms (town.js)
 worldDetail(); // curbs, poles, yard + park + plaza + store detail (detail.js)

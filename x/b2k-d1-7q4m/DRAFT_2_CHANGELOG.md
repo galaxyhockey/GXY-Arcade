@@ -61,3 +61,16 @@ Also GAME ORIGINAL: the encyclopedia passages in S03, the recovery / printer scr
 - S04 shift length: 8 real minutes for the four hours. No cash reward.
 - S05: Madison's train is 12 carts; the most you can build is 20; long trains are slower and lose carts on sharp turns. No cash reward.
 - M06 bagging: three orders. M08 arcade: 8 hoop shots, air hockey to 3. M09 paper towels: 8 throws with a very small target.
+
+## Draft 2.5 — the bigger town (world dressing, GAME ORIGINAL layout)
+
+The map grew from the four-street loop to a street grid about five times the area. Nothing in M01–M09 or S01–S07 moved: the old neighbourhood, school and Schnucks plaza sit in the middle exactly where they were.
+The layout was drawn from satellite views of Belleville and Swansea, turned a quarter turn so it lines up with the game's existing N Illinois Street. None of this is story canon; change any name you like.
+
+- Streets (13): N Illinois / S Illinois (through the Public Square), Main Street (E Main / W Main), N Belt East / West, A Street, Washington Street, Cleveland Avenue, N Charles, N Church, N Jackson, N 1st, N 17th, Fullerton Road, Frank Scott Parkway. Oakmont, Maple and Westhaven were extended to meet them. Oakmont Drive and Westhaven Road are still game-original names.
+- Real places used as landmarks: Public Square and the Veterans Memorial Fountain (roundabout), St. Clair County Building, Belleville City Hall, Belleville Public Library, Cathedral of St. Peter, Lincoln Theatre, Belleville News-Democrat, Fischer's Restaurant, Melvin Price Memorial Park, Belle-Clair Fairgrounds, Skyview Drive-In, Walnut Hill Cemetery, Eckert's, the MetroLink Belleville station, and Swansea / Belleville water towers.
+- Real chains used on signs (text only, no logos): Moto Mart, Steak 'n Shake, White Castle, Imo's Pizza, Hardee's, Dairy Queen, Walgreens, Belleville Pancake House. Every other storefront has a generic name (BAKERY, PAWN, CELLULAR + PAGERS ...). Please strike any you do not want.
+- Marquee text that is NOT from the book: Lincoln Theatre "Pirates of the Caribbean"; Skyview "School of Rock / Kill Bill Vol. 1" (both October 2003 releases). Say the word and they go blank.
+- Positions are not to scale and not all on their real corners. Jax's basement set is hidden inside a fenced, wooded lot east of Maple.
+- Traffic now runs on every street and goes round the fountain. The map screen (M) is zoomed out to show the whole town and names each street once.
+- Not built: interiors for any new building, pedestrians downtown, traffic lights. The new places are scenery to drive and walk through.
