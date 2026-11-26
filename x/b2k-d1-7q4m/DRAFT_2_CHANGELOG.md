@@ -142,3 +142,8 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 - **Curfew:** Chris can no longer be grounded two days in a row for curfew. Dad has a GAME ORIGINAL line for it.
 - **Fixed:** the ringing house phone (Eric's call) could not be answered, because the everyday "USE THE PHONE" prompt sat on the same spot and took the key press. It now steps aside while the phone rings.
 - Not done: the larger landmarks (hospital, Wolf Branch school, village hall, Eckert's) are still closed shells; shop windows are not see-through from inside.
+
+## Draft 2.12 — real TV
+
+- The living-room TV plays real 2003-era footage (10-minute clips, 360p), passcode-locked like the radio (same passcode). Channels by game hour: Nickelodeon 6 AM–6 PM (SpongeBob, Fairly OddParents), Jeopardy! noon–7 PM, KTVI Fox 2 News 5–7 PM, Prime Time 7 PM–midnight (King of the Hill, Malcolm in the Middle, Seinfeld), Adult Swim 10 PM–6 AM (Family Guy, South Park, Space Ghost). About 3 in 10 channel changes land on a commercial (2000–2002 ads, including Schnucks).
+- Footage comes from the author's own files; `radio/locktv.js` (local only) builds `tvx/` from the git-ignored `tv/` folder. Without the passcode the old text channels are used.

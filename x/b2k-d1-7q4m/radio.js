@@ -94,4 +94,4 @@ G.ticks.push(Object.assign(() => { const play = !!(G.driving && on && src && !G.
   if(play){ if(!au.src){ if(!busy) next(); } else if(au.paused && au.readyState > 1) au.play().catch(() => {}); } else if(!au.paused) au.pause();
   if(G.driving && !src && !hinted && G.ctl){ hinted = true; toast(dir ? '📻 Press R to turn the radio on' : locked ? '📻 Press R and type the radio passcode' : '📻 Press R to pick your music for the radio', 5200); } }, { amb:true }));
 au.oncanplay = () => { if(G.radioOn) au.play().catch(() => {}); };
-G.radio = { st, au, next, power, get src(){ return src; } };
+G.radio = { st, au, next, power, open, unlock, get src(){ return src; }, get key(){ return key; }, get locked(){ return locked; } };

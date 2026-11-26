@@ -8,6 +8,7 @@ import { playShift } from './shift.js';
 import { extrasOn, repDelta, wage } from './extras.js';
 import { beatsOn } from './beats.js';
 import { upgradesOn } from './planner.js';
+import { tvChannels, tvReady, tvPlay, tvAd, tvOff } from './tv.js';
 const { THREE, G, P, WARDROBE } = E; const $ = id => document.getElementById(id);
 const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:40, rentals:[], look:null });
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -74,6 +75,12 @@ const CALLS = { Zeke:[['Zeke (phone)', 'Yo! Can’t talk, I’m about to ollie a
   'China Garden':[['China Garden (phone)', 'China Garden, pick up or delivery?'], ['Chris', 'Uh... I’ll just come by.'], ['China Garden (phone)', 'Okay! Bye bye!']] };
 let chan = 0;
 async function useTV(){ sitSofa(true); E.cut(true); await E.camShot(...TV_SHOT, 500); const scr = G.tvScreen.material, c0 = scr.color.getHex();
+  // real footage: channels on the air at this hour (tv.js); otherwise the text channels below
+  const hr = (L().min / 60 | 0) % 24, live = tvChannels(hr); if(live.length && await tvReady()){ let ci = 0; G.radioMute = true; await E.camShot([-4.5, 1.35, 1.9], [-4.5, 1.25, 3.5], 500);
+    for(;;){ const c = live[ci % live.length]; let t; try{ t = (Math.random() < .3 && await tvAd(scr)) ? 'Commercial break' : await tvPlay(c, scr); }catch(e){ t = 'Bad reception.'; }
+      E.toast(`📺 <b>${c.name}</b> · ${t}`, 3600); const k = await E.choose(['Change the channel', ...(L().rentals.length ? ['Watch a rented movie'] : []), 'Get up']);
+      if(k === 0){ ci++; passTime(15); continue; } tvOff(scr); scr.color.setHex(c0); if(k === 1 && L().rentals.length){ await E.camShot(...TV_SHOT, 300); await watchRental(); await E.camShot([-4.5, 1.35, 1.9], [-4.5, 1.25, 3.5], 300); continue; } break; }
+    G.radioMute = false; scr.color.setHex(c0); sitSofa(false); E.cut(false); return; }
   for(;;){ const [t, c] = CHANNELS[chan % CHANNELS.length]; scr.color.setHex(c); await E.say([['', t]]);
     const opts = ['Change the channel', ...(L().rentals.length ? ['Watch a rented movie'] : []), 'Get up'], k = await E.choose(opts);
     if(opts[k] === 'Get up') break; if(opts[k] === 'Watch a rented movie'){ await watchRental(); continue; } chan++; passTime(15); }

@@ -1,0 +1,63 @@
+{
+ "channels": [
+  {
+   "name": "Nickelodeon",
+   "from": 6,
+   "to": 18,
+   "clips": [
+    "SpongeBob SquarePants - Something Smells",
+    "SpongeBob SquarePants - Your Shoe's Untied",
+    "The Fairly OddParents - Boys in the Band",
+    "The Fairly OddParents - Hex Games"
+   ]
+  },
+  {
+   "name": "Jeopardy",
+   "from": 12,
+   "to": 19,
+   "clips": [
+    "Jeopardy! (2003)"
+   ]
+  },
+  {
+   "name": "KTVI Fox 2 News",
+   "from": 17,
+   "to": 19,
+   "clips": [
+    "KTVI Fox 2 News at Five"
+   ]
+  },
+  {
+   "name": "Prime Time",
+   "from": 19,
+   "to": 24,
+   "clips": [
+    "King of the Hill",
+    "Malcolm in the Middle - Traffic Jam",
+    "Seinfeld - The Conversion"
+   ]
+  },
+  {
+   "name": "Adult Swim",
+   "from": 22,
+   "to": 6,
+   "clips": [
+    "Family Guy - Holy Crap",
+    "South Park - The Tooth Fairy Tats",
+    "Space Ghost Coast to Coast - Explode"
+   ]
+  },
+  {
+   "name": "ads",
+   "clips": [
+    "2000 Advil Cold & Sinus Commercial",
+    "2000 Dodge Different Commercial",
+    "2000 Nestle Treasures Candy Commercial",
+    "2000 Schnucks commercial",
+    "2001 Schnucks commercials",
+    "2002 Schnucks commercial",
+    "2002 Schnucks commercials"
+   ]
+  }
+ ]
+}
