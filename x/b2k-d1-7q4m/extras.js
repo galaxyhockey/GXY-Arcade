@@ -139,6 +139,7 @@ const SHOPS = {
   "HARDEE'S":{ who:'Cashier', hi:'Hi, what can I get started for you?', items:[['Burger combo', 4.59, 'That burger had its own gravity.', 20, 1], ['Curly fries', 1.39, 'The curly ones just taste better. Science.', 8, 1], ['Biscuit and gravy', 1.49, 'Breakfast all day should be a law.', 10, 1]] },
   'DAIRY QUEEN':{ who:'Cashier', hi:'Hi there! What sounds good?', items:[['Blizzard', 2.39, 'They flipped it upside down. It stayed. Witchcraft.', 10, 1], ['Dipped cone', 1.19, 'Ate the shell first. As is tradition.', 6, 1], ['Chili dog', 1.59, 'A chili dog from an ice cream place. Bold. Good.', 10, 1]] },
   'BELLEVILLE PANCAKE HOUSE':{ who:'Waitress', hi:'Sit anywhere, hon. What are we having?', items:[['Short stack', 3.25, 'Three pancakes. More syrup than pancake.', 25, 1], ['Big breakfast', 5.25, 'Eggs, bacon, hash browns, toast. I need a nap.', 35, 1], ['Coffee', .95, 'I do not even like coffee. I feel very grown up.', 8]] },
+  'TACO BELL':{ who:'Cashier', hi:'Welcome to Taco Bell. What can I get you?', items:[['Mexican Pizza', 2.29, 'Pizza and a taco had a baby. I support it.', 15, 1], ['Beef Chalupa', 1.89, 'The shell is fried. The shell is perfect.', 12, 1], ['Cinnamon Twists', .99, 'Sugar air. Delicious sugar air.', 6, 1], ['Fountain drink', 1.19, 'Pink Lemonade. Obviously.', 4, 1]] },
   'FIRST NATIONAL BANK':{ who:'Teller', hi:'Good afternoon. How can I help you?' } };
 let shopN = [];
 async function useShop(s){ const c = SHOPS[s.name], l = api.L(); if(!c) return; E.cut(true); await E.say([[c.who, c.hi]]);

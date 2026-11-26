@@ -14,7 +14,7 @@ const guy = (g, x, y, shirt, skin = '#efc29e') => { g.fillStyle = shirt; g.fillR
 // Offense: stop the marker in the green to score. Defense: stop it in the green to block.
 // o.script (e.g. ['o','d','o']) plays fixed beats, each repeated until you get it.
 export async function playDuel(o = {}){ const foe = o.foe || 'Zeke', to = o.to || 11, script = o.script, ui = open(o.title || '1 ON 1', 'OFFENSE: SPACE in the green to score - DEFENSE: SPACE in the green to block - ESC quit'), { g, press, text } = ui;
-  let me = 0, cpu = 0, k = 0, ph = 'o', s = { m:0, dir:1 }, zone = [.4, .2], st = 'aim', anim = 0, good = false, foeMade = false, sweeps = 0;
+  let me = o.start ? o.start[0] : 0, cpu = o.start ? o.start[1] : 0, k = 0, ph = 'o', s = { m:0, dir:1 }, zone = [.4, .2], st = 'aim', anim = 0, good = false, foeMade = false, sweeps = 0;
   const next = p => { ph = p; st = 'aim'; s.m = Math.random() * .15; s.dir = 1; sweeps = 0; const w = script ? .3 : Math.max(.1, .2 - (me + cpu) * .005); zone = [.2 + Math.random() * (.6 - w), w]; }; next(script ? script[0] : 'o');
   const shoot = hit => { good = hit; foeMade = ph === 'd' && !hit && !script && Math.random() < (o.skill ?? .55); st = 'fly'; anim = 0; E.sfx('cart'); };
   return run(ui, dt => { for(const p of press.splice(0)){ if(p === 'quit') return { me, cpu, quit:true }; if(p === 'act' && st === 'aim') shoot(s.m >= zone[0] && s.m <= zone[0] + zone[1]); }

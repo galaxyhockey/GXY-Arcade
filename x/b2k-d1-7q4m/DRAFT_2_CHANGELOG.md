@@ -147,3 +147,10 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 
 - The living-room TV plays real 2003-era footage (10-minute clips, 360p), passcode-locked like the radio (same passcode). Channels by game hour: Nickelodeon 6 AM–6 PM (SpongeBob, Fairly OddParents), Jeopardy! noon–7 PM, KTVI Fox 2 News 5–7 PM, Prime Time 7 PM–midnight (King of the Hill, Malcolm in the Middle, Seinfeld), Adult Swim 10 PM–6 AM (Family Guy, South Park, Space Ghost). About 3 in 10 channel changes land on a commercial (2000–2002 ads, including Schnucks).
 - Footage comes from the author's own files; `radio/locktv.js` (local only) builds `tvx/` from the git-ignored `tv/` folder. Without the passcode the old text channels are used.
+
+## Draft 2.25 — M10 "The Battle of the Sauce" (book: October 10th 2003, PDF pp. 59–63)
+
+- New main mission **M10** (`missions7.js`), unlocked by M09. All dialogue is the book's Chapter 10 text in book order; the only game-original lines are Matt's line at the car and the cashier's mutter (from the author's screenplay list).
+- Fixed by the book: Sam stays at school; the five leave by the back gym door and Matt drives; Zeke orders first; the sauce and menu opinions never change; Milo goes to the restroom and comes back; Sam meets Zeke and sets the Sunday hangout (no romance flag); Chris wins at PE with a comeback (Zeke starts 10–4 up, every possession must be made so it cannot be lost); the keg party Saturday is set up for M11. Chris stays grounded; nothing punishes or ungrounds anyone.
+- **Taco Bell** is now a walk-in restaurant on the map near Belleville West (counter, menu board, booths). Its free-roam menu and prices are GAME ORIGINAL.
+- Adaptation notes for the author: the locker talk plays at the 2nd-floor lockers, then cuts to the commons; the back gym door and both drives are cuts (Matt's car waits in the school lot; its colour is game original); the receipt shows $21.65, paid $22.00, change $0.35 (as the screenplay proposed, pending approval); each sauce argument starts on a prompt but always in the book's order so the rebuttals still line up.

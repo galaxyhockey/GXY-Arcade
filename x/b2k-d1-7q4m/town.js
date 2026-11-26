@@ -136,7 +136,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
       const fl = { store:'#aeb9bd', diner:'#a8744e', bank:'#5a3f3a' }[ins]; plane(w - .6, d - .6, dk(fl, .42), cx, .04, cz);
       { const cl = new THREE.Mesh(new THREE.PlaneGeometry(w - .6, d - .6), dk('#efede6', .6)); cl.rotation.x = Math.PI / 2; cl.position.set(cx, h - .03, cz); S.add(cl); }
       for(let u = a0 + 3; u < a1 - 2; u += 5) for(let v = 3; v < dep - 2; v += 5) F(1.6, .06, .5, lightM, u, h - .1, v);
-      let spot, clerk;
+      let spot, clerk; const bo = [];
       if(ins === 'store'){ const cu = a1 - 2.7; F(.9, 1, 4.6, wood, cu, 0, 4, 1); F(.5, .35, .5, dk('#3a3a40'), cu, 1, 3.2); F(.6, .5, .3, dk('#c8102e'), cu, 1, 5.2); spot = [cu - 1.3, 4]; clerk = [cu + 1.2, 4];
         const cols = ['#c8102e', '#f2c230', '#2f6fb8', '#3f9a54', '#e87a2a', '#8a4ab0', '#f2f2f2']; let n = 0;
         for(let u = a0 + 3.2; u < cu - 4; u += 3.4){ const v0 = 3.4, v1 = dep - 4.2, vm = (v0 + v1) / 2; F(1, 1.75, v1 - v0, dk('#d8d4c8'), u, 0, vm, 1); for(let k = 0; k < 3; k++) for(let v = v0 + .2; v < v1 - 1.3; v += 1.45) F(1.08, .3, 1.3, dk(cols[(n += 3) % cols.length]), u, .28 + k * .5, v + .65); F(1.2, .5, .9, dk(cols[n++ % cols.length]), u, 0, v0 - .7); }
@@ -145,14 +145,14 @@ export function buildTown({ road, tree, M, rep, leafM }){
       else if(ins === 'diner'){ const cv = dep - 4.4; F(len - 5, 1.05, .9, dk('#c9c4b8'), 0, 0, cv, 1); F(len - 5, .06, 1, dk(o.sbg || '#c8102e'), 0, 1.05, cv); F(.5, .35, .5, dk('#3a3a40'), 1.5, 1.11, cv); F(len - 3, .95, .8, steel, 0, 0, dep - TH - .45, 1); F(1.2, 1.5, .7, steel, a0 + 2.2, .95, dep - TH - .45);
         IW(Math.min(10, len - 6), 1.1, sg('MENU', { bg:'#1c1c1c', fg:'#f2e9c8', size:70, w:512, h:76 }), 0, 3, dep - TH - .04, rf + Math.PI); spot = [0, cv - 1.3]; clerk = [0, cv + 1.2];
         const seat = dk(o.awn || o.sbg || '#b23a3a'), top = dk('#e8e2d2');
-        for(const side of [a0 + TH + 1, a1 - TH - 1]) for(let v = 2.6; v < cv - 2.6; v += 3.3){ if(Math.abs(side - du) < 2.4 && v < 3.4) continue; F(1.6, .07, .95, top, side, .72, v); F(.14, .72, .14, steel, side, 0, v); for(const s of [-1, 1]){ F(1.6, .46, .5, seat, side, 0, v + s * 1, 1); F(1.6, .6, .12, seat, side, .46, v + s * 1.2); } }
+        for(const side of [a0 + TH + 1, a1 - TH - 1]) for(let v = 2.6; v < cv - 2.6; v += 3.3){ if(Math.abs(side - du) < 2.4 && v < 3.4) continue; bo.push({ t:loc(side, v), a:loc(side, v - 1), b:loc(side, v + 1), side:Math.sign(side) }); F(1.6, .07, .95, top, side, .72, v); F(.14, .72, .14, steel, side, 0, v); for(const s of [-1, 1]){ F(1.6, .46, .5, seat, side, 0, v + s * 1, 1); F(1.6, .6, .12, seat, side, .46, v + s * 1.2); } }
         if(len > 22) for(let u = -4; u <= 4; u += 8) for(let v = 3.2; v < cv - 3; v += 3.4){ F(1, .07, 1, top, u, .72, v); F(.14, .72, .14, steel, u, 0, v, 1); for(const s of [-1, 1]) F(.42, .46, .42, seat, u + s * .95, 0, v); } }
       else { const cv = dep - 5.2; F(len - 7, 1.15, 1, wood, -1, 0, cv, 1); F(len - 7, .05, 1.1, dk('#c8b060'), -1, 1.15, cv); for(let u = a0 + 4; u < a1 - 6; u += 3.2) F(.08, 1, .08, dk('#c8b060'), u, 1.2, cv); spot = [-1, cv - 1.4]; clerk = [-1, cv + 1.3];
         F(2.8, 2.9, .22, steel, a1 - 4, 0, dep - TH - .14); F(1, 1, .1, dk('#c8b060'), a1 - 4, 1, dep - TH - .3); F(.16, .16, .3, dk('#3a3a40'), a1 - 4, 1.42, dep - TH - .4);
         for(const v of [3, 6.2]){ F(1.9, .76, .95, wood, a0 + 3, 0, v, 1); F(.5, .5, .5, dk('#2f4a6a'), a0 + 1.4, 0, v); F(.5, .5, .5, dk('#2f4a6a'), a0 + 4.8, 0, v); }
         for(const u of [-3.5, 1.5]) for(const v of [cv - 3.2, cv - 5.6]) cyl(.05, 1, C(dk('#c8b060')), ...((p) => [p[0], 0, p[1]])(loc(u, v)), 8);
         IW(6, .8, sg('FIRST NATIONAL', { bg:'#1b3a6a', fg:'#fff', size:54, w:512, h:68 }), -1, 3.4, dep - TH - .04, rf + Math.PI); }
-      const [sxw, szw] = loc(spot[0], spot[1]), [cxw, czw] = loc(clerk[0], clerk[1]); (G.shops = G.shops || []).push({ name:Array.isArray(o.name) ? o.name.join(' ') : o.name, kind:ins, at:[sxw, szw], clerk:[cxw, czw], face:Math.atan2(sxw - cxw, szw - czw), x0, z0, x1, z1 }); }
+      const [sxw, szw] = loc(spot[0], spot[1]), [cxw, czw] = loc(clerk[0], clerk[1]); (G.shops = G.shops || []).push({ name:Array.isArray(o.name) ? o.name.join(' ') : o.name, kind:ins, at:[sxw, szw], clerk:[cxw, czw], face:Math.atan2(sxw - cxw, szw - czw), x0, z0, x1, z1, booths:bo, door:loc(du, -2.5), out:loc(du + (du < 0 ? 7 : -7), -8.5), along:Math.atan2(...((a, b) => [b[0] - a[0], b[1] - a[1]])(loc(0, 0), loc(1, 0))) }); }
     D(w + .5, .45, d + .5, o.trim || '#d8d2c4', cx, h, cz);
     if(o.front !== false && !ins){ P(len - 2.2, 2.2, shopGlass, 0, 1.4, .04); for(let u = -len / 2 + 4.1; u < len / 2 - 2; u += 3) P(.14, 2.2, '#2a2a2e', u, 1.4, .05); P(1.3, 2.3, o.door || '#3a2a1e', o.doorU ?? -len / 4, 1.15, .06);
     }
@@ -262,7 +262,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
   biz('MOTO MART', 22, 16, 96, 284, { h:4.4, wall:'#e8e2d0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' }); biz("STEAK 'N SHAKE", 24, 18, 20, 284, { h:4.6, wall:'#f2f2f2', sbg:'#111', sfg:'#fff', awn:'#111' });
   biz('WHITE CASTLE', 22, 18, -60, 284, { h:4.4, wall:'#f4f4f0', sbg:'#1b3a8a', sfg:'#fff', awn:'#1b3a8a' }); biz("IMO'S PIZZA", 26, 18, -140, 284, { h:4.6, brick:'#8c3b2a', sbg:'#c8102e', sfg:'#fff', awn:'#2f5a3a' });
   biz("HARDEE'S", 28, 20, 150, 284, { h:4.6, wall:'#e2d6be', sbg:'#f2a020', sfg:'#fff', awn:'#c8102e' }); biz('DAIRY QUEEN', 26, 18, 240, 284, { h:4.4, wall:'#f2ece0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' });
-  biz('BELLEVILLE PANCAKE HOUSE', 32, 20, 330, 284, { h:4.8, brick:'#7a4a3a', awn:'#b8862a' }); biz('WALGREENS', 40, 22, -260, 284, { h:5.4, wall:'#d8d0c0', sbg:'#f2f2f2', sfg:'#c8102e', awn:null }); biz('FIRST NATIONAL BANK', 34, 20, -340, 220, { h:7, wall:'#c9c2b2', sbg:'#1b3a6a', sfg:'#fff', awn:null });
+  biz('BELLEVILLE PANCAKE HOUSE', 32, 20, 330, 284, { h:4.8, brick:'#7a4a3a', awn:'#b8862a' }); biz('WALGREENS', 40, 22, -260, 284, { h:5.4, wall:'#d8d0c0', sbg:'#f2f2f2', sfg:'#c8102e', awn:null }); biz('TACO BELL', 26, 18, -205, -560, { h:4.6, wall:'#e6d3a3', sbg:'#5a2a82', sfg:'#ffd23f', awn:'#5a2a82', trim:'#7a4a9a' }); biz('FIRST NATIONAL BANK', 34, 20, -340, 220, { h:7, wall:'#c9c2b2', sbg:'#1b3a6a', sfg:'#fff', awn:null });
   waterTower('SWANSEA', 420, 320); waterTower('BELLEVILLE', -250, 120);
   // MetroLink platforms beside the light-rail line
   { const stn = (nm, nx, nz) => { let best = null; for(const p of railLines) for(let i = 1; i < p.length; i++){ const mx = (p[i][0] + p[i - 1][0]) / 2, mz = (p[i][1] + p[i - 1][1]) / 2, dd = Math.hypot(mx - nx, mz - nz); if(!best || dd < best.d) best = { d:dd, x:mx, z:mz, a:Math.atan2(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]) }; } if(!best || best.d > 400) return;

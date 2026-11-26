@@ -75,7 +75,7 @@ export function grabFrom(c, max){ const n = Math.min(max - train.length, c.carts
 export function deliver(){ const n = train.length; train.forEach(m => { m.userData.from.delivered++; G.scene.remove(m); }); train.length = 0; return n; }
 
 // ---------- free roam: mission markers, ambient life ----------
-const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01', 'M05', 'S02', 'S06', 'M06', 'S03', 'M07', 'M08', 'S07', 'M09', 'S04', 'S05'];
+const ORDER = ['M01', 'M02', 'M03', 'M04', 'S01', 'M05', 'S02', 'S06', 'M06', 'S03', 'M07', 'M08', 'S07', 'M09', 'S04', 'S05', 'M10'];
 let roamMarks = [];
 const NEXT_DAY = { M02:'SEPTEMBER 24TH 2003', M03:'SEPTEMBER 26TH 2003', M04:'THE NEXT DAY' };
 // Chris sits on the living-room sofa facing the TV; the camera looks over his shoulder so he never blocks the screen

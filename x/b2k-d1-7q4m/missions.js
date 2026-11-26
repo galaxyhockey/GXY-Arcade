@@ -14,6 +14,7 @@ import { M04, S01 } from './missions2.js';
 import { M05 } from './missions3.js';
 import { M06, M07 } from './missions4.js';
 import { M08, M09 } from './missions5.js';
+import { M10 } from './missions7.js';
 import { S02, S03, S04, S05, S06, S07 } from './missions6.js';
 const { G, P } = E;
 export const LOOK = G.LOOK = {
@@ -286,4 +287,4 @@ const M03 = { title:"Zeke's Idea", sub:'SEPTEMBER 24TH 2003', where:"Chris's bac
       await H.banner('MISSION PASSED', "ZEKE'S IDEA"); Object.assign(G.flags, { M03_complete:true, retrieved_wrong_homework:true, missed_shift_eric:true, M04_available:true }); } ],
   done(){ G.roamTime = 'after'; G.noTraffic = false; } };
 
-setMissions({ M01, M02, M03, M04, S01, M05, M06, M07, M08, M09, S02, S03, S04, S05, S06, S07 });
+setMissions({ M01, M02, M03, M04, S01, M05, M06, M07, M08, M09, M10, S02, S03, S04, S05, S06, S07 });
