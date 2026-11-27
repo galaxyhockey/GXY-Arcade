@@ -367,8 +367,8 @@ function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between p
 let rayT = 1, dashG = null;
 // the driver's-seat view: dashboard, wheel, pillars, headliner and mirror, parented to the car
 function dash(c, on){ if(on && (!dashG || dashG.parent !== c)){ if(dashG && dashG.parent) dashG.parent.remove(dashG); dashG = new THREE.Group(); const m = (w, h, d, col, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(col)); me.position.set(x, y, z); dashG.add(me); return me; };
-    m(1.7, .28, .55, '#2a2a2c', 0, 1.0, .95); m(1.7, .06, .3, '#1e1e20', 0, 1.16, .8); m(.42, .16, .05, '#0c0c0c', .36, 1.18, .69); const wh = new THREE.Mesh(new THREE.TorusGeometry(.19, .025, 6, 18), mat('#151515')); wh.position.set(.36, 1.1, .6); wh.rotation.x = -.35; dashG.add(wh);
-    [-1, 1].forEach(s => { m(.07, .75, .07, '#2a2a2c', s * .84, 1.36, 1.02).rotation.x = .6; m(.07, .55, .07, '#2a2a2c', s * .86, 1.32, -.45); }); m(1.7, .05, 1.9, '#4a4740', 0, 1.6, -.2); m(.24, .07, .04, '#111', 0, 1.5, .72); m(.05, .5, 1.6, '#3a3834', .88, 1.05, -.1); m(.05, .5, 1.6, '#3a3834', -.88, 1.05, -.1);
+    m(1.7, .2, .55, '#5a5650', 0, .8, .98); m(1.7, .05, .32, '#4a4640', 0, .92, .82); m(.4, .13, .05, '#1a1a1a', .36, .97, .72); const wh = new THREE.Mesh(new THREE.TorusGeometry(.19, .025, 6, 18), mat('#151515')); wh.position.set(.36, .98, .62); wh.rotation.x = -.45; dashG.add(wh);
+    [-1, 1].forEach(s => { m(.045, .75, .045, '#5a5650', s * .86, 1.3, 1.05).rotation.x = .6; m(.045, .55, .045, '#5a5650', s * .88, 1.32, -.45); }); m(1.7, .05, 1.9, '#8a857a', 0, 1.62, -.2); m(.24, .07, .04, '#111', 0, 1.5, .72); m(.05, .35, 1.6, '#6a655c', .9, .9, -.1); m(.05, .35, 1.6, '#6a655c', -.9, .9, -.1);
     c.add(dashG); } if(dashG) dashG.visible = !!on && dashG.parent === c; }
 function updateCam(dt){
   const fovT = G.camOverride ? 62 : G.driving ? 62 + Math.min(11, Math.abs(G.driving.speed) * .38) : P.run ? 67 : 62; if(Math.abs(cam.fov - fovT) > .05){ cam.fov += (fovT - cam.fov) * Math.min(1, dt * 5); cam.updateProjectionMatrix(); }

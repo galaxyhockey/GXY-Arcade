@@ -143,8 +143,8 @@ export function world23On(a){ api = a; objs.forEach(o => G.scene.remove(o)); obj
   let lastCheck = 0, sirenT = 0, lastAllow = -1;
   api.addTick(dt => { if(G.mission) return; const t = l.min, d = dateOf(l.dayCount), dow = d.getDay(), dc = l.dayCount || 0;
     // speedometer
-    if(G.driving){ if(!mph){ mph = document.createElement('div'); mph.style.cssText = 'position:fixed;right:22px;bottom:200px;font:bold 22px "Press Start 2P",monospace;color:#fff;text-shadow:2px 2px 0 #000;z-index:12;text-align:right'; document.body.appendChild(mph); }
-      const c = G.driving.car.position, v = Math.round(Math.abs(G.driving.speed) * 2.237), lim = (G.t % 1 < dt) ? (mph.lim = limitAt(c.x, c.z)) : (mph.lim || 30); mph.style.display = ''; mph.innerHTML = `${v} <small style="font-size:11px">MPH</small><br><small style="font-size:10px;color:${v > lim + 10 ? '#ff6a5a' : '#bbb'}">LIMIT ${lim}</small>`; }
+    if(G.driving){ if(!mph){ mph = document.createElement('div'); mph.style.cssText = 'position:fixed;right:22px;bottom:200px;font:bold 12px "Press Start 2P",monospace;color:#fff;text-shadow:2px 2px 0 #000;z-index:12;text-align:right'; document.body.appendChild(mph); }
+      const c = G.driving.car.position, v = Math.round(Math.abs(G.driving.speed) * 2.237), lim = (G.t % 1 < dt) ? (mph.lim = limitAt(c.x, c.z)) : (mph.lim || 30); mph.style.display = ''; mph.innerHTML = `<span style="display:inline-block;background:#f2f2f2;color:#111;border:2px solid #111;padding:4px 6px;font-size:10px;line-height:1.5;text-align:center">SPEED<br>LIMIT<br><b style="font-size:16px">${lim}</b></span>${v > lim + 10 ? '<br><small style="font-size:9px;color:#ff6a5a">SLOW DOWN</small>' : ''}`; }
     else if(mph) mph.style.display = 'none';
     if((lastCheck -= dt) > 0) return; lastCheck = 1.5;
     // shops go dark when they close
