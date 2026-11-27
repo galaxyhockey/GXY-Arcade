@@ -264,7 +264,7 @@ export function buildTown({ road, tree, M, rep, leafM }){
   biz("HARDEE'S", 28, 20, 150, 284, { h:4.6, wall:'#e2d6be', sbg:'#f2a020', sfg:'#fff', awn:'#c8102e' }); biz('DAIRY QUEEN', 26, 18, 240, 284, { h:4.4, wall:'#f2ece0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' });
   biz('BELLEVILLE PANCAKE HOUSE', 32, 20, 330, 284, { h:4.8, brick:'#7a4a3a', awn:'#b8862a' }); biz('WALGREENS', 40, 22, -260, 284, { h:5.4, wall:'#d8d0c0', sbg:'#f2f2f2', sfg:'#c8102e', awn:null }); biz('TACO BELL', 26, 18, -205, -560, { h:4.6, wall:'#e6d3a3', sbg:'#5a2a82', sfg:'#ffd23f', awn:'#5a2a82', trim:'#7a4a9a' }); biz('FIRST NATIONAL BANK', 34, 20, -340, 220, { h:7, wall:'#c9c2b2', sbg:'#1b3a6a', sfg:'#fff', awn:null });
   // Draft 2.3: both real Blockbusters (west end on N Belt W near Belleville West, east end in the Carlyle Ave strip), plus the shops Chris would actually use in 2003
-  biz('BLOCKBUSTER VIDEO', 28, 20, -150, -560, { h:5.2, brick:'#8a5a3e', sbg:'#2f8ad8', sfg:'#f2c230', awn:null, trim:'#3e5a4a', inside:'store', inSign:'NEW RELEASES' });
+  biz('BLOCKBUSTER VIDEO', 28, 20, -150, -560, { h:5.2, brick:'#8a5a3e', sbg:'#2f8ad8', sfg:'#f2c230', awn:null, trim:'#8a8478', inside:'store', inSign:'NEW RELEASES' });
   biz('BLOCKBUSTER', 26, 20, 430, 300, { h:5, wall:'#b9b6ae', sbg:'#2a5fb8', sfg:'#f2c230', awn:null, trim:'#a8a59c', inside:'store', inSign:'NEW RELEASES' });
   biz('STREETSIDE RECORDS', 22, 16, -320, 300, { h:4.6, brick:'#5a4a3e', sbg:'#111', sfg:'#e8c832', awn:'#8a2a2a', inside:'store', inSign:'NEW MUSIC' });
   biz('WEHRENBERG CINEMAS', 40, 26, 470, 200, { h:8, wall:'#d8cfc0', sbg:'#8a1a2a', sfg:'#f2d030', awn:'#8a1a2a', inside:'diner' });

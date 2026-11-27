@@ -8,11 +8,12 @@ import * as E from './engine.js';
 import { dateOf, weatherFor } from './extras.js';
 import { playRunner, playDodge, playMeter } from './minigames.js';
 const { THREE, G, P } = E;
-let api = null, objs = [], clerks = [], ev = null;
+let api = null, objs = [], clerks = [], ev = null, yb = 0;
+const T = (x, z) => G.terrain ? G.terrain(x, z) : 0;
 const rnd = s => { s = Math.sin(s * 9301 + 49297) * 233280; return s - Math.floor(s); };
 const add = o => { G.scene.add(o); objs.push(o); return o; };
-const box = (w, h, d, c, x, y, z, ry = 0, col) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), typeof c === 'string' ? E.mat(c) : c); m.position.set(x, y + h / 2, z); m.rotation.y = ry; m.castShadow = true; add(m); if(col){ const s = Math.abs(Math.sin(ry)) > .7; const hw = (s ? d : w) / 2, hd = (s ? w : d) / 2; G.colliders.push({ x0:x - hw, x1:x + hw, z0:z - hd, z1:z + hd, y0:y, y1:y + h }); } return m; };
-const sign = (t, o, w, h, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map:E.label(t, o), side:THREE.DoubleSide })); m.position.set(x, y, z); m.rotation.y = ry; return add(m); };
+const box = (w, h, d, c, x, y, z, ry = 0, col) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), typeof c === 'string' ? E.mat(c) : c); m.position.set(x, y + yb + h / 2, z); m.rotation.y = ry; m.castShadow = true; add(m); if(col){ const s = Math.abs(Math.sin(ry)) > .7; const hw = (s ? d : w) / 2, hd = (s ? w : d) / 2; G.colliders.push({ x0:x - hw, x1:x + hw, z0:z - hd, z1:z + hd, y0:y + yb, y1:y + yb + h }); } return m; };
+const sign = (t, o, w, h, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map:E.label(t, o), side:THREE.DoubleSide })); m.position.set(x, y + yb, z); m.rotation.y = ry; return add(m); };
 const shop = n => (G.shops || []).find(s => s.name === n);
 const L = () => api.L();
 const near = (x, z, r) => Math.hypot(P.p.x - x, P.p.z - z) < r;
@@ -31,7 +32,7 @@ const news = k => { const l = L(); (l.news = l.news || []).push(k); };
 G.parentNews = news;
 
 // ---------- shop dressing: a plain helper that works from the shop record (front centre, facing direction) ----------
-function frame(s){ const cx = (s.x0 + s.x1) / 2, cz = (s.z0 + s.z1) / 2, dx = s.door[0] - cx, dz = s.door[1] - cz, alongX = Math.abs(dx) > Math.abs(dz);
+function frame(s){ yb = T(s.at[0], s.at[1]); const cx = (s.x0 + s.x1) / 2, cz = (s.z0 + s.z1) / 2, dx = s.door[0] - cx, dz = s.door[1] - cz, alongX = Math.abs(dx) > Math.abs(dz);
   const nx = alongX ? Math.sign(dx) : 0, nz = alongX ? 0 : Math.sign(dz), hd = alongX ? (s.x1 - s.x0) / 2 : (s.z1 - s.z0) / 2, hl = alongX ? (s.z1 - s.z0) / 2 : (s.x1 - s.x0) / 2;
   const fx = cx + nx * hd, fz = cz + nz * hd, ry = Math.atan2(nx, nz);
   // point at u along the front (right of the viewer facing the shop is -u... fine), v outward from the front wall, height y
@@ -108,11 +109,11 @@ async function carLot(){ const l = L(), have = l.cash + (l.bank || 0), trade = 9
   l.car = { type:c[1], color:c[2], name:c[0] }; if(l.goal && l.goal.name === c[0]) l.goal = null; api.save(); G.drawCar && G.drawCar(); news('car'); await E.say([['Salesman', 'Keys. Congratulations. It’s parked at your house.'], ['', `My own ${c[0]}. Dad is going to have opinions.`]]); }
 
 // ---------- world dressing ----------
-function payPhone(x, z, ry){ box(.12, 1.9, .12, '#7a7a7a', x, 0, z, ry); box(.6, .8, .3, '#a8a8a8', x, 1.1, z, ry, true); sign('PHONE', { bg:'#1a4a9a', fg:'#fff', size:40, w:200, h:60 }, .5, .14, x, 2.05, z, ry);
+function payPhone(x, z, ry){ yb = T(x, z); box(.12, 1.9, .12, '#7a7a7a', x, 0, z, ry); box(.6, .8, .3, '#a8a8a8', x, 1.1, z, ry, true); sign('PHONE', { bg:'#1a4a9a', fg:'#fff', size:40, w:200, h:60 }, .5, .14, x, 2.05, z, ry);
   api.add({ x, z, r:1.6, prompt:'USE THE PAY PHONE (35¢)', use:async () => { if(G.ext && G.ext.grounded()){ E.toast('Grounded. Even pay phones feel off-limits.', 2400); return; } if(!api.pay(.35)) return; E.cut(true); await G.ext.makePlans(); E.cut(false); } }); }
-function paperBox(x, z, ry, col){ box(.5, .95, .45, col, x, 0, z, ry, true); sign('NEWS', { bg:col, fg:'#fff', size:40, w:160, h:60 }, .4, .14, x + Math.sin(ry) * .23, .78, z + Math.cos(ry) * .23, ry);
+function paperBox(x, z, ry, col){ yb = T(x, z); box(.5, .95, .45, col, x, 0, z, ry, true); sign('NEWS', { bg:col, fg:'#fff', size:40, w:160, h:60 }, .4, .14, x + Math.sin(ry) * .23, .78, z + Math.cos(ry) * .23, ry);
   api.add({ x, z, r:1.4, prompt:'BUY A PAPER (50¢)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.driving && L().min >= 300, use:async () => { if(api.pay(.5) && G.ext) await G.ext.paper(); } }); }
-function cop(x, z, ry){ const c = E.makeCar('#1a1a1a', { type:'taurus' }); c.position.set(x, 0, z); c.rotation.y = ry; add(c); const bar = new THREE.Mesh(new THREE.BoxGeometry(1.1, .12, .25), new THREE.MeshBasicMaterial({ color:0xff2020 })); bar.position.set(0, 1.55, -.2); c.add(bar); c.userData.bar = bar; return c; }
+function cop(x, z, ry){ const c = E.makeCar('#1a1a1a', { type:'taurus' }); c.position.set(x, T(x, z), z); c.rotation.y = ry; add(c); const bar = new THREE.Mesh(new THREE.BoxGeometry(1.1, .12, .25), new THREE.MeshBasicMaterial({ color:0xff2020 })); bar.position.set(0, 1.55, -.2); c.add(bar); c.userData.bar = bar; return c; }
 // collectible 2003 Cardinals baseball cards on sidewalks around town
 function cardSpots(){ const TL = (G.townLines || []).filter(l => l.len > 80 && !l.core), out = []; for(let i = 0; out.length < 25 && i < 400; i++){ const l = TL[(i * 37) % TL.length], p = l.p[Math.floor(rnd(i) * (l.p.length - 1))], q = l.p[Math.min(l.p.length - 1, l.p.indexOf(p) + 1)], d = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1, s = i % 2 ? 1 : -1, o = (l.hw || 4) + 1.4;
     const x = (p[0] + q[0]) / 2 - (q[1] - p[1]) / d * o * s, z = (p[1] + q[1]) / 2 + (q[0] - p[0]) / d * o * s; if(Math.abs(x) < 600 && Math.abs(z) < 800 && !out.some(a => Math.hypot(a[0] - x, a[1] - z) < 60)) out.push([x, z]); } return out; }
@@ -142,8 +143,8 @@ function amb(dt, l){ const v = G.set.amb ?? .8; if(!v || G.indoors || G.mission)
 // ---------- street events (one a day, somewhere around town) ----------
 function streetEvent(l){ if(ev){ ev.objs.forEach(o => G.scene.remove(o)); ev.n.forEach(n => n.remove()); ev.it.forEach(E.delInter); ev = null; }
   const dc = l.dayCount || 0, TL = (G.townLines || []).filter(x => x.len > 120 && !x.core); if(!TL.length) return; const ln = TL[Math.floor(rnd(dc * 5.1) * TL.length)], p = ln.p[ln.p.length >> 1], q = ln.p[(ln.p.length >> 1) - 1] || ln.p[0], d = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1, sx = -(p[1] - q[1]) / d, sz = (p[0] - q[0]) / d, o = (ln.hw || 4);
-  const kind = ['bender', 'lemonade', 'pulled', 'garage'][Math.floor(rnd(dc + .5) * 4)], x = p[0] + sx * (o + 3), z = p[1] + sz * (o + 3), ry = Math.atan2(p[0] - q[0], p[1] - q[1]); ev = { objs:[], n:[], it:[], kind, x, z };
-  const car = (c, dx, dz, rr) => { const m = E.makeCar(c); m.position.set(p[0] + sx * 1.9 + dx, 0, p[1] + sz * 1.9 + dz); m.rotation.y = ry + rr; G.scene.add(m); ev.objs.push(m); return m; };
+  const kind = ['bender', 'lemonade', 'pulled', 'garage'][Math.floor(rnd(dc + .5) * 4)], x = p[0] + sx * (o + 3), z = p[1] + sz * (o + 3), ry = Math.atan2(p[0] - q[0], p[1] - q[1]); ev = { objs:[], n:[], it:[], kind, x, z }; yb = T(x, z);
+  const car = (c, dx, dz, rr) => { const m = E.makeCar(c); m.position.set(p[0] + sx * 1.9 + dx, T(p[0], p[1]), p[1] + sz * 1.9 + dz); m.rotation.y = ry + rr; G.scene.add(m); ev.objs.push(m); return m; };
   const person = (nm, dx, dz, look) => { const n = E.npc(nm, look || api.randomLook(Math.random() < .5), x + dx, z + dz, { face:ry }); n.townie = true; ev.n.push(n); return n; };
   const talk = (n, lines, extra) => ev.it.push(E.addInter({ x:() => n.p.x, z:() => n.p.z, r:2, prompt:'TALK', when:() => G.ctl && !G.mission && !G.uiOpen && !G.driving, use:async () => { n.look(P.p.x, P.p.z); E.cut(true); await E.say(lines); if(extra) await extra(); E.cut(false); } }));
   if(kind === 'bender'){ car('#7a7a80', 0, 0, .15); car('#a83a2a', Math.cos(ry) * -4.6, -Math.sin(ry) * -4.6, -.1); const a = person('Driver', 0, 0), b = person('Other driver', 1.5, .8); talk(a, [['Driver', 'She stopped short! Who stops short on a green?'], ['Chris', 'Is everybody okay?'], ['Driver', 'Everybody’s fine. My bumper’s not.']]); talk(b, [['Other driver', 'I had a squirrel. You don’t hit a squirrel.']]); }
@@ -162,8 +163,8 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
   { const s = shop('BELLEVILLE BOWL'); if(s){ counter(s, 'FRONT DESK (LANES + ARCADE)', bowl); clerk(s, 'Front desk'); const f = frame(s); for(let i = 0; i < 4; i++){ const [x, z] = f.inn(-f.hl + 3 + i * 2.6, f.hd * 2 - 1.2); box(1, 1.7, .8, ['#2a2a6a', '#6a1a1a', '#1a5a2a', '#3a3a3a'][i], x, 0, z, f.ry, true); const [sx, sz] = f.inn(-f.hl + 3 + i * 2.6, f.hd * 2 - 1.62); sign('INSERT COIN', { bg:'#000', fg:'#3af', size:30, w:200, h:60 }, .8, .25, sx, 1.45, sz, f.ry + Math.PI); } } }
   { const s = shop('ST. CLAIR SQUARE'); if(s){ counter(s, 'WALK THE MALL', mall); const f = frame(s); [["SPENCER'S", '#1a1a1a', '#e8c832'], ['HOT TOPIC', '#111', '#c8202a'], ['JOURNEYS', '#1a1a1a', '#fff'], ['ELECTRONICS BOUTIQUE', '#1a2a6a', '#fff'], ['SPRINT', '#e8c822', '#111'], ['SBARRO', '#2a6a3a', '#fff']].forEach((t, i) => { const [x, z] = f.inn(-f.hl + 4 + i * ((2 * f.hl - 8) / 5), f.hd * 2 - .45); sign(t[0], { bg:t[1], fg:t[2], size:40, w:512, h:80 }, 5, .8, x, 3.6, z, f.ry + Math.PI); }); } }
   { const s = shop('BELLEVILLE AUTO SALES'); if(s){ counter(s, 'TALK TO THE SALESMAN', carLot); clerk(s, 'Salesman', { ...api.randomLook(false), top:'polo', shirt:'#f2f2f2', pants:'#3a3a4a' }); const f = frame(s);
-    CARS.forEach((c, i) => { const [x, z] = f.at(-f.hl + 3 + i * ((2 * f.hl - 6) / 4), 9); const m = E.makeCar(c[2], { type:c[1] }); m.position.set(x, 0, z); m.rotation.y = f.ry + Math.PI / 2; add(m); G.colliders.push({ x0:x - 2.4, x1:x + 2.4, z0:z - 2.4, z1:z + 2.4, y0:0, y1:1.6 }); sign(`$${c[3].toLocaleString()}`, { bg:'#fff', fg:'#c8202a', size:60, w:256, h:90 }, .7, .25, x, 1.25, z, f.ry); });
-    const [bx, bz] = f.at(0, 15); for(let i = -4; i <= 4; i++){ const [x, z] = f.at(i * 1.4, 15); const fl = new THREE.Mesh(new THREE.ConeGeometry(.22, .5, 3), E.mat(['#c8202a', '#f2f2f2', '#1b3a8a'][(i + 9) % 3])); fl.position.set(x, 3.4, z); fl.rotation.z = Math.PI; add(fl); } box(.1, 3.6, .1, '#888', bx + f.nz * 6, 0, bz + f.nx * 6, 0); box(.1, 3.6, .1, '#888', bx - f.nz * 6, 0, bz - f.nx * 6, 0); } }
+    CARS.forEach((c, i) => { const [x, z] = f.at(-f.hl + 3 + i * ((2 * f.hl - 6) / 4), 9); const m = E.makeCar(c[2], { type:c[1] }); m.position.set(x, T(x, z), z); m.rotation.y = f.ry + Math.PI / 2; add(m); G.colliders.push({ x0:x - 2.4, x1:x + 2.4, z0:z - 2.4, z1:z + 2.4, y0:0, y1:1.6 }); sign(`$${c[3].toLocaleString()}`, { bg:'#fff', fg:'#c8202a', size:60, w:256, h:90 }, .7, .25, x, 1.25, z, f.ry); });
+    const [bx, bz] = f.at(0, 15); for(let i = -4; i <= 4; i++){ const [x, z] = f.at(i * 1.4, 15); const fl = new THREE.Mesh(new THREE.ConeGeometry(.22, .5, 3), E.mat(['#c8202a', '#f2f2f2', '#1b3a8a'][(i + 9) % 3])); fl.position.set(x, yb + 3.4, z); fl.rotation.z = Math.PI; add(fl); } box(.1, 3.6, .1, '#888', bx + f.nz * 6, 0, bz + f.nx * 6, 0); box(.1, 3.6, .1, '#888', bx - f.nz * 6, 0, bz - f.nx * 6, 0); } }
   { const s = shop('SPLASH CAR WASH'); if(s){ const f = frame(s), [x, z] = f.at(0, 5); api.add({ x, z, r:4, prompt:'CAR WASH ($5)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.driving && G.chrisCar && Math.hypot(G.chrisCar.position.x - x, G.chrisCar.position.z - z) < 10,
       use:async () => { if(!shopOpen(s.name)){ E.toast(`CLOSED · ${G.shopHours(s.name)}`, 2400); return; } if(!api.pay(5)) return; E.cut(true); await E.fade(true, 500); api.passTime(15); L().dirt = 0; dirt(); await E.card('SPOTLESS', 'SPRAY · FOAM · RINSE · WAX', 1500); await E.fade(false, 500); E.cut(false); } }); } }
   // pay phones + newspaper boxes outside the busy spots
@@ -177,7 +178,7 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
     use:async () => { if(!api.pay(4)) return; E.cut(true); await E.fade(true, 500); api.passTime(150); await E.card('BELLEVILLE WEST MAROONS', ['WIN 28–14', 'LOSE 10–17', 'WIN 35–7', 'LOSE 21–24'][(L().dayCount || 0) % 4], 2000); await E.fade(false, 500); await E.say([['', 'Student section, the band, and nachos that are technically cheese. Classic Friday.']]); E.cut(false); } });
   let fire = null;
   // ponytail: bonfire is a glowing cone + light, swap for particles if it reads too flat
-  const bonfire = on => { if(on && !fire){ fire = new THREE.Group(); const c = new THREE.Mesh(new THREE.ConeGeometry(2, 4, 8), new THREE.MeshBasicMaterial({ color:0xff7a1a, transparent:true, opacity:.85 })); c.position.y = 2; const pl = new THREE.PointLight(0xff8a2a, 3, 40); pl.position.y = 3; fire.add(c, pl); fire.position.set(-250, 0, -560); G.scene.add(fire); }
+  const bonfire = on => { if(on && !fire){ fire = new THREE.Group(); const c = new THREE.Mesh(new THREE.ConeGeometry(2, 4, 8), new THREE.MeshBasicMaterial({ color:0xff7a1a, transparent:true, opacity:.85 })); c.position.y = 2; const pl = new THREE.PointLight(0xff8a2a, 3, 40); pl.position.y = 3; fire.add(c, pl); fire.position.set(-250, T(-250, -560), -560); G.scene.add(fire); }
     if(!on && fire){ G.scene.remove(fire); fire = null; } };
   // July 4th fireworks over Schranz Park
   let fw = []; const boom = (x, z) => { const n = 60, g = new THREE.BufferGeometry(), a = new Float32Array(n * 3), v = []; for(let i = 0; i < n; i++){ a[i * 3] = x; a[i * 3 + 1] = 40; a[i * 3 + 2] = z; const t = Math.random() * Math.PI * 2, u = Math.random() * 2 - 1; v.push([Math.cos(t) * Math.sqrt(1 - u * u) * 9, u * 9, Math.sin(t) * Math.sqrt(1 - u * u) * 9]); } g.setAttribute('position', new THREE.BufferAttribute(a, 3));
@@ -217,7 +218,7 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
   // world state
   const cops = [], TL = (G.townLines || []).filter(x => x.k === 0 && x.len > 200).sort((x, y) => y.len - x.len).slice(0, 3);
   TL.forEach(ln => { const i = ln.p.length >> 1, p = ln.p[i], q = ln.p[i - 1] || ln.p[0], d = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1, o = (ln.hw || 4) + 2.6; cops.push(cop(p[0] - (p[1] - q[1]) / d * o, p[1] + (p[0] - q[0]) / d * o, Math.atan2(p[0] - q[0], p[1] - q[1]))); });
-  const cs = cardSpots(), cardM = cs.map((c, i) => { if(l.cards.includes(i)) return null; const m = new THREE.Mesh(new THREE.BoxGeometry(.28, .4, .03), new THREE.MeshBasicMaterial({ color:0xd8202a })); m.position.set(c[0], .9, c[1]); return add(m); });
+  const cs = cardSpots(), cardM = cs.map((c, i) => { if(l.cards.includes(i)) return null; const m = new THREE.Mesh(new THREE.BoxGeometry(.28, .4, .03), new THREE.MeshBasicMaterial({ color:0xd8202a })); m.position.set(c[0], T(c[0], c[1]) + .9, c[1]); return add(m); });
   if(!sky) sky = makeSky(); let lastDc = -1, snowOn = false, speedT = 0, lastHome = false, mowT = 0, barkT = 0, complainDay = -1;
   api.addTick(dt => { if(G.mission){ sky.visible = false; return; } const l2 = L(), dc = l2.dayCount || 0, d = dateOf(dc), t = l2.min;
     if(dc !== lastDc){ lastDc = dc; streetEvent(l2); drawMoon(dc); const sn = weatherFor(dc) === 'snow' || (weatherFor(dc - 1) === 'snow' && d.getMonth() >= 10); if(sn !== snowOn){ snowOn = sn; snow(sn); }
