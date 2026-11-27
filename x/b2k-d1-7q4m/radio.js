@@ -75,7 +75,7 @@ async function load(){ if(at + 1 >= order.length) shuffle(); const t = st.tracks
   try{ if(src === 'url') au.src = url(t); else if(src === 'enc'){ const b = new Blob([await open(`radiox/${st.id}/${String(order[at]).padStart(2, '0')}.bin`)], { type:'audio/mpeg' }); if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(b); } else { const f = files ? files.get(t[0]) : await (await dir.getFileHandle(t[0])).getFile(); if(!f) throw 0; if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(f); } }
   catch(e){ if(next.miss = (next.miss || 0) + 1, next.miss < st.tracks.length) return load(); src = null; toast('📻 No songs found in that folder'); return; }
   next.miss = 0; au.onloadedmetadata = () => { if(!tuned){ tuned = true; au.currentTime = Math.random() * au.duration * .6; } };   // first song: you tune in part-way through, like a real station
-  toast(`${G.cdOnly ? '💿' : '📻 ' + st.name} &nbsp;·&nbsp; ${t[1]} — ${t[2]}`, 4200); }
+  toast(`${G.cdOnly ? '💿' : '📻 ' + st.name} &nbsp;·&nbsp; ${t[1]} — ${t[2]}`, 4200); if(!G.cdOnly && (load.n = (load.n || 0) + 1) % 3 === 0) setTimeout(() => G.radioOn && toast('📻 <b>Z107.7</b> &nbsp;·&nbsp; St. Louis’ hit music station', 3200), 4600); }
 au.onended = next; au.onerror = () => { if(src && au.src) next(); };
 
 // R needs a click/key press anyway (browser rule) both to pick the folder and to re-open it on a later visit

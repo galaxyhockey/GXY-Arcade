@@ -7,6 +7,7 @@
 import * as E from './engine.js';
 import { dateOf, weatherFor } from './extras.js';
 import { playRunner, playDodge, playMeter } from './minigames.js';
+import { groundQuad, policeCar } from './world23.js';
 const { THREE, G, P } = E;
 let api = null, objs = [], clerks = [], ev = null, yb = 0;
 const T = (x, z) => G.terrain ? G.terrain(x, z) : 0;
@@ -58,7 +59,7 @@ function blockbusterEast(s){ const f = frame(s), H = 5, Lh = f.hl; const [ax, az
   const nb = [['CHINA KING', '#c8202a'], ['PAYLESS SHOESOURCE', '#c8202a'], ['NAIL SALON', '#a8204a'], ['H&R BLOCK', '#2a7a3a']];
   [-1, 1].forEach((side, si) => [0, 1].forEach(k => { const w = 12, u = side * (Lh + 6.2 + k * 12.2); const [bx, bz] = f.inn(u, f.hd); box(w, H + (si && k ? 1.6 : 0), 2 * f.hd, '#b9b6ae', bx, 0, bz, f.ry, true);
     const [gx, gz] = f.at(u, .05); box(w - 1, 2.3, .05, '#2a3440', gx, .2, gz, f.ry); const [lx, lz] = f.at(u, .1); const t = nb[si * 2 + k]; sign(t[0], { bg:'#d8d4ca', fg:t[1], size:46, w:512, h:70 }, 7, .9, lx, H - .9, lz, f.ry); }));
-  { const [lx, lz] = f.at(0, 11); const yb0 = yb; yb = Math.max(yb, T(lx, lz)) + .02; const lot = box(2 * Lh + 52, .04, 19, '#4a4c50', lx, .01, lz, f.ry); lot.receiveShadow = true; for(let u = -Lh - 24; u < Lh + 24; u += 3){ const [sx, sz] = f.at(u, 6); box(.12, .05, 5, '#e8e8e8', sx, .01, sz, f.ry); } yb = yb0; }
+  { const [lx, lz] = f.at(0, 11); const yb0 = yb; add(groundQuad(2 * Lh + 52, 19, f.ry, lx, lz, '#4a4c50')); for(let u = -Lh - 24; u < Lh + 24; u += 3){ const [sx, sz] = f.at(u, 6); add(groundQuad(.12, 5, f.ry, sx, sz, '#e8e8e8', .08)); } yb = yb0; }
   // pylon by the road: two tall yellow blocks with the torn-ticket panel
   const [px, pz] = f.at(Lh + 4, 22); box(1.2, 8, 1.2, '#e8c22a', px, 0, pz, f.ry, true); box(2.6, 2.4, 1.6, '#e8c22a', px, 7.6, pz, f.ry); box(2.2, 2, 1.7, '#2a5fb8', px, 5.4, pz, f.ry);
   sign('BLOCKBUSTER', { bg:'#2a5fb8', fg:'#f2c230', size:50, w:512, h:110 }, 2.1, .7, px + f.nx * .87, 6.4, pz + f.nz * .87, f.ry); }
@@ -86,7 +87,7 @@ async function cinema(){ const l = L(), list = showing(l.dayCount || 0), mat = l
   await E.fade(true, 600); api.passTime(125); await E.card('2 HOURS LATER', list[k].toUpperCase(), 1800); await E.fade(false, 600); await E.say([['', LINES[list[k]] || 'Good movie. The previews were half the fun.']]); (l.seen = l.seen || []).push(list[k]); api.save(); }
 async function bowl(){ const l = L(); await E.say([['Front desk', G.greet('BELLEVILLE BOWL', 'Lanes or arcade? Shoes are a buck.')]]);
   for(;;){ const k = await E.choose(['Bowl a game — $3.50 with shoes', 'Arcade: racing cabinet — $0.50', 'Arcade: dodge cabinet — $0.50', 'Leave']); if(k === 3) break;
-    const sc = k === 0 ? (api.pay(3.5) ? await playMeter({ kind:'kick' }) : null) : api.pay(.5) ? await (k === 1 ? playRunner({ title:'TURBO RUN' }) : playDodge({ title:'ASTEROID DODGE' })) : null; if(sc == null) break;
+    const sc = k === 0 ? (api.pay(3.5) ? await G.playBowling() : null) : api.pay(.5) ? await (k === 1 ? playRunner({ title:'TURBO RUN' }) : playDodge({ title:'ASTEROID DODGE' })) : null; if(sc == null) break;
     const id = ['bowl', 'arc1', 'arc2'][k]; l.hi = l.hi || {}; const best = sc > (l.hi[id] || 0); if(best) l.hi[id] = sc; api.passTime(k ? 10 : 35); api.save(); E.toast(`SCORE ${sc}${best ? ' · NEW BEST' : ' · best ' + l.hi[id]}`, 2800); if(best && k === 0) G.drawRoom && G.drawRoom(); } }
 async function mall(){ const l = L(); await E.say([['', 'St. Clair Square. Smells like Cinnabon and the inside of a Hot Topic.']]);
   for(;;){ const k = await E.choose(['Food court', 'Electronics Boutique (games)', "Spencer's", 'Hot Topic', 'Journeys', 'Sprint store (phones)', 'Leave']); if(k === 6) break;
@@ -107,17 +108,17 @@ async function carLot(){ const l = L(), have = l.cash + (l.bank || 0), trade = 9
   const c = CARS[k], due = c[3] - trade; await E.say([['Salesman', `With the Taurus as a trade-in, that's $${due.toLocaleString()} out the door. Cash or savings, no financing for 16-year-olds.`]]);
   if(have < due){ await E.say([['Salesman', `You’re about $${Math.ceil(due - have).toLocaleString()} short, chief. Come back.`]]); return; }
   if((await E.choose(['Buy it', 'Let me think'])) !== 0) return; let r = due; const fromCash = Math.min(Math.max(0, l.cash), r); l.cash -= fromCash; r -= fromCash; l.bank = (l.bank || 0) - r;
-  l.car = { type:c[1], color:c[2], name:c[0] }; if(l.goal && l.goal.name === c[0]) l.goal = null; api.save(); G.drawCar && G.drawCar(); news('car'); await E.say([['Salesman', 'Keys. Congratulations. It’s parked at your house.'], ['', `My own ${c[0]}. Dad is going to have opinions.`]]); }
+  l.car = { type:c[1], color:c[2], name:c[0] }; if(l.goal && l.goal.name === c[0]) l.goal = null; api.save(); G.drawCar && G.drawCar(); if(G.chrisDrive){ G.chrisDrive.car.position.set(-17, T(-17, 9), 9); G.chrisDrive.car.rotation.y = 0; G.chrisDrive.head = 0; if(G.chrisCarCol) Object.assign(G.chrisCarCol, { x0:-18, x1:-16, z0:6.8, z1:11.2, off:false }); } news('car'); await E.say([['Salesman', 'Keys. Congratulations. It’s parked at your house.'], ['', `My own ${c[0]}. Dad is going to have opinions.`]]); }
 
 // ---------- world dressing ----------
 function payPhone(x, z, ry){ yb = T(x, z); box(.12, 1.9, .12, '#7a7a7a', x, 0, z, ry); box(.6, .8, .3, '#a8a8a8', x, 1.1, z, ry, true); sign('PHONE', { bg:'#1a4a9a', fg:'#fff', size:40, w:200, h:60 }, .5, .14, x, 2.05, z, ry);
   api.add({ x, z, r:1.6, prompt:'USE THE PAY PHONE (35¢)', use:async () => { if(G.ext && G.ext.grounded()){ E.toast('Grounded. Even pay phones feel off-limits.', 2400); return; } if(!api.pay(.35)) return; E.cut(true); await G.ext.makePlans(); E.cut(false); } }); }
 function paperBox(x, z, ry, col){ yb = T(x, z); box(.5, .95, .45, col, x, 0, z, ry, true); sign('NEWS', { bg:col, fg:'#fff', size:40, w:160, h:60 }, .4, .14, x + Math.sin(ry) * .23, .78, z + Math.cos(ry) * .23, ry);
   api.add({ x, z, r:1.4, prompt:'BUY A PAPER (50¢)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.driving && L().min >= 300, use:async () => { if(api.pay(.5) && G.ext) await G.ext.paper(); } }); }
-function cop(x, z, ry){ const c = E.makeCar('#1a1a1a', { type:'taurus' }); c.position.set(x, T(x, z), z); c.rotation.y = ry; add(c); const bar = new THREE.Mesh(new THREE.BoxGeometry(1.1, .12, .25), new THREE.MeshBasicMaterial({ color:0xff2020 })); bar.position.set(0, 1.55, -.2); c.add(bar); c.userData.bar = bar; return c; }
+function cop(x, z, ry){ const c = policeCar(x, z, ry); add(c); return c; }
 // collectible 2003 Cardinals baseball cards on sidewalks around town
 function cardSpots(){ const TL = (G.townLines || []).filter(l => l.len > 80 && !l.core), out = []; for(let i = 0; out.length < 25 && i < 400; i++){ const l = TL[(i * 37) % TL.length], p = l.p[Math.floor(rnd(i) * (l.p.length - 1))], q = l.p[Math.min(l.p.length - 1, l.p.indexOf(p) + 1)], d = Math.hypot(q[0] - p[0], q[1] - p[1]) || 1, s = i % 2 ? 1 : -1, o = (l.hw || 4) + 1.4;
-    const x = (p[0] + q[0]) / 2 - (q[1] - p[1]) / d * o * s, z = (p[1] + q[1]) / 2 + (q[0] - p[0]) / d * o * s; if(Math.abs(x) < 600 && Math.abs(z) < 800 && !out.some(a => Math.hypot(a[0] - x, a[1] - z) < 60)) out.push([x, z]); } return out; }
+    const x = (p[0] + q[0]) / 2 - (q[1] - p[1]) / d * o * s, z = (p[1] + q[1]) / 2 + (q[0] - p[0]) / d * o * s; if(Math.abs(x) < 600 && Math.abs(z) < 800 && !G.colliders.some(c => x > c.x0 - .6 && x < c.x1 + .6 && z > c.z0 - .6 && z < c.z1 + .6) && !out.some(a => Math.hypot(a[0] - x, a[1] - z) < 60)) out.push([x, z]); } return out; }
 const PLAYERS = ['Albert Pujols', 'Jim Edmonds', 'Scott Rolen', 'Edgar Renteria', 'Matt Morris', 'Woody Williams', 'Mike Matheny', 'Tino Martinez', 'J.D. Drew', 'Fernando Viña', 'Jason Isringhausen', 'Kerry Robinson', 'So Taguchi', 'Orlando Palmeiro', 'Miguel Cairo', 'Eduardo Pérez', 'Bo Hart', 'Garrett Stephenson', 'Jason Simontacchi', 'Brett Tomko', 'Cal Eldred', 'Steve Kline', 'Jeff Fassero', 'Tony La Russa', 'Stan Musial (1958 reprint)'];
 
 // ---------- night sky + moon (new moon on Sept 25-26 2003) ----------
@@ -132,8 +133,9 @@ function drawMoon(dc){ const u = sky.userData, ph = ((dc + 1) % 29.53) / 29.53; 
 
 // ---------- snow that sticks: grassy materials go white on snow days ----------
 let snowMats = null;
-function snow(on){ if(!snowMats){ snowMats = new Map(); G.scene.traverse(o => { const m = o.material; if(!m || Array.isArray(m) || !m.color || m.transparent || snowMats.has(m)) return; const c = m.color; if(c.g > c.r * 1.12 && c.g > c.b * 1.1 && c.g < .75) snowMats.set(m, c.clone()); }); }
-  snowMats.forEach((c, m) => { m.color.copy(c); if(on) m.color.lerp(new THREE.Color(0xeef2f6), .72); }); }
+// only the ground itself turns white (never signs, cars or clothes)
+function snow(on){ const m = G.land && G.land.material; if(!m) return; if(!snowMats){ snowMats = { map:m.map, snow:E.tex('snowground', (g, w, h) => { g.fillStyle = '#eef2f6'; g.fillRect(0, 0, w, h); for(let i = 0; i < 500; i++){ g.fillStyle = `rgba(${190 + Math.random() * 40},${200 + Math.random() * 40},${220 + Math.random() * 30},.6)`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } }, 128, 128, [1, 1]) }; }
+  m.map = on ? snowMats.snow : snowMats.map; m.needsUpdate = true; }
 
 // ---------- sounds of the era (all synthesised, quiet) ----------
 function amb(dt, l){ const v = G.set.amb ?? .8; if(!v || G.indoors || G.mission) return; amb.t = (amb.t || 0) - dt; if(amb.t > 0) return; amb.t = 3 + Math.random() * 6; const d = dateOf(l.dayCount), m = d.getMonth(), t = l.min;
@@ -144,7 +146,7 @@ function amb(dt, l){ const v = G.set.amb ?? .8; if(!v || G.indoors || G.mission)
 // ---------- street events (one a day, somewhere around town) ----------
 function streetEvent(l){ if(ev){ ev.objs.forEach(o => G.scene.remove(o)); ev.n.forEach(n => n.remove()); ev.it.forEach(E.delInter); ev = null; }
   const dc = l.dayCount || 0, TL = (G.townLines || []).filter(x => x.len > 120 && !x.core); if(!TL.length) return; const ln = TL[Math.floor(rnd(dc * 5.1) * TL.length)], p = ln.p[ln.p.length >> 1], q = ln.p[(ln.p.length >> 1) - 1] || ln.p[0], d = Math.hypot(p[0] - q[0], p[1] - q[1]) || 1, sx = -(p[1] - q[1]) / d, sz = (p[0] - q[0]) / d, o = (ln.hw || 4);
-  const kind = ['bender', 'lemonade', 'pulled', 'garage'][Math.floor(rnd(dc + .5) * 4)], x = p[0] + sx * (o + 3), z = p[1] + sz * (o + 3), ry = Math.atan2(p[0] - q[0], p[1] - q[1]); ev = { objs:[], n:[], it:[], kind, x, z }; yb = T(x, z);
+  const kind = ['bender', 'lemonade', 'pulled', 'garage'][Math.floor(rnd(dc + .5) * 4)], x = p[0] + sx * (o + 3), z = p[1] + sz * (o + 3), ry = Math.atan2(p[0] - q[0], p[1] - q[1]); if(G.colliders.some(c => x > c.x0 - 2 && x < c.x1 + 2 && z > c.z0 - 2 && z < c.z1 + 2)) return; ev = { objs:[], n:[], it:[], kind, x, z }; yb = T(x, z);
   const car = (c, dx, dz, rr) => { const m = E.makeCar(c); m.position.set(p[0] + sx * 1.9 + dx, T(p[0], p[1]), p[1] + sz * 1.9 + dz); m.rotation.y = ry + rr; G.scene.add(m); ev.objs.push(m); return m; };
   const person = (nm, dx, dz, look) => { const n = E.npc(nm, look || api.randomLook(Math.random() < .5), x + dx, z + dz, { face:ry }); n.townie = true; ev.n.push(n); return n; };
   const talk = (n, lines, extra) => ev.it.push(E.addInter({ x:() => n.p.x, z:() => n.p.z, r:2, prompt:'TALK', when:() => G.ctl && !G.mission && !G.uiOpen && !G.driving, use:async () => { n.look(P.p.x, P.p.z); E.cut(true); await E.say(lines); if(extra) await extra(); E.cut(false); } }));
@@ -156,7 +158,7 @@ function streetEvent(l){ if(ev){ ev.objs.forEach(o => G.scene.remove(o)); ev.n.f
     const h = person('Neighbor', 0, -1.2); talk(h, [['Neighbor', 'Everything on the table’s a dollar. The lava lamp works, mostly.']], async () => { if((await E.choose(['Buy something for $1', 'Just looking'])) === 0 && api.pay(1)){ const l2 = L(); const it = ['Old Nintendo cartridge', 'Beanie Baby', 'Tamagotchi', 'Magic 8-Ball'][Math.floor(Math.random() * 4)]; (l2.trinkets = l2.trinkets || []).push(it); api.save(); G.drawRoom && G.drawRoom(); E.toast(`Bought: ${it}. It’s on your shelf.`, 2600); } }); } }
 
 // ---------- switch on ----------
-export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.remove(o)); objs = []; clerks.forEach(n => n.remove()); clerks = []; l.visits = l.visits || {}; l.cds = l.cds || []; l.cards = l.cards || [];
+export function life23On(a){ api = a; G.phoneStore = phoneStore; const l = L(); objs.forEach(o => G.scene.remove(o)); objs = []; clerks.forEach(n => n.remove()); clerks = []; l.visits = l.visits || {}; l.cds = l.cds || []; l.cards = l.cards || [];
   // new shops
   ['BLOCKBUSTER VIDEO', 'BLOCKBUSTER'].forEach((n, i) => { const s = shop(n); if(s){ (i ? blockbusterEast : blockbusterWest)(s); bbInside(s); } });
   { const s = shop('STREETSIDE RECORDS'); if(s){ counter(s, 'RECORD STORE COUNTER', records); clerk(s, 'Clerk', { ...api.randomLook(false), hairStyle:'shaggy', top:'graphic', print:'ROCK' }); posters(s, [['NEW MUSIC TUESDAYS', '#1a1a1a', '#e8c832'], ['TOP 40', '#c8202a'], ['IMPORTS', '#2a4a8a'], ['USED CDS $7.99', '#3a3a3a', '#e8c832']]); } }
@@ -165,13 +167,13 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
       posters(s, sh.slice(0, 6).map((m, i) => [m.toUpperCase().split(': ').join(':\n').split('\n'), ['#1a1a2a', '#3a1a1a', '#1a2a3a', '#2a2a1a', '#2a1a2a', '#1a3a2a'][i], '#f2e8c8'])); } }
   { const s = shop('BELLEVILLE BOWL'); if(s){ counter(s, 'FRONT DESK (LANES + ARCADE)', bowl); clerk(s, 'Front desk'); const f = frame(s);
     { const [px, pz] = f.at(f.hl + 3, 6); box(.4, 6, .4, '#777', px, 0, pz, f.ry); sign(['BELLEVILLE', 'BOWL'], { bg:'#1a4a8a', fg:'#fff', size:60, w:384, h:192 }, 3.4, 1.7, px, 6.6, pz, f.ry); sign(['OPEN BOWLING', 'COSMIC BOWL FRI + SAT'], { bg:'#fff', fg:'#c8202a', size:34, w:384, h:110 }, 3.4, 1, px, 5.1, pz, f.ry); } for(let i = 0; i < 4; i++){ const [x, z] = f.inn(-f.hl + 3 + i * 2.6, f.hd * 2 - 1.2); box(1, 1.7, .8, ['#2a2a6a', '#6a1a1a', '#1a5a2a', '#3a3a3a'][i], x, 0, z, f.ry, true); const [sx, sz] = f.inn(-f.hl + 3 + i * 2.6, f.hd * 2 - 1.62); sign('INSERT COIN', { bg:'#000', fg:'#3af', size:30, w:200, h:60 }, .8, .25, sx, 1.45, sz, f.ry); } } }
-  { const s = shop('ST. CLAIR SQUARE'); if(s){ counter(s, 'WALK THE MALL', mall); const f = frame(s);
+  { const s = shop('ST. CLAIR SQUARE'); if(s){ const f = frame(s);
     { const [ex, ez] = f.at(-f.hl / 2, 1.6); box(9, .5, 3.4, '#8a8478', ex, 3.2, ez, f.ry); [-4, 4].forEach(k => { const [px, pz] = f.at(-f.hl / 2 + k, 3); box(.3, 3.2, .3, '#8a8478', px, 0, pz, f.ry); });
       const [tx, tz] = f.at(-f.hl / 2, .05); sign('ST. CLAIR SQUARE', { bg:'rgba(0,0,0,0)', fg:'#5a2a2a', size:56, w:1024, h:90 }, 12, 1.1, tx, 4.9, tz, f.ry);
       [['FAMOUS-BARR', -f.hl + 5], ['JCPENNEY', f.hl - 6]].forEach(([n, u]) => { const [ax, az] = f.at(u, .05); sign(n, { bg:'rgba(0,0,0,0)', fg:n === 'JCPENNEY' ? '#c8202a' : '#1a1a1a', size:54, w:768, h:90 }, 8, .95, ax, 4.7, az, f.ry); });
-      const [lx, lz] = f.at(0, 14), yb0 = yb; yb = Math.max(yb, T(lx, lz)) + .02; box(2 * f.hl + 10, .04, 22, '#4a4c50', lx, .01, lz, f.ry); for(let u = -f.hl; u < f.hl; u += 3){ const [sx, sz] = f.at(u, 8); box(.12, .05, 5, '#e8e8e8', sx, .01, sz, f.ry); } yb = yb0; } [["SPENCER'S", '#1a1a1a', '#e8c832'], ['HOT TOPIC', '#111', '#c8202a'], ['JOURNEYS', '#1a1a1a', '#fff'], ['ELECTRONICS BOUTIQUE', '#1a2a6a', '#fff'], ['SPRINT', '#e8c822', '#111'], ['SBARRO', '#2a6a3a', '#fff']].forEach((t, i) => { const [x, z] = f.inn(-f.hl + 4 + i * ((2 * f.hl - 8) / 5), f.hd * 2 - .45); sign(t[0], { bg:t[1], fg:t[2], size:40, w:512, h:80 }, 5, .8, x, 3.6, z, f.ry); }); } }
+      const [lx, lz] = f.at(0, 14), yb0 = yb; yb = Math.max(yb, T(lx, lz)) + .02; add(groundQuad(2 * f.hl + 10, 22, f.ry, lx, lz, '#4a4c50')); for(let u = -f.hl; u < f.hl; u += 3){ const [sx, sz] = f.at(u, 8); add(groundQuad(.12, 5, f.ry, sx, sz, '#e8e8e8', .08)); } yb = yb0; } [["SPENCER'S", '#1a1a1a', '#e8c832'], ['HOT TOPIC', '#111', '#c8202a'], ['JOURNEYS', '#1a1a1a', '#fff'], ['ELECTRONICS BOUTIQUE', '#1a2a6a', '#fff'], ['SPRINT', '#e8c822', '#111'], ['SBARRO', '#2a6a3a', '#fff']].forEach((t, i) => { const [x, z] = f.inn(-f.hl + 4 + i * ((2 * f.hl - 8) / 5), f.hd * 2 - .45); sign(t[0], { bg:t[1], fg:t[2], size:40, w:512, h:80 }, 5, .8, x, 3.6, z, f.ry); }); } }
   { const s = shop('BELLEVILLE AUTO SALES'); if(s){ counter(s, 'TALK TO THE SALESMAN', carLot); clerk(s, 'Salesman', { ...api.randomLook(false), top:'polo', shirt:'#f2f2f2', pants:'#3a3a4a' }); const f = frame(s);
-    { const [lx, lz] = f.at(0, 9), yb0 = yb; yb = Math.max(yb, T(lx, lz)) + .02; box(2 * f.hl + 4, .04, 10, '#55575c', lx, .01, lz, f.ry); yb = yb0; }
+    { const [lx, lz] = f.at(0, 9), yb0 = yb; yb = Math.max(yb, T(lx, lz)) + .02; add(groundQuad(2 * f.hl + 4, 10, f.ry, lx, lz, '#55575c')); yb = yb0; }
     CARS.forEach((c, i) => { const [x, z] = f.at(-f.hl + 3 + i * ((2 * f.hl - 6) / 4), 9); const m = E.makeCar(c[2], { type:c[1] }); m.position.set(x, T(x, z), z); m.rotation.y = f.ry + Math.PI / 2; add(m); G.colliders.push({ x0:x - 2.4, x1:x + 2.4, z0:z - 2.4, z1:z + 2.4, y0:0, y1:1.6 }); sign(`$${c[3].toLocaleString()}`, { bg:'#fff', fg:'#c8202a', size:60, w:256, h:90 }, .7, .25, x, 1.25, z, f.ry); });
     const [bx, bz] = f.at(0, 15); for(let i = -4; i <= 4; i++){ const [x, z] = f.at(i * 1.4, 15); const fl = new THREE.Mesh(new THREE.ConeGeometry(.22, .5, 3), E.mat(['#c8202a', '#f2f2f2', '#1b3a8a'][(i + 9) % 3])); fl.position.set(x, yb + 3.4, z); fl.rotation.z = Math.PI; add(fl); } box(.1, 3.6, .1, '#888', bx + f.nz * 6, 0, bz + f.nx * 6, 0); box(.1, 3.6, .1, '#888', bx - f.nz * 6, 0, bz - f.nx * 6, 0); } }
   { const s = shop('SPLASH CAR WASH'); if(s){ const f = frame(s), [x, z] = f.at(0, 5); api.add({ x, z, r:4, prompt:'CAR WASH ($5)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.driving && G.chrisCar && Math.hypot(G.chrisCar.position.x - x, G.chrisCar.position.z - z) < 10,
@@ -196,15 +198,15 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
   const ck = async e => { if(e.code !== 'KeyC' || G.mission || !G.ctl || G.uiOpen || G.dialogOn || G.paused) return; const l2 = L(); if(!l2.cell) return; if(G.ext && G.ext.grounded()){ E.toast('Dad took your cell phone too.', 2200); return; }
     E.cut(true); const k = await E.choose([`📱 Call someone (${l2.cell.min} min left)`, 'Text a friend (10¢)', 'Snake', 'Close']); if(k === 0){ const free = dowOf(l2) % 6 === 0 || l2.min >= 1260 || l2.min < 420; if(!free) l2.cell.min = Math.max(0, l2.cell.min - 4); if(l2.cell.min <= 0 && !free) await E.say([['', 'Out of minutes. Nights and weekends are free though.']]); else await G.ext.makePlans(); }
     if(k === 1){ const ns = ['Zeke', 'Jax', 'Matt', 'Milo'], j = await E.choose([...ns, 'Never mind']); if(j < 4 && api.pay(.1)){ const f = (l2.fr || {})[ns[j]] || 0; await E.say([[ns[j] + ' (text)', f < -2 ? 'k' : ['wut up', 'hey', 'yo whats good', 'what'][j]]]); l2.fr = l2.fr || {}; l2.fr[ns[j]] = f + .5; } }
-    if(k === 2){ const sc = await playDodge({ title:'SNAKE' }); E.toast(`Snake: ${sc}`, 2000); } api.save(); E.cut(false); };
+    if(k === 2){ const sc = await G.playSnake(); E.cut(true); E.toast(`Snake: ${sc}`, 2000); } api.save(); E.cut(false); };
   addEventListener('keydown', ck);
   // car stereo: T plays your CDs instead of the radio (needs the CD stereo); bedroom boombox plays them at home
   const tk = e => { if(e.code !== 'KeyT' || !G.driving || G.paused || G.dialogOn) return; const l2 = L(); if(!(l2.car && l2.car.stereo)){ E.toast('The Taurus only has a tape deck. A CD stereo is at the auto counter.', 2600); return; } if(!l2.cds.length){ E.toast('No CDs. Streetside Records has some.', 2400); return; }
-    G.cdOnly = G.cdOnly ? null : G.radio.st.tracks.map((t, i) => l2.cds.includes(t[1]) ? i : -1).filter(i => i >= 0); G.radio.reset && G.radio.reset(); E.toast(G.cdOnly ? '💿 CD' : '📻 Back to the radio', 1800); };
+    G.cdOnly = G.cdOnly ? null : G.radio.st.tracks.map((t, i) => l2.cds.includes(t[1]) || (l2.cds.includes('Chris’s mix') && (l2.mp3 || []).includes(i)) ? i : -1).filter(i => i >= 0); G.radio.reset && G.radio.reset(); E.toast(G.cdOnly ? '💿 CD' : '📻 Back to the radio', 1800); };
   addEventListener('keydown', tk);
   api.add({ x:-0.9, z:-1.5, y:3.2, r:1.6, prompt:'PLAY A CD ON THE BOOMBOX', when:() => !G.mission && G.ctl && !G.uiOpen && (L().owned || []).includes('stereo') && L().cds.length, use:async () => { const l2 = L();
       if(G.homeStereo){ G.homeStereo = false; G.cdOnly = null; G.radio.reset && G.radio.reset(); E.toast('Music off.', 1600); return; } if(!G.radio.src){ const p = prompt('Music passcode'); if(!p || !(await G.radio.unlock(p))){ E.toast('Wrong passcode.', 2000); return; } }
-      const j = await E.choose([...l2.cds, 'Never mind']); if(j >= l2.cds.length) return; G.cdOnly = G.radio.st.tracks.map((t, i) => t[1] === l2.cds[j] ? i : -1).filter(i => i >= 0); G.homeStereo = true; G.radio.reset && G.radio.reset(); E.toast(`💿 ${l2.cds[j]}`, 2200); } });
+      const j = await E.choose([...l2.cds, 'Never mind']); if(j >= l2.cds.length) return; G.cdOnly = l2.cds[j] === 'Chris’s mix' ? [...(l2.mp3 || [])] : G.radio.st.tracks.map((t, i) => t[1] === l2.cds[j] ? i : -1).filter(i => i >= 0); G.homeStereo = true; G.radio.reset && G.radio.reset(); E.toast(`💿 ${l2.cds[j]}`, 2200); } });
   // late-night drive-thru run (10 PM – 1 AM, at your car, with a friend who likes you)
   api.add({ x:-17, z:12.5, r:2.4, prompt:'LATE-NIGHT DRIVE-THRU RUN', when:() => { const t = L().min; return !G.mission && G.ctl && !G.uiOpen && !G.driving && (t >= 1320 || t < 60) && !(G.ext && G.ext.grounded()); },
     use:async () => { const l2 = L(), ok = Object.entries(l2.fr || {}).filter(x => x[1] >= 2).map(x => x[0]); if(!ok.length){ await E.say([['', 'Nobody’s picking up. Guess I’m not that cool yet.']]); return; } E.cut(true);
@@ -238,7 +240,7 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
     // shop clerks go home when the store closes
     for(const n of clerks) if(n.shop) n.o.visible = shopOpen(n.shop, t) && Math.hypot(n.p.x - P.p.x, n.p.z - P.p.z) < 70;
     // cops: speeding near a parked cruiser gets you pulled over
-    const c = G.driving; if(c && G.ctl && !G.uiOpen){ const sp = Math.abs(c.speed); const cp = cops.find(k => Math.hypot(k.position.x - c.car.position.x, k.position.z - c.car.position.z) < 45); if(cp && sp > 21) speedT += dt; else speedT = Math.max(0, speedT - dt);
+    const c = G.driving; if(c && G.ctl && !G.uiOpen){ const sp = Math.abs(c.speed); const cp = cops.find(k => Math.hypot(k.position.x - c.car.position.x, k.position.z - c.car.position.z) < 45); if(cp && sp * 2.237 > (G.speedLimit ? G.speedLimit(c.car.position.x, c.car.position.z) : 30) + 12) speedT += dt; else speedT = Math.max(0, speedT - dt);
       if(l2.tire === 'flat') c.speed = Math.max(-5, Math.min(7, c.speed)); else if(l2.tire === 'low') c.speed *= Math.pow(.985, dt * 60);
       if(speedT > 1.2){ speedT = 0; pullOver(c); }
       if(!l2.tire && sp > 6 && rnd(dc * 9.1 + Math.floor(G.t / 60)) < .0006){ l2.tire = 'flat'; E.toast('💥 Flat tire. Limp it to the gas station (auto counter).', 3600); E.tone(90, 0, .3, 'square', .06); } }
@@ -257,7 +259,7 @@ export function life23On(a){ api = a; const l = L(); objs.forEach(o => G.scene.r
     bonfire(d.getMonth() === 9 && d.getDate() === 9 && t > 1170 && t < 1380);
     if(d.getMonth() === 6 && d.getDate() === 4 && t > 1260 && t < 1320 && Math.random() < dt * .8){ const sp = (G.townPlaced || {})['SCHRANZ PARK'] || [-420, 479]; boom(sp[0] + (Math.random() - .5) * 30, sp[1] + (Math.random() - .5) * 30); }
     fw = fw.filter(f => { f.t += dt; const a = f.p.geometry.attributes.position.array; f.v.forEach((v, i) => { a[i * 3] += v[0] * dt; a[i * 3 + 1] += (v[1] - f.t * 6) * dt; a[i * 3 + 2] += v[2] * dt; }); f.p.geometry.attributes.position.needsUpdate = true; f.p.material.opacity = Math.max(0, 1 - f.t / 2); if(f.t > 2){ G.scene.remove(f.p); return false; } return true; });
-    if(ev && ev.flash) ev.flash.userData.bar.material.color.setHex(Math.floor(G.t * 4) % 2 ? 0xff2020 : 0x2040ff);
+    if(ev && ev.flash){ const b = ev.flash.userData.bar, on = Math.floor(G.t * 4) % 2; b[0].visible = !!on; b[1].visible = !on; }
     amb(dt, l2); });
   // air pump at the gas station
   api.add({ x:438, z:242, r:2, prompt:'AIR PUMP (75¢)', when:() => !G.mission && G.ctl && !G.uiOpen && !G.driving && L().tire === 'low', use:async () => { if(api.pay(.75)){ L().tire = null; api.save(); E.toast('Tire’s back to 32 PSI.', 2200); } } });

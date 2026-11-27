@@ -17,12 +17,12 @@ function mesh(geo, m, x, y, z){ const me = new THREE.Mesh(geo, m); me.position.s
 
 // ---------- weather ----------
 export function weatherFor(dc){ const d = dateOf(dc), m = d.getMonth(), r = rnd(dc + 7); if(m === 9 && d.getDate() === 31) return 'clear';
-  if(m === 11 && r < .25) return 'snow'; if(r < .5) return 'clear'; if(r < .72) return 'cloudy'; if(r < .93) return 'rain'; return 'storm'; }
-const WX_NAME = { clear:'Sunny', cloudy:'Cloudy', rain:'Rain', storm:'Thunderstorms', snow:'Snow' };
+  if((m === 11 || m === 0) && r < .05) return 'ice'; if(m === 11 && r < .25) return 'snow'; if(r < .5) return 'clear'; if(r < .72) return 'cloudy'; if(r < .93) return 'rain'; return 'storm'; }
+const WX_NAME = { clear:'Sunny', cloudy:'Cloudy', rain:'Rain', storm:'Thunderstorms', snow:'Snow', ice:'Ice storm' };
 function indoors(){ const p = P.p, S = G.SCH; return (G.shops || []).some(s => p.x > s.x0 && p.x < s.x1 && p.z > s.z0 && p.z < s.z1) || (p.x > -8 && p.x < 8 && p.z > -12 && p.z < 4) || (S && p.x > S.x0 && p.x < S.x1 && p.z > S.z0 && p.z < S.z1) || (p.x > -432 && p.x < -250 && p.z > -670 && p.z < -570 && !(p.x > -380 && p.x < -300 && p.z > -640 && p.z < -600)) || (p.z > 162 && p.z < 178 && ((p.x > 351 && p.x < 398) || (p.x > 168 && p.x < 216))); }
 function makeRain(){ const n = 2600, g = new THREE.BufferGeometry(), a = new Float32Array(n * 3); for(let i = 0; i < n; i++){ a[i * 3] = (Math.random() - .5) * 60; a[i * 3 + 1] = Math.random() * 30; a[i * 3 + 2] = (Math.random() - .5) * 60; }
   g.setAttribute('position', new THREE.BufferAttribute(a, 3)); const p = new THREE.Points(g, new THREE.PointsMaterial({ color:0xa8bcd0, size:.09, transparent:true, opacity:.7, depthWrite:false })); p.frustumCulled = false; G.scene.add(p); return p; }
-function applyWeather(){ const w = G.wx || 'clear', wet = w === 'rain' || w === 'storm' || w === 'snow', dim = w === 'cloudy' ? .8 : wet ? .5 : 1;
+function applyWeather(){ const w = G.wx || 'clear', wet = w === 'rain' || w === 'storm' || w === 'snow' || w === 'ice', dim = w === 'cloudy' ? .8 : wet ? .5 : 1;
   G.cloud = w === 'clear' ? .36 : w === 'cloudy' ? .7 : .95; if(G.skyU && G.skyU.cloud) G.skyU.cloud.value = G.cloud;
   if(G.skyU){ G.skyU.top.value.multiplyScalar(dim); G.skyU.bot.value.lerp(new THREE.Color(0x8a9098), 1 - dim); }
   if(G.sun) G.sun.intensity *= wet ? .3 : w === 'cloudy' ? .6 : 1; G.scene.fog.near = wet ? 30 : 70; G.scene.fog.far = wet ? 170 : (G.fogFar || 330); if(wet) G.scene.fog.color.lerp(new THREE.Color(0x8a9098), .5);
@@ -67,8 +67,9 @@ function paper(){ return new Promise(res => { const l = api.L(), dc = l.dayCount
 // ---------- side jobs ----------
 const JOBS = { mow:{ title:'LAWN MOWING', blurb:'Mr. Davis on Oakmont needs his front lawn cut.', pay:12 }, walk:{ title:'DOG WALKER', blurb:'Linda needs Buster walked to Elmwood Park and back.', pay:8 },
   lost:{ title:'LOST DOG: BISCUIT', blurb:'Small tan terrier. Reward for return to Gary on Oakmont.', pay:15 }, deliver:{ title:'GROCERY DELIVERY', blurb:'Pick up Doris’s order at Schnucks customer service.', pay:10 },
-  rake:{ title:'LEAF RAKING', blurb:'Front yard on Oakmont is buried in leaves.', pay:10 } };
-export function jobsFor(dc){ const m = dateOf(dc).getMonth(), keys = Object.keys(JOBS).filter(k => k !== 'rake' || m === 9 || m === 10); const a = keys[Math.floor(rnd(dc + 11) * keys.length)]; let b = keys[Math.floor(rnd(dc + 23) * keys.length)]; if(b === a) b = keys[(keys.indexOf(a) + 1) % keys.length]; return [a, b].map(k => ({ k, ...JOBS[k] })); }
+  rake:{ title:'LEAF RAKING', blurb:'Front yard on Oakmont is buried in leaves.', pay:10 }, shovel:{ title:'SNOW SHOVELING', blurb:'Mrs. Patterson’s driveway is buried. Bring a shovel. Or don’t, she has one.', pay:15 },
+  flyers:{ title:'FLYER ROUTE', blurb:'Drop pizza coupons in five mailboxes on Oakmont.', pay:12 } };
+export function jobsFor(dc){ const m = dateOf(dc).getMonth(), keys = Object.keys(JOBS).filter(k => (k !== 'rake' || m === 9 || m === 10) && (k !== 'shovel' || m === 11 || m <= 1)); const a = keys[Math.floor(rnd(dc + 11) * keys.length)]; let b = keys[Math.floor(rnd(dc + 23) * keys.length)]; if(b === a) b = keys[(keys.indexOf(a) + 1) % keys.length]; return [a, b].map(k => ({ k, ...JOBS[k] })); }
 let job = null;
 function clearJob(){ if(!job) return; (job.objs || []).forEach(o => G.scene.remove(o)); (job.npcs || []).forEach(n => n.remove()); (job.inters || []).forEach(E.delInter); if(job.mk) E.clearMarker(job.mk); if(G.carry === job.carry) G.carry = null; E.setWay(); E.obj(''); job = null; }
 function finishJob(){ const j = job, l = api.L(); clearJob(); l.cash += j.pay; if(j.k === 'deliver') l.rep = Math.min(100, (l.rep ?? 50) + 3); api.save(); E.sfx('pass'); E.toast(`JOB DONE: ${j.title} · +${api.money(j.pay)}`, 3200); }
@@ -79,9 +80,10 @@ export function startJob(j){ if(job){ E.toast('Finish your current job first.', 
     const mower = new THREE.Group(); const body = new THREE.Mesh(new THREE.BoxGeometry(.6, .3, .7), E.mat('#c8202a')); body.position.y = .3; const hd = new THREE.Mesh(new THREE.BoxGeometry(.5, .05, .05), E.mat('#222')); hd.position.set(0, 1, -.55); mower.add(body, hd); G.scene.add(mower); job.objs.push(mower);
     job.carry = G.carry = () => { G.pushN = 1; const a = P.model.rotation.y; mower.position.set(P.p.x + Math.sin(a) * .9, P.p.y, P.p.z + Math.cos(a) * .9); mower.rotation.y = a; for(const t of tufts) if(t.visible && (Math.hypot(t.position.x - mower.position.x, t.position.z - mower.position.z) < 1.3 || Math.hypot(t.position.x - P.p.x, t.position.z - P.p.z) < 1.1)){ t.visible = false; E.sfx('cart'); } };
     job.check = () => tufts.every(t => !t.visible); stepTo(-150, 13.9, 'MOW ALL 8 PATCHES OF TALL GRASS IN MR. DAVIS’S FRONT YARD.'); }
-  if(j.k === 'rake'){ const piles = []; for(let i = 0; i < 6; i++){ const p = new THREE.Mesh(new THREE.ConeGeometry(.6, .35, 7), E.mat('#c8641e')); p.position.set(62 + (i % 3) * 2.6, .17, 10 + (i / 3 | 0) * 2.4); G.scene.add(p); job.objs.push(p); piles.push(p);
-      job.inters.push(E.addInter({ x:p.position.x, z:p.position.z, r:1.5, prompt:'RAKE THE LEAVES', when:() => p.visible, use:() => { p.visible = false; api.passTime(5); E.sfx('cart'); } })); }
-    job.check = () => piles.every(p => !p.visible); stepTo(64.6, 11.2, 'RAKE ALL 6 LEAF PILES.'); }
+  if(j.k === 'flyers'){ const pts = [[-128, 12.5], [-58, 12.5], [27, 12.5], [67, 12.5], [122, 12.5]]; let i = 0; stepTo(...pts[0], 'PUT A COUPON IN EACH MAILBOX (1/5).'); job.check = () => { if(i < pts.length && Math.hypot(P.p.x - pts[i][0], P.p.z - pts[i][1]) < 2.4){ i++; E.sfx('ok'); if(i < pts.length) stepTo(...pts[i], `PUT A COUPON IN EACH MAILBOX (${i + 1}/5).`); } return i >= pts.length; }; }
+  if(j.k === 'rake' || j.k === 'shovel'){ const piles = []; for(let i = 0; i < 6; i++){ const p = new THREE.Mesh(new THREE.ConeGeometry(.6, .35, 7), E.mat(j.k === 'shovel' ? '#f2f4f8' : '#c8641e')); p.position.set(62 + (i % 3) * 2.6, .17, 10 + (i / 3 | 0) * 2.4); G.scene.add(p); job.objs.push(p); piles.push(p);
+      job.inters.push(E.addInter({ x:p.position.x, z:p.position.z, r:1.5, prompt:j.k === 'shovel' ? 'SHOVEL THE SNOW' : 'RAKE THE LEAVES', when:() => p.visible, use:() => { p.visible = false; api.passTime(5); E.sfx('cart'); } })); }
+    job.check = () => piles.every(p => !p.visible); stepTo(64.6, 11.2, j.k === 'shovel' ? 'SHOVEL ALL 6 DRIFTS.' : 'RAKE ALL 6 LEAF PILES.'); }
   if(j.k === 'walk'){ const owner = E.npc('Linda', { shirt:'#a8557a', pants:'#334', hair:'#7a4a2a', hairStyle:'pony', top:'track', bottom:'track', lips:'#b5505a' }, 45, 12.5); job.npcs.push(owner);
     const dog = E.npc('Buster', { dog:true, color:'#6a4a2a', dark:'#2a1a0a', size:1.1 }, 46, 13.5, { speed:5 }); job.npcs.push(dog); dog.follow(P, 1.6, 6.5); job.leg = 0; stepTo(-80, 70, 'WALK BUSTER TO ELMWOOD PARK.');
     job.check = () => { if(job.leg === 0 && Math.hypot(P.p.x + 80, P.p.z - 70) < 4){ job.leg = 1; stepTo(45, 14, 'BRING BUSTER BACK TO LINDA.'); E.sfx('bark'); } return job.leg === 1 && Math.hypot(P.p.x - 45, P.p.z - 14) < 3; }; }
@@ -96,7 +98,7 @@ export function startJob(j){ if(job){ E.toast('Finish your current job first.', 
 
 // ---------- friends: schedule, hangouts, plans, ragers, AIM ----------
 const FRIENDS = { Zeke:'sk8rzeke03', Jax:'jaxattack', Matt:'mattdaman15', Milo:'m1lo_the_brain' };
-const PLACES = { 'Elmwood Park':[-80, 72], 'the plaza (Video World)':[374, 180.5], 'the Schnucks lot':[304, 226], 'your house':[0, 9] };
+const PLACES = { 'Elmwood Park':[-80, 72], 'the plaza (Hollywood Video)':[374, 180.5], 'the Schnucks lot':[304, 226], 'your house':[0, 9] };
 function schedule(l){ const d = dateOf(l.dayCount).getDay(), wk = d > 0 && d < 6, t = l.min, wet = G.wet, out = []; if(G.flags.GROUNDING_ACTIVE) return out; // Draft #2: grounded after M08 — school, home, work only
   if(wk && t >= 930 && t < 1110) out.push(['Zeke', wet ? [374, 180.5] : [-82, 68]]); if(!wk && t >= 720 && t < 1020) out.push(['Jax', [376, 180.5]]); if(wk && t >= 1080 && t < 1200) out.push(['Jax', [-78, 72]]);
   if(!wk && t >= 840 && t < 1080) out.push(['Matt', [304, 226]]); if(wk && t >= 1020 && t < 1140) out.push(['Milo', [195, 171.5]]); return out; }
@@ -116,9 +118,11 @@ async function makePlans(){ const l = api.L(); if(G.flags.GROUNDING_ACTIVE){ awa
   const places = Object.keys(PLACES); const p = await E.choose(places); const tms = [['In an hour', 60], ['Tonight at 7', null], ['Tomorrow at 4 PM', 'tmr']], t = await E.choose(tms.map(x => x[0]));
   const now = absNow(l); let at = t === 0 ? now + 60 : t === 1 ? (l.dayCount || 0) * 1440 + 19 * 60 : ((l.dayCount || 0) + 1) * 1440 + 16 * 60; if(t === 1 && at < now) at += 1440;
   l.plan = { who:names[w], place:places[p], at }; api.save(); for(let i = 0; i < 2; i++){ E.sfx('ring'); await E.wait(700); } await E.say([[names[w] + ' (phone)', ['Bet. See you there.', 'Fine. Don’t be late.', 'YES. Okay. Yes.', 'If I must.'][w]]]); }
+// away messages change as the story moves on (GAME ORIGINAL)
+const awayMsg = k => { const d = G.SVdone || {}, A = [['skatin. leave a msg', 'at work. kill me', 'homework. go away', 'eating. brb'], ['journeys til 9. pray for me', 'grounded lol jk... unless', 'DBQ due tmrw. do not disturb', 'mom dragged me to sams club'], ['sauce war champion. dont even', 'taco bell > everything', 'reading. yes reading.', 'mexican pizza is overrated. fight me']]; return A[d.M10 ? 2 : Object.keys(d).length > 8 ? 1 : 0][k]; };
 async function aim(){ const l = api.L(); l.fr = l.fr || {}; const on = Object.keys(FRIENDS).filter(n => l.min > 900 && l.min < 1410 && rnd(absNow(l) / 97 + n.length) > .3);
   E.sfx('door'); const opts = Object.keys(FRIENDS).map(n => `${FRIENDS[n]} ${on.includes(n) ? '● online' : '(away)'}`); const k = await E.choose([...opts, 'Sign off']); if(k >= opts.length){ E.sfx('door'); return; }
-  const n = Object.keys(FRIENDS)[k], sn = FRIENDS[n]; if(!on.includes(n)){ await E.say([[sn + ' (away)', ['skatin. leave a msg', 'at work. kill me', 'homework. go away', 'eating. brb'][k]]]); return; }
+  const n = Object.keys(FRIENDS)[k], sn = FRIENDS[n]; if(!on.includes(n)){ await E.say([[sn + ' (away)', awayMsg(k)]]); return; }
   const fri = dateOf(l.dayCount).getDay() === 5, flake = l.flaked === n;
   const msg = flake ? `u flaked on me yesterday. not cool` : fri && n === 'Jax' ? `rager 2nite on maple. 9pm. u in?` : TALK[n][Math.random() * 3 | 0][1].toLowerCase();
   E.tone(880, 0, .08, 'sine', .04); await E.say([[sn, msg]]); const r = await E.choose(flake ? ['my bad dude', 'i was busy'] : ['lol', 'wanna hang out?', 'brb']);
@@ -132,7 +136,7 @@ G.onCrash = av => { if(G.mission || !api || av < 8 || G.t - (G.onCrash.t || -99)
 // GAME ORIGINAL: what the walk-in shops sell. [item, price, Chris's take, minutes it takes (meals), fills stamina]
 const SHOPS = {
   'WALGREENS':{ who:'Cashier', hi:'Find everything okay?', items:[['Bottle of soda', .99, 'Cold. Fizzy. Gone in four seconds.', 0, 1], ['Candy bar', .65, 'Breakfast of champions.', 0, 1], ['Pack of gum', .35, 'Winterfresh. I am now unstoppable.'], ['Disposable camera', 6.99, '27 exposures. I will waste 20 of them on Pepper.'], ['Birthday card', 1.99, 'Somebody always has a birthday. Now I am ready.'], ['AA batteries', 3.49, 'For the remote. And the other remote.']] },
-  'MOTO MART':{ who:'Clerk', hi:'Pump or just snacks?', items:[['44 oz fountain soda', .89, 'This cup is the size of my head.', 0, 1], ['Hot dog off the roller', 1.29, 'It has been rolling since 1998. Still good.', 0, 1], ['Slushie', .99, 'Brain freeze. Worth it.', 0, 1], ['Beef jerky', 2.49, 'Chewing this is a part-time job.', 0, 1]] },
+  'MOTO MART':{ who:'Clerk', hi:'Pump or just snacks?', items:[['44 oz fountain soda', .89, 'This cup is the size of my head.', 0, 1], ['Hot dog off the roller', 1.29, 'It has been rolling since 1998. Still good.', 0, 1], ['Slushie', .99, 'Brain freeze. Worth it.', 0, 1], ['Beef jerky', 2.49, 'Chewing this is a part-time job.', 0, 1], ['Scratch-off ticket', 1, '']] },
   "STEAK 'N SHAKE":{ who:'Server', hi:'Welcome in. What can I get you?', items:[['Steakburger and fries', 3.99, 'Thin fries. Thin burger. Somehow perfect.', 25, 1], ['Chili', 2.29, 'Chili in a diner at any hour. America.', 15, 1], ['Chocolate shake', 2.49, 'They give you the extra in the metal cup. Respect.', 10, 1]] },
   'WHITE CASTLE':{ who:'Cashier', hi:'Welcome to White Castle.', items:[['Sack of 10 sliders', 4.90, 'I regret nothing. Yet.', 20, 1], ['4 sliders', 1.96, 'A responsible amount of sliders.', 12, 1], ['Onion chips', 1.09, 'My breath is a weapon now.', 5, 1]] },
   "IMO'S PIZZA":{ who:'Counter Guy', hi:'Pick-up or eating here?', items:[['Small pizza', 6.50, 'Square slices. Cracker crust. Provel. This is how pizza works here.', 30, 1], ['Toasted ravioli', 3.99, 'If you are not from here you would not get it.', 15, 1], ['Fountain drink', .99, 'Refills are free and I intend to prove it.', 5, 1]] },
@@ -140,18 +144,20 @@ const SHOPS = {
   'DAIRY QUEEN':{ who:'Cashier', hi:'Hi there! What sounds good?', items:[['Blizzard', 2.39, 'They flipped it upside down. It stayed. Witchcraft.', 10, 1], ['Dipped cone', 1.19, 'Ate the shell first. As is tradition.', 6, 1], ['Chili dog', 1.59, 'A chili dog from an ice cream place. Bold. Good.', 10, 1]] },
   'BELLEVILLE PANCAKE HOUSE':{ who:'Waitress', hi:'Sit anywhere, hon. What are we having?', items:[['Short stack', 3.25, 'Three pancakes. More syrup than pancake.', 25, 1], ['Big breakfast', 5.25, 'Eggs, bacon, hash browns, toast. I need a nap.', 35, 1], ['Coffee', .95, 'I do not even like coffee. I feel very grown up.', 8]] },
   'TACO BELL':{ who:'Cashier', hi:'Welcome to Taco Bell. What can I get you?', items:[['Mexican Pizza', 2.29, 'Pizza and a taco had a baby. I support it.', 15, 1], ['Beef Chalupa', 1.89, 'The shell is fried. The shell is perfect.', 12, 1], ['Cinnamon Twists', .99, 'Sugar air. Delicious sugar air.', 6, 1], ['Fountain drink', 1.19, 'Pink Lemonade. Obviously.', 4, 1]] },
+  'PHILLIPS 66':{ who:'Clerk', hi:'Pump number?', items:[['Fountain drink', .89, 'Cherry Coke from the fountain. Elite.', 0, 1], ['Bag of chips', .99, 'Salt and vinegar. My tongue hurts. Worth it.', 0, 1], ['Little Tree air freshener', 1.49, 'Black Ice. Now the car smells like a mall.']] },
+  'SHELL':{ who:'Clerk', hi:'That all for you?', items:[['Gatorade', 1.29, 'Cool Blue. The only flavor.', 0, 1], ['Honey bun', .79, 'Breakfast. Lunch. Who cares.', 0, 1], ['Road atlas', 4.99, 'In case the car ever leaves Belleville. It won’t.']] },
   'FIRST NATIONAL BANK':{ who:'Teller', hi:'Good afternoon. How can I help you?' } };
 let shopN = [];
 async function useShop(s){ const c = SHOPS[s.name], l = api.L(); if(!c) return; if(G.shopOpen && !G.shopOpen(s.name)){ E.toast(`CLOSED · ${G.shopHours(s.name)}`, 2400); return; } E.cut(true); await E.say([[c.who, G.greet ? G.greet(s.name, c.hi) : c.hi]]);
   if(s.kind === 'bank'){ for(;;){ l.bank = l.bank || 0; const k = await E.choose(['Deposit $20', 'Deposit all my cash', 'Withdraw $20', 'Withdraw everything', 'Leave']); if(k === 4) break; const amt = k === 0 ? 20 : k === 1 ? Math.max(0, l.cash) : k === 2 ? Math.min(20, l.bank) : l.bank;
       if(k < 2){ if(amt <= 0 || l.cash < amt){ await E.say([[c.who, 'You do not have that much on you.']]); continue; } l.cash -= amt; l.bank += amt; } else { if(amt <= 0){ await E.say([[c.who, 'There is nothing in the account to withdraw.']]); continue; } l.bank -= amt; l.cash += amt; }
       api.save(); E.sfx('ok'); await E.say([[c.who, `All set. Your savings balance is ${api.money(l.bank)}.`]]); } E.cut(false); return; }
-  for(;;){ const k = await E.choose([...c.items.map(i => `${i[0]} · ${api.money(i[1])}`), 'Leave']); if(k >= c.items.length) break; const it = c.items[k]; if(!api.pay(it[1])) break;
+  for(;;){ const k = await E.choose([...c.items.map(i => `${i[0]} · ${api.money(i[1])}`), 'Leave']); if(k >= c.items.length) break; const it = c.items[k]; if(G.preBuy && G.preBuy(s.name, it) === false){ await E.wait(1600); continue; } if(!api.pay(it[1])) break; G.onBuy && G.onBuy(s.name, it);
     if(it[3]){ await E.fade(true, 400); api.passTime(it[3]); await E.fade(false, 400); } if(it[4]){ P.stam = 1; P.tired = false; } await E.say([['', it[2]]]); if(s.kind === 'diner') break; }
   E.cut(false); }
 function grounded(l){ return l.groundedDay != null && l.groundedDay === (l.dayCount || 0); }
 
-// ---------- PS2 + games (sold at Video World) ----------
+// ---------- PS2 + games (sold at Hollywood Video) ----------
 const GAMES = [['PlayStation 2 console', 199.99, 'ps2'], ['Madden NFL 2004', 49.99, 'madden'], ['GTA: Vice City', 49.99, 'vc'], ['Tony Hawk’s Pro Skater 4', 19.99, 'thps4'], ['SSX Tricky', 19.99, 'ssx'], ['Need for Speed: Hot Pursuit 2', 19.99, 'nfs']];
 const PLAY = { madden:'Ran the same play 40 times. It worked 40 times.', vc:'Stole a car, drove it into the ocean, did it again. Educational.', thps4:'Landed a 900. Screamed. Mom yelled up the stairs.', ssx:'Won the race by doing a trick off a helicopter. Realistic.', nfs:'Got away from the cops by driving through a gas station. Respect.' };
 async function shopGames(){ const l = api.L(); l.owned = l.owned || []; const list = GAMES.filter(g => !l.owned.includes(g[2]));
@@ -165,7 +171,7 @@ async function playPS2(){ const l = api.L(), games = GAMES.filter(g => g[2] !== 
 
 // ---------- gas station (west end of the plaza lot) ----------
 // gas moves day to day, roughly $1.45–1.80 like 2003–04
-export const gasPrice = dc => Math.round((1.52 + .07 * Math.sin((dc || 0) / 11) + .04 * Math.sin((dc || 0) / 3.3) + ((dc || 0) > 200 ? .18 : 0)) * 100) / 100;
+export const gasPrice = G.gasPrice = dc => Math.round((1.52 + .07 * Math.sin((dc || 0) / 11) + .04 * Math.sin((dc || 0) / 3.3) + ((dc || 0) > 200 ? .18 : 0)) * 100) / 100;
 function gasStation(){ const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), E.mat('#9a9890')); pad.rotation.x = -Math.PI / 2; pad.position.set(428, .03, 236); addObj(pad); E.mapRect(413, 224, 443, 248, '#7a7870');
   const can = mesh(new THREE.BoxGeometry(20, .6, 10), E.mat('#f2f2ee'), 428, 5.2, 236); const band = mesh(new THREE.BoxGeometry(20.2, .5, 10.2), E.mat('#1f4aa8'), 428, 4.75, 236);
   [[437, 240], [419, 240], [437, 232], [419, 232]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(.4, 5, .4), E.mat('#f2f2ee'), x, 2.5, z); G.colliders.push({ x0:x - .25, x1:x + .25, z0:z - .25, z1:z + .25, y0:0, y1:5 }); });

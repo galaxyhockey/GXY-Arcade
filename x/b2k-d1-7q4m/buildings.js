@@ -129,7 +129,7 @@ export function schnucksExterior(SCH){ const { x0, x1, z0, z1 } = SCH, H = 8, f 
   [[x0 + 1, 97], [113, x1 - 1]].forEach(([a, b]) => { B(b - a, .7, 1.8, base, (a + b) / 2, 0, z0 - 1.8); col(a, z0 - 2.7, b, z0 - .9, .7); mesh(new THREE.PlaneGeometry(b - a - .3, 1.5), M('#4a3a2a'), (a + b) / 2, .71, z0 - 1.8).rotation.x = -Math.PI / 2;
     for(let x = a + .7; x < b - .5; x += 1.4){ const grass = x % 4.2 < 1.4; const m = mesh(grass ? new THREE.ConeGeometry(.45, 1.4, 6) : new THREE.IcosahedronGeometry(.55, 0), M(grass ? '#a8a060' : '#3a6a2e'), x, grass ? 1.4 : 1.05, z0 - 1.8 + (x % 2.8 < 1.4 ? .3 : -.3)); if(!grass) m.scale.y = .8; } });
   // strip-plaza neighbours on both sides (brick, storefront glass, sign band)
-  const shops = [[10, 'NAIL SPA', '#b23a6a'], [26, 'VIDEO WORLD', '#1f4aa8'], [42, 'LAUNDRY', '#2a7a5a']], shops2 = [[192, 'TAX SERVICE', '#2a5a2a'], [208, 'CHINA GARDEN', '#b8282a'], [224, 'HAIR CUTS', '#7a2a8a']];
+  const shops = [[10, 'NAIL SPA', '#b23a6a'], [26, 'HOLLYWOOD VIDEO', '#1f4aa8'], [42, 'LAUNDRY', '#2a7a5a']], shops2 = [[192, 'TAX SERVICE', '#2a5a2a'], [208, 'CHINA GARDEN', '#b8282a'], [224, 'HAIR CUTS', '#7a2a8a']];
   [[2, 49, shops], [184, 232, shops2]].forEach(([a, b, list]) => { const zc = 362, d = 56, zf = zc - d / 2; B(b - a, 6, 40, brickM('#8a4a34', '#c2b29c', [12, 1.4], 'p'), (a + b) / 2, 0, 370); col(a, 350, b, 390, 6); // front 16 m = walk-in shops (plaza.js)
     B(b - a + .6, .5, d + .6, M('#cfc4b0'), (a + b) / 2, 6, zc); B(b - a, .3, 3, M('#5a5a5a'), (a + b) / 2, 3.6, zf - 1.5); // canopy
     list.forEach(([x, name, c]) => {

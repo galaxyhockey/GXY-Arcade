@@ -33,7 +33,7 @@ export function initTraffic(){ const TL = G.townLines || [], JS = G.junctions ||
   // ---------- cars ----------
   const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'], cars = [];
   TL.forEach((l, li) => { if(l.len < 70) return; const n = Math.max(1, Math.round(l.len / (l.k === 3 ? 280 : 180)));
-    for(const dir of [1, -1]) for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(li * 3 + k + (dir > 0 ? 0 : 4)) % 9], { suv:(li + k) % 3 === 0, lights:true }); car.rotation.order = 'YXZ'; G.scene.add(car);
+    for(const dir of [1, -1]) for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(li * 3 + k + (dir > 0 ? 0 : 4)) % 9], { type:['sedan', 'suv', 'pickup', 'van', 'sedan', 'taurus'][(li * 5 + k + (dir > 0 ? 0 : 3)) % 6], lights:true }); car.rotation.order = 'YXZ'; G.scene.add(car);
       const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); const c = { car, col, l, dir, s:l.len * ((k + (dir > 0 ? .25 : .75)) / n), v:8, seg:1, waitT:0, cleared:null, vmax:l.k === 0 ? 15 : l.k === 3 ? 9 : 12 }; cars.push(c); l.lanes[dir].push(c); } });
   // a school bus on the street nearest Belleville West: stops every half minute
   { const bl = TL.filter(l => l.len > 200).sort((a, b) => Math.hypot(a.p[0][0] + 218, a.p[0][1] + 630) - Math.hypot(b.p[0][0] + 218, b.p[0][1] + 630))[0]; if(bl){ const car = E.makeCar('#f2c21a', { type:'van' }); car.scale.set(1.15, 1.3, 2.1); car.rotation.order = 'YXZ'; G.scene.add(car); const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:2.4 }; G.colliders.push(col); const c = { car, col, l:bl, dir:1, s:5, v:6, seg:1, waitT:0, cleared:null, vmax:9, bus:true }; cars.push(c); bl.lanes[1].push(c); } }
@@ -45,7 +45,7 @@ export function initTraffic(){ const TL = G.townLines || [], JS = G.junctions ||
       // the next controlled junction on this street, in the direction of travel
       let stp = null, ds = 0; const arr = l.stops; for(let k = 0; k < arr.length; k++){ const st = arr[dir > 0 ? k : arr.length - 1 - k], d = (st.u - u) * dir; if(d < -9) continue; stp = st; ds = d; break; }
       if(stp && ds < .6 && ds > -1.5 && c.turnJ !== stp.j && !c.bus){ c.turnJ = stp.j; const arms = stp.j.arms.filter(r => TL[r.li] !== l && TL[r.li].len >= 70); if(arms.length && Math.random() < .35){ const r = arms[Math.random() * arms.length | 0], nl = TL[r.li], nd = r.u < 12 ? 1 : r.u > nl.len - 12 ? -1 : (Math.random() < .5 ? 1 : -1);
-          if(stp.j.occ === c) stp.j.occ = null; c.cleared = null; l.lanes[dir].splice(l.lanes[dir].indexOf(c), 1); nl.lanes[nd].push(c); c.l = nl; c.dir = nd; const u2 = r.u + nd * 1.6; c.s = nd > 0 ? u2 : nl.len - u2; c.seg = 1; c.turnJ = stp.j; c.vmax = nl.k === 0 ? 15 : nl.k === 3 ? 9 : 12; c.v = Math.min(c.v, 6); continue; } }
+          if(stp.j.occ === c) stp.j.occ = null; c.cleared = null; l.lanes[dir].splice(l.lanes[dir].indexOf(c), 1); nl.lanes[nd].push(c); c.l = nl; c.dir = nd; const u2 = r.u + nd * 1.6; c.s = nd > 0 ? u2 : nl.len - u2; c.seg = 1; c.turnJ = stp.j; c.vmax = nl.k === 0 ? 15 : nl.k === 3 ? 9 : 12; c.v = Math.min(c.v, 6); c.bl = 1; c.ox = c.car.position.x; c.oz = c.car.position.z; continue; } }
       if(c.cleared && (!stp || stp.j !== c.cleared)){ if(c.cleared.occ === c) c.cleared.occ = null; c.cleared = null; }
       let vT = c.vmax; if(c.bus){ c.busT = (c.busT || 0) + dt; if(c.busT % 34 > 27) vT = 0; }
       if(stp && ds < 60){ const j = stp.j, dl = ds - 8.2; let must = false;                                    // dl = distance to the stop line
@@ -57,7 +57,7 @@ export function initTraffic(){ const TL = G.townLines || [], JS = G.junctions ||
       for(const o of l.lanes[dir]){ if(o === c) continue; const gap = ((o.s - c.s) % total + total) % total; if(gap < 13 + c.v) vT = Math.min(vT, Math.max(0, (gap - 6.5) * 1.4)); }
       const rx = px0 - px, rz = pz0 - pz, ah = rx * fx + rz * fz, side = Math.abs(rx * fz - rz * fx); if(ah > 0 && ah < 9 && side < 2.6) vT = 0;
       c.v += (vT - c.v) * Math.min(1, dt * (vT < c.v ? 5 : 1.1)); if(c.v < .02) c.v = 0; c.s += c.v * dt; if(c.s > total){ c.s -= total; c.waitT = 0; if(c.cleared){ if(c.cleared.occ === c) c.cleared.occ = null; c.cleared = null; } }
-      const py = T(px, pz); c.car.position.set(px, py, pz); c.car.rotation.y = Math.atan2(fx, fz); c.car.rotation.x = -Math.atan((T(px + fx * 2, pz + fz * 2) - T(px - fx * 2, pz - fz * 2)) / 4);
+      if(c.bl > 0){ c.bl = Math.max(0, c.bl - dt * 2.2); px += (c.ox - px) * c.bl; pz += (c.oz - pz) * c.bl; } const py = T(px, pz); c.car.position.set(px, py, pz); c.car.rotation.y = Math.atan2(fx, fz); c.car.rotation.x = -Math.atan((T(px + fx * 2, pz + fz * 2) - T(px - fx * 2, pz - fz * 2)) / 4);
       const lx = Math.abs(fx) > Math.abs(fz), col = c.col; if(lx){ col.x0 = px - 2.2; col.x1 = px + 2.2; col.z0 = pz - 1; col.z1 = pz + 1; } else { col.x0 = px - 1; col.x1 = px + 1; col.z0 = pz - 2.2; col.z1 = pz + 2.2; } col.y0 = py - .5; col.y1 = py + 1.6; col.off = off;
       c.car.visible = !off && Math.abs(px - px0) + Math.abs(pz - pz0) < 170; }
     // ---------- pedestrians ----------

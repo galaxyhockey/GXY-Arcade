@@ -1,5 +1,5 @@
 // Back in the 2000s: The Game — free-roam life: a running clock (1 real second = 1 game minute) with day/dusk/night,
-// cash, Chris's closet + the barber (early-2000s wardrobe), Video World rentals (3-night, late fees), food, shifts at Schnucks,
+// cash, Chris's closet + the barber (early-2000s wardrobe), Hollywood Video rentals (3-night, late fees), food, shifts at Schnucks,
 // home activities (TV, computer, phone, snacks, console, Pepper, sleep), townspeople you can talk to, street-name popups.
 // Flavour lines are GAME ORIGINAL.
 import * as E from './engine.js';
@@ -10,6 +10,7 @@ import { beatsOn } from './beats.js';
 import { upgradesOn } from './planner.js';
 import { tvChannels, tvReady, tvPlay, tvAd, tvOff } from './tv.js';
 import { life23On } from './life23.js';
+import { world23On } from './world23.js';
 const { THREE, G, P, WARDROBE } = E; const $ = id => document.getElementById(id);
 const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:40, rentals:[], look:null });
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -54,15 +55,15 @@ const barberRows = () => [{ label:'STYLE', key:'hairStyle', list:WARDROBE.hairSt
 
 // outfit unlocks: finishing missions (and a few side goals) adds shirt prints to the closet
 const unlockPrints = () => { const d = SV.done || {}, l = L(), u = []; if(d.M05) u.push('MAROONS'); if(d.M08) u.push('SCHNUCKS'); if(d.M10) u.push('SAUCE'); if((l.cards || []).length >= 25) u.push('CARDS'); return [...u, ...(l.prints || [])]; };
-// ---------- Video World ----------
+// ---------- Hollywood Video ----------
 const MOVIES = [['Old School', 3.99, 'Okay, that was the funniest thing I have seen all year. Streaking is NOT a plan though.'], ['Jackass: The Movie', 3.99, 'I can never let Zeke see this. He would try every single bit of it.'],
   ['8 Mile', 3.99, 'Rap battles in a parking lot. I could never. Matt definitely thinks he could.'], ['The Ring', 2.99, 'I am not answering the phone for a week. Seven days. Nope.'],
   ['Bringing Down the House', 3.99, 'Steve Martin dancing is a crime against humanity. I laughed anyway.'], ['Daredevil', 3.99, 'Kinda mid, the fight in the playground was sick though.'],
   ['Friday After Next', 2.99, 'Christmas movie in September. Still funny.'], ['Spider-Man', 1.99, 'Third time watching it. Still holds up.'], ['Shanghai Knights', 2.99, 'Jackie Chan never misses.'], ['Kangaroo Jack', 1.99, 'Why did I rent this. Why did they make this.']];
-async function videoStore(name){ name = typeof name === 'string' ? name : 'Video World'; const l = L(); E.cut(true); const opts = ['Rent a movie', ...(l.rentals.length ? ['Return my movies'] : []), 'Buy games & systems', 'Just browsing'];
+async function videoStore(name){ name = typeof name === 'string' ? name : 'Hollywood Video'; const l = L(); E.cut(true); const opts = ['Rent a movie', ...(l.rentals.length ? ['Return my movies'] : []), 'Buy games & systems', 'Just browsing'];
   await E.say([['Clerk', [`Welcome to ${name}. New releases are on the back wall.`, 'Be kind, rewind.', 'We got the new ones in on Tuesday.'][Math.random() * 3 | 0]]]);
   const k = await E.choose(opts);
-  if(opts[k] === 'Rent a movie'){ const list = MOVIES.filter(m => !l.rentals.some(r => r.t === m[0])); const j = await E.choose([...list.map(m => `${m[0]} — ${money(m[1])}`), 'Never mind']);
+  if(opts[k] === 'Rent a movie'){ const list = MOVIES.filter((m, i) => (i + Math.floor((l.dayCount || 0) / 7) * 3) % 10 < 7).filter(m => !l.rentals.some(r => r.t === m[0]));   // new releases rotate every week const j = await E.choose([...list.map(m => `${m[0]} — ${money(m[1])}`), 'Never mind']);
     if(j < list.length && pay(list[j][1])){ l.rentals.push({ t:list[j][0], due:l.day + 3 + (l.min > 0 ? 0 : 0), dueAbs:(SV.life.dayCount || 0) + 3 }); save(); await E.say([['Clerk', `${list[j][0]}. Due back in 3 nights. Late fee is a dollar a day.`]]); } }
   else if(opts[k] === 'Buy games & systems' && G.ext){ await G.ext.shopGames(); }
   else if(opts[k] === 'Return my movies'){ const now = l.dayCount || 0; let late = 0; l.rentals.forEach(r => late += Math.max(0, now - r.dueAbs)); l.rentals = [];
@@ -88,8 +89,8 @@ async function useTV(){ sitSofa(true); E.cut(true); await E.camShot(...TV_SHOT, 
     const opts = ['Change the channel', ...(L().rentals.length ? ['Watch a rented movie'] : []), 'Get up'], k = await E.choose(opts);
     if(opts[k] === 'Get up') break; if(opts[k] === 'Watch a rented movie'){ await watchRental(); continue; } chan++; passTime(15); }
   scr.color.setHex(c0); sitSofa(false); E.cut(false); }
-async function usePC(){ E.cut(true); const [x, y, z] = G.monitorPos; await E.camShot([x + .2, y + .3, z + 1.4], [x, y, z], 500); const scr = G.monitor.material, c0 = scr.color.getHex(); scr.color.set(0x2a5aa8);
-  for(;;){ const k = await E.choose(['Play RuneScape (1 hr)', 'Check email', 'Instant Messenger', 'Shop online', 'Log off']); if(k === 4) break; if(k === 2 && G.ext){ await G.ext.aim(); continue; } if(k === 3){ if(G.shopOnline) await G.shopOnline(); continue; }
+async function usePC(){ E.cut(true); const [x, y, z] = G.monitorPos; await E.camShot([x + .2, y + .3, z + 1.4], [x, y, z], 500); const scr = G.monitor.material, c0 = scr.color.getHex(); scr.color.set(0x2a5aa8); if(G.dialUp) await G.dialUp();
+  for(;;){ const k = await E.choose(['Play RuneScape (1 hr)', 'Check email', 'Instant Messenger', 'Shop online', 'Kazaa (download songs)', 'Burn a mix CD', 'Log off']); if(k === 6) break; if(k === 4){ G.kazaa && await G.kazaa(); continue; } if(k === 5){ G.burnCD && await G.burnCD(); continue; } if(k === 2 && G.ext){ await G.ext.aim(); continue; } if(k === 3){ if(G.shopOnline) await G.shopOnline(); continue; }
     if(k === 0){ passTime(60); } await E.say([[['', 'An hour of chopping trees later: level 31 woodcutting. Worth it.']], [['', '1 new message: “U HAVE WON A FREE IPOD!!!” Delete.']], [['', 'Nobody’s online. Zeke’s away message just says “skating.”']]][k]); }
   scr.color.setHex(c0); E.cut(false); }
 async function usePhone(){ if(G.ext && G.ext.grounded()){ E.toast('Dad took the phone. Grounded.', 2400); return; } E.cut(true); phoneUp(true); await E.camShot([.1, 2.1, -3.4], [3.1, 1.5, -1.2], 400); const names = Object.keys(CALLS);
@@ -133,7 +134,7 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   { const pep = E.npc('Pepper', { dog:true, color:'#efe6d6', dark:'#6a5a4a', size:.8 }, 2, -20, { speed:1.6 }); npcs.push(pep); const roam = () => { if(!npcs.includes(pep)) return; pep.go([[-10 + Math.random() * 20, -24 + Math.random() * 9]]).then(() => setTimeout(roam, 1500 + Math.random() * 3000)); }; roam();
     add({ x:() => pep.p.x, z:() => pep.p.z, r:1.6, prompt:'PET PEPPER', use:async () => { E.sfx('bark'); E.toast(['Pepper rolls over. Good girl.', 'yip yip. She loves you, apparently.', 'Pepper licks your hand. Gross. Cute.'][Math.random() * 3 | 0], 2400); } }); }
   // plaza shops
-  add({ x:369, z:176.1, r:1.8, prompt:'VIDEO WORLD COUNTER', use:videoStore });
+  add({ x:369, z:176.1, r:1.8, prompt:'HOLLYWOOD VIDEO COUNTER', use:videoStore });
   add({ x:192, z:167.4, r:1.8, prompt:'ORDER FOOD ($5.95)', use:async () => { if(!pay(5.95)) return; E.cut(true); await E.say([['China Garden', 'Number one, General Tso! Ready in five minutes.']]); await E.fade(true, 400); passTime(20); await E.fade(false, 400); E.cut(false);
     E.toast('Best General Tso’s in Swansea. Fortune: “You will find what you are looking for.” Hopefully my homework.', 4200); } });
   add({ x:180.4, z:172, r:1.6, prompt:'GET A HAIRCUT ($12)', use:async () => { E.cut(true); await E.say([['Barber', 'Sit down, what are we doing today?']]); const ok = await editor('HAIR CUTS — $12', barberRows(), 12, { x:180.4, z:172, yaw:Math.PI / 2 }); if(ok){ passTime(30); E.toast('Fresh cut. Looking dangerous.', 2400); } } });
@@ -161,4 +162,4 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   beatsOn({ L, passTime, pay, money, save, phoneUp, rep:repDelta, friend:(n, d) => { l.fr = l.fr || {}; l.fr[n] = (l.fr[n] || 0) + d; }, addTick:tk, onOff:fn => ticks.push(fn) });
   upgradesOn({ L, passTime, add, pay, save, addTick:tk });
   extrasOn({ L, passTime, add, pay, money, randomLook, save, addTick:fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); }, onOff:fn => ticks.push(fn) });
-  G.videoStore = videoStore; life23On({ L, passTime, add, pay:n => { const ok = pay(n); if(ok && n >= 50) G.parentNews && G.parentNews('big'); return ok; }, money, randomLook, save, addTick:tk, onOff:fn => ticks.push(fn) }); }
+  G.videoStore = videoStore; const api23 = { L, passTime, add, pay:n => { const ok = pay(n); if(ok && n >= 50) G.parentNews && G.parentNews('big'); return ok; }, money, randomLook, save, addTick:tk, onOff:fn => ticks.push(fn) }; life23On(api23); world23On(api23); }

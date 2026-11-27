@@ -324,7 +324,7 @@ function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.p
   const rpmT = v < -.2 ? 900 + av * 420 : 780 + 4300 * Math.min(1, av / GEAR[c.gear]) + (th > 0 && av < 5 ? 700 * th : 0); c.rpm = (c.rpm || 800) + (rpmT - (c.rpm || 800)) * Math.min(1, dt * 6); c.thr = th;
   // steering: the wheel turns at a finite rate and has less lock at speed; yaw is limited by lateral grip
   const lock = .6 / (1 + av / 13), want = stIn * lock, rate = (stIn ? 2.4 : 4.2) * dt; c.steer = (c.steer || 0) + Math.max(-rate, Math.min(rate, want - (c.steer || 0)));
-  let w = c.speed * Math.tan(c.steer) / 2.76, slip = 0; const grip = hb ? 4.6 : G.wet ? (G.wx === 'snow' ? 4.4 : 5.6) : 7.6;
+  let w = c.speed * Math.tan(c.steer) / 2.76, slip = 0; const grip = hb ? 4.6 : G.wet ? (G.wx === 'snow' ? 4.4 : G.wx === 'ice' ? 3.4 : 5.6) : 7.6;
   if(Math.abs(c.speed * w) > grip){ slip = Math.abs(c.speed * w) - grip; w = Math.sign(w) * grip / Math.max(.1, av); }
   if(hb && av > 6 && stIn){ w *= 1.5; slip = Math.max(slip, 3); c.speed *= Math.pow(.75, dt); }
   if(braking && av > 9 && th < -.9) slip = Math.max(slip, 1.2);
@@ -364,13 +364,18 @@ function camBlocked(a, b){ // shorten 3rd-person camera when a wall is between p
   for(let i = 1; i <= steps; i++){ const u = i / steps, x = a.x + (b.x - a.x) * u, z = a.z + (b.z - a.z) * u, y = a.y + (b.y - a.y) * u;
     for(const c of G.colliders) if(!c.off && x > c.x0 && x < c.x1 && z > c.z0 && z < c.z1 && y > c.y0 && y < c.y1){ return Math.max(.12, (i - 1.5) / steps); } }
   return t; }
-let rayT = 1;
+let rayT = 1, dashG = null;
+// the driver's-seat view: dashboard, wheel, pillars, headliner and mirror, parented to the car
+function dash(c, on){ if(on && (!dashG || dashG.parent !== c)){ if(dashG && dashG.parent) dashG.parent.remove(dashG); dashG = new THREE.Group(); const m = (w, h, d, col, x, y, z) => { const me = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(col)); me.position.set(x, y, z); dashG.add(me); return me; };
+    m(1.7, .28, .55, '#2a2a2c', 0, 1.0, .95); m(1.7, .06, .3, '#1e1e20', 0, 1.16, .8); m(.42, .16, .05, '#0c0c0c', .36, 1.18, .69); const wh = new THREE.Mesh(new THREE.TorusGeometry(.19, .025, 6, 18), mat('#151515')); wh.position.set(.36, 1.1, .6); wh.rotation.x = -.35; dashG.add(wh);
+    [-1, 1].forEach(s => { m(.07, .75, .07, '#2a2a2c', s * .84, 1.36, 1.02).rotation.x = .6; m(.07, .55, .07, '#2a2a2c', s * .86, 1.32, -.45); }); m(1.7, .05, 1.9, '#4a4740', 0, 1.6, -.2); m(.24, .07, .04, '#111', 0, 1.5, .72); m(.05, .5, 1.6, '#3a3834', .88, 1.05, -.1); m(.05, .5, 1.6, '#3a3834', -.88, 1.05, -.1);
+    c.add(dashG); } if(dashG) dashG.visible = !!on && dashG.parent === c; }
 function updateCam(dt){
   const fovT = G.camOverride ? 62 : G.driving ? 62 + Math.min(11, Math.abs(G.driving.speed) * .38) : P.run ? 67 : 62; if(Math.abs(cam.fov - fovT) > .05){ cam.fov += (fovT - cam.fov) * Math.min(1, dt * 5); cam.updateProjectionMatrix(); }
   if(G.camOverride){ G.camOverride(dt); return; }
   if(G.driving){ const d = G.driving, c = d.car, h = d.head, sp = Math.abs(d.speed), sn = Math.sin(h), cs = Math.cos(h);
-    if(G.camMode === 'fp'){ cam.position.set(c.position.x + sn * .25 + cs * .36, c.position.y + 1.3, c.position.z + cs * .25 - sn * .36); cam.lookAt(c.position.x + sn * 30, c.position.y + 1.05 + (d.slope || 0) * 30, c.position.z + cs * 30); cam.rotateZ(-(d.roll || 0) * .6); camP.copy(cam.position); return; }
-    d.camH = d.camH == null ? h : d.camH + angD(h, d.camH) * Math.min(1, dt * 3.4); const back = 6.3 + sp * .075, want = new THREE.Vector3(c.position.x - Math.sin(d.camH) * back, c.position.y + 2.3 + sp * .012, c.position.z - Math.cos(d.camH) * back);
+    dash(c, G.carCam === 3); if((G.carCam || 0) >= 2){ const ins = G.carCam === 3, f = ins ? .25 : 1.9, sd = ins ? .36 : 0, hy = ins ? 1.3 : 1.25; cam.position.set(c.position.x + sn * f + cs * sd, c.position.y + hy, c.position.z + cs * f - sn * sd); cam.lookAt(c.position.x + sn * 30, c.position.y + 1.05 + (d.slope || 0) * 30, c.position.z + cs * 30); cam.rotateZ(-(d.roll || 0) * .6); camP.copy(cam.position); return; }
+    d.camH = d.camH == null ? h : d.camH + angD(h, d.camH) * Math.min(1, dt * 3.4); const far = G.carCam === 1, back = (far ? 10.5 : 6.3) + sp * .075, want = new THREE.Vector3(c.position.x - Math.sin(d.camH) * back, c.position.y + (far ? 3.7 : 2.3) + sp * .012, c.position.z - Math.cos(d.camH) * back);
     camP.lerp(want, Math.min(1, dt * 9)); if(camP.distanceTo(want) > 20) camP.copy(want); cam.position.copy(camP); cam.lookAt(c.position.x + sn * 3.5, c.position.y + 1.1, c.position.z + cs * 3.5); return; }
   const fp = G.camMode === 'fp'; P.model.visible = !fp;
   const head = new THREE.Vector3(P.p.x, P.p.y + 1.62, P.p.z), dir = new THREE.Vector3(Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), Math.cos(P.yaw) * Math.cos(P.pitch));
@@ -429,7 +434,7 @@ G.onKey = e => { if(G.dialogOn && ['KeyE', 'Space', 'Enter'].includes(e.code)){ 
   if(e.code === 'Space' && G.ctl && !G.paused && !G.choiceOn && P.vy === 0 && P.p.y - groundAt(P.p.x, P.p.z, P.p.y) < .1){ P.vy = 7.2; P.p.y += .06; }
   if(G.choiceOn) return G.choiceKey(e);
   if(e.code === 'KeyE' && G.ctl && !G.paused){ const it = nearestInter(); if(it){ it.use(); } }
-  if(e.code === 'KeyV' && G.ctl && !G.paused){ G.camMode = G.camMode === 'tp' ? 'fp' : 'tp'; G.camToggled = true; }
+  if(e.code === 'KeyV' && G.ctl && !G.paused){ if(G.driving){ G.carCam = ((G.carCam || 0) + 1) % 4; toast(['CHASE CAM', 'FAR CHASE CAM', 'HOOD CAM', 'DRIVER’S SEAT'][G.carCam], 1300); } else G.camMode = G.camMode === 'tp' ? 'fp' : 'tp'; G.camToggled = true; }
   G.hotkey && G.hotkey(e); };
 $('dlg').addEventListener('click', () => adv && adv());
 // portrait of whoever is talking, drawn from their actual look (hair style/colour, skin, shirt, hat, glasses, beard)

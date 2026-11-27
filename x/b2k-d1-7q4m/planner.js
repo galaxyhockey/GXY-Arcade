@@ -8,9 +8,9 @@ import { fmt } from './life.js';
 import { playMeter } from './minigames.js';
 import { placed } from './town.js';
 const { THREE, G, P } = E; const $ = id => document.getElementById(id);
-const PLACES = [['🏠', 'HOME', 0, -4], ['🛒', 'SCHNUCKS', 290, 146], ['📼', 'VIDEO WORLD', 374, 169], ['⛽', 'GAS + AUTO', 428, 234], ['🏫', 'BELLEVILLE WEST', -315, -620], ['🏀', 'ELMWOOD PARK', -80, 70]];
+const PLACES = [['🏠', 'HOME', 0, -4], ['🛒', 'SCHNUCKS', 290, 146], ['📼', 'HOLLYWOOD VIDEO', 374, 169], ['⛽', 'GAS + AUTO', 428, 234], ['🏫', 'BELLEVILLE WEST', -315, -620], ['🏀', 'ELMWOOD PARK', -80, 70]];
 const ICON = { 'PUBLIC SQUARE':'⛲', 'PRICE PARK':'🌳', 'FAIRGROUNDS':'🎪', 'SKYVIEW DRIVE-IN':'🎬', 'CATHEDRAL':'⛪', "ECKERT'S":'🎃', 'WALNUT HILL':'🪦', 'MEMORIAL HOSPITAL':'🏥', 'WOLF BRANCH':'🏫', 'SCHRANZ PARK':'⚾', 'SWANSEA VILLAGE HALL':'🚒', 'SWANSEA METRO':'🚆', 'BELLEVILLE METRO':'🚆' };
-const WX = { clear:'☀ Sunny', cloudy:'☁ Cloudy', rain:'🌧 Rain', storm:'⛈ Storms', snow:'❄ Snow' }, DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+const WX = { clear:'☀ Sunny', cloudy:'☁ Cloudy', rain:'🌧 Rain', storm:'⛈ Storms', snow:'❄ Snow', ice:'🧊 Ice storm' }, DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 export function initPlanner(){ G.onMap = (g, cx, cz, sc, size) => { const X = (x, z) => (z - cz) * sc + size / 2, Y = (x, z) => size / 2 - (x - cx) * sc;   // north is up: +x = north, +z = east
   g.save(); g.textAlign = 'center';
   // one name per street, along its longest stretch
@@ -51,6 +51,7 @@ function drawRoom(){ const l = api.L(), own = k => (l.owned || []).includes(k), 
     if((l.cards || []).length >= 10) A(new THREE.BoxGeometry(.3, .06, .34), E.mat('#1a2a6a'), 2.4, UP + .62, -9.2);
     if((l.hi || {}).bowl >= 1) A(new THREE.CylinderGeometry(.05, .08, .3, 8), E.mat('#d8b040'), 4.7, UP + .95, -11.4);
     (l.trinkets || []).forEach((t, i) => A(new THREE.BoxGeometry(.14, .14, .14), E.mat(['#6a6a6a', '#c8a0e0', '#3ac8e0', '#1a1a1a'][i % 4]), 7.5, UP + 1.7, -4 + i * .2));
+    if((l.photos || []).length) A(new THREE.PlaneGeometry(1.2, .8), lab(['MY PHOTOS', l.photos.length + ' LANDMARKS'], { bg:'#a87a4a', fg:'#fff', size:34, w:240, h:160 }), .13, UP + 1.6, -6.2).rotation.y = Math.PI / 2;
     if(l.cell) A(new THREE.BoxGeometry(.05, .02, .1), E.mat('#9aa0a8'), 4.2, UP + .82, -11.1); }
   if(own('bigtv')){ A(new THREE.BoxGeometry(.9, .8, 1.1), E.mat('#2a2a2a'), 1, UP + .9, -5.6); A(new THREE.PlaneGeometry(.9, .62), new THREE.MeshBasicMaterial({ color:0x3a6ab8 }), 1.46, UP + .92, -5.6).rotation.y = Math.PI / 2; } }
 function drawCar(){ const l = api.L(), c = l.car || {}, car = G.chrisCar; if(!car) return; const n = E.makeCar(c.color || '#2a5a9a', { type:c.type || 'taurus', spin:true, lights:true, spoiler:c.spoiler, rims:c.rims, flames:c.flames, tint:c.tint }); car.clear(); [...n.children].forEach(ch => car.add(ch)); car.userData.wheels = n.userData.wheels; }
