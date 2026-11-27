@@ -98,12 +98,12 @@ export const M10 = { title:'The Battle of the Sauce', sub:day10, where:'front en
       E.sfx('ok'); E.toast('<b>TACO BELL</b> · TOTAL $21.65<br>PAID $22.00 · CHANGE $0.35', 4200); await H.say(D10.pay.slice(0, 1)); await H.say(G10.cashier, { auto:true }); await H.say(D10.pay.slice(1));
       // the table
       const bo = s.booths.slice().sort((p, q) => Math.hypot(p.t[0] - kx, p.t[1] - kz) - Math.hypot(q.t[0] - kx, q.t[1] - kz))[0], u = [Math.sin(s.along), Math.cos(s.along)], aisle = -bo.side;
-      const at = (p, k) => [p[0] + u[0] * k, p[1] + u[1] * k], T = bo.t, fz = p => ang(p, T);
-      await H.fade(true, 400); const ca = at(bo.a, aisle * .42), mi = at(bo.a, -aisle * .42), ma = at(bo.b, aisle * .42), ja = at(bo.b, -aisle * .42), ze = at(T, aisle * 1.25);
+      const at = (p, k) => [p[0] + u[0] * k, p[1] + u[1] * k], T = bo.t, fz = p => ang(p, T), dl = Math.hypot(bo.b[0] - bo.a[0], bo.b[1] - bo.a[1]) || 1, dv = [(bo.b[0] - bo.a[0]) / dl, (bo.b[1] - bo.a[1]) / dl];
+      await H.fade(true, 400); const ca = at(bo.a, aisle * .42), mi = at(bo.a, -aisle * .42), ma = at(bo.b, aisle * .42), ja = at(bo.b, -aisle * .42), ze0 = at(T, aisle * 1.15), ze = [ze0[0] - dv[0] * .45, ze0[1] - dv[1] * .45];
       sitP(ca[0], ca[1], fz(ca), P.p.y); sitN(g.milo, mi[0], mi[1], fz(mi)); sitN(g.matt, ma[0], ma[1], fz(ma)); sitN(g.jax, ja[0], ja[1], fz(ja)); g.zeke.at(ze[0], ze[1], fz(ze));
       const ty = (G.terrain ? G.terrain(T[0], T[1]) : 0) + .79; [[-.5, '#5a2a82'], [.5, '#c8a040']].forEach(([k, c]) => { const p = at(T, k * .6); prop(.5, .03, .34, c, p[0], ty, p[1]); });
       for(let i = 0; i < 14; i++){ const p = at(T, aisle * .55); prop(.08, .02, .05, ['#d0242a', '#e8761a', '#2f8a3a', '#f2c230'][i % 4], p[0] + (i % 4) * .06 - .1, ty + .04 + (i / 4 | 0) * .022, p[1] + (i % 3) * .05 - .05); } // Zeke's sauce pile
-      const wide = [T[0] + u[0] * aisle * 3.2, 2.5, T[1] + u[1] * aisle * 3.2], look = [T[0], .9, T[1]], ctr = (n, m) => [[(n.p.x + m.p.x) / 2 + u[0] * aisle * 2.2, 1.7, (n.p.z + m.p.z) / 2 + u[1] * aisle * 2.2], [(n.p.x + m.p.x) / 2, 1.1, (n.p.z + m.p.z) / 2]];
+      const wide = [T[0] + u[0] * aisle * 2.4 + dv[0] * 2.6, 2.9, T[1] + u[1] * aisle * 2.4 + dv[1] * 2.6], look = [T[0], .8, T[1]], ctr = (n, m) => { const mx = (n.p.x + m.p.x) / 2, mz = (n.p.z + m.p.z) / 2, s = Math.sign((mx - T[0]) * dv[0] + (mz - T[1]) * dv[1]) || 1; return [[mx + dv[0] * s * 1.9 + u[0] * aisle * 1.3, 1.75, mz + dv[1] * s * 1.9 + u[1] * aisle * 1.3], [mx, 1.05, mz]]; };
       await H.shot(wide, look, 0); await H.fade(false, 400);
       E.obj('SIT WITH THE GANG.'); await H.say(D10.grounded.slice(0, 8)); await H.shot([g.zeke.p.x + u[0] * aisle * 1.6, 1.8, g.zeke.p.z + u[1] * aisle * 1.6], [g.zeke.p.x, 1.4, g.zeke.p.z], 250); await H.say(D10.grounded.slice(8, 10)); await H.shot(wide, look, 400); await H.say(D10.grounded.slice(10));
       // round one: the sauces (always in the book's order)
@@ -118,15 +118,16 @@ export const M10 = { title:'The Battle of the Sauce', sub:day10, where:'front en
     // ---- 10.08 back at school, Sam meets Zeke · 10.09 PE · 10.10 home ----
     async () => { clock(day10, 'BACK AT SCHOOL'); E.place(-318, -652.6, -Math.PI / 2); const zeke = mnpc(ZK, LOOK.zeke, -316.4, -652, { face:-Math.PI / 2 }); zeke.follow(P, 1.8, 5, [1.2, 0]);
       E.cut(true); await H.shot([-312, 2.2, -652.4], [-322, 1.3, -652.6], 0); await H.fade(false, 400); await H.say(D10.back.slice(1)); E.cut(false);
-      E.obj('WALK TO PE WITH ZEKE.'); await H.reach(-334, -652.8, 2.4); const sam = mnpc(SM, CAST2.sam, -340, -653.4, { face:Math.PI / 2 }); E.cut(true); zeke.stop(); face(sam, P.p); faceP(sam); await two(P.p, sam, 1, 3.6); await H.say(D10.sam.slice(0, 7));
-      face(zeke, sam.p); face(sam, zeke.p); await H.shot(...((a, b) => [[(a.x + b.x) / 2, 1.8, (a.z + b.z) / 2 + 2.6], [(a.x + b.x) / 2, 1.3, (a.z + b.z) / 2]])(zeke.p, sam.p), 400); await H.say(D10.sam.slice(7, 10)); face(sam, P.p); await two(P.p, sam, 1, 3.6); await H.say(D10.sam.slice(10));
-      G.flags.SAM_SUNDAY_PLAN = true; sam.go([[-366, -653.4]], 3); face(zeke, P.p); await two(P.p, zeke, -1, 3.4); await H.say(D10.gf); sam.remove(); E.cut(false); zeke.follow(P, 1.8, 5, [1.2, 0]);
+      E.obj('WALK TO PE WITH ZEKE.'); await H.reach(-334, -652.8, 2.4); const sam = mnpc(SM, CAST2.sam, -337.6, -653.6, { face:Math.PI / 2 }); E.cut(true); zeke.stop(); E.place(-335.2, -653.4, -Math.PI / 2); zeke.at(-334.6, -652.2); face(sam, P.p); faceP(sam); face(zeke, sam.p);
+      const hall = [[-336.2, 1.75, -650.6], [-336.4, 1.15, -653.4]]; await H.shot(...hall, 400); await H.say(D10.sam.slice(0, 7));
+      face(zeke, sam.p); face(sam, zeke.p); await H.say(D10.sam.slice(7, 10)); face(sam, P.p); await H.say(D10.sam.slice(10));
+      G.flags.SAM_SUNDAY_PLAN = true; sam.go([[-366, -653.4]], 3); face(zeke, P.p); faceP(zeke); await H.say(D10.gf); sam.remove(); E.cut(false); zeke.follow(P, 1.8, 5, [1.2, 0]);
       E.obj('GET TO PE.'); await H.reach(-366, -653, 2.6); await H.fade(true, 500); zeke.remove();
       const gy = G.gym.center; E.setOutfit(PE); E.place(gy.x, gy.z + 3, Math.PI); clock(day10, 'PE'); const z2 = mnpc(ZK, { ...LOOK.zeke, ...PE, hat:undefined }, gy.x, gy.z - 1.2, { face:0 }); void z2;
       E.cut(true); await H.shot([gy.x + 5, 2.2, gy.z + 5], [gy.x, 1.3, gy.z], 0); await H.fade(false, 400); E.obj('PLAY A GAME OF BASKETBALL AGAINST ZEKE.');
       // a lot closer this time: Zeke starts ahead, Chris comes back (every possession must be made, so the game cannot be lost)
       await playDuel({ title:'PE: 1 ON 1 VS ZEKE', foe:'Zeke', start:[4, 10], script:['o', 'd', 'o', 'd', 'o', 'o'], indoor:true }); G.flags.M10_PE_COMPLETE = true; E.cut(true); await H.say(D10.pe);
-      await H.fade(true, 600); E.setOutfit({}); E.setTime('after'); clock(day10, '3:10 PM'); E.place(0, 9, Math.PI); await H.shot([3.4, 2.4, 16], [0, 1.6, 6], 0); await H.fade(false, 700); await H.say(D10.end); await H.wait(800); await H.fade(true, 700);
+      await H.fade(true, 600); E.setOutfit({}); E.setTime('after'); clock(day10, '3:10 PM'); E.place(.6, 11, Math.PI); await H.shot([6, 2.2, 22], [0, 1.8, 6], 0); await H.fade(false, 700); await H.say(D10.end); await H.wait(800); await H.fade(true, 700);
       await H.banner('MISSION PASSED', 'THE BATTLE OF THE SAUCE'); Object.assign(G.flags, { M10_DONE:true, M10_COMPLETE:true, GROUNDING_ACTIVE:true, M10_SAM_INVITED:false, KEG_PARTY_SATURDAY:true }); E.cut(false); await H.fade(false, 700); } ],
   done(){ G.roamTime = 'after'; film(null); } };
 void mtick; void park; void cars;
