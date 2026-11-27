@@ -46,9 +46,8 @@ export function initTraffic(){ const TL = G.townLines || [], JS = G.junctions ||
       let stp = null, ds = 0; const arr = l.stops; for(let k = 0; k < arr.length; k++){ const st = arr[dir > 0 ? k : arr.length - 1 - k], d = (st.u - u) * dir; if(d < -9) continue; stp = st; ds = d; break; }
       if(stp && ds < .6 && ds > -1.5 && c.turnJ !== stp.j && !c.bus){ c.turnJ = stp.j; const arms = stp.j.arms.filter(r => TL[r.li] !== l && TL[r.li].len >= 70); if(arms.length && Math.random() < .35){ const r = arms[Math.random() * arms.length | 0], nl = TL[r.li], nd = r.u < 12 ? 1 : r.u > nl.len - 12 ? -1 : (Math.random() < .5 ? 1 : -1);
           if(stp.j.occ === c) stp.j.occ = null; c.cleared = null; l.lanes[dir].splice(l.lanes[dir].indexOf(c), 1); nl.lanes[nd].push(c); c.l = nl; c.dir = nd; const u2 = r.u + nd * 1.6; c.s = nd > 0 ? u2 : nl.len - u2; c.seg = 1; c.turnJ = stp.j; c.vmax = nl.k === 0 ? 15 : nl.k === 3 ? 9 : 12; c.v = Math.min(c.v, 6); continue; } }
-      if(c.bus){ c.busT = (c.busT || 0) + dt; if(c.busT % 34 > 27) vT = 0; }
       if(c.cleared && (!stp || stp.j !== c.cleared)){ if(c.cleared.occ === c) c.cleared.occ = null; c.cleared = null; }
-      let vT = c.vmax;
+      let vT = c.vmax; if(c.bus){ c.busT = (c.busT || 0) + dt; if(c.busT % 34 > 27) vT = 0; }
       if(stp && ds < 60){ const j = stp.j, dl = ds - 8.2; let must = false;                                    // dl = distance to the stop line
         if(j.occ && G.t - j.occT > 14) j.occ = null;                                                            // nobody holds a junction for ever
         if(j.type === 'signal'){ const ph = phase(j, stp.g); must = dl > -3 && (ph === 'r' || (ph === 'y' && dl > 5)); }
