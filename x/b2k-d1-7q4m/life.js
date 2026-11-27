@@ -9,6 +9,7 @@ import { extrasOn, repDelta, wage } from './extras.js';
 import { beatsOn } from './beats.js';
 import { upgradesOn } from './planner.js';
 import { tvChannels, tvReady, tvPlay, tvAd, tvOff } from './tv.js';
+import { life23On } from './life23.js';
 const { THREE, G, P, WARDROBE } = E; const $ = id => document.getElementById(id);
 const L = () => SV.life || (SV.life = { min:15 * 60 + 30, day:5, cash:40, rentals:[], look:null });
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -46,18 +47,20 @@ function editor(title, rows, price, spot){ return new Promise(res => { const l =
   const key = e => { e.stopImmediatePropagation(); e.preventDefault(); if(['KeyW', 'ArrowUp'].includes(e.code)){ k = (k + rows.length - 1) % rows.length; draw(); } else if(['KeyS', 'ArrowDown'].includes(e.code)){ k = (k + 1) % rows.length; draw(); }
     else if(['KeyA', 'ArrowLeft'].includes(e.code)) change(-1); else if(['KeyD', 'ArrowRight'].includes(e.code)) change(1); else if(['KeyE', 'Enter', 'Space'].includes(e.code)) close(true); else if(e.code === 'Escape') close(false); };
   addEventListener('keydown', key, true); draw(); }); }
-const closetRows = () => [{ label:'TOP', key:'top', list:WARDROBE.top }, { label:'SHIRT COLOR', key:'shirt', list:PAL.shirt, color:true }, { label:'PRINT / NUMBER', key:'print', list:[...PAL.print, ...PAL.jersey] },
+const closetRows = () => [{ label:'TOP', key:'top', list:WARDROBE.top }, { label:'SHIRT COLOR', key:'shirt', list:PAL.shirt, color:true }, { label:'PRINT / NUMBER', key:'print', list:[...PAL.print, ...unlockPrints(), ...PAL.jersey] },
   { label:'BOTTOMS', key:'bottom', list:WARDROBE.bottom }, { label:'PANTS COLOR', key:'pants', list:PAL.pants, color:true }, { label:'SHOES', key:'shoes', list:PAL.shoes, color:true },
   { label:'HAT', key:'hat', list:WARDROBE.hat }, { label:'HAT COLOR', key:'hatColor', list:PAL.hatColor, color:true }, { label:'NECK', key:'chain', list:WARDROBE.chain }];
 const barberRows = () => [{ label:'STYLE', key:'hairStyle', list:WARDROBE.hairStyle }, { label:'COLOR', key:'hair', list:PAL.hair, color:true }, { label:'FROSTED TIPS', key:'tips', list:PAL.tips, color:true }];
 
+// outfit unlocks: finishing missions (and a few side goals) adds shirt prints to the closet
+const unlockPrints = () => { const d = SV.done || {}, l = L(), u = []; if(d.M05) u.push('MAROONS'); if(d.M08) u.push('SCHNUCKS'); if(d.M10) u.push('SAUCE'); if((l.cards || []).length >= 25) u.push('CARDS'); return [...u, ...(l.prints || [])]; };
 // ---------- Video World ----------
 const MOVIES = [['Old School', 3.99, 'Okay, that was the funniest thing I have seen all year. Streaking is NOT a plan though.'], ['Jackass: The Movie', 3.99, 'I can never let Zeke see this. He would try every single bit of it.'],
   ['8 Mile', 3.99, 'Rap battles in a parking lot. I could never. Matt definitely thinks he could.'], ['The Ring', 2.99, 'I am not answering the phone for a week. Seven days. Nope.'],
   ['Bringing Down the House', 3.99, 'Steve Martin dancing is a crime against humanity. I laughed anyway.'], ['Daredevil', 3.99, 'Kinda mid, the fight in the playground was sick though.'],
   ['Friday After Next', 2.99, 'Christmas movie in September. Still funny.'], ['Spider-Man', 1.99, 'Third time watching it. Still holds up.'], ['Shanghai Knights', 2.99, 'Jackie Chan never misses.'], ['Kangaroo Jack', 1.99, 'Why did I rent this. Why did they make this.']];
-async function videoStore(){ const l = L(); E.cut(true); const opts = ['Rent a movie', ...(l.rentals.length ? ['Return my movies'] : []), 'Buy games & systems', 'Just browsing'];
-  await E.say([['Clerk', ['Welcome to Video World. New releases are on the back wall.', 'Be kind, rewind.', 'We got the new ones in on Tuesday.'][Math.random() * 3 | 0]]]);
+async function videoStore(name){ name = typeof name === 'string' ? name : 'Video World'; const l = L(); E.cut(true); const opts = ['Rent a movie', ...(l.rentals.length ? ['Return my movies'] : []), 'Buy games & systems', 'Just browsing'];
+  await E.say([['Clerk', [`Welcome to ${name}. New releases are on the back wall.`, 'Be kind, rewind.', 'We got the new ones in on Tuesday.'][Math.random() * 3 | 0]]]);
   const k = await E.choose(opts);
   if(opts[k] === 'Rent a movie'){ const list = MOVIES.filter(m => !l.rentals.some(r => r.t === m[0])); const j = await E.choose([...list.map(m => `${m[0]} — ${money(m[1])}`), 'Never mind']);
     if(j < list.length && pay(list[j][1])){ l.rentals.push({ t:list[j][0], due:l.day + 3 + (l.min > 0 ? 0 : 0), dueAbs:(SV.life.dayCount || 0) + 3 }); save(); await E.say([['Clerk', `${list[j][0]}. Due back in 3 nights. Late fee is a dollar a day.`]]); } }
@@ -157,4 +160,5 @@ export function lifeOn(state){ inters.forEach(E.delInter); inters = []; npcs.for
   G.SVdone = SV.done; const tk = fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); };
   beatsOn({ L, passTime, pay, money, save, phoneUp, rep:repDelta, friend:(n, d) => { l.fr = l.fr || {}; l.fr[n] = (l.fr[n] || 0) + d; }, addTick:tk, onOff:fn => ticks.push(fn) });
   upgradesOn({ L, passTime, add, pay, save, addTick:tk });
-  extrasOn({ L, passTime, add, pay, money, randomLook, save, addTick:fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); }, onOff:fn => ticks.push(fn) }); }
+  extrasOn({ L, passTime, add, pay, money, randomLook, save, addTick:fn => { fn.amb = true; G.ticks.push(fn); ticks.push(() => { const i = G.ticks.indexOf(fn); if(i >= 0) G.ticks.splice(i, 1); }); }, onOff:fn => ticks.push(fn) });
+  G.videoStore = videoStore; life23On({ L, passTime, add, pay:n => { const ok = pay(n); if(ok && n >= 50) G.parentNews && G.parentNews('big'); return ok; }, money, randomLook, save, addTick:tk, onOff:fn => ticks.push(fn) }); }

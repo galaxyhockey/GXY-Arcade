@@ -36,7 +36,7 @@ export let MIS = {}; export const setMissions = m => MIS = m;
 G.mission = null;
 export async function play(id, i = 0){
   cleanup(); G.mission = id; const m = MIS[id]; freeRoam(false); G.m05World && G.m05World(false);
-  if(i === 0){ await E.fade(true, 400); await E.card(m.title.toUpperCase(), m.sub || '', 2400); }
+  if(i === 0){ await E.fade(true, 400); await E.card(m.title.toUpperCase(), (id[0] === 'M' ? 'CHAPTER ' + +id.slice(1) : 'SIDE STORY') + (m.sub ? ' · ' + m.sub : ''), 2400); }
   while(i < m.stages.length){
     SV.cp = { id, i }; save(); cleanup(); G.mission = id;
     if(m.setup) m.setup(i);
@@ -121,10 +121,11 @@ $('pRestart').onclick = () => { openPause(false); restartCP(); };
 
 // mission select: finished missions only, or (ADMIN MODE in settings) every mission and any of its checkpoints
 async function pickMission(){ const admin = !!G.set.admin, list = ORDER.filter(id => MIS[id] && (admin || SV.done[id])); if(!list.length){ E.toast('Finish a mission first.'); return; } openPause(false);
-  if(G.mission) cleanup(); G.mission = 'menu'; E.cut(true); const k = await E.choose([...list.map(id => `${id} · ${MIS[id].title}${admin && !SV.done[id] ? ' (not played yet)' : ''}`), 'Cancel']); let st = 0, go = k < list.length;
+  if(G.mission) cleanup(); G.mission = 'menu'; E.cut(true); const k = await E.choose([...list.map(id => `${id[0] === 'M' ? 'CHAPTER ' + +id.slice(1) : 'SIDE STORY'} · ${MIS[id].title}${admin && !SV.done[id] ? ' (not played yet)' : ''}`), 'Cancel']); let st = 0, go = k < list.length;
   if(go && admin){ const n = MIS[list[k]].stages.length; st = await E.choose(['From the start', ...Array.from({ length:n - 1 }, (_, i) => `Checkpoint ${i + 2} of ${n}`), 'Cancel']); if(st >= n) go = false; }
   E.cut(false); G.mission = null; if(go) play(list[k], st); else freeRoam(true); }
 if(!$('bAdmin')){ const b = document.createElement('button'); b.id = 'bAdmin'; b.textContent = 'MISSION SELECT (ADMIN)'; $('bNew').after(b); } // page markup may be an older cached copy
+if(!$('pMap')){ const b = document.createElement('button'); b.id = 'pMap'; b.textContent = 'MAP'; $('pResume').after(b); b.onclick = () => { openPause(false); G.hotkey({ code:'KeyM' }); }; }
 $('pMissions').onclick = pickMission; $('bAdmin').onclick = () => { startGame(); pickMission(); };
 G.onAdmin = () => { $('bAdmin').style.display = G.set.admin ? '' : 'none'; $('pMissions').textContent = G.set.admin ? 'MISSION SELECT (ADMIN)' : 'REPLAY A MISSION'; }; G.onAdmin();
 $('pExport').onclick = () => { save(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(SV, null, 1)], { type:'application/json' })); a.download = 'b2k-draft1-save.json'; a.click(); };
@@ -138,7 +139,7 @@ if(SV.done.M01 || SV.cp) $('bCont').disabled = false;
 function startGame(){ $('title').style.display = 'none'; E.sfx('ok'); E.cut(false); }
 $('bNew').onclick = () => { if((SV.done.M01 || SV.cp) && !confirm('Start a new game? Your current save will be replaced.')) return;
   Object.assign(SV, { done:{}, cp:null, flags:{}, pos:null, s01best:null }); G.flags = SV.flags; save(); startGame(); play('M01', 0); };
-$('bCont').onclick = () => { startGame(); if(SV.cp) play(SV.cp.id, SV.cp.i); else { const p = SV.pos || [0, 9, 0]; E.place(p[0], p[1], p[2]); freeRoam(true); } };
+$('bCont').onclick = async () => { startGame(); const last = ORDER.filter(id => SV.done[id] && MIS[id]).pop(); if(last){ E.cut(true); await E.card('PREVIOUSLY', `${last[0] === 'M' ? 'CHAPTER ' + +last.slice(1) : 'SIDE STORY'} · ${MIS[last].title.toUpperCase()}`, 2400); E.cut(false); } if(SV.cp) play(SV.cp.id, SV.cp.i); else { const p = SV.pos || [0, 9, 0]; E.place(p[0], p[1], p[2]); freeRoam(true); } };
 E.place(0, 9, Math.PI); E.cut(true); G.noLock = false; G.saveNow = save; initUI(); initPlanner();
 setInterval(() => { if(!G.paused && !G.mission && $('title').style.display === 'none') save(); }, 5000);
 $('bNew').disabled = $('bCont').disabled = true;

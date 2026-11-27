@@ -12,6 +12,7 @@ const ROWS = [
   { k:'music', label:'MUSIC VOLUME', type:'range', min:0, max:1, step:.05 },
   { k:'amb', label:'AMBIENCE VOLUME', type:'range', min:0, max:1, step:.05 },
   { k:'sfx', label:'EFFECTS + TEXT BLIPS', type:'range', min:0, max:1, step:.05 },
+  { k:'text', label:'TEXT SPEED', type:'pick', opts:['SLOW', 'NORMAL', 'FAST'], get:() => G.set.text || 'NORMAL', set:v => { G.set.text = v; saveSet(); } },
   { k:'admin', label:'ADMIN MODE (PLAY ANY MISSION)', type:'bool' },
   { k:'filter', label:'STRONG LANGUAGE', type:'pick', opts:['SHOWN', 'FILTERED'], get:() => G.filter ? 'FILTERED' : 'SHOWN', set:v => { G.filter = v === 'FILTERED'; G.saveNow && G.saveNow(); } },
 ];
@@ -63,4 +64,8 @@ export function initUI(){ let a = 0; E.setTime('after'); E.camTrack(dt => { a +=
   $('bSlots').textContent = 'SAVE SLOT ' + G.slot; $('bSlots').onclick = () => { $('slots').style.display = 'flex'; drawSlots(); }; $('slotClose').onclick = () => { $('slots').style.display = 'none'; focusFirst(); };
   $('bAbout').onclick = () => { $('about').style.display = 'flex'; }; $('aboutClose').onclick = () => { $('about').style.display = 'none'; focusFirst(); };
   addEventListener('gamepadconnected', () => E.toast('Controller connected.', 2200));
-  document.body.classList.add('inmenu'); intro(); window.__b2kStarted = true; const le = $('loaderr'); le && le.remove(); }
+  document.body.classList.add('inmenu'); intro();
+  // GAME ORIGINAL: the news ticker on the title screen (made-up local headlines, fall 2003)
+  { const H = ['BELLEVILLE WEST MAROONS WIN HOMECOMING OPENER', 'GAS DIPS UNDER $1.55 ON ROUTE 159', 'SWANSEA VILLAGE BOARD DEBATES NEW STOPLIGHT', 'BLUES SIGN DEFENSEMAN BEFORE SEASON OPENER', 'RAMS 2–1 HEADING INTO SUNDAY', 'SKYVIEW DRIVE-IN ANNOUNCES LAST WEEKEND OF THE SEASON', 'FIRST FROST POSSIBLE BY HALLOWEEN, FORECASTERS SAY', 'ST. CLAIR SQUARE EXTENDS HOLIDAY HOURS', 'LOCAL TEEN WINS COUNTY SCIENCE FAIR', 'CARDINALS FINISH THIRD IN NL CENTRAL'];
+    const tk = document.createElement('div'); tk.id = 'ticker'; tk.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:26px;background:rgba(10,14,30,.85);color:#ffd23f;font:bold 13px Arial;white-space:nowrap;overflow:hidden;z-index:6;pointer-events:none';
+    tk.innerHTML = '<span style="display:inline-block;padding-left:100%;animation:tick 70s linear infinite;line-height:26px">' + H.map(h => '&nbsp;&nbsp;◆&nbsp;&nbsp;' + h).join('') + '</span>'; const st = document.createElement('style'); st.textContent = '@keyframes tick{to{transform:translateX(-100%)}}'; document.head.appendChild(st); $('title').appendChild(tk); } window.__b2kStarted = true; const le = $('loaderr'); le && le.remove(); }

@@ -56,7 +56,7 @@ let on = localStorage.b2kRadio !== '0', dir = null, src = null, order = [], at =
 // the remembered music folder lives in the browser's own storage (IndexedDB), never on a server
 const idb = (mode, fn) => new Promise(res => { const o = indexedDB.open('b2k-radio', 1); o.onupgradeneeded = () => o.result.createObjectStore('kv'); o.onerror = () => res(null);
   o.onsuccess = () => { const r = fn(o.result.transaction('kv', mode).objectStore('kv')); r.onsuccess = () => res(r.result); r.onerror = () => res(null); }; });
-const shuffle = () => { order = st.tracks.map((_, i) => i).sort(() => Math.random() - .5); at = -1; };
+const shuffle = () => { const all = st.tracks.map((_, i) => i), cd = (G.cdOnly || []).filter(i => all.includes(i)); order = (cd.length ? cd : all).sort(() => Math.random() - .5); at = -1; };
 const url = t => `radio/${st.id}/${encodeURIComponent(t[0])}`;
 const useFiles = list => { files = new Map([...list].map(f => [f.name, f])); src = 'files'; };
 // Streaming from any device: ./radiox/ holds the songs locked with a passcode (AES-256, made by radio/encrypt.js). The passcode is typed once per device and kept in that browser.
@@ -75,7 +75,7 @@ async function load(){ if(at + 1 >= order.length) shuffle(); const t = st.tracks
   try{ if(src === 'url') au.src = url(t); else if(src === 'enc'){ const b = new Blob([await open(`radiox/${st.id}/${String(order[at]).padStart(2, '0')}.bin`)], { type:'audio/mpeg' }); if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(b); } else { const f = files ? files.get(t[0]) : await (await dir.getFileHandle(t[0])).getFile(); if(!f) throw 0; if(blob) URL.revokeObjectURL(blob); au.src = blob = URL.createObjectURL(f); } }
   catch(e){ if(next.miss = (next.miss || 0) + 1, next.miss < st.tracks.length) return load(); src = null; toast('📻 No songs found in that folder'); return; }
   next.miss = 0; au.onloadedmetadata = () => { if(!tuned){ tuned = true; au.currentTime = Math.random() * au.duration * .6; } };   // first song: you tune in part-way through, like a real station
-  toast(`📻 ${st.name} &nbsp;·&nbsp; ${t[1]} — ${t[2]}`, 4200); }
+  toast(`${G.cdOnly ? '💿' : '📻 ' + st.name} &nbsp;·&nbsp; ${t[1]} — ${t[2]}`, 4200); }
 au.onended = next; au.onerror = () => { if(src && au.src) next(); };
 
 // R needs a click/key press anyway (browser rule) both to pick the folder and to re-open it on a later visit
@@ -89,9 +89,9 @@ async function power(){ if(!src && locked){ const p = prompt('Radio passcode'); 
 addEventListener('keydown', e => { if(!G.driving || G.paused || G.dialogOn || e.repeat) return; if(e.code === 'KeyR') power(); });
 
 let hinted = false;
-G.ticks.push(Object.assign(() => { const play = !!(G.driving && on && src && !G.paused && G.set.music > 0 && G.mission !== 'S01' && !G.radioMute);
+G.ticks.push(Object.assign(() => { const play = !!((G.driving && on || G.homeStereo) && src && !G.paused && G.set.music > 0 && G.mission !== 'S01' && !G.radioMute);
   G.radioOn = play; au.volume = Math.min(1, G.set.music * .75);
   if(play){ if(!au.src){ if(!busy) next(); } else if(au.paused && au.readyState > 1) au.play().catch(() => {}); } else if(!au.paused) au.pause();
   if(G.driving && !src && !hinted && G.ctl){ hinted = true; toast(dir ? '📻 Press R to turn the radio on' : locked ? '📻 Press R and type the radio passcode' : '📻 Press R to pick your music for the radio', 5200); } }, { amb:true }));
 au.oncanplay = () => { if(G.radioOn) au.play().catch(() => {}); };
-G.radio = { st, au, next, power, open, unlock, get src(){ return src; }, get key(){ return key; }, get locked(){ return locked; } };
+G.radio = { st, au, next, power, open, unlock, reset:() => { shuffle(); tuned = true; au.pause(); au.removeAttribute('src'); au.load(); }, get src(){ return src; }, get key(){ return key; }, get locked(){ return locked; } };

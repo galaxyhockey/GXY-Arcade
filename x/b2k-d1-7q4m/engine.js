@@ -324,7 +324,7 @@ function updateDriving(dt){ const c = G.driving, k = G.keys, ctl = G.ctl && !G.p
   const rpmT = v < -.2 ? 900 + av * 420 : 780 + 4300 * Math.min(1, av / GEAR[c.gear]) + (th > 0 && av < 5 ? 700 * th : 0); c.rpm = (c.rpm || 800) + (rpmT - (c.rpm || 800)) * Math.min(1, dt * 6); c.thr = th;
   // steering: the wheel turns at a finite rate and has less lock at speed; yaw is limited by lateral grip
   const lock = .6 / (1 + av / 13), want = stIn * lock, rate = (stIn ? 2.4 : 4.2) * dt; c.steer = (c.steer || 0) + Math.max(-rate, Math.min(rate, want - (c.steer || 0)));
-  let w = c.speed * Math.tan(c.steer) / 2.76, slip = 0; const grip = hb ? 4.6 : G.wet ? 5.6 : 7.6;
+  let w = c.speed * Math.tan(c.steer) / 2.76, slip = 0; const grip = hb ? 4.6 : G.wet ? (G.wx === 'snow' ? 4.4 : 5.6) : 7.6;
   if(Math.abs(c.speed * w) > grip){ slip = Math.abs(c.speed * w) - grip; w = Math.sign(w) * grip / Math.max(.1, av); }
   if(hb && av > 6 && stIn){ w *= 1.5; slip = Math.max(slip, 3); c.speed *= Math.pow(.75, dt); }
   if(braking && av > 9 && th < -.9) slip = Math.max(slip, 1.2);
@@ -459,7 +459,7 @@ export function say(lines, o = {}){ // lines: [[who, text], ...]; who '' = narra
     for(const [w, t] of lines){ const text = clean(t); G.speaking = w; setPortrait(box, w); who.style.display = w ? '' : 'none'; who.textContent = w; box.classList.toggle('thought', !w);
       ar.style.display = 'none'; let i = 0, skip = false; txt.textContent = '';
       await new Promise(r => { adv = () => { skip = true; }; const iv = setInterval(() => { i += skip ? 999 : 2; txt.textContent = text.slice(0, i); if(i % 6 === 0 && !skip) blip(w);
-        if(i >= text.length){ clearInterval(iv); r(); } }, 13); });
+        if(i >= text.length){ clearInterval(iv); r(); } }, 13 * ({ SLOW:2, FAST:.45 }[G.set.text] || 1)); });
       ar.style.display = 'block'; await new Promise(r => { adv = r; }); }
     adv = null; G.dialogOn = false; G.speaking = null; box.style.display = 'none'; done(); }); }
 export function choose(opts){ return new Promise(res => { const el = $('choices'); let k = 0; G.choiceOn = true;

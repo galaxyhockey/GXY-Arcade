@@ -27,20 +27,26 @@ export function initTraffic(){ const TL = G.townLines || [], JS = G.junctions ||
   // ---------- signal lamps (one small mesh per colour per direction group, switched on and off) ----------
   const lampG = new THREE.BoxGeometry(.26, .26, .06), DIM = { r:0x3a0a0a, y:0x3a300a, g:0x0a3018 }, LIT = { r:0xff2a1a, y:0xffc21a, g:0x2aff6a };
   sig.forEach(j => { j.grp = new THREE.Group(); j.lm = [{}, {}]; for(const g of [0, 1]) [['r', .43], ['y', 0], ['g', -.43]].forEach(([c, dy]) => { const gs = (j.heads || []).filter(h => h.g === g).map(h => { const ge = lampG.clone(); ge.rotateY(h.ry); ge.translate(h.x, h.y + dy, h.z); return ge; }); if(!gs.length) return;
-      const m = new THREE.Mesh(mergeGeometries(gs, false), new THREE.MeshBasicMaterial({ color:DIM[c] })); j.grp.add(m); j.lm[g][c] = m.material; }); G.scene.add(j.grp); });
+      const m = new THREE.Mesh(mergeGeometries(gs, false), new THREE.MeshBasicMaterial({ color:DIM[c] })); j.grp.add(m); j.lm[g][c] = m.material; });
+    j.walk = [0, 1].map(g => { const gs = (j.heads || []).filter(h => h.g === g).map(h => { const ge = new THREE.BoxGeometry(.3, .26, .07); ge.rotateY(h.ry); ge.translate(h.x, Math.max(2.4, h.y - 2.2), h.z); return ge; }); if(!gs.length) return null; const m = new THREE.Mesh(mergeGeometries(gs, false), new THREE.MeshBasicMaterial({ color:0xff7a1a })); j.grp.add(m); return m.material; }); G.scene.add(j.grp); });
 
   // ---------- cars ----------
   const cols = ['#a33', '#335', '#ddd', '#2a6a3a', '#d8b84a', '#6a2a6a', '#8a8a8a', '#1a3a6a', '#c87a2a'], cars = [];
   TL.forEach((l, li) => { if(l.len < 70) return; const n = Math.max(1, Math.round(l.len / (l.k === 3 ? 280 : 180)));
     for(const dir of [1, -1]) for(let k = 0; k < n; k++){ const car = E.makeCar(cols[(li * 3 + k + (dir > 0 ? 0 : 4)) % 9], { suv:(li + k) % 3 === 0, lights:true }); car.rotation.order = 'YXZ'; G.scene.add(car);
       const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:1.6 }; G.colliders.push(col); const c = { car, col, l, dir, s:l.len * ((k + (dir > 0 ? .25 : .75)) / n), v:8, seg:1, waitT:0, cleared:null, vmax:l.k === 0 ? 15 : l.k === 3 ? 9 : 12 }; cars.push(c); l.lanes[dir].push(c); } });
+  // a school bus on the street nearest Belleville West: stops every half minute
+  { const bl = TL.filter(l => l.len > 200).sort((a, b) => Math.hypot(a.p[0][0] + 218, a.p[0][1] + 630) - Math.hypot(b.p[0][0] + 218, b.p[0][1] + 630))[0]; if(bl){ const car = E.makeCar('#f2c21a', { type:'van' }); car.scale.set(1.15, 1.3, 2.1); car.rotation.order = 'YXZ'; G.scene.add(car); const col = { x0:0, x1:0, z0:0, z1:0, y0:0, y1:2.4 }; G.colliders.push(col); const c = { car, col, l:bl, dir:1, s:5, v:6, seg:1, waitT:0, cleared:null, vmax:9, bus:true }; cars.push(c); bl.lanes[1].push(c); } }
   const tick = dt => { const off = !!G.noTraffic, px0 = P.p.x, pz0 = P.p.z;
-    for(const j of sig){ const near = Math.abs(j.x - px0) + Math.abs(j.z - pz0) < 240; j.grp.visible = near; if(!near) continue; for(const g of [0, 1]){ const ph = phase(j, g), m = j.lm[g]; for(const c of ['r', 'y', 'g']) if(m[c]) m[c].color.setHex(ph === c ? LIT[c] : DIM[c]); } }
+    for(const j of sig){ const near = Math.abs(j.x - px0) + Math.abs(j.z - pz0) < 240; j.grp.visible = near; if(!near) continue; for(const g of [0, 1]){ const ph = phase(j, g), m = j.lm[g]; for(const c of ['r', 'y', 'g']) if(m[c]) m[c].color.setHex(ph === c ? LIT[c] : DIM[c]); const w = j.walk && j.walk[g]; if(w) w.color.setHex(ph === 'g' && greenLeft(j, g) > 5 ? 0xf2f2f2 : (ph === 'g' && Math.floor(G.t * 2) % 2) ? 0x3a1a0a : 0xff7a1a); } }
     for(const c of cars){ const l = c.l, total = l.len, cum = l.cum, dir = c.dir, u = dir > 0 ? c.s : total - c.s; let seg = c.seg; while(seg < cum.length - 1 && cum[seg] < u) seg++; while(seg > 1 && cum[seg - 1] > u) seg--; c.seg = seg;
       const a = l.p[seg - 1], b = l.p[seg], L = cum[seg] - cum[seg - 1] || 1, f = (u - cum[seg - 1]) / L; let fx = (b[0] - a[0]) / L * dir, fz = (b[1] - a[1]) / L * dir, px = a[0] + (b[0] - a[0]) * f - fz * 1.9, pz = a[1] + (b[1] - a[1]) * f + fx * 1.9;
       const Q = G.SQ; if(Q){ const dx = px - Q.x, dz = pz - Q.z, dd = Math.hypot(dx, dz); if(dd < 19 && dd > .01){ px = Q.x + dx / dd * 19; pz = Q.z + dz / dd * 19; let tx = -dz / dd, tz = dx / dd; if(tx * fx + tz * fz < 0){ tx = -tx; tz = -tz; } fx = tx; fz = tz; } }
       // the next controlled junction on this street, in the direction of travel
       let stp = null, ds = 0; const arr = l.stops; for(let k = 0; k < arr.length; k++){ const st = arr[dir > 0 ? k : arr.length - 1 - k], d = (st.u - u) * dir; if(d < -9) continue; stp = st; ds = d; break; }
+      if(stp && ds < .6 && ds > -1.5 && c.turnJ !== stp.j && !c.bus){ c.turnJ = stp.j; const arms = stp.j.arms.filter(r => TL[r.li] !== l && TL[r.li].len >= 70); if(arms.length && Math.random() < .35){ const r = arms[Math.random() * arms.length | 0], nl = TL[r.li], nd = r.u < 12 ? 1 : r.u > nl.len - 12 ? -1 : (Math.random() < .5 ? 1 : -1);
+          if(stp.j.occ === c) stp.j.occ = null; c.cleared = null; l.lanes[dir].splice(l.lanes[dir].indexOf(c), 1); nl.lanes[nd].push(c); c.l = nl; c.dir = nd; const u2 = r.u + nd * 1.6; c.s = nd > 0 ? u2 : nl.len - u2; c.seg = 1; c.turnJ = stp.j; c.vmax = nl.k === 0 ? 15 : nl.k === 3 ? 9 : 12; c.v = Math.min(c.v, 6); continue; } }
+      if(c.bus){ c.busT = (c.busT || 0) + dt; if(c.busT % 34 > 27) vT = 0; }
       if(c.cleared && (!stp || stp.j !== c.cleared)){ if(c.cleared.occ === c) c.cleared.occ = null; c.cleared = null; }
       let vT = c.vmax;
       if(stp && ds < 60){ const j = stp.j, dl = ds - 8.2; let must = false;                                    // dl = distance to the stop line

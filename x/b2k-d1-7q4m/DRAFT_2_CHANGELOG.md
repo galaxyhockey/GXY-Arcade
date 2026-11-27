@@ -154,3 +154,14 @@ The first version laid roads and buildings over the hills. Now the ground is sha
 - Fixed by the book: Sam stays at school; the five leave by the back gym door and Matt drives; Zeke orders first; the sauce and menu opinions never change; Milo goes to the restroom and comes back; Sam meets Zeke and sets the Sunday hangout (no romance flag); Chris wins at PE with a comeback (Zeke starts 10–4 up, every possession must be made so it cannot be lost); the keg party Saturday is set up for M11. Chris stays grounded; nothing punishes or ungrounds anyone.
 - **Taco Bell** is now a walk-in restaurant on the map near Belleville West (counter, menu board, booths). Its free-roam menu and prices are GAME ORIGINAL.
 - Adaptation notes for the author: the locker talk plays at the 2nd-floor lockers, then cuts to the commons; the back gym door and both drives are cuts (Matt's car waits in the school lot; its colour is game original); the receipt shows $21.65, paid $22.00, change $0.35 (as the screenplay proposed, pending approval); each sauce argument starts on a prompt but always in the book's order so the rebuttals still line up.
+
+## Draft 2.3 — the world of 2003 (free roam)
+All free-roam content below is GAME ORIGINAL (no book canon added or changed). Real 2003 businesses are used by name.
+- Shops keep real hours and close at night (clerks go home); clerks remember regulars ("Back again?").
+- Two Blockbuster Videos built from the author's street photos: west end (N Belt W, standalone brick store, green mansard band, blue awning) and east end (Carlyle Ave strip mall, long blue awning, yellow pylon). Rentals, late fees, a returns drop box.
+- New: Streetside Records (CDs play on the bedroom boombox and a car CD stereo), Wehrenberg Cinemas (fall 2003 – summer 2004 releases by date), Belleville Bowl (lanes + arcade), St. Clair Square mall (food court, Electronics Boutique, Spencer's, Hot Topic, Journeys, Sprint), Belleville Auto Sales (used cars + savings goal), Splash Car Wash.
+- Skyview Drive-In on Fri/Sat nights; football Fridays; homecoming bonfire (Oct 9); July 4th fireworks at Schranz Park.
+- Pay phones, newspaper boxes, daily gas prices, snow that sticks + snow days, night sky with the real moon phase.
+- Car: dirt + car wash, low/flat tires, air pump, CD stereo (T), slicker on snow. Flip phone (C) with minutes and a monthly bill.
+- Cops with speed traps (warning, then $75), 25 hidden 2003 Cardinals cards, a random street event each day, Oakmont neighbours, chores, breakroom coworkers (small talk only), late-night drive-thru runs, parents reacting to tickets/purchases.
+- Traffic turns at junctions, walk signals, a school bus. Text speed setting, chapter cards, "Previously" recap, map button + open/closed shops, title-screen news ticker, unlockable shirt prints.

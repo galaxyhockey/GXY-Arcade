@@ -106,7 +106,7 @@ const TALK = { Zeke:[['Zeke', 'Bro I almost landed a kickflip today. Almost.'], 
   Milo:[['Milo', 'Do you even know what a DBQ is?'], ['Milo', 'I already finished next week’s homework. Don’t ask.'], ['Milo', 'General Tso’s chicken is the only thing keeping me sane.']] };
 const ACT = { Zeke:['Skate with Zeke (needs your board)', 45, 'We skated until Zeke ate it on the curb. He says it didn’t hurt. It hurt.'], Jax:['Grab food at China Garden ($5.95)', 40, 'Jax ordered the spiciest thing on the menu to prove a point. He cried. Point not proven.'],
   Matt:['Cart surf the Schnucks lot', 20, 'Matt rode a cart into a light pole. Ryan saw. Nobody tell Eric.'], Milo:['Get homework help', 60, 'Milo explained DBQs. I understood about 30 percent. That’s a personal best.'] };
-async function hangout(name, bonus){ const l = api.L(); if(G.flags.GROUNDING_ACTIVE){ await E.say([['', 'Dad would kill me if I left...']]); return; } l.fr = l.fr || {}; E.cut(true); if(bonus) await E.say([[name, 'Oh you actually showed up. Look at you.']]); const t = TALK[name][Math.random() * 3 | 0]; await E.say([t, ['Chris', ['Classic.', 'Dude.', 'No way.', 'Sure, man.'][Math.random() * 4 | 0]]]);
+async function hangout(name, bonus){ const l = api.L(); if(G.flags.GROUNDING_ACTIVE){ await E.say([['', 'Dad would kill me if I left...']]); return; } l.fr = l.fr || {}; E.cut(true); if(bonus) await E.say([[name, 'Oh you actually showed up. Look at you.']]); else if((l.fr[name] || 0) >= 8) await E.say([[name, ['My guy!', 'There he is.', 'Chris! Finally, someone normal.', 'Oh good, you’re here.'][Math.random() * 4 | 0]]]); else if((l.fr[name] || 0) < 0) await E.say([[name, 'Oh. It’s you.']]); const t = TALK[name][Math.random() * 3 | 0]; await E.say([t, ['Chris', ['Classic.', 'Dude.', 'No way.', 'Sure, man.'][Math.random() * 4 | 0]]]);
   const a = ACT[name], k = await E.choose([a[0], 'Just talk', 'Catch you later']);
   if(k === 0){ if(name === 'Zeke' && !l.owned?.includes('board')){ await E.say([['Zeke', 'Where’s your board, bro? Grab it off your porch.']]); }
     else if(name === 'Jax' && !api.pay(5.95)){ } else { await E.fade(true, 400); api.passTime(a[1]); await E.fade(false, 400); await E.say([['', a[2]]]); l.fr[name] = (l.fr[name] || 0) + 3; } }
@@ -127,7 +127,7 @@ async function aim(){ const l = api.L(); l.fr = l.fr || {}; const on = Object.ke
   api.save(); }
 // fines come straight out of Chris's cash; if he is short he owes the rest (cash goes negative until the next paycheck covers it)
 const watch = {};
-function fine(n, why){ const l = api.L(); if(G.t - (fine.t || -9) < 2.5) return; fine.t = G.t; l.cash -= n; api.save(); E.sfx('miss'); E.tone(880, 0, .18, 'square', .05); E.tone(660, .2, .22, 'square', .05); E.toast(`<b>${why}</b> &nbsp;−$${n.toFixed(2)}` + (l.cash < 0 ? `<br>You are broke. You owe Dad $${(-l.cash).toFixed(2)}.` : ''), 4200); }
+function fine(n, why){ const l = api.L(); if(G.t - (fine.t || -9) < 2.5) return; fine.t = G.t; l.cash -= n; G.parentNews && G.parentNews(/CRASH/.test(why) ? 'crash' : 'ticket'); api.save(); E.sfx('miss'); E.tone(880, 0, .18, 'square', .05); E.tone(660, .2, .22, 'square', .05); E.toast(`<b>${why}</b> &nbsp;−$${n.toFixed(2)}` + (l.cash < 0 ? `<br>You are broke. You owe Dad $${(-l.cash).toFixed(2)}.` : ''), 4200); }
 G.onCrash = av => { if(G.mission || !api || av < 8 || G.t - (G.onCrash.t || -99) < 10) return; G.onCrash.t = G.t; fine(Math.min(60, Math.round(av * 2.5)), 'CRASH: body shop bill'); };
 // GAME ORIGINAL: what the walk-in shops sell. [item, price, Chris's take, minutes it takes (meals), fills stamina]
 const SHOPS = {
@@ -142,7 +142,7 @@ const SHOPS = {
   'TACO BELL':{ who:'Cashier', hi:'Welcome to Taco Bell. What can I get you?', items:[['Mexican Pizza', 2.29, 'Pizza and a taco had a baby. I support it.', 15, 1], ['Beef Chalupa', 1.89, 'The shell is fried. The shell is perfect.', 12, 1], ['Cinnamon Twists', .99, 'Sugar air. Delicious sugar air.', 6, 1], ['Fountain drink', 1.19, 'Pink Lemonade. Obviously.', 4, 1]] },
   'FIRST NATIONAL BANK':{ who:'Teller', hi:'Good afternoon. How can I help you?' } };
 let shopN = [];
-async function useShop(s){ const c = SHOPS[s.name], l = api.L(); if(!c) return; E.cut(true); await E.say([[c.who, c.hi]]);
+async function useShop(s){ const c = SHOPS[s.name], l = api.L(); if(!c) return; if(G.shopOpen && !G.shopOpen(s.name)){ E.toast(`CLOSED · ${G.shopHours(s.name)}`, 2400); return; } E.cut(true); await E.say([[c.who, G.greet ? G.greet(s.name, c.hi) : c.hi]]);
   if(s.kind === 'bank'){ for(;;){ l.bank = l.bank || 0; const k = await E.choose(['Deposit $20', 'Deposit all my cash', 'Withdraw $20', 'Withdraw everything', 'Leave']); if(k === 4) break; const amt = k === 0 ? 20 : k === 1 ? Math.max(0, l.cash) : k === 2 ? Math.min(20, l.bank) : l.bank;
       if(k < 2){ if(amt <= 0 || l.cash < amt){ await E.say([[c.who, 'You do not have that much on you.']]); continue; } l.cash -= amt; l.bank += amt; } else { if(amt <= 0){ await E.say([[c.who, 'There is nothing in the account to withdraw.']]); continue; } l.bank -= amt; l.cash += amt; }
       api.save(); E.sfx('ok'); await E.say([[c.who, `All set. Your savings balance is ${api.money(l.bank)}.`]]); } E.cut(false); return; }
@@ -164,21 +164,23 @@ async function playPS2(){ const l = api.L(), games = GAMES.filter(g => g[2] !== 
   l.hi = l.hi || {}; const best = sc > (l.hi[id] || 0); if(best) l.hi[id] = sc; api.passTime(60); api.save(); E.toast(`${PLAY[id]}<br>SCORE ${sc}${best ? ' · NEW BEST' : ' · best ' + l.hi[id]} · an hour went by`, 4200); return true; }
 
 // ---------- gas station (west end of the plaza lot) ----------
+// gas moves day to day, roughly $1.45–1.80 like 2003–04
+export const gasPrice = dc => Math.round((1.52 + .07 * Math.sin((dc || 0) / 11) + .04 * Math.sin((dc || 0) / 3.3) + ((dc || 0) > 200 ? .18 : 0)) * 100) / 100;
 function gasStation(){ const pad = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), E.mat('#9a9890')); pad.rotation.x = -Math.PI / 2; pad.position.set(428, .03, 236); addObj(pad); E.mapRect(413, 224, 443, 248, '#7a7870');
   const can = mesh(new THREE.BoxGeometry(20, .6, 10), E.mat('#f2f2ee'), 428, 5.2, 236); const band = mesh(new THREE.BoxGeometry(20.2, .5, 10.2), E.mat('#1f4aa8'), 428, 4.75, 236);
   [[437, 240], [419, 240], [437, 232], [419, 232]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(.4, 5, .4), E.mat('#f2f2ee'), x, 2.5, z); G.colliders.push({ x0:x - .25, x1:x + .25, z0:z - .25, z1:z + .25, y0:0, y1:5 }); });
   [[432, 236], [424, 236]].forEach(([x, z]) => { mesh(new THREE.BoxGeometry(1, 1.8, .7), E.mat('#d8d8d0'), x, .9, z); mesh(new THREE.PlaneGeometry(.7, .4), new THREE.MeshBasicMaterial({ color:0x2a6a3a }), x, 1.4, z - .36).rotation.y = Math.PI; G.colliders.push({ x0:x - .55, x1:x + .55, z0:z - .4, z1:z + .4, y0:0, y1:1.8 }); });
   const kiosk = mesh(new THREE.BoxGeometry(8, 3.2, 5), E.mat('#e8e2d0'), 428, 1.6, 226); G.colliders.push({ x0:424, x1:432, z0:223.5, z1:228.5, y0:0, y1:3.2 });
   const sg = mesh(new THREE.PlaneGeometry(6, .9), new THREE.MeshBasicMaterial({ map:E.label('GAS · FOOD · ICE', { bg:'#1f4aa8', fg:'#fff', size:56, w:512, h:80 }) }), 428, 2.8, 228.55);
-  const pole = mesh(new THREE.BoxGeometry(.3, 6, .3), E.mat('#777'), 442, 3, 246); const ps = mesh(new THREE.BoxGeometry(2.4, 1.6, .2), new THREE.MeshBasicMaterial({ map:E.label(['UNLEADED', '$1.59⁹'], { bg:'#1a1a1a', fg:'#ffd030', size:44, w:256, h:170 }) }), 442, 6.4, 246);
+  const pole = mesh(new THREE.BoxGeometry(.3, 6, .3), E.mat('#777'), 442, 3, 246); const ps = mesh(new THREE.BoxGeometry(2.4, 1.6, .2), new THREE.MeshBasicMaterial({ map:E.label(['UNLEADED', '$' + gasPrice(api.L().dayCount).toFixed(2) + '⁹'], { bg:'#1a1a1a', fg:'#ffd030', size:44, w:256, h:170 }) }), 442, 6.4, 246); G.gasSign = ps;
   [[432, 237.4], [424, 237.4]].forEach(([x, z]) => api.add({ x, z, r:2, prompt:'FILL UP THE TANK', when:() => !G.mission && G.ctl && !G.driving && !G.uiOpen && G.chrisCar && Math.hypot(G.chrisCar.position.x - x, G.chrisCar.position.z - z) < 7,
-    use:async () => { const need = Math.max(0, 10 - G.gas), cost = Math.round(need * 1.599 * 100) / 100; if(need < .2){ E.toast('Tank’s already full.', 2000); return; } if(api.pay(cost)){ G.gas = 10; api.L().gas = 10; api.save(); E.toast(`Filled up: ${need.toFixed(1)} gal for ${api.money(cost)}.`, 2600); } } })); }
+    use:async () => { const need = Math.max(0, 10 - G.gas), cost = Math.round(need * (gasPrice(api.L().dayCount) + .009) * 100) / 100; if(need < .2){ E.toast('Tank’s already full.', 2000); return; } if(api.pay(cost)){ G.gas = 10; api.L().gas = 10; api.save(); E.toast(`Filled up: ${need.toFixed(1)} gal for ${api.money(cost)}.`, 2600); } } })); }
 
 // ---------- switch on ----------
 export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs = []; spawned = {}; clearJob(); const l = api.L();
   l.rep = l.rep ?? 50; l.owned = l.owned || []; G.gas = l.gas ?? 7.5; G.LIFE_API = api;
   shopN.forEach(n => n.remove()); shopN = (G.shops || []).filter(s => SHOPS[s.name]).map((s, i) => { api.add({ x:s.at[0], z:s.at[1], r:1.9, prompt:s.kind === 'bank' ? 'TALK TO THE TELLER' : s.kind === 'diner' ? 'ORDER FOOD' : 'BUY SOMETHING', use:() => useShop(s) });
-    return E.npc(SHOPS[s.name].who, api.randomLook(i % 2 === 0), s.clerk[0], s.clerk[1], { face:s.face, y:G.terrain ? G.terrain(s.clerk[0], s.clerk[1]) : 0 }); });
+    return Object.assign(E.npc(SHOPS[s.name].who, api.randomLook(i % 2 === 0), s.clerk[0], s.clerk[1], { face:s.face, y:G.terrain ? G.terrain(s.clerk[0], s.clerk[1]) : 0 }), { shop:s.name }); }); G.shopClerks = shopN;
   api.onOff(() => { shopN.forEach(n => n.remove()); shopN = []; });
   G.ext = { makePlans, aim, shopGames, playPS2, owned:k => (l.owned || []).includes(k), grounded:() => grounded(l), paper };
   // skateboard on the porch (free) — B hops on/off once you own it
@@ -196,7 +198,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
   lastDay = -1; if(!rain) rain = makeRain();
   G.onTime = k => { applyWeather(); windows(k); };
   const tick = dt => { if(G.mission) { if(rain) rain.visible = false; return; } const dc = l.dayCount || 0;
-    if(dc !== lastDay){ lastDay = dc; G.wx = weatherFor(dc); leaves(dc); buildDecor(dc); E.setTime(G.time || 'day'); G.dayShift = dateOf(dc).getMonth() >= 10 || (dateOf(dc).getMonth() === 9 && dateOf(dc).getDate() >= 26) ? 60 : 0;
+    if(dc !== lastDay){ lastDay = dc; if(G.gasSign) G.gasSign.material.map = E.label(['UNLEADED', '$' + gasPrice(dc).toFixed(2) + '⁹'], { bg:'#1a1a1a', fg:'#ffd030', size:44, w:256, h:170 }); G.wx = weatherFor(dc); leaves(dc); buildDecor(dc); E.setTime(G.time || 'day'); G.dayShift = dateOf(dc).getMonth() >= 10 || (dateOf(dc).getMonth() === 9 && dateOf(dc).getDate() >= 26) ? 60 : 0;
       if(l.groundedDay === dc) E.toast('GROUNDED TODAY: no phone, no car.', 3600); }
     // rain / snow particles around the camera (hidden indoors)
     const wet = G.wet, ind = indoors(); G.indoors = ind; rain.visible = wet && !ind; if(rain.visible){ const a = rain.geometry.attributes.position.array, sp = G.wx === 'snow' ? 3 : 22, c = G.cam.position;
@@ -215,7 +217,7 @@ export function extrasOn(a){ api = a; objs.forEach(o => G.scene.remove(o)); objs
       else { watch.k = null; watch.x = null; } }
     if(G.gas != null) l.gas = G.gas;
     // friends hanging out on their schedule + planned meetups + Friday ragers
-    const want = {}; schedule(l).forEach(([n, at]) => want[n] = { at }); const pl = l.plan, now = absNow(l);
+    const want = {}; schedule(l).filter(([n]) => ((l.fr || {})[n] || 0) > -3).forEach(([n, at]) => want[n] = { at }); const pl = l.plan, now = absNow(l);
     if(pl && now >= pl.at - 15 && now <= pl.at + 90) want[pl.who] = { at:PLACES[pl.place], plan:true }; if(pl && now > pl.at + 90){ l.flaked = pl.who; l.fr = l.fr || {}; l.fr[pl.who] = (l.fr[pl.who] || 0) - 2; l.plan = null; E.toast(`You flaked on ${pl.who}. They noticed.`, 3000); }
     const rager = dow === 5 && (l.min >= 1260 || l.min < 60) || dow === 6 && l.min < 60; if(rager) want.__rager = { at:[110, 129] };
     for(const k of Object.keys(spawned)) if(!want[k] && !['__kids', '__busy', '__tot'].includes(k)){ spawned[k].forEach(x => x.remove ? x.remove() : E.delInter(x)); delete spawned[k]; }
