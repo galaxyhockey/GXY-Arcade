@@ -267,9 +267,9 @@ export function buildTown({ road, tree, M, rep, leafM }){
   biz('BLOCKBUSTER VIDEO', 28, 20, -150, -560, { h:5.2, brick:'#8a5a3e', sbg:'#2f8ad8', sfg:'#f2c230', awn:null, trim:'#8a8478', cols:['#1a1a1a', '#22263a', '#3a2222', '#1f2f22', '#e8e8e8', '#2a2a2a', '#1a2a4a'], noCool:true, inside:'store', inSign:'NEW RELEASES' });
   biz('BLOCKBUSTER', 26, 20, 430, 300, { h:5, wall:'#b9b6ae', sbg:'#2a5fb8', sfg:'#f2c230', awn:null, trim:'#a8a59c', cols:['#1a1a1a', '#22263a', '#3a2222', '#1f2f22', '#e8e8e8', '#2a2a2a', '#1a2a4a'], noCool:true, inside:'store', inSign:'NEW RELEASES' });
   biz('STREETSIDE RECORDS', 22, 16, -320, 300, { h:4.6, brick:'#5a4a3e', sbg:'#111', sfg:'#e8c832', awn:'#8a2a2a', cols:['#1a1a1a', '#e8e8e8', '#3a3a3a', '#c8202a', '#2a2a2a'], noCool:true, inside:'store', inSign:'NEW MUSIC' });
-  biz('WEHRENBERG CINEMAS', 40, 26, 470, 200, { h:8, wall:'#d8cfc0', sbg:'#8a1a2a', sfg:'#f2d030', awn:'#8a1a2a', inside:'diner' });
+  biz('WEHRENBERG CINEMAS', 40, 26, 470, 200, { h:6.2, wall:'#d8cfc0', sbg:'#8a1a2a', sfg:'#f2d030', awn:'#8a1a2a', inside:'diner' });
   biz('BELLEVILLE BOWL', 40, 24, -200, 330, { h:6, wall:'#c8b89a', sbg:'#1a4a8a', sfg:'#fff', awn:'#c8202a', inside:'diner' });
-  biz('ST. CLAIR SQUARE', 56, 28, 470, 360, { h:8, wall:'#d6cbb6', sbg:'#5a2a2a', sfg:'#fff', awn:null, inside:'store', inSign:'FOOD COURT' });
+  biz('ST. CLAIR SQUARE', 56, 28, 470, 360, { h:6.2, wall:'#d6cbb6', sbg:'#5a2a2a', sfg:'#fff', awn:null, inside:'store', inSign:'FOOD COURT' });
   biz('BELLEVILLE AUTO SALES', 34, 20, 470, 120, { h:5, wall:'#f2f2f2', sbg:'#1b3a8a', sfg:'#fff', awn:'#c8202a', inside:'bank', inSign:'USED CARS' });
   biz('SPLASH CAR WASH', 22, 14, 440, 270, { h:4.4, wall:'#e8f2f8', sbg:'#2a8ad8', sfg:'#fff', awn:'#2a8ad8', noCool:true, inside:'store', inSign:'SELF SERVE' });
   waterTower('SWANSEA', 420, 320); waterTower('BELLEVILLE', -250, 120);
