@@ -138,9 +138,9 @@ export function buildTown({ road, tree, M, rep, leafM }){
       for(let u = a0 + 3; u < a1 - 2; u += 5) for(let v = 3; v < dep - 2; v += 5) F(1.6, .06, .5, lightM, u, h - .1, v);
       let spot, clerk; const bo = [];
       if(ins === 'store'){ const cu = a1 - 2.7; F(.9, 1, 4.6, wood, cu, 0, 4, 1); F(.5, .35, .5, dk('#3a3a40'), cu, 1, 3.2); F(.6, .5, .3, dk('#c8102e'), cu, 1, 5.2); spot = [cu - 1.3, 4]; clerk = [cu + 1.2, 4];
-        const cols = ['#c8102e', '#f2c230', '#2f6fb8', '#3f9a54', '#e87a2a', '#8a4ab0', '#f2f2f2']; let n = 0;
+        const cols = o.cols || ['#c8102e', '#f2c230', '#2f6fb8', '#3f9a54', '#e87a2a', '#8a4ab0', '#f2f2f2']; let n = 0;
         for(let u = a0 + 3.2; u < cu - 4; u += 3.4){ const v0 = 3.4, v1 = dep - 4.2, vm = (v0 + v1) / 2; F(1, 1.75, v1 - v0, dk('#d8d4c8'), u, 0, vm, 1); for(let k = 0; k < 3; k++) for(let v = v0 + .2; v < v1 - 1.3; v += 1.45) F(1.08, .3, 1.3, dk(cols[(n += 3) % cols.length]), u, .28 + k * .5, v + .65); F(1.2, .5, .9, dk(cols[n++ % cols.length]), u, 0, v0 - .7); }
-        F(len - 7, 2.2, .8, dk('#dfe6ea'), -2, 0, dep - TH - .42, 1); IW(len - 7.4, 1.7, winM, -2, 1.15, dep - TH - .84, rf + Math.PI); for(let u = a0 + 2; u < a1 - 6; u += 1.5) F(.08, 2.2, .06, steel, u, 0, dep - TH - .86);
+        if(!o.noCool){ F(len - 7, 2.2, .8, dk('#dfe6ea'), -2, 0, dep - TH - .42, 1); IW(len - 7.4, 1.7, winM, -2, 1.15, dep - TH - .84, rf + Math.PI); for(let u = a0 + 2; u < a1 - 6; u += 1.5) F(.08, 2.2, .06, steel, u, 0, dep - TH - .86); }
         IW(Math.min(8, len - 8), .9, sg(o.inSign || (/WALG/.test(o.name) ? 'PHARMACY' : 'COLD DRINKS'), { bg:o.sbg || '#c8102e', fg:o.sfg || '#fff', size:58, w:512, h:76 }), -2, 2.9, dep - TH - .86, rf + Math.PI); }
       else if(ins === 'diner'){ const cv = dep - 4.4; F(len - 5, 1.05, .9, dk('#c9c4b8'), 0, 0, cv, 1); F(len - 5, .06, 1, dk(o.sbg || '#c8102e'), 0, 1.05, cv); F(.5, .35, .5, dk('#3a3a40'), 1.5, 1.11, cv); F(len - 3, .95, .8, steel, 0, 0, dep - TH - .45, 1); F(1.2, 1.5, .7, steel, a0 + 2.2, .95, dep - TH - .45);
         IW(Math.min(10, len - 6), 1.1, sg('MENU', { bg:'#1c1c1c', fg:'#f2e9c8', size:70, w:512, h:76 }), 0, 3, dep - TH - .04, rf + Math.PI); spot = [0, cv - 1.3]; clerk = [0, cv + 1.2];
@@ -264,14 +264,14 @@ export function buildTown({ road, tree, M, rep, leafM }){
   biz("HARDEE'S", 28, 20, 150, 284, { h:4.6, wall:'#e2d6be', sbg:'#f2a020', sfg:'#fff', awn:'#c8102e' }); biz('DAIRY QUEEN', 26, 18, 240, 284, { h:4.4, wall:'#f2ece0', sbg:'#c8102e', sfg:'#fff', awn:'#c8102e' });
   biz('BELLEVILLE PANCAKE HOUSE', 32, 20, 330, 284, { h:4.8, brick:'#7a4a3a', awn:'#b8862a' }); biz('WALGREENS', 40, 22, -260, 284, { h:5.4, wall:'#d8d0c0', sbg:'#f2f2f2', sfg:'#c8102e', awn:null }); biz('TACO BELL', 26, 18, -205, -560, { h:4.6, wall:'#e6d3a3', sbg:'#5a2a82', sfg:'#ffd23f', awn:'#5a2a82', trim:'#7a4a9a' }); biz('FIRST NATIONAL BANK', 34, 20, -340, 220, { h:7, wall:'#c9c2b2', sbg:'#1b3a6a', sfg:'#fff', awn:null });
   // Draft 2.3: both real Blockbusters (west end on N Belt W near Belleville West, east end in the Carlyle Ave strip), plus the shops Chris would actually use in 2003
-  biz('BLOCKBUSTER VIDEO', 28, 20, -150, -560, { h:5.2, brick:'#8a5a3e', sbg:'#2f8ad8', sfg:'#f2c230', awn:null, trim:'#8a8478', inside:'store', inSign:'NEW RELEASES' });
-  biz('BLOCKBUSTER', 26, 20, 430, 300, { h:5, wall:'#b9b6ae', sbg:'#2a5fb8', sfg:'#f2c230', awn:null, trim:'#a8a59c', inside:'store', inSign:'NEW RELEASES' });
-  biz('STREETSIDE RECORDS', 22, 16, -320, 300, { h:4.6, brick:'#5a4a3e', sbg:'#111', sfg:'#e8c832', awn:'#8a2a2a', inside:'store', inSign:'NEW MUSIC' });
+  biz('BLOCKBUSTER VIDEO', 28, 20, -150, -560, { h:5.2, brick:'#8a5a3e', sbg:'#2f8ad8', sfg:'#f2c230', awn:null, trim:'#8a8478', cols:['#1a1a1a', '#22263a', '#3a2222', '#1f2f22', '#e8e8e8', '#2a2a2a', '#1a2a4a'], noCool:true, inside:'store', inSign:'NEW RELEASES' });
+  biz('BLOCKBUSTER', 26, 20, 430, 300, { h:5, wall:'#b9b6ae', sbg:'#2a5fb8', sfg:'#f2c230', awn:null, trim:'#a8a59c', cols:['#1a1a1a', '#22263a', '#3a2222', '#1f2f22', '#e8e8e8', '#2a2a2a', '#1a2a4a'], noCool:true, inside:'store', inSign:'NEW RELEASES' });
+  biz('STREETSIDE RECORDS', 22, 16, -320, 300, { h:4.6, brick:'#5a4a3e', sbg:'#111', sfg:'#e8c832', awn:'#8a2a2a', cols:['#1a1a1a', '#e8e8e8', '#3a3a3a', '#c8202a', '#2a2a2a'], noCool:true, inside:'store', inSign:'NEW MUSIC' });
   biz('WEHRENBERG CINEMAS', 40, 26, 470, 200, { h:8, wall:'#d8cfc0', sbg:'#8a1a2a', sfg:'#f2d030', awn:'#8a1a2a', inside:'diner' });
   biz('BELLEVILLE BOWL', 40, 24, -200, 330, { h:6, wall:'#c8b89a', sbg:'#1a4a8a', sfg:'#fff', awn:'#c8202a', inside:'diner' });
   biz('ST. CLAIR SQUARE', 56, 28, 470, 360, { h:8, wall:'#d6cbb6', sbg:'#5a2a2a', sfg:'#fff', awn:null, inside:'store', inSign:'FOOD COURT' });
   biz('BELLEVILLE AUTO SALES', 34, 20, 470, 120, { h:5, wall:'#f2f2f2', sbg:'#1b3a8a', sfg:'#fff', awn:'#c8202a', inside:'bank', inSign:'USED CARS' });
-  biz('SPLASH CAR WASH', 22, 14, 440, 270, { h:4.4, wall:'#e8f2f8', sbg:'#2a8ad8', sfg:'#fff', awn:'#2a8ad8', inside:'store', inSign:'SELF SERVE' });
+  biz('SPLASH CAR WASH', 22, 14, 440, 270, { h:4.4, wall:'#e8f2f8', sbg:'#2a8ad8', sfg:'#fff', awn:'#2a8ad8', noCool:true, inside:'store', inSign:'SELF SERVE' });
   waterTower('SWANSEA', 420, 320); waterTower('BELLEVILLE', -250, 120);
   // MetroLink platforms beside the light-rail line
   { const stn = (nm, nx, nz) => { let best = null; for(const p of railLines) for(let i = 1; i < p.length; i++){ const mx = (p[i][0] + p[i - 1][0]) / 2, mz = (p[i][1] + p[i - 1][1]) / 2, dd = Math.hypot(mx - nx, mz - nz); if(!best || dd < best.d) best = { d:dd, x:mx, z:mz, a:Math.atan2(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]) }; } if(!best || best.d > 400) return;
