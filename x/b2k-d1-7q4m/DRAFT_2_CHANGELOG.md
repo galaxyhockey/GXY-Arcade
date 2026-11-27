@@ -165,3 +165,11 @@ All free-roam content below is GAME ORIGINAL (no book canon added or changed). R
 - Car: dirt + car wash, low/flat tires, air pump, CD stereo (T), slicker on snow. Flip phone (C) with minutes and a monthly bill.
 - Cops with speed traps (warning, then $75), 25 hidden 2003 Cardinals cards, a random street event each day, Oakmont neighbours, chores, breakroom coworkers (small talk only), late-night drive-thru runs, parents reacting to tickets/purchases.
 - Traffic turns at junctions, walk signals, a school bus. Text speed setting, chapter cards, "Previously" recap, map button + open/closed shops, title-screen news ticker, unlockable shirt prints.
+
+### Draft 2.3 — audit pass (GAME ORIGINAL)
+- Driving: V cycles chase / far chase / hood / driver's seat (with a dashboard). Posted speed-limit sign on the HUD; 30 and 45 mph signs along streets; speed traps ticket you only when clearly over the limit.
+- Terrain: parking lots now follow the ground; new lots are draped on the terrain; snow only whitens the ground.
+- St. Clair Square is a real walk-in mall: seven storefronts (Sbarro, Orange Julius, Electronics Boutique, Spencer's, Hot Topic, Journeys, Sprint PCS) with clerks, food court, shoppers, info desk.
+- Realism: white Crown Vic police cars; pole signs and drive-thrus for the fast-food places; Steak 'n Shake checkered floor + stools, White Castle tile, Walgreens photo counter; closed shops go dark; parking lots fill by hour; mixed 2003 traffic; Phillips 66 and Shell; radio station IDs; Video World renamed Hollywood Video; back-wall signs (pharmacy, menus) now face into the room.
+- Finished: dial-up, Kazaa downloads (with fake files), burning mix CDs; AIM away messages that follow the story; scratch-offs (the clerk cards a 16-year-old); real bowling and Snake minigames; football crowds; Blockbuster Friday rush; drive-in lot fills up; Christmas lights on houses; turning cars blend smoothly; cards and street events avoid buildings; bought cars park at home.
+- Open world: MetroLink rides between stations; pickup 1-on-1 at Elmwood; skate tricks (Q on the board); disposable-camera landmark hunt (F) developed at Walgreens; Friday night cruising until the cop moves you along; monthly tornado-siren test; ice storms; snow-shoveling and flyer jobs; Sunday allowance for chores; weekly new releases.
